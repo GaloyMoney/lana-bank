@@ -4,10 +4,12 @@ import { gql } from "@apollo/client"
 import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 
 import LedgerTransactions from "../../../components/ledger-transactions"
 
 import DepositDetailsCard from "./details"
+import { DepositEventHistory } from "./event-history"
 
 import { NotFound } from "@/components/not-found"
 
@@ -64,7 +66,8 @@ function DepositPage({
   const { "deposit-id": publicId } = use(params)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
-
+  const tLedger = useTranslations("LedgerTransactions")
+  const tEventHistory = useTranslations("Deposits.DepositDetails.eventHistory")
 
   const { data, loading, error } = useGetDepositDetailsQuery({
     variables: { publicId },
@@ -95,9 +98,20 @@ function DepositPage({
   return (
     <main className="max-w-7xl m-auto space-y-2">
       <DepositDetailsCard deposit={data.depositByPublicId} />
-      <LedgerTransactions
-        ledgerTransactions={data.depositByPublicId.ledgerTransactions}
-      />
+      <Tabs defaultValue="ledger">
+        <TabsList>
+          <TabsTrigger value="ledger">{tLedger("title")}</TabsTrigger>
+          <TabsTrigger value="events">{tEventHistory("title")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="ledger">
+          <LedgerTransactions
+            ledgerTransactions={data.depositByPublicId.ledgerTransactions}
+          />
+        </TabsContent>
+        <TabsContent value="events">
+          <DepositEventHistory depositPublicId={publicId} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }

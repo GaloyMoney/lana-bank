@@ -1,8 +1,12 @@
-use async_graphql::*;
+use async_graphql::{connection::*, *};
+use es_entity::EsEntity as _;
 
 use crate::primitives::*;
 
-use super::terms::*;
+use super::{
+    event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+    terms::*,
+};
 
 use lana_app::terms_template::TermsTemplate as DomainTermsTemplate;
 
@@ -34,6 +38,16 @@ impl From<DomainTermsTemplate> for TermsTemplate {
 impl TermsTemplate {
     async fn name(&self) -> &str {
         &self.entity.name
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn user_can_update_terms_template(

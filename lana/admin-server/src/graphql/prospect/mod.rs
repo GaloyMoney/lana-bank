@@ -1,5 +1,9 @@
-use async_graphql::*;
+use async_graphql::{
+    connection::{Connection, EmptyFields},
+    *,
+};
 
+use crate::graphql::event_timeline::{self, EventTimelineCursor, EventTimelineEntry};
 use crate::primitives::*;
 use lana_app::public_id::PublicId;
 
@@ -98,6 +102,17 @@ impl Prospect {
             .await?
             .ok_or_else(|| async_graphql::Error::new("Party not found"))?;
         Ok(party.personal_info.clone())
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        use es_entity::EsEntity as _;
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn customer(

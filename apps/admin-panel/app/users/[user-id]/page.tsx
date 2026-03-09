@@ -4,6 +4,7 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import UserDetailsCard from "./details"
+import { UserEventHistory } from "./event-history"
 
 import { NotFound } from "@/components/not-found"
 
@@ -57,8 +58,9 @@ function UserPage({
   if (!data?.user) return <NotFound />
 
   return (
-    <main className="max-w-7xl m-auto">
+    <main className="max-w-7xl m-auto space-y-4">
       <UserDetailsCard user={data.user} />
+      <UserEventHistory userId={userId} />
     </main>
   )
 }

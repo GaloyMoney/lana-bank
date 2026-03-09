@@ -24,6 +24,9 @@ checksums:
     Common/submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
     Common/set: 72fc8d871f1d34fd81f0cae5c4505591
     Common/copiedToClipboard: 6a3c394a9a51646bad2f72d7311b242d
+    Common/showIds: 5045a50490a16d635ee9ddc9ed487973
+    Common/hideIds: 294d6648b615496a70e2bf3c589f5402
+    Common/showUser: 1dc496ab21f6c3711c871bb90043a9bd
     Common/copyId: b05ed1f0745e7f8ce758658681f61707
     Common/formatRule/noRulesDefined: c2fa3d9395c5cc7c85dde610f5b5b0aa
     Common/formatRule/allMembersMustApprove: c828e90335daa1fb324ee374d0b3936b
@@ -302,6 +305,14 @@ checksums:
     Prospects/ProspectDetails/kycStatus/actions/copyLink: 8d515c2c48d1060d9c87c8930ff5aa54
     Prospects/ProspectDetails/kycStatus/messages/copied: 6a3c394a9a51646bad2f72d7311b242d
     Prospects/ProspectDetails/kycStatus/messages/linkExpired: aa769fab936035ee0f36e9a7af2e24df
+    Prospects/ProspectDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Prospects/ProspectDetails/eventHistory/description: 4fd50c52c11d9b9ee0ccd646629550a2
+    Prospects/ProspectDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Prospects/ProspectDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Prospects/ProspectDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Prospects/ProspectDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Prospects/ProspectDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Prospects/ProspectDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Customers/title: c31a0dfd0d92496ba6f5673781db24ef
     Customers/description: 38b688862c41b7af092a0dc32856806f
     Customers/columns/email: e7f34943a0c2fb849db1839ff6ef5cb5
@@ -351,6 +362,7 @@ checksums:
     Customers/CustomerDetails/layout/tabs/pendingCreditFacilities: fadf95c8c9c8014ed31214fd803be427
     Customers/CustomerDetails/layout/tabs/creditFacilityProposals: 11a59748c3c3c261a3b99fd7afb4a023
     Customers/CustomerDetails/layout/tabs/documents: c3882fc98216636873ab9091f3453f0c
+    Customers/CustomerDetails/layout/tabs/events: d17179a947e9687dd2338ca524b26b63
     Customers/CustomerDetails/layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     Customers/CustomerDetails/layout/errors/error: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     Customers/CustomerDetails/details/title: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -468,6 +480,14 @@ checksums:
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/collateral: b0dcbdb652cb11f0d9eeb77666c8ca8d
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Customers/CustomerDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Customers/CustomerDetails/eventHistory/description: 31e9877703138cbaaa331069bb2684a3
+    Customers/CustomerDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Customers/CustomerDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Customers/CustomerDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Customers/CustomerDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Customers/CustomerDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Customers/CustomerDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     CreditFacilityProposals/title: 11a59748c3c3c261a3b99fd7afb4a023
     CreditFacilityProposals/description: 2a883823caefdfda33d041e80dba79f9
     CreditFacilityProposals/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -530,6 +550,8 @@ checksums:
     CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/buttons/confirm: 90930b51154032f119fa75c1bd422d8b
     CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/messages/success: 7b6da80b56fe7a049432cf9507bc6dc0
     CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/units/btc: af1432546a2c9130c9163b2269d5b60d
+    CreditFacilityProposals/ProposalDetails/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
+    CreditFacilityProposals/ProposalDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
     CreditFacilityProposals/ProposalDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilityProposals/ProposalDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     CreditFacilityProposals/ProposalDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771
@@ -570,6 +592,14 @@ checksums:
     CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/success/approved: 89c93cbd48969b58dcc9f3394749d1b8
     CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/success/denied: b1f0c37150ab481b80e4e7d85624e5b4
     CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/errors/unknown: 78f7a44c71ebfde7c70e68ba68573709
+    CreditFacilityProposals/ProposalDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    CreditFacilityProposals/ProposalDetails/eventHistory/description: 3828b919633371a53f28abf820fa52e4
+    CreditFacilityProposals/ProposalDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    CreditFacilityProposals/ProposalDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    CreditFacilityProposals/ProposalDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    CreditFacilityProposals/ProposalDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    CreditFacilityProposals/ProposalDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    CreditFacilityProposals/ProposalDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     CreditFacilities/title: 4283868565aa25d5513636fc6e12d49c
     CreditFacilities/description: 18da4507529b9ddbd3762bce95c86b8f
     CreditFacilities/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -691,6 +721,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/Layout/tabs/liquidations: d5e225f5b3204b60ff0dea79c7cc89f3
     CreditFacilities/CreditFacilityDetails/Layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
     CreditFacilities/CreditFacilityDetails/Layout/tabs/ledgerAccounts: da987c523a54fbda73beda300c3afc33
+    CreditFacilities/CreditFacilityDetails/Layout/tabs/events: d17179a947e9687dd2338ca524b26b63
     CreditFacilities/CreditFacilityDetails/Layout/errors/notFound: 58efcf2ecdcf18f0cd0253acc60eb812
     CreditFacilities/CreditFacilityDetails/Layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     CreditFacilities/CreditFacilityDetails/Liquidations/title: d5e225f5b3204b60ff0dea79c7cc89f3
@@ -713,6 +744,14 @@ checksums:
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/form/buttons/cancel: 2e2a849c2223911717de8caa2c71bade
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/form/buttons/processPayment: abca531a8db82a8f8fc7bbab1d98c29e
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/messages/success: 004f59aa191f2a9f7b70af04ae0383e8
+    CreditFacilities/CreditFacilityDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    CreditFacilities/CreditFacilityDetails/eventHistory/description: f7985df41f69590cbe331401ab17ee81
+    CreditFacilities/CreditFacilityDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    CreditFacilities/CreditFacilityDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    CreditFacilities/CreditFacilityDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    CreditFacilities/CreditFacilityDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    CreditFacilities/CreditFacilityDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    CreditFacilities/CreditFacilityDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     CreditFacilities/CreditFacilityDetails/CreditFacilityCollateralUpdate/dialog/title: 06f19aba66edfb6c92496cdab0726c26
     CreditFacilities/CreditFacilityDetails/CreditFacilityCollateralUpdate/dialog/description: 8da6b83f4be4f9e402df08affbad2882
     CreditFacilities/CreditFacilityDetails/CreditFacilityCollateralUpdate/dialog/confirmTitle: 3f43219bb3d114f51d1c11de8e5b363e
@@ -774,6 +813,14 @@ checksums:
     PendingCreditFacilities/PendingDetails/PendingCreditFacilityCollateralUpdate/form/buttons/proceedToConfirm: 2c629474c4950c84e593439656d1e80d
     PendingCreditFacilities/PendingDetails/PendingCreditFacilityCollateralUpdate/form/buttons/confirm: 90930b51154032f119fa75c1bd422d8b
     PendingCreditFacilities/PendingDetails/PendingCreditFacilityCollateralUpdate/messages/success: a2184243a49b63c6b75fd9605d264245
+    PendingCreditFacilities/PendingDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    PendingCreditFacilities/PendingDetails/eventHistory/description: f7985df41f69590cbe331401ab17ee81
+    PendingCreditFacilities/PendingDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    PendingCreditFacilities/PendingDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    PendingCreditFacilities/PendingDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    PendingCreditFacilities/PendingDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    PendingCreditFacilities/PendingDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    PendingCreditFacilities/PendingDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Disbursals/title: a926d10544d2ae0fd17a6e5f19a97080
     Disbursals/description: f30a0ae4b9689ffa342a98f6a2a0a32d
     Disbursals/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -807,6 +854,14 @@ checksums:
     Disbursals/DisbursalDetails/CreditFacilityDisbursalInitiate/buttons/submit: bc306441cd28c007b84ab52f4e00e5c9
     Disbursals/DisbursalDetails/CreditFacilityDisbursalInitiate/messages/success: d56a28a537a2df1b5b47edd805abb136
     Disbursals/DisbursalDetails/CreditFacilityDisbursalInitiate/messages/unknownError: 4fa139b42a7b7ed262b07bdda7cd2fb6
+    Disbursals/DisbursalDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Disbursals/DisbursalDetails/eventHistory/description: e96beb6d5341e55092e65987392be83b
+    Disbursals/DisbursalDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Disbursals/DisbursalDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Disbursals/DisbursalDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Disbursals/DisbursalDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Disbursals/DisbursalDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Disbursals/DisbursalDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Liquidations/title: d5e225f5b3204b60ff0dea79c7cc89f3
     Liquidations/description: 74d6c0d195c41309b8a6985b34771242
     Liquidations/table/headers/creditFacility: d96f87cd95639f3ba97b53f681f2fb5f
@@ -818,6 +873,8 @@ checksums:
     Liquidations/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
     Liquidations/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
     Liquidations/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
+    Liquidations/LiquidationDetails/tabs/details: 2a8bbb1bc386c059783f925aca2cc522
+    Liquidations/LiquidationDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
     Liquidations/LiquidationDetails/DetailsCard/title: 0c38d7f6db5a24f62b1ec41f068446e2
     Liquidations/LiquidationDetails/DetailsCard/details/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
     Liquidations/LiquidationDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
@@ -852,6 +909,14 @@ checksums:
     Liquidations/LiquidationDetails/recordPaymentReceived/buttons/submit: 3bd2bb18bcccd58281d50a1c27e2c48e
     Liquidations/LiquidationDetails/recordPaymentReceived/errors/invalidAmount: 0f12d47f42ab98e3aa278b858391a379
     Liquidations/LiquidationDetails/recordPaymentReceived/success: 52cc935144519afdf275e2e660e1e2bb
+    Liquidations/LiquidationDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Liquidations/LiquidationDetails/eventHistory/description: 3a31551287b65dfa3e104a400447b4ab
+    Liquidations/LiquidationDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Liquidations/LiquidationDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Liquidations/LiquidationDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Liquidations/LiquidationDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Liquidations/LiquidationDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Liquidations/LiquidationDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     TermsTemplates/title: 6830f63158657ad7dd84b3ec1f8e205b
     TermsTemplates/description: f67f513416852ad80a7087f51b2c6257
     TermsTemplates/table/headers/name: 9368b5a047572b6051f334af5aa76819
@@ -927,6 +992,14 @@ checksums:
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/errors/creationFailed: c274d3a05f0f2c3a4b8d6165142e76d6
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/errors/cvlOrderError: 4cc88b3e5bb4e60c23104274a5f9f0e4
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/success/created: 664792819420a872f906b20170b7c36b
+    TermsTemplates/TermsTemplateDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    TermsTemplates/TermsTemplateDetails/eventHistory/description: 635a8082acc02d99847ca07aafec3a21
+    TermsTemplates/TermsTemplateDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    TermsTemplates/TermsTemplateDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    TermsTemplates/TermsTemplateDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    TermsTemplates/TermsTemplateDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    TermsTemplates/TermsTemplateDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    TermsTemplates/TermsTemplateDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Policies/title: 212492478eb8dd9a506878148c9a4d7c
     Policies/description: 4a0685a3f081d2394df40fd807796ef1
     Policies/table/headers/approvalProcessType: 010f7d654190a93f0f175a9ec31fc4ad
@@ -934,6 +1007,8 @@ checksums:
     Policies/table/errors/general: b1cb4325de8e5a212d2b810b8ab5af27
     Policies/table/rules/committeeThreshold: 5dad8e40aa692364747105ccddd5098f
     Policies/table/rules/autoApprove: 124de4b4f5d2ab6e48dc2f3770f3ed99
+    Policies/PolicyDetails/tabs/members: 0932e80cba1e3e0a7f52bb67ff31da32
+    Policies/PolicyDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
     Policies/PolicyDetails/DetailsCard/title: bcc1b7f6b941378e63b0107ecd5844ae
     Policies/PolicyDetails/DetailsCard/fields/processType: 010f7d654190a93f0f175a9ec31fc4ad
     Policies/PolicyDetails/DetailsCard/fields/rule: 5b3477fee7a10f7883c68819c4e24fc4
@@ -949,11 +1024,21 @@ checksums:
     Policies/PolicyDetails/CommitteeAssignmentDialog/errors/assignmentFailed: 1379637f80e23b14f57dbbb2872725f8
     Policies/PolicyDetails/CommitteeAssignmentDialog/success/assigned: a638c89b03661838e2bca433e0b40905
     Policies/PolicyDetails/CommitteeAssignmentDialog/buttons/assign: d0c985e17d986b2d6798b4edd89c5d14
+    Policies/PolicyDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Policies/PolicyDetails/eventHistory/description: e77a427d219a3592d452df54454feb03
+    Policies/PolicyDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Policies/PolicyDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Policies/PolicyDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Policies/PolicyDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Policies/PolicyDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Policies/PolicyDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Committees/title: c5de346d62a6ad000e90b53d5f4e123c
     Committees/description: 552fae9e4331ea4945cfb7fbd2a0899d
     Committees/table/headers/name: 9368b5a047572b6051f334af5aa76819
     Committees/table/headers/created: 6045b4ff97fb7dca19ebadfa2e34a700
     Committees/table/headers/members: 0932e80cba1e3e0a7f52bb67ff31da32
+    Committees/CommitteeDetails/tabs/members: 0932e80cba1e3e0a7f52bb67ff31da32
+    Committees/CommitteeDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
     Committees/CommitteeDetails/CommitteeUsers/title: 0932e80cba1e3e0a7f52bb67ff31da32
     Committees/CommitteeDetails/CommitteeUsers/description: f87dbed6776b95098e46c29032b5abeb
     Committees/CommitteeDetails/CommitteeUsers/table/headers/email: e7f34943a0c2fb849db1839ff6ef5cb5
@@ -1000,6 +1085,14 @@ checksums:
     Committees/CommitteeDetails/AddUserCommitteeDialog/errors/selectUser: 2d82432bdbb741aa5fda16a49827c9ae
     Committees/CommitteeDetails/AddUserCommitteeDialog/errors/failed: 5569b14914bbbd72c5fb0bc04a64479e
     Committees/CommitteeDetails/AddUserCommitteeDialog/errors/general: dd9aef0a9c3638442bc8f6151feb33d6
+    Committees/CommitteeDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Committees/CommitteeDetails/eventHistory/description: c9dcd2d4a9003c873abcec8760a55b59
+    Committees/CommitteeDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Committees/CommitteeDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Committees/CommitteeDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Committees/CommitteeDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Committees/CommitteeDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Committees/CommitteeDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Custodians/title: c69cf14ea7b8332077f570c0c8b06585
     Custodians/description: c7e65e4c5a9ff87a593856f3a1cbb713
     Custodians/table/headers/name: 9368b5a047572b6051f334af5aa76819
@@ -1081,6 +1174,14 @@ checksums:
     DepositAccounts/DepositAccountDetails/transactions/table/types/freeze: e0c13eaed8d178ceb6d63a8fa7b50f5c
     DepositAccounts/DepositAccountDetails/transactions/table/types/unfreeze: ffa29e47d68fa27901dcf63ef7299eb2
     DepositAccounts/DepositAccountDetails/transactions/table/empty: 15f5fee32cbd24775ccda66e8ca83132
+    DepositAccounts/DepositAccountDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    DepositAccounts/DepositAccountDetails/eventHistory/description: 12dbb4dd8218302ece2e8643f3818044
+    DepositAccounts/DepositAccountDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    DepositAccounts/DepositAccountDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    DepositAccounts/DepositAccountDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    DepositAccounts/DepositAccountDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    DepositAccounts/DepositAccountDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    DepositAccounts/DepositAccountDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Deposits/title: 9518ad41e01682ba217001a93932bc1c
     Deposits/description: 40e7da49ff100d0519765fbbb93a5d32
     Deposits/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -1122,6 +1223,14 @@ checksums:
     Deposits/DepositDetails/DepositDetailsCard/buttons/viewDepositAccount: ec760c8120ec2d099ad62eecadb15fa7
     Deposits/DepositDetails/DepositDetailsCard/buttons/revert: 9666b5975a819f9047570234a7c409f8
     Deposits/DepositDetails/DepositDetailsCard/buttons/viewOnSumsub: 6303e12bdc05ab7fc71048f6dedbd318
+    Deposits/DepositDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Deposits/DepositDetails/eventHistory/description: 65c45e8727d2f5b24fc09cd585bff702
+    Deposits/DepositDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Deposits/DepositDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Deposits/DepositDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Deposits/DepositDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Deposits/DepositDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Deposits/DepositDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Withdrawals/title: 4f557c00affbc9ba31b380c6c9b39156
     Withdrawals/description: 4f7906ac0f68f580ad77ce69816d9b22
     Withdrawals/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -1181,6 +1290,14 @@ checksums:
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/revert: 9666b5975a819f9047570234a7c409f8
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/viewOnSumsub: 6303e12bdc05ab7fc71048f6dedbd318
+    Withdrawals/WithdrawDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Withdrawals/WithdrawDetails/eventHistory/description: e82fd6436bc0c18660ccca1aa55ee6b1
+    Withdrawals/WithdrawDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Withdrawals/WithdrawDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Withdrawals/WithdrawDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Withdrawals/WithdrawDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Withdrawals/WithdrawDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Withdrawals/WithdrawDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Withdrawals/WithdrawalInitiateDialog/title: 0c0c54cd536cb862be7e3c3bdb64745e
     Withdrawals/WithdrawalInitiateDialog/description: 6a9a298fc0df7f3eff2d0fd83742e86d
     Withdrawals/WithdrawalInitiateDialog/creatingFor: 84d0d42f142bf61d2b619d6dad3151ef
@@ -1252,6 +1369,14 @@ checksums:
     Users/userDetails/fields/role: 53743bbb6ca938f5b893552e839d067f
     Users/userDetails/noRolesAssigned: ad1111553e91d0fbd238772ba57e56ab
     Users/userDetails/updateRole: 365448e14f736c954e16abea616d4284
+    Users/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Users/eventHistory/description: 2410f58655cb814a4446555b48e36834
+    Users/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Users/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Users/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Users/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Users/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Users/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Users/updateRole/title: 365448e14f736c954e16abea616d4284
     Users/updateRole/description: c506d28cd2a9aa4d3fe3e17f9df0e2ca
     Users/updateRole/roleLabel: 53743bbb6ca938f5b893552e839d067f
@@ -1734,6 +1859,14 @@ checksums:
     RolesAndPermissions/roleDetails/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     RolesAndPermissions/roleDetails/permissionSets: 2160be68b1d6b6577e64634e9feba2ed
     RolesAndPermissions/roleDetails/editRole: b5c3ab76d07ed0d4603b2025efffc025
+    RolesAndPermissions/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    RolesAndPermissions/eventHistory/description: aa7ffa10306436638400d7e0525c4061
+    RolesAndPermissions/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    RolesAndPermissions/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    RolesAndPermissions/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    RolesAndPermissions/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    RolesAndPermissions/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    RolesAndPermissions/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Auth/IdleSessionDialog/title: 79bc2519d69e54e889036ac6b7d5700c
     Auth/IdleSessionDialog/description: 187addc99d1c3cec67cab0b7c32415df
     Auth/IdleSessionDialog/buttons/logout: 9a236bb8f8bec867ec0d0950d38bcc71

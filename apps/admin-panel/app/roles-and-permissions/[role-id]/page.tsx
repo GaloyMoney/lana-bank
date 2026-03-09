@@ -5,6 +5,7 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import { RoleDetailsCard } from "./details"
+import { RoleEventHistory } from "./event-history"
 
 import { NotFound } from "@/components/not-found"
 
@@ -58,8 +59,9 @@ function RolePage({
   if (!data?.role) return <NotFound />
 
   return (
-    <main className="max-w-7xl m-auto">
+    <main className="max-w-7xl m-auto space-y-4">
       <RoleDetailsCard role={data.role} />
+      <RoleEventHistory roleId={roleId} />
     </main>
   )
 }

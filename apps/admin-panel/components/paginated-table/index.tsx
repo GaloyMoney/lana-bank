@@ -77,6 +77,7 @@ interface PaginatedTableProps<T> {
   style?: "compact" | "comfortable"
   noDataText?: string
   subRows?: (record: T) => T[]
+  cellClassName?: string
 }
 
 const PaginatedTable = <T,>({
@@ -94,6 +95,7 @@ const PaginatedTable = <T,>({
   style = "comfortable",
   noDataText,
   subRows,
+  cellClassName,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const isMobile = useBreakpointDown("md")
   const t = useTranslations("PaginatedTable")
@@ -637,11 +639,11 @@ const PaginatedTable = <T,>({
                     {columns.map((col, colIdx) => (
                       <TableCell
                         key={`${col.key as string}-${colIdx}`}
-                        className={
+                        className={`${
                           style === "comfortable"
                             ? "whitespace-normal wrap-break-word"
                             : ""
-                        }
+                        } ${cellClassName || ""}`}
                       >
                         {col.render
                           ? col.render(node[col.key], node)

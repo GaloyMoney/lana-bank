@@ -2274,9 +2274,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.10.26"
+version = "0.10.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b9d09494d4e5ff8e466d7a3c321f68298f3b4ff9c3c2dab8cc8637245062340"
+checksum = "d99d307ef96f2d79218c8d39a1da3fb5e8f1439a509558fb87aef0721547b416"
 dependencies = [
  "async-graphql",
  "base64",
@@ -2301,9 +2301,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.10.26"
+version = "0.10.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e147fb9e4c77692c5c237041ad4de7d85faaf23039089c2bc3d2ec9550375d1e"
+checksum = "ffe53aed1d1a568b4a487be142eb084eeb5e36f6375671a64af02340a09a5654"
 dependencies = [
  "convert_case",
  "darling 0.23.0",

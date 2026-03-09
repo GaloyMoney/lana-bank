@@ -22,6 +22,7 @@ import {
   useRoleAddPermissionSetsMutation,
   useRoleRemovePermissionSetsMutation,
   useRoleQuery,
+  RoleEventHistoryDocument,
 } from "@/lib/graphql/generated"
 import { usePermissionDisplay } from "@/hooks/use-permission-display"
 
@@ -74,10 +75,14 @@ export default function EditRolePage({
     })
 
   const [addPermissionSets, { loading: addingPermissions }] =
-    useRoleAddPermissionSetsMutation()
+    useRoleAddPermissionSetsMutation({
+      refetchQueries: [RoleEventHistoryDocument],
+    })
 
   const [removePermissionSet, { loading: removingPermission }] =
-    useRoleRemovePermissionSetsMutation()
+    useRoleRemovePermissionSetsMutation({
+      refetchQueries: [RoleEventHistoryDocument],
+    })
 
   const permissionSets =
     permissionSetsData?.permissionSets.edges.map((edge) => edge.node) || []

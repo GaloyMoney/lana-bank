@@ -23,6 +23,9 @@
     "submit": "Enviar",
     "set": "Establecer",
     "copiedToClipboard": "Copiado al portapapeles",
+    "showIds": "Mostrar IDs",
+    "hideIds": "Ocultar IDs",
+    "showUser": "Mostrar usuario",
     "copyId": "Copiar ID",
     "formatRule": {
       "noRulesDefined": "No hay reglas definidas",
@@ -421,6 +424,18 @@
           "copied": "Copiado al portapapeles",
           "linkExpired": "Link may have expired — consider refreshing"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this prospect",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -484,7 +499,8 @@
           "creditFacilities": "Líneas de Crédito",
           "pendingCreditFacilities": "Líneas de Crédito Pendientes",
           "creditFacilityProposals": "Propuestas de Línea de Crédito",
-          "documents": "Documentos"
+          "documents": "Documentos",
+          "events": "Eventos"
         },
         "errors": {
           "loading": "Cargando...",
@@ -699,6 +715,18 @@
             "createdAt": "Fecha de registro"
           }
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en este cliente",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Auditoría",
+          "recordedAt": "Registrado el"
+        }
       }
     }
   },
@@ -804,6 +832,10 @@
       }
     },
     "ProposalDetails": {
+      "tabs": {
+        "repaymentPlan": "Plan de reembolso",
+        "events": "Eventos"
+      },
       "CollateralCard": {
         "title": "Garantía",
         "details": {
@@ -870,6 +902,18 @@
         },
         "errors": {
           "unknown": "Ocurrió un error al procesar la aprobación del cliente"
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta propuesta",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Auditoría",
+          "recordedAt": "Registrado el"
         }
       }
     }
@@ -1064,7 +1108,8 @@
           "disbursals": "Desembolsos",
           "liquidations": "Liquidaciones",
           "repaymentPlan": "Plan de Pago",
-          "ledgerAccounts": "Cuentas de Libro Mayor"
+          "ledgerAccounts": "Cuentas de Libro Mayor",
+          "events": "Eventos"
         },
         "errors": {
           "notFound": "No encontrado",
@@ -1113,6 +1158,18 @@
         },
         "messages": {
           "success": "Pago parcial procesado exitosamente"
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta línea de crédito",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Entrada de auditoría",
+          "recordedAt": "Registrado en"
         }
       },
       "CreditFacilityCollateralUpdate": {
@@ -1229,6 +1286,18 @@
         "messages": {
           "success": "Garantía de línea de crédito pendiente actualizada exitosamente"
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta línea de crédito",
+        "emptyMessage": "No hay eventos registrados",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Entrada de auditoría",
+          "recordedAt": "Fecha de registro"
+        }
       }
     }
   },
@@ -1298,6 +1367,18 @@
           "success": "Desembolso iniciado exitosamente",
           "unknownError": "Ocurrió un error desconocido"
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en este desembolso",
+        "emptyMessage": "No hay eventos registrados",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Entrada de auditoría",
+          "recordedAt": "Fecha de registro"
+        }
       }
     }
   },
@@ -1322,6 +1403,10 @@
       "general": "Ocurrió un error"
     },
     "LiquidationDetails": {
+      "tabs": {
+        "details": "Detalles",
+        "events": "Eventos"
+      },
       "DetailsCard": {
         "title": "Liquidación",
         "details": {
@@ -1389,6 +1474,18 @@
           "invalidAmount": "Por favor ingrese una cantidad válida mayor que 0"
         },
         "success": "Pago recibido registrado exitosamente"
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta liquidación",
+        "emptyMessage": "No hay eventos registrados",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Entrada de auditoría",
+          "recordedAt": "Fecha de registro"
+        }
       }
     }
   },
@@ -1504,6 +1601,18 @@
         "success": {
           "created": "Plantilla de Términos creada exitosamente"
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta plantilla de términos",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Registro de auditoría",
+          "recordedAt": "Fecha de registro"
+        }
       }
     }
   },
@@ -1524,6 +1633,10 @@
       }
     },
     "PolicyDetails": {
+      "tabs": {
+        "members": "Miembros",
+        "events": "Eventos"
+      },
       "DetailsCard": {
         "title": "Política",
         "fields": {
@@ -1556,6 +1669,18 @@
         "buttons": {
           "assign": "Asignar Comité"
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta política",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Registro de auditoría",
+          "recordedAt": "Fecha de registro"
+        }
       }
     }
   },
@@ -1570,6 +1695,10 @@
       }
     },
     "CommitteeDetails": {
+      "tabs": {
+        "members": "Miembros",
+        "events": "Eventos"
+      },
       "CommitteeUsers": {
         "title": "Miembros",
         "description": "Miembros en este comité",
@@ -1656,6 +1785,18 @@
           "selectUser": "Por favor seleccione un usuario",
           "failed": "Error al añadir usuario al comité. Por favor intente de nuevo.",
           "general": "Ocurrió un error inesperado. Por favor intente de nuevo."
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en este comité",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Registro de auditoría",
+          "recordedAt": "Fecha de registro"
         }
       }
     }
@@ -1794,6 +1935,18 @@
           },
           "empty": "No se encontraron transacciones"
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en esta cuenta de depósito",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Auditoría",
+          "recordedAt": "Registrado el"
+        }
       }
     }
   },
@@ -1874,6 +2027,18 @@
           "viewDepositAccount": "Ver Cuenta de Depósito",
           "revert": "Revertir",
           "viewOnSumsub": "Ver en Sumsub"
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en este depósito",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Auditoría",
+          "recordedAt": "Registrado el"
         }
       }
     }
@@ -1983,6 +2148,18 @@
           "deny": "Rechazar",
           "revert": "Revertir",
           "viewOnSumsub": "Ver en Sumsub"
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en este retiro",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Auditoría",
+          "recordedAt": "Registrado el"
         }
       }
     },
@@ -2130,6 +2307,18 @@
       },
       "noRolesAssigned": "Sin roles asignados",
       "updateRole": "Actualizar rol"
+    },
+    "eventHistory": {
+      "title": "Eventos",
+      "description": "Cronología de cambios realizados en este usuario",
+      "emptyMessage": "No se registraron eventos",
+      "columns": {
+        "event": "Evento",
+        "details": "Detalles",
+        "subject": "Realizado por",
+        "auditEntryId": "Auditoría",
+        "recordedAt": "Registrado el"
+      }
     },
     "updateRole": {
       "title": "Actualizar rol",
@@ -2812,6 +3001,18 @@
       "createdAt": "Fecha de registro",
       "permissionSets": "Permisos",
       "editRole": "Editar rol"
+    },
+    "eventHistory": {
+      "title": "Eventos",
+      "description": "Cronología de cambios realizados en este rol",
+      "emptyMessage": "No se registraron eventos",
+      "columns": {
+        "event": "Evento",
+        "details": "Detalles",
+        "subject": "Realizado por",
+        "auditEntryId": "Auditoría",
+        "recordedAt": "Registrado el"
+      }
     }
   },
   "Auth": {

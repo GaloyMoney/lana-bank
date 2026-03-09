@@ -1,10 +1,14 @@
-use async_graphql::*;
-
-use es_entity::Sort;
+use async_graphql::{connection::*, *};
+use es_entity::{EsEntity as _, Sort};
 
 use crate::primitives::*;
 
-use super::{access::User, loader::LanaDataLoader, primitives::SortDirection};
+use super::{
+    access::User,
+    event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+    loader::LanaDataLoader,
+    primitives::SortDirection,
+};
 
 pub use lana_app::governance::{
     Committee as DomainCommittee, CommitteesSortBy as DomainCommitteesSortBy,
@@ -35,6 +39,16 @@ impl From<DomainCommittee> for Committee {
 impl Committee {
     async fn name(&self) -> &str {
         &self.entity.name
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn current_members(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {

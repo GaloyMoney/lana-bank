@@ -25,7 +25,11 @@ import { Label } from "@lana/web/ui/label"
 
 import { PermissionsDisplay } from "./permissions-display"
 
-import { useRolesQuery, useUserUpdateRoleMutation } from "@/lib/graphql/generated"
+import {
+  useRolesQuery,
+  useUserUpdateRoleMutation,
+  UserEventHistoryDocument,
+} from "@/lib/graphql/generated"
 
 gql`
   mutation UserUpdateRole($input: UserUpdateRoleInput!) {
@@ -63,7 +67,9 @@ export function UpdateUserRoleDialog({
 
   const roles = data?.roles.edges.map((edge) => edge.node) || []
 
-  const [assignRole, { loading: assignLoading }] = useUserUpdateRoleMutation()
+  const [assignRole, { loading: assignLoading }] = useUserUpdateRoleMutation({
+    refetchQueries: [UserEventHistoryDocument],
+  })
   const isLoading = rolesLoading || assignLoading
 
   useEffect(() => {

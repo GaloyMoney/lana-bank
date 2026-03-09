@@ -1,9 +1,11 @@
-use async_graphql::*;
+use async_graphql::{connection::*, *};
+use es_entity::EsEntity as _;
 
 use crate::{
     graphql::{
         custody::Custodian,
         customer::*,
+        event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
         loader::LanaDataLoader,
         terms::{TermValues, TermsInput},
     },
@@ -67,6 +69,16 @@ impl CreditFacilityProposal {
             .repayment_plans()
             .find_for_credit_facility_id(sub, self.entity.id)
             .await?)
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn approval_process(

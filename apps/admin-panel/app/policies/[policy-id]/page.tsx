@@ -4,7 +4,10 @@ import { gql } from "@apollo/client"
 
 import { useTranslations } from "next-intl"
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
+
 import { PolicyDetailsCard } from "./details"
+import { PolicyEventHistory } from "./event-history"
 
 import { NotFound } from "@/components/not-found"
 
@@ -47,6 +50,7 @@ function PolicyPage({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const { setPolicy } = useCreateContext()
   const navTranslations = useTranslations("Sidebar.navItems")
+  const tTabs = useTranslations("Policies.PolicyDetails.tabs")
 
   const processTypeLabel = useProcessTypeLabel()
 
@@ -83,13 +87,24 @@ function PolicyPage({
   if (!data?.policy) return <NotFound />
 
   return (
-    <main className="max-w-7xl m-auto">
+    <main className="max-w-7xl m-auto space-y-2">
       <PolicyDetailsCard policy={data.policy} />
-      <div className="flex flex-col mt-4">
+      <Tabs defaultValue={data.policy.rules.__typename === "CommitteeApproval" ? "members" : "events"}>
+        <TabsList>
+          {data.policy.rules.__typename === "CommitteeApproval" && (
+            <TabsTrigger value="members">{tTabs("members")}</TabsTrigger>
+          )}
+          <TabsTrigger value="events">{tTabs("events")}</TabsTrigger>
+        </TabsList>
         {data.policy.rules.__typename === "CommitteeApproval" && (
-          <CommitteeUsers showRemove={false} committee={data.policy.rules.committee} />
+          <TabsContent value="members">
+            <CommitteeUsers showRemove={false} committee={data.policy.rules.committee} />
+          </TabsContent>
         )}
-      </div>
+        <TabsContent value="events">
+          <PolicyEventHistory policyId={policyId} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }

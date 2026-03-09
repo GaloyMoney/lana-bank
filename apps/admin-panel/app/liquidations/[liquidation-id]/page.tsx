@@ -2,11 +2,14 @@
 
 import { use } from "react"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 
 import { LiquidationDetailsCard } from "./details"
 import { LiquidationCreditFacilityCard } from "./credit-facility-card"
 import { LiquidationCollateralSentTable } from "./collateral-sent-table"
+import { LiquidationEventHistory } from "./event-history"
 import { LiquidationProceedsReceivedTable } from "./payment-received-table"
 
 import { NotFound } from "@/components/not-found"
@@ -103,10 +106,10 @@ function LiquidationPage({
   }>
 }) {
   const { "liquidation-id": liquidationId } = use(params)
+  const tTabs = useTranslations("Liquidations.LiquidationDetails.tabs")
   const { data, loading, error } = useGetLiquidationDetailsQuery({
     variables: { liquidationId },
   })
-
 
   if (loading) {
     return <DetailsPageSkeleton tabs={0} detailItems={6} tabsCards={0} />
@@ -122,14 +125,25 @@ function LiquidationPage({
           creditFacility={data.liquidation.collateral.creditFacility}
         />
       )}
-      <div className="flex flex-col md:flex-row gap-2 items-start">
-        <LiquidationCollateralSentTable
-          collateralSent={data.liquidation.sentCollateral}
-        />
-        <LiquidationProceedsReceivedTable
-          paymentsReceived={data.liquidation.receivedProceeds}
-        />
-      </div>
+      <Tabs defaultValue="details">
+        <TabsList>
+          <TabsTrigger value="details">{tTabs("details")}</TabsTrigger>
+          <TabsTrigger value="events">{tTabs("events")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="details">
+          <div className="flex flex-col md:flex-row gap-2 items-start">
+            <LiquidationCollateralSentTable
+              collateralSent={data.liquidation.sentCollateral}
+            />
+            <LiquidationProceedsReceivedTable
+              paymentsReceived={data.liquidation.receivedProceeds}
+            />
+          </div>
+        </TabsContent>
+        <TabsContent value="events">
+          <LiquidationEventHistory liquidationId={liquidationId} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }

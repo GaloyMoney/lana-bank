@@ -4,10 +4,12 @@ import { gql } from "@apollo/client"
 import { useEffect, use } from "react"
 import { useTranslations } from "next-intl"
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 
 import LedgerTransactions from "../../../components/ledger-transactions"
 
 import WithdrawalDetailsCard from "./details"
+import { WithdrawalEventHistory } from "./event-history"
 
 import { NotFound } from "@/components/not-found"
 
@@ -93,7 +95,8 @@ function WithdrawalPage({
   const { setWithdraw } = useCreateContext()
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
-
+  const tLedger = useTranslations("LedgerTransactions")
+  const tEventHistory = useTranslations("Withdrawals.WithdrawDetails.eventHistory")
 
   const { data, loading, error } = useGetWithdrawalDetailsQuery({
     variables: { publicId },
@@ -136,9 +139,20 @@ function WithdrawalPage({
   return (
     <main className="max-w-7xl m-auto space-y-2">
       <WithdrawalDetailsCard withdrawal={data.withdrawalByPublicId} />
-      <LedgerTransactions
-        ledgerTransactions={data.withdrawalByPublicId.ledgerTransactions}
-      />
+      <Tabs defaultValue="ledger">
+        <TabsList>
+          <TabsTrigger value="ledger">{tLedger("title")}</TabsTrigger>
+          <TabsTrigger value="events">{tEventHistory("title")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="ledger">
+          <LedgerTransactions
+            ledgerTransactions={data.withdrawalByPublicId.ledgerTransactions}
+          />
+        </TabsContent>
+        <TabsContent value="events">
+          <WithdrawalEventHistory withdrawalPublicId={publicId} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }

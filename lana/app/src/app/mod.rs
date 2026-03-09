@@ -74,6 +74,7 @@ pub struct LanaApp {
 }
 
 impl LanaApp {
+    #[es_entity::es_event_context]
     #[record_error_severity]
     #[instrument(name = "lana_app.init", skip_all)]
     pub async fn init(

@@ -23,6 +23,9 @@
     "submit": "Submit",
     "set": "Set",
     "copiedToClipboard": "Copied to clipboard",
+    "showIds": "Show IDs",
+    "hideIds": "Hide IDs",
+    "showUser": "Show user",
     "copyId": "Copy ID",
     "formatRule": {
       "noRulesDefined": "No rules defined",
@@ -421,6 +424,18 @@
           "copied": "Copied to clipboard",
           "linkExpired": "Link may have expired — consider refreshing"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this prospect",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -484,7 +499,8 @@
           "creditFacilities": "Credit Facilities",
           "pendingCreditFacilities": "Pending Credit Facilities",
           "creditFacilityProposals": "Credit Facility Proposals",
-          "documents": "Documents"
+          "documents": "Documents",
+          "events": "Events"
         },
         "errors": {
           "loading": "Loading...",
@@ -699,6 +715,18 @@
             "createdAt": "Created At"
           }
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this customer",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -804,6 +832,10 @@
       }
     },
     "ProposalDetails": {
+      "tabs": {
+        "repaymentPlan": "Repayment Plan",
+        "events": "Events"
+      },
       "CollateralCard": {
         "title": "Collateral",
         "details": {
@@ -870,6 +902,18 @@
         },
         "errors": {
           "unknown": "An error occurred while processing the customer approval"
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this proposal",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       }
     }
@@ -1064,7 +1108,8 @@
           "disbursals": "Disbursals",
           "liquidations": "Liquidations",
           "repaymentPlan": "Repayment Plan",
-          "ledgerAccounts": "Ledger Accounts"
+          "ledgerAccounts": "Ledger Accounts",
+          "events": "Events"
         },
         "errors": {
           "notFound": "Not found",
@@ -1113,6 +1158,18 @@
         },
         "messages": {
           "success": "Partial payment processed successfully"
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this credit facility",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       },
       "CreditFacilityCollateralUpdate": {
@@ -1229,6 +1286,18 @@
         "messages": {
           "success": "Pending credit facility collateral updated successfully"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this credit facility",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -1298,6 +1367,18 @@
           "success": "Disbursal initiated successfully",
           "unknownError": "An unknown error occurred"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this disbursal",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -1322,6 +1403,10 @@
       "general": "An error occurred"
     },
     "LiquidationDetails": {
+      "tabs": {
+        "details": "Details",
+        "events": "Events"
+      },
       "DetailsCard": {
         "title": "Liquidation",
         "details": {
@@ -1389,6 +1474,18 @@
           "invalidAmount": "Please enter a valid amount greater than 0"
         },
         "success": "Payment received recorded successfully"
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this liquidation",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -1504,6 +1601,18 @@
         "success": {
           "created": "Terms Template created successfully"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this terms template",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -1524,6 +1633,10 @@
       }
     },
     "PolicyDetails": {
+      "tabs": {
+        "members": "Members",
+        "events": "Events"
+      },
       "DetailsCard": {
         "title": "Policy",
         "fields": {
@@ -1556,6 +1669,18 @@
         "buttons": {
           "assign": "Assign Committee"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this policy",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -1570,6 +1695,10 @@
       }
     },
     "CommitteeDetails": {
+      "tabs": {
+        "members": "Members",
+        "events": "Events"
+      },
       "CommitteeUsers": {
         "title": "Members",
         "description": "Members in this committee",
@@ -1656,6 +1785,18 @@
           "selectUser": "Please select a user",
           "failed": "Failed to add user to committee. Please try again.",
           "general": "An unexpected error occurred. Please try again."
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this committee",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       }
     }
@@ -1794,6 +1935,18 @@
           },
           "empty": "No transactions found"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this deposit account",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -1874,6 +2027,18 @@
           "viewDepositAccount": "View Deposit Account",
           "revert": "Revert",
           "viewOnSumsub": "View on Sumsub"
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this deposit",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       }
     }
@@ -1983,6 +2148,18 @@
           "deny": "Deny",
           "revert": "Revert",
           "viewOnSumsub": "View on Sumsub"
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this withdrawal",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       }
     },
@@ -2130,6 +2307,18 @@
       },
       "noRolesAssigned": "No roles assigned",
       "updateRole": "Update Role"
+    },
+    "eventHistory": {
+      "title": "Events",
+      "description": "Timeline of changes made to this user",
+      "emptyMessage": "No events recorded",
+      "columns": {
+        "event": "Event",
+        "details": "Details",
+        "subject": "Performed By",
+        "auditEntryId": "Audit Entry",
+        "recordedAt": "Recorded At"
+      }
     },
     "updateRole": {
       "title": "Update Role",
@@ -2812,6 +3001,18 @@
       "createdAt": "Created At",
       "permissionSets": "Permissions",
       "editRole": "Edit Role"
+    },
+    "eventHistory": {
+      "title": "Events",
+      "description": "Timeline of changes made to this role",
+      "emptyMessage": "No events recorded",
+      "columns": {
+        "event": "Event",
+        "details": "Details",
+        "subject": "Performed By",
+        "auditEntryId": "Audit Entry",
+        "recordedAt": "Recorded At"
+      }
     }
   },
   "Auth": {

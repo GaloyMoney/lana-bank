@@ -1,7 +1,13 @@
-use async_graphql::*;
+use async_graphql::{connection::*, *};
+use es_entity::EsEntity as _;
 
 use crate::{
-    graphql::{accounting::LedgerAccount, credit_facility::CreditFacility, loader::LanaDataLoader},
+    graphql::{
+        accounting::LedgerAccount,
+        credit_facility::CreditFacility,
+        event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+        loader::LanaDataLoader,
+    },
     primitives::*,
 };
 pub use lana_app::credit::Collateral as DomainCollateral;
@@ -62,6 +68,16 @@ impl Collateral {
             .expect("Collateral account not found");
         Ok(collateral)
     }
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
+    }
+
     async fn credit_facility(&self, ctx: &Context<'_>) -> Result<Option<CreditFacility>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let facility = loader

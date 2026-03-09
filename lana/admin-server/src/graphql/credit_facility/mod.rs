@@ -9,13 +9,19 @@ mod pending_facility;
 mod proposal;
 mod repayment;
 
-use async_graphql::*;
+use async_graphql::{connection::*, *};
+use es_entity::EsEntity as _;
 
 use crate::primitives::*;
 
 use super::{
-    approval_process::ApprovalProcess, custody::Wallet, customer::*, loader::LanaDataLoader,
-    primitives::SortDirection, terms::*,
+    approval_process::ApprovalProcess,
+    custody::Wallet,
+    customer::*,
+    event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+    loader::LanaDataLoader,
+    primitives::SortDirection,
+    terms::*,
 };
 pub use lana_app::{
     credit::{
@@ -244,6 +250,16 @@ impl CreditFacility {
         } else {
             Ok(None)
         }
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn ledger_accounts(

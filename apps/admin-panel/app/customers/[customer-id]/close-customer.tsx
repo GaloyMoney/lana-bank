@@ -18,6 +18,7 @@ import { Button } from "@lana/web/ui/button"
 import {
   useCustomerCloseMutation,
   GetCustomerBasicDetailsDocument,
+  CustomerEventHistoryDocument,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -46,7 +47,7 @@ export const CloseCustomerDialog: React.FC<CloseCustomerDialogProps> = ({
   const commonT = useTranslations("Common")
 
   const [closeCustomer, { loading, reset }] = useCustomerCloseMutation({
-    refetchQueries: [GetCustomerBasicDetailsDocument],
+    refetchQueries: [GetCustomerBasicDetailsDocument, CustomerEventHistoryDocument],
   })
   const [error, setError] = useState<string | null>(null)
 

@@ -1,6 +1,10 @@
-use async_graphql::*;
+use async_graphql::{connection::*, *};
+use es_entity::EsEntity as _;
 
-use crate::primitives::*;
+use crate::{
+    graphql::event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+    primitives::*,
+};
 
 pub use lana_app::credit::PaymentAllocation as DomainPaymentAllocation;
 
@@ -30,6 +34,16 @@ impl From<DomainPaymentAllocation> for CreditFacilityPaymentAllocation {
 
 #[ComplexObject]
 impl CreditFacilityPaymentAllocation {
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
+    }
+
     async fn credit_facility(
         &self,
         ctx: &Context<'_>,

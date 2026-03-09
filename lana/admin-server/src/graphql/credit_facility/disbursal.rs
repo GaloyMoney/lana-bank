@@ -1,11 +1,16 @@
-use async_graphql::*;
+use async_graphql::{connection::*, *};
+use es_entity::{EsEntity as _, Sort};
 
 use super::CreditFacility;
 use crate::{
-    graphql::{accounting::LedgerTransaction, approval_process::*, loader::LanaDataLoader},
+    graphql::{
+        accounting::LedgerTransaction,
+        approval_process::*,
+        event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+        loader::LanaDataLoader,
+    },
     primitives::*,
 };
-use es_entity::Sort;
 
 use super::SortDirection;
 
@@ -64,6 +69,16 @@ impl CreditFacilityDisbursal {
             .await?
             .expect("process not found");
         Ok(process)
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn ledger_transactions(

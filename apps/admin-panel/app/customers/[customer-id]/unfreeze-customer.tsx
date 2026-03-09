@@ -18,6 +18,7 @@ import { Button } from "@lana/web/ui/button"
 import {
   useCustomerUnfreezeMutation,
   GetCustomerBasicDetailsDocument,
+  CustomerEventHistoryDocument,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -46,7 +47,7 @@ export const UnfreezeCustomerDialog: React.FC<UnfreezeCustomerDialogProps> = ({
   const commonT = useTranslations("Common")
 
   const [unfreezeCustomer, { loading, reset }] = useCustomerUnfreezeMutation({
-    refetchQueries: [GetCustomerBasicDetailsDocument],
+    refetchQueries: [GetCustomerBasicDetailsDocument, CustomerEventHistoryDocument],
   })
   const [error, setError] = useState<string | null>(null)
 
