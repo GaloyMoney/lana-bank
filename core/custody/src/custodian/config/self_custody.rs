@@ -108,11 +108,11 @@ mod tests {
             testnet4_url: None,
             ..Default::default()
         }
-            .client_config(SelfCustodyConfig {
-                account_xpub: "xpub".to_string(),
-                network: SelfCustodyNetwork::Testnet4,
-            })
-            .expect_err("missing url should fail");
+        .client_config(SelfCustodyConfig {
+            account_xpub: "xpub".to_string(),
+            network: SelfCustodyNetwork::Testnet4,
+        })
+        .expect_err("missing url should fail");
 
         match error {
             SelfCustodyDirectoryConfigError::MissingEsploraUrlForNetwork { network } => {
