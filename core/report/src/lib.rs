@@ -100,17 +100,7 @@ where
         let report_repo = ReportRepo::new(pool);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
-        let report_file_storage = config
-            .reports_bucket_name
-            .as_deref()
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
-            .map(|bucket_name| {
-                Storage::new(&cloud_storage::config::StorageConfig::new_gcp(
-                    bucket_name.to_owned(),
-                ))
-            })
-            .unwrap_or_else(|| storage.clone());
+        let report_file_storage = config.report_file_storage(storage);
 
         let sync_reports_spawner = jobs.add_initializer(SyncReportsJobInit::<E>::new(
             dagster_adapter.clone(),
