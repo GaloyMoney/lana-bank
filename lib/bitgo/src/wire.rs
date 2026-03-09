@@ -40,6 +40,8 @@ pub struct TransferNotification {
     pub coin: String,
     pub state: TransferState,
     pub transfer_type: TransferType,
+    #[serde(default)]
+    pub simulation: bool,
 }
 
 #[derive(Clone, Debug, Deserialize)]
