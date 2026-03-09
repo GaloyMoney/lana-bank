@@ -1567,6 +1567,7 @@ dependencies = [
  "permission-sets-macro",
  "schemars 1.2.1",
  "serde",
+ "serde_yaml",
  "sqlx",
  "strum 0.28.0",
  "thiserror 2.0.18",

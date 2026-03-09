@@ -2,7 +2,7 @@ mod entity;
 pub mod error;
 mod repo;
 
-pub use entity::{NewReportRun, ReportRun, ReportRunState, ReportRunType};
+pub use entity::{NewReportRun, ReportRun, ReportRunState, ReportRunType, RequestedReport};
 
 #[cfg(feature = "json-schema")]
 pub use entity::ReportRunEvent;

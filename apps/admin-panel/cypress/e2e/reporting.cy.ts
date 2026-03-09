@@ -12,10 +12,12 @@ describe("Regulatory Report Management", () => {
     cy.visit("/regulatory-reporting")
   })
 
-  it("should have generate button", () => {
+  it("should show available reports and recent runs", () => {
     cy.contains(t(R + ".title"))
     cy.contains(t(R + ".description"))
+    cy.contains(t(R + ".availableReports"))
+    cy.contains(t(R + ".recentRuns"))
 
-    cy.takeScreenshot("1_generate_report_button")
+    cy.takeScreenshot("1_report_management")
   })
 })

@@ -28,7 +28,7 @@ const toDateString = (date: Date): string => {
 export const getInitialAsOfDate = (): string => toDateString(new Date())
 
 export const AsOfDateSelector = ({ asOf, onDateChange }: AsOfDateSelectorProps) => {
-  const t = useTranslations("BalanceSheet")
+  const t = useTranslations("Common")
   const appliedDate = useMemo(() => parseDateString(asOf), [asOf])
   const [isOpen, setIsOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(appliedDate)

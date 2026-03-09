@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::NaiveDate;
 use job::*;
 use serde::{Deserialize, Serialize};
 
@@ -6,16 +7,21 @@ use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    CoreReportEvent,
+    AS_OF_DATE_TAG_KEY, CoreReportEvent, REPORT_DEFINITION_ID_TAG_KEY, REPORT_NAME_TAG_KEY,
+    REPORT_NORM_TAG_KEY,
     report::{NewReport, ReportRepo},
-    report_run::{NewReportRun, ReportRunRepo, ReportRunState, ReportRunType},
+    report_run::{NewReportRun, ReportRunRepo, ReportRunState, ReportRunType, RequestedReport},
 };
+
+const SYNC_REPORTS_RETRY_SECS: u64 = 10;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SyncReportsJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
+    #[serde(default)]
+    target_run_id: Option<String>,
     _phantom: std::marker::PhantomData<E>,
 }
 
@@ -25,6 +31,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            target_run_id: self.target_run_id.clone(),
             _phantom: std::marker::PhantomData,
         }
     }
@@ -34,23 +41,19 @@ impl<E> SyncReportsJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new() -> Self {
+    pub fn new(target_run_id: Option<String>) -> Self {
         Self {
+            target_run_id,
             _phantom: std::marker::PhantomData,
         }
     }
-}
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct SyncReportsJobExecutionState {
-    run_id: Option<String>,
 }
 
 pub struct SyncReportsJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    dagster: dagster::Dagster,
+    dagster_adapter: crate::dagster_adapter::DagsterReportAdapter,
     report_runs: ReportRunRepo<E>,
     reports: ReportRepo,
 }
@@ -60,12 +63,12 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     pub fn new(
-        dagster: dagster::Dagster,
+        dagster_adapter: crate::dagster_adapter::DagsterReportAdapter,
         report_runs: ReportRunRepo<E>,
         reports: ReportRepo,
     ) -> Self {
         Self {
-            dagster,
+            dagster_adapter,
             report_runs,
             reports,
         }
@@ -89,11 +92,12 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        let _config: SyncReportsJobConfig<E> = job.config()?;
-        Ok(Box::new(SyncReportsJobRunner::new(
-            self.dagster.clone(),
+        let config: SyncReportsJobConfig<E> = job.config()?;
+        Ok(Box::new(SyncReportsJobRunner::new_with_config(
+            self.dagster_adapter.clone(),
             self.report_runs.clone(),
             self.reports.clone(),
+            config,
         )))
     }
 
@@ -106,9 +110,10 @@ pub struct SyncReportsJobRunner<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    dagster: dagster::Dagster,
+    dagster_adapter: crate::dagster_adapter::DagsterReportAdapter,
     report_runs: ReportRunRepo<E>,
     reports: ReportRepo,
+    config: SyncReportsJobConfig<E>,
 }
 
 #[async_trait]
@@ -117,20 +122,40 @@ where
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
     #[record_error_severity]
-    #[tracing::instrument(name = "core_reports.job.sync_reports.run", skip(self, current_job))]
+    #[tracing::instrument(name = "core_reports.job.sync_reports.run", skip(self, _current_job))]
     async fn run(
         &self,
-        mut current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
-            .execution_state::<SyncReportsJobExecutionState>()?
-            .unwrap_or_default();
+        if let Some(target_run_id) = self.config.target_run_id.as_deref() {
+            let maybe_run = self.dagster_adapter.fetch_run(target_run_id).await?;
+            let Some(run_result) = maybe_run else {
+                tracing::warn!(
+                    target_run_id,
+                    "Dagster run not visible yet, rescheduling sync"
+                );
+                return Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
+                    SYNC_REPORTS_RETRY_SECS,
+                )));
+            };
 
-        let response = self
-            .dagster
-            .graphql()
-            .file_reports_runs(1, state.run_id.clone())
-            .await?;
+            self.sync_run(&run_result).await?;
+
+            if run_result.status.is_finished() {
+                return Ok(JobCompletion::Complete);
+            }
+
+            tracing::debug!(
+                target_run_id = %run_result.run_id,
+                status = ?run_result.status,
+                "Dagster run still in progress, rescheduling sync"
+            );
+            return Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
+                SYNC_REPORTS_RETRY_SECS,
+            )));
+        }
+
+        let response = self.dagster_adapter.fetch_recent_runs(1).await?;
 
         let runs = match response.data.runs_or_error {
             dagster::graphql_client::RunsOrError::Runs(runs) => runs,
@@ -142,9 +167,6 @@ where
 
         for run_result in runs.results {
             self.sync_run(&run_result).await?;
-
-            state.run_id = Some(run_result.run_id);
-            current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::Complete)
@@ -156,14 +178,29 @@ where
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
     pub fn new(
-        dagster: dagster::Dagster,
+        dagster_adapter: crate::dagster_adapter::DagsterReportAdapter,
         report_runs: ReportRunRepo<E>,
         reports: ReportRepo,
     ) -> Self {
-        Self {
-            dagster,
+        Self::new_with_config(
+            dagster_adapter,
             report_runs,
             reports,
+            SyncReportsJobConfig::<E>::new(None),
+        )
+    }
+
+    pub fn new_with_config(
+        dagster_adapter: crate::dagster_adapter::DagsterReportAdapter,
+        report_runs: ReportRunRepo<E>,
+        reports: ReportRepo,
+        config: SyncReportsJobConfig<E>,
+    ) -> Self {
+        Self {
+            dagster_adapter,
+            report_runs,
+            reports,
+            config,
         }
     }
 
@@ -175,6 +212,8 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         let state: ReportRunState = run_result.status.clone().into();
         let run_type: ReportRunType = run_result.into();
+        let requested_report = requested_report_from_run(run_result);
+        let requested_as_of_date = requested_as_of_date_from_run(run_result)?;
 
         let mut db = self.report_runs.begin_op().await?;
         let existing = self
@@ -185,7 +224,13 @@ where
         let run_id = match existing {
             Ok(mut report_run) => {
                 if report_run
-                    .update_state(state, run_type, run_result.start_time)
+                    .update_state(
+                        state,
+                        run_type,
+                        run_result.start_time,
+                        requested_report.clone(),
+                        requested_as_of_date,
+                    )
                     .did_execute()
                 {
                     self.report_runs
@@ -201,6 +246,8 @@ where
                     .state(state)
                     .run_type(run_type)
                     .start_time(run_result.start_time)
+                    .requested_report(requested_report)
+                    .requested_as_of_date(requested_as_of_date)
                     .build()?;
 
                 let report_run = self.report_runs.create_in_op(&mut db, new_run).await?;
@@ -223,7 +270,10 @@ where
         external_id: &str,
         run_id: crate::ReportRunId,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let dagster_reports = self.dagster.graphql().get_logs_for_run(external_id).await?;
+        let dagster_reports = self
+            .dagster_adapter
+            .fetch_reports_for_run(external_id)
+            .await?;
 
         let mut aggregated: std::collections::HashMap<
             (String, String),
@@ -264,6 +314,52 @@ where
 
         Ok(())
     }
+}
+
+fn requested_report_from_run(
+    run_result: &dagster::graphql_client::RunResult,
+) -> Option<RequestedReport> {
+    let raw_id = tag_value(run_result, REPORT_DEFINITION_ID_TAG_KEY)?;
+    let definition_id = crate::ReportDefinitionId::try_new(raw_id).ok()?;
+    let report_definition = crate::find_report_definition(&definition_id);
+
+    let norm = tag_value(run_result, REPORT_NORM_TAG_KEY)
+        .map(str::to_owned)
+        .or_else(|| report_definition.map(|definition| definition.norm.clone()))
+        .unwrap_or_else(|| {
+            raw_id
+                .split_once('/')
+                .map(|(norm, _)| norm.to_string())
+                .unwrap_or_default()
+        });
+
+    let name = tag_value(run_result, REPORT_NAME_TAG_KEY)
+        .map(str::to_owned)
+        .or_else(|| report_definition.map(|definition| definition.friendly_name.clone()))
+        .unwrap_or_else(|| raw_id.rsplit('/').next().unwrap_or(raw_id).to_string());
+
+    Some(RequestedReport {
+        report_definition_id: definition_id,
+        norm,
+        name,
+    })
+}
+
+fn requested_as_of_date_from_run(
+    run_result: &dagster::graphql_client::RunResult,
+) -> Result<Option<NaiveDate>, chrono::ParseError> {
+    match tag_value(run_result, AS_OF_DATE_TAG_KEY) {
+        Some(as_of_date) => Ok(Some(NaiveDate::parse_from_str(as_of_date, "%Y-%m-%d")?)),
+        None => Ok(None),
+    }
+}
+
+fn tag_value<'a>(run_result: &'a dagster::graphql_client::RunResult, key: &str) -> Option<&'a str> {
+    run_result
+        .tags
+        .iter()
+        .find(|tag| tag.key == key)
+        .map(|tag| tag.value.as_str())
 }
 
 pub type SyncReportsJobSpawner<E> = JobSpawner<SyncReportsJobConfig<E>>;

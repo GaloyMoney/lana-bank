@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -26,6 +26,14 @@ pub enum ReportRunType {
     Manual,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct RequestedReport {
+    pub report_definition_id: crate::ReportDefinitionId,
+    pub norm: String,
+    pub name: String,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -37,11 +45,15 @@ pub enum ReportRunEvent {
         state: ReportRunState,
         run_type: ReportRunType,
         start_time: Option<DateTime<Utc>>,
+        requested_report: Option<RequestedReport>,
+        requested_as_of_date: Option<NaiveDate>,
     },
     StateUpdated {
         state: ReportRunState,
         run_type: ReportRunType,
         start_time: Option<DateTime<Utc>>,
+        requested_report: Option<RequestedReport>,
+        requested_as_of_date: Option<NaiveDate>,
     },
 }
 
@@ -54,6 +66,10 @@ pub struct ReportRun {
     pub run_type: ReportRunType,
     #[builder(default)]
     pub start_time: Option<DateTime<Utc>>,
+    #[builder(default)]
+    pub requested_report: Option<RequestedReport>,
+    #[builder(default)]
+    pub requested_as_of_date: Option<NaiveDate>,
     events: EntityEvents<ReportRunEvent>,
 }
 
@@ -69,6 +85,8 @@ impl TryFromEvents<ReportRunEvent> for ReportRun {
                     state,
                     run_type,
                     start_time,
+                    requested_report,
+                    requested_as_of_date,
                 } => {
                     builder = builder
                         .id(*id)
@@ -76,16 +94,22 @@ impl TryFromEvents<ReportRunEvent> for ReportRun {
                         .state(*state)
                         .run_type(*run_type)
                         .start_time(*start_time)
+                        .requested_report(requested_report.clone())
+                        .requested_as_of_date(*requested_as_of_date)
                 }
                 ReportRunEvent::StateUpdated {
                     state,
                     run_type,
                     start_time,
+                    requested_report,
+                    requested_as_of_date,
                 } => {
                     builder = builder
                         .state(*state)
                         .run_type(*run_type)
                         .start_time(*start_time)
+                        .requested_report(requested_report.clone())
+                        .requested_as_of_date(*requested_as_of_date)
                 }
             }
         }
@@ -101,24 +125,37 @@ impl ReportRun {
             .expect("No events for report run")
     }
 
+    /// Note: `idempotency_guard!` is not suitable here because idempotency depends on
+    /// field-level equality of the incoming data, not on the presence/absence of an event type.
     pub fn update_state(
         &mut self,
         state: ReportRunState,
         run_type: ReportRunType,
         start_time: Option<DateTime<Utc>>,
+        requested_report: Option<RequestedReport>,
+        requested_as_of_date: Option<NaiveDate>,
     ) -> Idempotent<()> {
-        if self.state == state && self.run_type == run_type && self.start_time == start_time {
+        if self.state == state
+            && self.run_type == run_type
+            && self.start_time == start_time
+            && self.requested_report == requested_report
+            && self.requested_as_of_date == requested_as_of_date
+        {
             return Idempotent::AlreadyApplied;
         }
 
         self.state = state;
         self.run_type = run_type;
         self.start_time = start_time;
+        self.requested_report = requested_report.clone();
+        self.requested_as_of_date = requested_as_of_date;
 
         self.events.push(ReportRunEvent::StateUpdated {
             state,
             run_type,
             start_time,
+            requested_report,
+            requested_as_of_date,
         });
 
         Idempotent::Executed(())
@@ -137,6 +174,10 @@ pub struct NewReportRun {
     pub(super) run_type: ReportRunType,
     #[builder(default)]
     pub(super) start_time: Option<DateTime<Utc>>,
+    #[builder(default)]
+    pub(super) requested_report: Option<RequestedReport>,
+    #[builder(default)]
+    pub(super) requested_as_of_date: Option<NaiveDate>,
 }
 
 impl NewReportRun {
@@ -161,6 +202,8 @@ impl IntoEvents<ReportRunEvent> for NewReportRun {
                 state: self.state,
                 run_type: self.run_type,
                 start_time: self.start_time,
+                requested_report: self.requested_report,
+                requested_as_of_date: self.requested_as_of_date,
             }],
         )
     }

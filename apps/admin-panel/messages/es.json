@@ -21,6 +21,7 @@
     "upload": "Subir",
     "close": "Cerrar",
     "submit": "Enviar",
+    "apply": "Aplicar",
     "set": "Establecer",
     "copiedToClipboard": "Copiado al portapapeles",
     "showIds": "Mostrar IDs",
@@ -2557,14 +2558,37 @@
     "title": "Gestión de Informes",
     "description": "Generar y gestionar informes regulatorios, seguir su estado y descargar documentos generados.",
     "availableReports": "Informes disponibles",
+    "availableReportsDescription": "Genera un informe a la vez. Los informes que admiten fecha de corte requieren una fecha antes de generarse.",
     "noReportsAvailable": "No hay informes disponibles",
+    "recentRuns": "Ejecuciones recientes",
+    "recentRunsDescription": "Sigue las ejecuciones de generación de informes en cola, en curso y completadas.",
+    "availableReportsHeaders": {
+      "report": "Informe",
+      "outputs": "Salidas",
+      "asOfDate": "Fecha de corte",
+      "action": "Acción"
+    },
+    "availableReportsValues": {
+      "asOfDate": {
+        "required": "Requerida",
+        "notUsed": "No usada"
+      }
+    },
     "listHeaders": {
       "generatedAt": "Generado el",
+      "report": "Informe",
+      "asOfDate": "Fecha de corte",
       "state": "Estado",
       "runType": "Tipo de ejecución"
     },
     "starting": "Iniciando...",
     "listValues": {
+      "report": {
+        "allReports": "Todos los informes"
+      },
+      "asOfDate": {
+        "notApplicable": "No aplica"
+      },
       "runType": {
         "manual": "Manual",
         "scheduled": "Programado"
@@ -2578,12 +2602,18 @@
     },
     "ReportGeneration": {
       "generate": "Generar",
+      "generateAsOf": "Seleccionar fecha",
+      "selectAsOfDate": "Seleccionar fecha de corte",
+      "selectAsOfDateDescription": "Elige la fecha que se usará para {report}.",
+      "asOfDate": "Fecha de corte",
       "reportGenerationHasBeenTriggered": "La generación del informe ha sido iniciada, aparecerá en la lista en breve",
       "reportGenerationFailed": "La generación del informe falló, por favor inténtalo de nuevo"
     }
   },
   "ReportRun": {
     "title": "Informes a fecha de {date}",
+    "generatedAt": "Generado el {date}",
+    "asOfDate": "Fecha de corte {date}",
     "state": {
       "failed": "Fallido",
       "queued": "En cola",
@@ -2591,6 +2621,7 @@
       "success": "Exitoso"
     },
     "noReportsAvailable": "No hay informes disponibles",
+    "reportsPending": "Los archivos aparecerán aquí cuando termine la generación del informe.",
     "norm": "Norma",
     "name": "Nombre",
     "download": "Descargar",

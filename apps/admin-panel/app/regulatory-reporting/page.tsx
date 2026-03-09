@@ -9,7 +9,7 @@ import {
   CardContent,
 } from "@lana/web/ui/card"
 
-import { ReportGeneration } from "./generate"
+import { AvailableReports } from "./available-reports"
 import { AvailableReportRuns } from "./list"
 
 const RegulatorReportingPage: React.FC = () => {
@@ -17,15 +17,15 @@ const RegulatorReportingPage: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <CardHeader>
         <div className="flex flex-col gap-1">
           <CardTitle>{t("title")}</CardTitle>
           <CardDescription>{t("description")}</CardDescription>
         </div>
-        <ReportGeneration />
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <AvailableReportRuns />
+        <AvailableReports />
       </CardContent>
     </Card>
   )

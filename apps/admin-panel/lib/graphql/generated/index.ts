@@ -2469,6 +2469,11 @@ export type MutationTermsTemplateUpdateArgs = {
 };
 
 
+export type MutationTriggerReportRunArgs = {
+  input: TriggerReportRunInput;
+};
+
+
 export type MutationUserCreateArgs = {
   input: UserCreateInput;
 };
@@ -2853,6 +2858,7 @@ export type Query = {
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
   auditSubjects: Array<Scalars['AuditSubjectId']['output']>;
+  availableReportDefinitions: Array<ReportDefinition>;
   balanceSheet: BalanceSheet;
   buildInfo: BuildInfo;
   chartOfAccounts: ChartOfAccounts;
@@ -3305,6 +3311,22 @@ export type Report = {
   runId: Scalars['UUID']['output'];
 };
 
+export type ReportDefinition = {
+  __typename?: 'ReportDefinition';
+  friendlyName: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  norm: Scalars['String']['output'];
+  outputs: Array<ReportDefinitionOutput>;
+  reportDefinitionId: Scalars['String']['output'];
+  sourceTable: Scalars['String']['output'];
+  supportsAsOf: Scalars['Boolean']['output'];
+};
+
+export type ReportDefinitionOutput = {
+  __typename?: 'ReportDefinitionOutput';
+  format: ReportOutputFormat;
+};
+
 export type ReportFile = {
   __typename?: 'ReportFile';
   extension: Scalars['String']['output'];
@@ -3320,11 +3342,19 @@ export type ReportFileGenerateDownloadLinkPayload = {
   url: Scalars['String']['output'];
 };
 
+export enum ReportOutputFormat {
+  Csv = 'CSV',
+  Txt = 'TXT',
+  Xml = 'XML'
+}
+
 export type ReportRun = {
   __typename?: 'ReportRun';
   id: Scalars['ID']['output'];
   reportRunId: Scalars['UUID']['output'];
   reports: Array<Report>;
+  requestedAsOfDate?: Maybe<Scalars['Date']['output']>;
+  requestedReport?: Maybe<RequestedReport>;
   runType: ReportRunType;
   startTime?: Maybe<Scalars['Timestamp']['output']>;
   state: ReportRunState;
@@ -3379,6 +3409,13 @@ export type ReportRunsSort = {
 export enum ReportRunsSortBy {
   StartTime = 'START_TIME'
 }
+
+export type RequestedReport = {
+  __typename?: 'RequestedReport';
+  name: Scalars['String']['output'];
+  norm: Scalars['String']['output'];
+  reportDefinitionId: Scalars['String']['output'];
+};
 
 export type Role = {
   __typename?: 'Role';
@@ -3659,6 +3696,11 @@ export type TrialBalance = {
   accounts: Array<LedgerAccount>;
   name: Scalars['String']['output'];
   total: LedgerAccountBalanceRangeByCurrency;
+};
+
+export type TriggerReportRunInput = {
+  asOfDate?: InputMaybe<Scalars['Date']['input']>;
+  reportDefinitionId: Scalars['String']['input'];
 };
 
 export type UnfreezeEntry = {
@@ -5332,7 +5374,7 @@ export type ReportRunByIdQueryVariables = Exact<{
 }>;
 
 
-export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', id: string, reportRunId: string, state: ReportRunState, runType: ReportRunType, startTime?: string | null, reports: Array<{ __typename?: 'Report', id: string, reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
+export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', id: string, reportRunId: string, state: ReportRunState, runType: ReportRunType, startTime?: string | null, requestedAsOfDate?: string | null, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: string, norm: string, name: string } | null, reports: Array<{ __typename?: 'Report', id: string, reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
 
 export type ReportFileGenerateDownloadLinkMutationVariables = Exact<{
   input: ReportFileGenerateDownloadLinkInput;
@@ -5341,7 +5383,14 @@ export type ReportFileGenerateDownloadLinkMutationVariables = Exact<{
 
 export type ReportFileGenerateDownloadLinkMutation = { __typename?: 'Mutation', reportFileGenerateDownloadLink: { __typename?: 'ReportFileGenerateDownloadLinkPayload', url: string } };
 
-export type ReportGenerateMutationVariables = Exact<{ [key: string]: never; }>;
+export type AvailableReportDefinitionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AvailableReportDefinitionsQuery = { __typename?: 'Query', availableReportDefinitions: Array<{ __typename?: 'ReportDefinition', reportDefinitionId: string, norm: string, id: string, friendlyName: string, supportsAsOf: boolean, outputs: Array<{ __typename?: 'ReportDefinitionOutput', format: ReportOutputFormat }> }> };
+
+export type ReportGenerateMutationVariables = Exact<{
+  input: TriggerReportRunInput;
+}>;
 
 
 export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun: { __typename?: 'ReportRunCreatePayload', runId?: string | null } };
@@ -5353,7 +5402,7 @@ export type ReportRunsQueryVariables = Exact<{
 }>;
 
 
-export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', id: string, reportRunId: string, startTime?: string | null, runType: ReportRunType, state: ReportRunState } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', id: string, reportRunId: string, startTime?: string | null, requestedAsOfDate?: string | null, runType: ReportRunType, state: ReportRunState, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: string, norm: string, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ReportRunUpdatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -12865,6 +12914,12 @@ export const ReportRunByIdDocument = gql`
     state
     runType
     startTime
+    requestedAsOfDate
+    requestedReport {
+      reportDefinitionId
+      norm
+      name
+    }
     reports {
       id
       reportId
@@ -12947,9 +13002,58 @@ export function useReportFileGenerateDownloadLinkMutation(baseOptions?: Apollo.M
 export type ReportFileGenerateDownloadLinkMutationHookResult = ReturnType<typeof useReportFileGenerateDownloadLinkMutation>;
 export type ReportFileGenerateDownloadLinkMutationResult = Apollo.MutationResult<ReportFileGenerateDownloadLinkMutation>;
 export type ReportFileGenerateDownloadLinkMutationOptions = Apollo.BaseMutationOptions<ReportFileGenerateDownloadLinkMutation, ReportFileGenerateDownloadLinkMutationVariables>;
+export const AvailableReportDefinitionsDocument = gql`
+    query AvailableReportDefinitions {
+  availableReportDefinitions {
+    reportDefinitionId
+    norm
+    id
+    friendlyName
+    supportsAsOf
+    outputs {
+      format
+    }
+  }
+}
+    `;
+
+/**
+ * __useAvailableReportDefinitionsQuery__
+ *
+ * To run a query within a React component, call `useAvailableReportDefinitionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAvailableReportDefinitionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAvailableReportDefinitionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAvailableReportDefinitionsQuery(baseOptions?: Apollo.QueryHookOptions<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>(AvailableReportDefinitionsDocument, options);
+      }
+export function useAvailableReportDefinitionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>(AvailableReportDefinitionsDocument, options);
+        }
+// @ts-ignore
+export function useAvailableReportDefinitionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>): Apollo.UseSuspenseQueryResult<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>;
+export function useAvailableReportDefinitionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>): Apollo.UseSuspenseQueryResult<AvailableReportDefinitionsQuery | undefined, AvailableReportDefinitionsQueryVariables>;
+export function useAvailableReportDefinitionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>(AvailableReportDefinitionsDocument, options);
+        }
+export type AvailableReportDefinitionsQueryHookResult = ReturnType<typeof useAvailableReportDefinitionsQuery>;
+export type AvailableReportDefinitionsLazyQueryHookResult = ReturnType<typeof useAvailableReportDefinitionsLazyQuery>;
+export type AvailableReportDefinitionsSuspenseQueryHookResult = ReturnType<typeof useAvailableReportDefinitionsSuspenseQuery>;
+export type AvailableReportDefinitionsQueryResult = Apollo.QueryResult<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>;
 export const ReportGenerateDocument = gql`
-    mutation ReportGenerate {
-  triggerReportRun {
+    mutation ReportGenerate($input: TriggerReportRunInput!) {
+  triggerReportRun(input: $input) {
     runId
   }
 }
@@ -12969,6 +13073,7 @@ export type ReportGenerateMutationFn = Apollo.MutationFunction<ReportGenerateMut
  * @example
  * const [reportGenerateMutation, { data, loading, error }] = useReportGenerateMutation({
  *   variables: {
+ *      input: // value for 'input'
  *   },
  * });
  */
@@ -12988,6 +13093,12 @@ export const ReportRunsDocument = gql`
         id
         reportRunId
         startTime
+        requestedAsOfDate
+        requestedReport {
+          reportDefinitionId
+          norm
+          name
+        }
         runType
         state
       }

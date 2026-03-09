@@ -3,17 +3,48 @@ import { MockedProvider } from "@apollo/client/testing"
 
 import RegulatoryReportingPage from "./page"
 
-import { ReportRunsDocument } from "@/lib/graphql/generated"
-import { mockReportRunConnection } from "@/lib/graphql/generated/mocks"
+import {
+  AvailableReportDefinitionsDocument,
+  ReportRunsDocument,
+} from "@/lib/graphql/generated"
+import {
+  mockReportDefinition,
+  mockReportRunConnection,
+} from "@/lib/graphql/generated/mocks"
 
-const one = {
+const reportRunsMock = {
   request: { query: ReportRunsDocument, variables: { first: 10 } },
   result: { data: { reportRuns: mockReportRunConnection() } },
 }
 
+const availableReportDefinitionsMock = {
+  request: { query: AvailableReportDefinitionsDocument },
+  result: {
+    data: {
+      availableReportDefinitions: [
+        mockReportDefinition({
+          reportDefinitionId: "nrp_51/01_saldo_cuenta",
+          norm: "nrp_51",
+          id: "01_saldo_cuenta",
+          friendlyName: "saldo_cuenta",
+          supportsAsOf: true,
+        }),
+        mockReportDefinition({
+          reportDefinitionId: "other/calculo_de_riesgo_neto",
+          norm: "other",
+          id: "calculo_de_riesgo_neto",
+          friendlyName: "calculo_de_riesgo_neto",
+          supportsAsOf: false,
+        }),
+      ],
+    },
+  },
+}
+
 const baseMocks = [
+  availableReportDefinitionsMock,
   // polling consumes one mock every request
-  ...Array.from({ length: 100 }, () => one),
+  ...Array.from({ length: 100 }, () => reportRunsMock),
 ]
 
 const meta = {
@@ -49,6 +80,12 @@ export const Default: Story = {
 
 const LoadingStory = () => {
   const mocks = [
+    {
+      request: {
+        query: AvailableReportDefinitionsDocument,
+      },
+      delay: Infinity,
+    },
     {
       request: {
         query: ReportRunsDocument,

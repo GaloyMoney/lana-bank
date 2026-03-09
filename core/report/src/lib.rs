@@ -2,9 +2,11 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod report;
+pub mod report_definition;
 pub mod report_run;
 
 pub mod config;
+mod dagster_adapter;
 pub mod error;
 pub mod public;
 
@@ -19,11 +21,13 @@ use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::*;
 
 pub use config::*;
+pub use dagster_adapter::DagsterReportAdapter;
 pub use error::ReportError;
 pub use jobs::SyncReportsJobRunner;
 pub use primitives::*;
 pub use public::*;
 pub use publisher::ReportPublisher;
+pub use report_definition::*;
 
 use cloud_storage::Storage;
 
@@ -51,9 +55,7 @@ where
     authz: Perms,
     reports: ReportRepo,
     report_runs: ReportRunRepo<E>,
-    dagster: Dagster,
-    storage: Storage,
-    config: ReportConfig,
+    report_file_storage: Storage,
     sync_reports_spawner: SyncReportsJobSpawner<E>,
     trigger_report_run_spawner: TriggerReportRunJobSpawner<E>,
 }
@@ -68,9 +70,7 @@ where
             authz: self.authz.clone(),
             reports: self.reports.clone(),
             report_runs: self.report_runs.clone(),
-            dagster: self.dagster.clone(),
-            storage: self.storage.clone(),
-            config: self.config.clone(),
+            report_file_storage: self.report_file_storage.clone(),
             sync_reports_spawner: self.sync_reports_spawner.clone(),
             trigger_report_run_spawner: self.trigger_report_run_spawner.clone(),
         }
@@ -96,27 +96,28 @@ where
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
         let dagster = Dagster::new(config.dagster.clone());
+        let dagster_adapter = DagsterReportAdapter::new(dagster);
         let report_repo = ReportRepo::new(pool);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
+        let report_file_storage = config.report_file_storage(storage);
+
         let sync_reports_spawner = jobs.add_initializer(SyncReportsJobInit::<E>::new(
-            dagster.clone(),
+            dagster_adapter.clone(),
             report_run_repo.clone(),
             report_repo.clone(),
         ));
         let trigger_report_run_spawner = jobs.add_initializer(TriggerReportRunJobInit::<E>::new(
-            dagster.clone(),
+            dagster_adapter,
             sync_reports_spawner.clone(),
             report_run_repo.clone(),
         ));
 
         Ok(Self {
             authz: authz.clone(),
-            storage: storage.clone(),
-            dagster,
+            report_file_storage,
             reports: report_repo,
             report_runs: report_run_repo,
-            config: config.clone(),
             sync_reports_spawner,
             trigger_report_run_spawner,
         })
@@ -194,6 +195,22 @@ where
             .report_runs
             .list_by_created_at(query, direction)
             .await?)
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.available_report_definitions", skip(self), fields(subject = %sub))]
+    pub async fn available_report_definitions(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Vec<ReportDefinition>, ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_READ,
+            )
+            .await?;
+        Ok(available_report_definitions().to_vec())
     }
 
     #[record_error_severity]
@@ -277,17 +294,27 @@ where
             path: &file.path_in_bucket,
         };
 
-        let download_link = self.storage.generate_download_link(location).await?;
+        let download_link = self
+            .report_file_storage
+            .generate_download_link(location)
+            .await?;
         Ok(download_link)
     }
 
     #[record_error_severity]
     #[tracing::instrument(name = "report.reports_sync", skip(self), fields(job_id = tracing::field::Empty))]
-    pub async fn reports_sync(&self) -> Result<job::JobId, ReportError> {
+    pub async fn reports_sync(
+        &self,
+        dagster_run_id: Option<String>,
+    ) -> Result<job::JobId, ReportError> {
         let mut db = self.report_runs.begin_op().await?;
         let job_id = job::JobId::new();
         self.sync_reports_spawner
-            .spawn_in_op(&mut db, job_id, SyncReportsJobConfig::<E>::new())
+            .spawn_in_op(
+                &mut db,
+                job_id,
+                SyncReportsJobConfig::<E>::new(dagster_run_id),
+            )
             .await?;
 
         tracing::Span::current().record("job_id", job_id.to_string());
@@ -301,6 +328,8 @@ where
     pub async fn trigger_report_run_job(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        report_definition_id: ReportDefinitionId,
+        as_of_date: Option<chrono::NaiveDate>,
     ) -> Result<job::JobId, ReportError> {
         self.authz
             .enforce_permission(
@@ -310,10 +339,19 @@ where
             )
             .await?;
 
+        let report_definition =
+            find_report_definition(&report_definition_id).ok_or(ReportError::NotFound)?;
+
+        report_definition.validate_as_of_date(as_of_date)?;
+
         let mut db = self.report_runs.begin_op().await?;
         let job_id = job::JobId::new();
         self.trigger_report_run_spawner
-            .spawn_in_op(&mut db, job_id, TriggerReportRunJobConfig::<E>::new())
+            .spawn_in_op(
+                &mut db,
+                job_id,
+                TriggerReportRunJobConfig::<E>::new(report_definition_id, as_of_date),
+            )
             .await?;
         tracing::Span::current().record("job_id", job_id.to_string());
         db.commit().await?;

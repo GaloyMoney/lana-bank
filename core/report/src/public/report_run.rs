@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 
 use crate::{
     primitives::ReportRunId,
-    report_run::{ReportRun, ReportRunState, ReportRunType},
+    report_run::{ReportRun, ReportRunState, ReportRunType, RequestedReport},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -15,6 +15,8 @@ pub struct PublicReportRun {
     pub external_id: String,
     pub state: ReportRunState,
     pub run_type: ReportRunType,
+    pub requested_report: Option<RequestedReport>,
+    pub requested_as_of_date: Option<chrono::NaiveDate>,
 }
 
 impl From<&ReportRun> for PublicReportRun {
@@ -24,6 +26,8 @@ impl From<&ReportRun> for PublicReportRun {
             external_id: entity.external_id.clone(),
             state: entity.state,
             run_type: entity.run_type,
+            requested_report: entity.requested_report.clone(),
+            requested_as_of_date: entity.requested_as_of_date,
         }
     }
 }

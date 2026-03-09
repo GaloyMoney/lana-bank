@@ -2106,7 +2106,7 @@ type Mutation {
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
-	triggerReportRun: ReportRunCreatePayload!
+	triggerReportRun(input: TriggerReportRunInput!): ReportRunCreatePayload!
 	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
 }
 
@@ -2540,6 +2540,7 @@ type Query {
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
 	reportRuns(first: Int!, after: String, sort: ReportRunsSort = {by: START_TIME, direction: DESC}): ReportRunConnection!
 	reportRun(id: UUID!): ReportRun
+	availableReportDefinitions: [ReportDefinition!]!
 }
 
 type RealtimePrice {
@@ -2558,6 +2559,20 @@ type Report {
 	reportRun: ReportRun!
 }
 
+type ReportDefinition {
+	reportDefinitionId: String!
+	norm: String!
+	id: String!
+	friendlyName: String!
+	sourceTable: String!
+	outputs: [ReportDefinitionOutput!]!
+	supportsAsOf: Boolean!
+}
+
+type ReportDefinitionOutput {
+	format: ReportOutputFormat!
+}
+
 type ReportFile {
 	extension: String!
 }
@@ -2571,12 +2586,20 @@ type ReportFileGenerateDownloadLinkPayload {
 	url: String!
 }
 
+enum ReportOutputFormat {
+	CSV
+	TXT
+	XML
+}
+
 type ReportRun {
 	id: ID!
 	reportRunId: UUID!
 	state: ReportRunState!
 	runType: ReportRunType!
 	startTime: Timestamp
+	requestedReport: RequestedReport
+	requestedAsOfDate: Date
 	reports: [Report!]!
 }
 
@@ -2636,6 +2659,12 @@ input ReportRunsSort {
 
 enum ReportRunsSortBy {
 	START_TIME
+}
+
+type RequestedReport {
+	reportDefinitionId: String!
+	norm: String!
+	name: String!
 }
 
 type Role {
@@ -2879,6 +2908,11 @@ type TrialBalance {
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
 	accounts: [LedgerAccount!]!
+}
+
+input TriggerReportRunInput {
+	reportDefinitionId: String!
+	asOfDate: Date
 }
 
 scalar UUID

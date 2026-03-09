@@ -3,6 +3,10 @@ query ReportRuns($first: Int!) {
     nodes {
       reportRunId
       state
+      requestedAsOfDate
+      requestedReport {
+        reportDefinitionId
+      }
       reports {
         reportId
         files {

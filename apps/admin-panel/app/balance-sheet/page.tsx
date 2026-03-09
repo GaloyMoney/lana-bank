@@ -17,7 +17,8 @@ import { Skeleton } from "@lana/web/ui/skeleton"
 import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
 
 import { Account } from "./account"
-import { AsOfDateSelector, getInitialAsOfDate } from "./as-of-date-selector"
+
+import { AsOfDateSelector, getInitialAsOfDate } from "@/components/as-of-date-selector"
 
 import Balance, { Currency } from "@/components/balance/balance"
 import {

@@ -20,6 +20,8 @@ pub enum ReportError {
     ReportError(#[from] crate::report::error::ReportError),
     #[error("ReportError - ReportRunError: {0}")]
     ReportRunError(#[from] crate::report_run::error::ReportRunError),
+    #[error("ReportError - InvalidReportRunRequest: {0}")]
+    InvalidReportRunRequest(String),
     #[error("ReportError - NotFound")]
     NotFound,
 }
@@ -59,6 +61,7 @@ impl ErrorSeverity for ReportError {
             Self::ReportError(e) => e.severity(),
             Self::ReportRunError(e) => e.severity(),
             Self::DagsterError(e) => e.severity(),
+            Self::InvalidReportRunRequest(_) => Level::WARN,
             Self::NotFound => Level::WARN,
         }
     }

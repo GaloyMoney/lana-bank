@@ -3,7 +3,8 @@ import { useEffect, useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
-import { formatDate } from "@lana/web/utils"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@lana/web/ui/card"
+import { formatDate, formatSpacedSentenceCaseFromSnakeCase } from "@lana/web/utils"
 
 import {
   ReportRun,
@@ -29,6 +30,12 @@ gql`
           id
           reportRunId
           startTime
+          requestedAsOfDate
+          requestedReport {
+            reportDefinitionId
+            norm
+            name
+          }
           runType
           state
         }
@@ -79,6 +86,22 @@ const AvailableReportRuns: React.FC = () => {
       },
     },
     {
+      key: "requestedReport",
+      label: t("listHeaders.report"),
+      render: (requestedReport) =>
+        requestedReport
+          ? `${requestedReport.norm.toUpperCase()} / ${formatSpacedSentenceCaseFromSnakeCase(requestedReport.name)}`
+          : t("listValues.report.allReports"),
+    },
+    {
+      key: "requestedAsOfDate",
+      label: t("listHeaders.asOfDate"),
+      render: (requestedAsOfDate) =>
+        requestedAsOfDate
+          ? formatDate(requestedAsOfDate, { includeTime: false })
+          : t("listValues.asOfDate.notApplicable"),
+    },
+    {
       key: "runType",
       label: t("listHeaders.runType"),
       render: (runType) => runType && t(`listValues.runType.${runType?.toLowerCase()}`),
@@ -91,23 +114,29 @@ const AvailableReportRuns: React.FC = () => {
   ]
 
   return (
-    <div>
-      {error && <p className="text-destructive text-sm">{error?.message}</p>}
-      <PaginatedTable<ReportRun>
-        columns={columns}
-        data={data?.reportRuns as PaginatedData<ReportRun>}
-        loading={!data && loading}
-        pageSize={DEFAULT_PAGESIZE}
-        fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
-        navigateTo={(reportRun) => `/regulatory-reporting/${reportRun.reportRunId}`}
-        onSort={(column, direction) => {
-          setSortBy({
-            by: camelToScreamingSnake(column as string) as ReportRunsSort["by"],
-            direction: direction as SortDirection,
-          })
-        }}
-      />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("recentRuns")}</CardTitle>
+        <CardDescription>{t("recentRunsDescription")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {error && <p className="text-destructive text-sm">{error?.message}</p>}
+        <PaginatedTable<ReportRun>
+          columns={columns}
+          data={data?.reportRuns as PaginatedData<ReportRun>}
+          loading={!data && loading}
+          pageSize={DEFAULT_PAGESIZE}
+          fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+          navigateTo={(reportRun) => `/regulatory-reporting/${reportRun.reportRunId}`}
+          onSort={(column, direction) => {
+            setSortBy({
+              by: camelToScreamingSnake(column as string) as ReportRunsSort["by"],
+              direction: direction as SortDirection,
+            })
+          }}
+        />
+      </CardContent>
+    </Card>
   )
 }
 

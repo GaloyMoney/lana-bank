@@ -1,13 +1,14 @@
 use async_trait::async_trait;
+use chrono::NaiveDate;
 use job::*;
 use serde::{Deserialize, Serialize};
 
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use crate::CoreReportEvent;
+use crate::dagster_adapter::DagsterReportAdapter;
 use crate::report_run::ReportRunRepo;
-use dagster::Dagster;
+use crate::{CoreReportEvent, ReportDefinitionId, find_report_definition};
 
 use super::{SyncReportsJobConfig, SyncReportsJobSpawner};
 
@@ -18,6 +19,9 @@ pub struct TriggerReportRunJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
+    report_definition_id: ReportDefinitionId,
+    #[serde(default)]
+    as_of_date: Option<NaiveDate>,
     _phantom: std::marker::PhantomData<E>,
 }
 
@@ -27,6 +31,8 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            report_definition_id: self.report_definition_id.clone(),
+            as_of_date: self.as_of_date,
             _phantom: std::marker::PhantomData,
         }
     }
@@ -36,9 +42,10 @@ impl<E> TriggerReportRunJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    #[allow(dead_code)]
-    pub fn new() -> Self {
+    pub fn new(report_definition_id: ReportDefinitionId, as_of_date: Option<NaiveDate>) -> Self {
         Self {
+            report_definition_id,
+            as_of_date,
             _phantom: std::marker::PhantomData,
         }
     }
@@ -48,7 +55,7 @@ pub struct TriggerReportRunJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    dagster: Dagster,
+    dagster_adapter: DagsterReportAdapter,
     sync_reports_spawner: SyncReportsJobSpawner<E>,
     report_runs: ReportRunRepo<E>,
 }
@@ -58,12 +65,12 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     pub fn new(
-        dagster: Dagster,
+        dagster_adapter: DagsterReportAdapter,
         sync_reports_spawner: SyncReportsJobSpawner<E>,
         report_runs: ReportRunRepo<E>,
     ) -> Self {
         Self {
-            dagster,
+            dagster_adapter,
             sync_reports_spawner,
             report_runs,
         }
@@ -87,11 +94,12 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        let _config: TriggerReportRunJobConfig<E> = job.config()?;
+        let config: TriggerReportRunJobConfig<E> = job.config()?;
         Ok(Box::new(TriggerReportRunJobRunner {
-            dagster: self.dagster.clone(),
+            dagster_adapter: self.dagster_adapter.clone(),
             sync_reports_spawner: self.sync_reports_spawner.clone(),
             report_runs: self.report_runs.clone(),
+            config,
         }))
     }
 
@@ -104,9 +112,10 @@ pub struct TriggerReportRunJobRunner<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    dagster: Dagster,
+    dagster_adapter: DagsterReportAdapter,
     sync_reports_spawner: SyncReportsJobSpawner<E>,
     report_runs: ReportRunRepo<E>,
+    config: TriggerReportRunJobConfig<E>,
 }
 
 #[async_trait]
@@ -123,35 +132,35 @@ where
         &self,
         mut _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let response = self.dagster.graphql().trigger_file_report_run().await?;
+        let report_definition = find_report_definition(&self.config.report_definition_id)
+            .ok_or_else(|| {
+                format!(
+                    "unknown report definition '{}'",
+                    self.config.report_definition_id
+                )
+            })?;
 
-        match response.data.launch_pipeline_execution {
-            dagster::graphql_client::LaunchPipelineResult::LaunchRunSuccess { run } => {
-                if let Some(details) = run {
-                    tracing::info!("Successfully triggered file report run: {}", details.run_id);
+        let dagster_run_id = self
+            .dagster_adapter
+            .launch_report_run(report_definition, self.config.as_of_date)
+            .await?;
 
-                    let schedule_at = chrono::Utc::now()
-                        + chrono::Duration::seconds(SYNC_REPORTS_DELAY_SECS as i64);
-                    let mut db = self.report_runs.begin_op().await?;
-                    self.sync_reports_spawner
-                        .spawn_at_in_op(
-                            &mut db,
-                            JobId::new(),
-                            SyncReportsJobConfig::<E>::new(),
-                            schedule_at,
-                        )
-                        .await?;
-                    db.commit().await?;
+        tracing::info!("Successfully triggered file report run: {}", dagster_run_id);
 
-                    Ok(JobCompletion::Complete)
-                } else {
-                    Err("No run details returned from Dagster".into())
-                }
-            }
-            dagster::graphql_client::LaunchPipelineResult::Error => {
-                Err("Failed to launch pipeline in Dagster".into())
-            }
-        }
+        let schedule_at =
+            chrono::Utc::now() + chrono::Duration::seconds(SYNC_REPORTS_DELAY_SECS as i64);
+        let mut db = self.report_runs.begin_op().await?;
+        self.sync_reports_spawner
+            .spawn_at_in_op(
+                &mut db,
+                JobId::new(),
+                SyncReportsJobConfig::<E>::new(Some(dagster_run_id)),
+                schedule_at,
+            )
+            .await?;
+        db.commit().await?;
+
+        Ok(JobCompletion::Complete)
     }
 }
 

@@ -4,6 +4,8 @@ import dagster as dg
 from src.assets.dbt import TAG_KEY_ASSET_TYPE, TAG_VALUE_DBT_MODEL, TAG_VALUE_DBT_SEED
 from src.otel import JOB_TRACEPARENT_TAG
 
+SOURCE_DAGSTER_RUN_ID_TAG = "lana/source_dagster_run_id"
+
 
 def build_file_report_sensors(
     inform_lana_job: dg.JobDefinition,
@@ -26,7 +28,7 @@ def build_file_report_sensors(
     def file_reports_success_sensor(context: dg.RunStatusSensorContext):
         # Pass the parent job's traceparent to continue the same trace
         parent_tags = dict(context.dagster_run.tags or {})
-        tags = {}
+        tags = {SOURCE_DAGSTER_RUN_ID_TAG: context.dagster_run.run_id}
         if traceparent := parent_tags.get(JOB_TRACEPARENT_TAG):
             tags[JOB_TRACEPARENT_TAG] = traceparent
 
@@ -44,7 +46,7 @@ def build_file_report_sensors(
     def file_reports_failure_sensor(context: dg.RunStatusSensorContext):
         # Pass the parent job's traceparent to continue the same trace
         parent_tags = dict(context.dagster_run.tags or {})
-        tags = {}
+        tags = {SOURCE_DAGSTER_RUN_ID_TAG: context.dagster_run.run_id}
         if traceparent := parent_tags.get(JOB_TRACEPARENT_TAG):
             tags[JOB_TRACEPARENT_TAG] = traceparent
 

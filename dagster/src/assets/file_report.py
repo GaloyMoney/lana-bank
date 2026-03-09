@@ -42,6 +42,9 @@ class Report(TypedDict):
     files: List[ReportFile]
 
 
+SOURCE_DAGSTER_RUN_ID_TAG = "lana/source_dagster_run_id"
+
+
 def get_dbt_asset_key_for_table(table_name: str) -> Optional[dg.AssetKey]:
     """Get the dbt asset key for a given table name.
 
@@ -322,9 +325,18 @@ def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
         headers["traceparent"] = traceparent
         context.log.info(f"Sending traceparent: {traceparent}")
 
+    run_tags = getattr(context.instance.get_run_by_id(context.run_id), "tags", {}) or {}
+    payload = None
+    if source_run_id := run_tags.get(SOURCE_DAGSTER_RUN_ID_TAG):
+        payload = {"dagster_run_id": source_run_id}
+        context.log.info(f"Sending source Dagster run id: {source_run_id}")
+
     try:
         context.log.info(f"Calling webhook: {webhook_url}")
-        response = requests.post(webhook_url, headers=headers, timeout=30)
+        request_kwargs = {"headers": headers, "timeout": 30}
+        if payload is not None:
+            request_kwargs["json"] = payload
+        response = requests.post(webhook_url, **request_kwargs)
         response.raise_for_status()
         context.log.info(
             f"Successfully notified Lana system. Response: {response.status_code}"

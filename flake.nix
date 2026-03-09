@@ -94,6 +94,7 @@
           || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path
           || pkgs.lib.hasInfix "/lana/contract-creation/src/templates/" path
           || pkgs.lib.hasInfix "/lib/gotenberg/config/" path
+          || pkgs.lib.hasInfix "/dagster/generate_es_reports/reports.yml" path
           || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path;
