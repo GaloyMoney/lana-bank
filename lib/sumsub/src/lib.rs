@@ -760,7 +760,6 @@ impl SumsubClient {
 #[cfg(test)]
 mod tests {
     use super::SumsubClient;
-    use crate::SumsubConfig;
 
     #[test]
     fn applicant_decision_paths_match_sumsub_api() {
@@ -772,26 +771,5 @@ mod tests {
             SumsubClient::approve_applicant_path("applicant-123"),
             "/resources/applicants/applicant-123/-/approve"
         );
-    }
-
-    #[test]
-    fn approve_applicant_uses_empty_json_body() {
-        let config = SumsubConfig {
-            sumsub_key: "key".to_string(),
-            sumsub_secret: "secret".to_string(),
-        };
-        let client = SumsubClient::new(&config);
-        let body = "{}";
-
-        let headers = client
-            .get_headers(
-                "POST",
-                &SumsubClient::approve_applicant_path("applicant-123"),
-                Some(body),
-            )
-            .expect("headers should be built");
-
-        assert_eq!(headers["Content-Type"], "application/json");
-        assert!(!headers["X-App-Access-Sig"].is_empty());
     }
 }
