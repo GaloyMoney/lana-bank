@@ -176,12 +176,15 @@ function generateEventsDocs(eventsSchemaPath, outputPath) {
   const MODULE_ORDER = [
     { key: "Access", enumName: "CoreAccessEvent", prefix: "core.access" },
     { key: "Credit", enumName: "CoreCreditEvent", prefix: "core.credit" },
+    { key: "CreditCollateral", enumName: "CoreCreditCollateralEvent", prefix: "core.credit-collateral" },
+    { key: "CreditCollection", enumName: "CoreCreditCollectionEvent", prefix: "core.credit-collection" },
     { key: "Custody", enumName: "CoreCustodyEvent", prefix: "core.custody" },
     { key: "Customer", enumName: "CoreCustomerEvent", prefix: "core.customer" },
     { key: "Deposit", enumName: "CoreDepositEvent", prefix: "core.deposit" },
     { key: "Price", enumName: "CorePriceEvent", prefix: "core.price" },
     { key: "Report", enumName: "CoreReportEvent", prefix: "core.report" },
     { key: "Governance", enumName: "GovernanceEvent", prefix: "governance" },
+    { key: "Time", enumName: "CoreTimeEvent", prefix: "core.time" },
   ];
 
   function extractEventsFromSchema(schema, enumName) {
