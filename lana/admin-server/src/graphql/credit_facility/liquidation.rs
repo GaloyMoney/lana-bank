@@ -1,8 +1,13 @@
-use async_graphql::*;
+use async_graphql::{connection::*, *};
+use es_entity::{EsEntity as _, Sort};
 
-use es_entity::Sort;
-
-use crate::{graphql::loader::LanaDataLoader, primitives::*};
+use crate::{
+    graphql::{
+        event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+        loader::LanaDataLoader,
+    },
+    primitives::*,
+};
 pub use lana_app::credit::{
     Liquidation as DomainLiquidation, LiquidationsSortBy as DomainLiquidationsSortBy,
 };
@@ -75,6 +80,16 @@ impl Liquidation {
                 ledger_tx_id: ledger_tx_id.into(),
             })
             .collect()
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn collateral(&self, ctx: &Context<'_>) -> Result<Collateral> {

@@ -1,10 +1,12 @@
-use async_graphql::*;
+use async_graphql::{connection::*, *};
+use es_entity::EsEntity as _;
 
 use crate::primitives::*;
 
 use super::{
-    access::User, approval_rules::*, credit_facility::*, loader::LanaDataLoader, policy::*,
-    withdrawal::*,
+    access::User, approval_rules::*, credit_facility::*, event_timeline,
+    event_timeline::EventTimelineCursor, event_timeline::EventTimelineEntry,
+    loader::LanaDataLoader, policy::*, withdrawal::*,
 };
 
 pub use lana_app::governance::{
@@ -124,6 +126,16 @@ impl ApprovalProcess {
         } else {
             Ok(vec![])
         }
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn target(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcessTarget> {

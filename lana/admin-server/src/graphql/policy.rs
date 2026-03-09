@@ -1,8 +1,13 @@
-use async_graphql::*;
+use async_graphql::{connection::*, *};
+use es_entity::EsEntity as _;
 
 use crate::primitives::*;
 
-use super::{approval_process::*, approval_rules::*};
+use super::{
+    approval_process::*,
+    approval_rules::*,
+    event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+};
 
 pub use lana_app::governance::{Policy as DomainPolicy, policy_cursor::PoliciesByCreatedAtCursor};
 
@@ -32,6 +37,16 @@ impl From<DomainPolicy> for Policy {
 impl Policy {
     async fn rules(&self) -> ApprovalRules {
         ApprovalRules::from(self.entity.rules)
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 }
 

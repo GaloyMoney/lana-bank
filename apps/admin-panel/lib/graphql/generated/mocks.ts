@@ -152,6 +152,7 @@ export const mockApprovalProcess = (overrides?: Partial<ApprovalProcess>, _relat
         approvalProcessType: overrides && overrides.hasOwnProperty('approvalProcessType') ? overrides.approvalProcessType! : mockEnums.approvalProcessType(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         deniedReason: overrides && overrides.hasOwnProperty('deniedReason') ? overrides.deniedReason! : generateMockValue.deniedReason(),
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         policy: overrides && overrides.hasOwnProperty('policy') ? overrides.policy! : relationshipsToOmit.has('Policy') ? {} as Policy : mockPolicy({}, relationshipsToOmit),
         rules: overrides && overrides.hasOwnProperty('rules') ? overrides.rules! : relationshipsToOmit.has('CommitteeApproval') ? {} as CommitteeApproval : mockCommitteeApproval({}, relationshipsToOmit),
@@ -459,6 +460,7 @@ export const mockCollateral = (overrides?: Partial<Collateral>, _relationshipsTo
         accountId: overrides && overrides.hasOwnProperty('accountId') ? overrides.accountId! : generateMockValue.uuid(),
         collateralId: overrides && overrides.hasOwnProperty('collateralId') ? overrides.collateralId! : generateMockValue.uuid(),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         walletId: overrides && overrides.hasOwnProperty('walletId') ? overrides.walletId! : generateMockValue.uuid(),
     };
@@ -536,6 +538,7 @@ export const mockCommittee = (overrides?: Partial<Committee>, _relationshipsToOm
         committeeId: overrides && overrides.hasOwnProperty('committeeId') ? overrides.committeeId! : generateMockValue.uuid(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         currentMembers: overrides && overrides.hasOwnProperty('currentMembers') ? overrides.currentMembers! : [relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit)],
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
@@ -669,6 +672,7 @@ export const mockCreditFacility = (overrides?: Partial<CreditFacility>, _relatio
         currentCvl: overrides && overrides.hasOwnProperty('currentCvl') ? overrides.currentCvl! : relationshipsToOmit.has('FiniteCvlPct') ? {} as FiniteCvlPct : mockFiniteCvlPct({}, relationshipsToOmit),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
         disbursals: overrides && overrides.hasOwnProperty('disbursals') ? overrides.disbursals! : [relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit)],
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         facilityAmount: overrides && overrides.hasOwnProperty('facilityAmount') ? overrides.facilityAmount! : generateMockValue.usdCents(),
         history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : [relationshipsToOmit.has('CreditFacilityApproved') ? {} as CreditFacilityApproved : mockCreditFacilityApproved({}, relationshipsToOmit)],
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
@@ -809,6 +813,7 @@ export const mockCreditFacilityDisbursal = (overrides?: Partial<CreditFacilityDi
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
         creditFacilityDisbursalId: overrides && overrides.hasOwnProperty('creditFacilityDisbursalId') ? overrides.creditFacilityDisbursalId! : generateMockValue.uuid(),
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         ledgerTransactions: overrides && overrides.hasOwnProperty('ledgerTransactions') ? overrides.ledgerTransactions! : [relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit)],
         publicId: overrides && overrides.hasOwnProperty('publicId') ? overrides.publicId! : faker.lorem.word(),
@@ -981,6 +986,7 @@ export const mockCreditFacilityPaymentAllocation = (overrides?: Partial<CreditFa
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
         creditFacilityPaymentAllocationId: overrides && overrides.hasOwnProperty('creditFacilityPaymentAllocationId') ? overrides.creditFacilityPaymentAllocationId! : generateMockValue.uuid(),
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
     };
 };
@@ -998,6 +1004,7 @@ export const mockCreditFacilityProposal = (overrides?: Partial<CreditFacilityPro
         creditFacilityTerms: overrides && overrides.hasOwnProperty('creditFacilityTerms') ? overrides.creditFacilityTerms! : relationshipsToOmit.has('TermValues') ? {} as TermValues : mockTermValues({}, relationshipsToOmit),
         custodian: overrides && overrides.hasOwnProperty('custodian') ? overrides.custodian! : relationshipsToOmit.has('Custodian') ? {} as Custodian : mockCustodian({}, relationshipsToOmit),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         facilityAmount: overrides && overrides.hasOwnProperty('facilityAmount') ? overrides.facilityAmount! : generateMockValue.usdCents(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         repaymentPlan: overrides && overrides.hasOwnProperty('repaymentPlan') ? overrides.repaymentPlan! : [relationshipsToOmit.has('CreditFacilityRepaymentPlanEntry') ? {} as CreditFacilityRepaymentPlanEntry : mockCreditFacilityRepaymentPlanEntry({}, relationshipsToOmit)],
@@ -1392,6 +1399,7 @@ export const mockCustomerDocument = (overrides?: Partial<CustomerDocument>, _rel
         __typename: 'CustomerDocument',
         customerDocumentId: overrides && overrides.hasOwnProperty('customerDocumentId') ? overrides.customerDocumentId! : generateMockValue.uuid(),
         customerId: overrides && overrides.hasOwnProperty('customerId') ? overrides.customerId! : generateMockValue.uuid(),
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         filename: overrides && overrides.hasOwnProperty('filename') ? overrides.filename! : generateMockValue.filename(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : mockEnums.documentStatus(),
@@ -2414,6 +2422,7 @@ export const mockLiquidation = (overrides?: Partial<Liquidation>, _relationships
         collateralId: overrides && overrides.hasOwnProperty('collateralId') ? overrides.collateralId! : generateMockValue.uuid(),
         completed: overrides && overrides.hasOwnProperty('completed') ? overrides.completed! : faker.datatype.boolean(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         expectedToReceive: overrides && overrides.hasOwnProperty('expectedToReceive') ? overrides.expectedToReceive! : generateMockValue.usdCents(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         liquidationId: overrides && overrides.hasOwnProperty('liquidationId') ? overrides.liquidationId! : generateMockValue.uuid(),
@@ -2793,6 +2802,7 @@ export const mockPermissionSet = (overrides?: Partial<PermissionSet>, _relations
     return {
         __typename: 'PermissionSet',
         description: overrides && overrides.hasOwnProperty('description') ? overrides.description! : generateMockValue.description(),
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         permissionSetId: overrides && overrides.hasOwnProperty('permissionSetId') ? overrides.permissionSetId! : generateMockValue.uuid(),
@@ -2840,6 +2850,7 @@ export const mockPolicy = (overrides?: Partial<Policy>, _relationshipsToOmit: Se
     return {
         __typename: 'Policy',
         approvalProcessType: overrides && overrides.hasOwnProperty('approvalProcessType') ? overrides.approvalProcessType! : ApprovalProcessType.CreditFacilityProposalApproval,
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         policyId: overrides && overrides.hasOwnProperty('policyId') ? overrides.policyId! : generateMockValue.uuid(),
         rules: overrides && overrides.hasOwnProperty('rules') ? overrides.rules! : relationshipsToOmit.has('CommitteeApproval') ? {} as CommitteeApproval : mockCommitteeApproval({}, relationshipsToOmit),
@@ -3423,6 +3434,7 @@ export const mockTermsTemplate = (overrides?: Partial<TermsTemplate>, _relations
     return {
         __typename: 'TermsTemplate',
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         termsTemplateId: overrides && overrides.hasOwnProperty('termsTemplateId') ? overrides.termsTemplateId! : generateMockValue.uuid(),

@@ -120,6 +120,7 @@ export type ApprovalProcess = {
   approvalProcessType: ApprovalProcessType;
   createdAt: Scalars['Timestamp']['output'];
   deniedReason?: Maybe<Scalars['String']['output']>;
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   policy: Policy;
   rules: ApprovalRules;
@@ -127,6 +128,12 @@ export type ApprovalProcess = {
   target: ApprovalProcessTarget;
   userCanSubmitDecision: Scalars['Boolean']['output'];
   voters: Array<ApprovalProcessVoter>;
+};
+
+
+export type ApprovalProcessEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type ApprovalProcessApproveInput = {
@@ -345,8 +352,15 @@ export type Collateral = {
   accountId: Scalars['UUID']['output'];
   collateralId: Scalars['UUID']['output'];
   creditFacility?: Maybe<CreditFacility>;
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   walletId?: Maybe<Scalars['UUID']['output']>;
+};
+
+
+export type CollateralEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type CollateralBalance = {
@@ -403,8 +417,15 @@ export type Committee = {
   committeeId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
   currentMembers: Array<User>;
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+};
+
+
+export type CommitteeEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type CommitteeAddUserInput = {
@@ -516,6 +537,7 @@ export type CreditFacility = {
   currentCvl: CvlPct;
   customer: Customer;
   disbursals: Array<CreditFacilityDisbursal>;
+  eventHistory: EventTimelineEntryConnection;
   facilityAmount: Scalars['UsdCents']['output'];
   history: Array<CreditFacilityHistoryEntry>;
   id: Scalars['ID']['output'];
@@ -531,6 +553,12 @@ export type CreditFacility = {
   userCanRecordPaymentWithDate: Scalars['Boolean']['output'];
   userCanUpdateCollateral: Scalars['Boolean']['output'];
   wallet?: Maybe<Wallet>;
+};
+
+
+export type CreditFacilityEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type CreditFacilityApproved = {
@@ -619,10 +647,17 @@ export type CreditFacilityDisbursal = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacility: CreditFacility;
   creditFacilityDisbursalId: Scalars['UUID']['output'];
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   status: DisbursalStatus;
+};
+
+
+export type CreditFacilityDisbursalEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type CreditFacilityDisbursalConnection = {
@@ -750,7 +785,14 @@ export type CreditFacilityPaymentAllocation = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacility: CreditFacility;
   creditFacilityPaymentAllocationId: Scalars['UUID']['output'];
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
+};
+
+
+export type CreditFacilityPaymentAllocationEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type CreditFacilityProposal = {
@@ -763,10 +805,17 @@ export type CreditFacilityProposal = {
   creditFacilityTerms: TermValues;
   custodian?: Maybe<Custodian>;
   customer: Customer;
+  eventHistory: EventTimelineEntryConnection;
   facilityAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: CreditFacilityProposalStatus;
+};
+
+
+export type CreditFacilityProposalEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type CreditFacilityProposalConcludedPayload = {
@@ -1104,9 +1153,16 @@ export type CustomerDocument = {
   __typename?: 'CustomerDocument';
   customerDocumentId: Scalars['UUID']['output'];
   customerId: Scalars['UUID']['output'];
+  eventHistory: EventTimelineEntryConnection;
   filename: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   status: DocumentStatus;
+};
+
+
+export type CustomerDocumentEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type CustomerDocumentArchiveInput = {
@@ -1926,12 +1982,19 @@ export type Liquidation = {
   collateralId: Scalars['UUID']['output'];
   completed: Scalars['Boolean']['output'];
   createdAt: Scalars['Timestamp']['output'];
+  eventHistory: EventTimelineEntryConnection;
   expectedToReceive: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   liquidationId: Scalars['UUID']['output'];
   receivedProceeds: Array<LiquidationProceedsReceived>;
   sentCollateral: Array<LiquidationCollateralSent>;
   sentTotal: Scalars['Satoshis']['output'];
+};
+
+
+export type LiquidationEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type LiquidationCollateralSent = {
@@ -2561,9 +2624,16 @@ export enum Period {
 export type PermissionSet = {
   __typename?: 'PermissionSet';
   description: Scalars['String']['output'];
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissionSetId: Scalars['UUID']['output'];
+};
+
+
+export type PermissionSetEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type PermissionSetConnection = {
@@ -2598,9 +2668,16 @@ export type PersonalInfo = {
 export type Policy = {
   __typename?: 'Policy';
   approvalProcessType: ApprovalProcessType;
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   policyId: Scalars['UUID']['output'];
   rules: ApprovalRules;
+};
+
+
+export type PolicyEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type PolicyAssignCommitteeInput = {
@@ -3473,11 +3550,18 @@ export type TermsInput = {
 export type TermsTemplate = {
   __typename?: 'TermsTemplate';
   createdAt: Scalars['Timestamp']['output'];
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   termsTemplateId: Scalars['UUID']['output'];
   userCanUpdateTermsTemplate: Scalars['Boolean']['output'];
   values: TermValues;
+};
+
+
+export type TermsTemplateEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type TermsTemplateCreateInput = {

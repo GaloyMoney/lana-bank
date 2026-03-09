@@ -79,6 +79,7 @@ type ApprovalProcess {
 	policy: Policy!
 	userCanSubmitDecision: Boolean!
 	voters: [ApprovalProcessVoter!]!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	target: ApprovalProcessTarget!
 }
 
@@ -307,6 +308,7 @@ type Collateral {
 	walletId: UUID
 	accountId: UUID!
 	account: LedgerAccount!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	creditFacility: CreditFacility
 }
 
@@ -360,6 +362,7 @@ type Committee {
 	committeeId: UUID!
 	createdAt: Timestamp!
 	name: String!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	currentMembers: [User!]!
 }
 
@@ -490,6 +493,7 @@ type CreditFacility {
 	customer: Customer!
 	balance: CreditFacilityBalance!
 	wallet: Wallet
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	ledgerAccounts: CreditFacilityLedgerAccounts!
 }
 
@@ -579,6 +583,7 @@ type CreditFacilityDisbursal {
 	publicId: PublicId!
 	creditFacility: CreditFacility!
 	approvalProcess: ApprovalProcess!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	ledgerTransactions: [LedgerTransaction!]!
 }
 
@@ -715,6 +720,7 @@ type CreditFacilityPaymentAllocation {
 	creditFacilityPaymentAllocationId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	creditFacility: CreditFacility!
 }
 
@@ -729,6 +735,7 @@ type CreditFacilityProposal {
 	custodian: Custodian
 	customer: Customer!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	approvalProcess: ApprovalProcess
 }
 
@@ -1077,6 +1084,7 @@ type CustomerDocument {
 	customerId: UUID!
 	status: DocumentStatus!
 	filename: String!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 }
 
 input CustomerDocumentArchiveInput {
@@ -1922,6 +1930,7 @@ type Liquidation {
 	completed: Boolean!
 	sentCollateral: [LiquidationCollateralSent!]!
 	receivedProceeds: [LiquidationProceedsReceived!]!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	collateral: Collateral!
 }
 
@@ -2248,6 +2257,7 @@ type PermissionSet {
 	permissionSetId: UUID!
 	name: String!
 	description: String!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 }
 
 type PermissionSetConnection {
@@ -2293,6 +2303,7 @@ type Policy {
 	policyId: UUID!
 	approvalProcessType: ApprovalProcessType!
 	rules: ApprovalRules!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 }
 
 input PolicyAssignCommitteeInput {
@@ -2773,6 +2784,7 @@ type TermsTemplate {
 	values: TermValues!
 	createdAt: Timestamp!
 	name: String!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	userCanUpdateTermsTemplate: Boolean!
 }
 
