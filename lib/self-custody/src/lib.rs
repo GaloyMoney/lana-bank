@@ -19,6 +19,7 @@ use url::Url;
 pub enum SelfCustodyNetwork {
     Testnet3,
     Testnet4,
+    Signet,
     Mainnet,
 }
 
@@ -27,13 +28,14 @@ impl SelfCustodyNetwork {
         match self {
             Self::Mainnet => Network::Bitcoin,
             Self::Testnet3 | Self::Testnet4 => Network::Testnet,
+            Self::Signet => Network::Signet,
         }
     }
 
     fn bip84_account_path(self) -> DerivationPath {
         let coin_type = match self {
             Self::Mainnet => 0,
-            Self::Testnet3 | Self::Testnet4 => 1,
+            Self::Testnet3 | Self::Testnet4 | Self::Signet => 1,
         };
         DerivationPath::from(vec![
             ChildNumber::from_hardened_idx(84).expect("constant index is valid"),
@@ -270,6 +272,26 @@ mod tests {
         assert_ne!(first.address, second.address);
         assert_eq!(first.derivation_path, "m/84'/0'/0'/0/0");
         assert_eq!(second.derivation_path, "m/84'/0'/0'/0/1");
+    }
+
+    #[test]
+    fn generate_account_keys_and_addresses_support_signet() {
+        let generated =
+            generate_account_keys(SelfCustodyNetwork::Signet).expect("key generation succeeds");
+        let client = SelfCustodyClient::try_new(SelfCustodyConfig {
+            account_xpub: generated.account_xpub,
+            network: SelfCustodyNetwork::Signet,
+            esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
+        })
+        .expect("generated xpub is valid");
+
+        let wallet = client
+            .derive_receive_wallet(0)
+            .expect("first receive address derives");
+
+        assert!(wallet.address.starts_with("tb1"));
+        assert_eq!(wallet.derivation_path, "m/84'/1'/0'/0/0");
+        assert_eq!(wallet.network, SelfCustodyNetwork::Signet);
     }
 
     #[tokio::test]

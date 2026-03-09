@@ -202,6 +202,7 @@ impl CustodianClient for self_custody::SelfCustodyClient {
             network: match wallet.network {
                 self_custody::SelfCustodyNetwork::Testnet3 => WalletNetwork::Testnet3,
                 self_custody::SelfCustodyNetwork::Testnet4 => WalletNetwork::Testnet4,
+                self_custody::SelfCustodyNetwork::Signet => WalletNetwork::Signet,
                 self_custody::SelfCustodyNetwork::Mainnet => WalletNetwork::Mainnet,
             },
             full_response: serde_json::json!({
@@ -291,6 +292,9 @@ pub mod mock {
 
 #[cfg(test)]
 mod tests {
+    use url::Url;
+
+    use super::*;
     use hmac::{Hmac, Mac};
     use sha2::Sha256;
 
@@ -310,5 +314,25 @@ mod tests {
             ]),
             Ok(())
         );
+    }
+
+    #[tokio::test]
+    async fn self_custody_signet_wallets_map_to_signet_network() {
+        let generated =
+            self_custody::generate_account_keys(self_custody::SelfCustodyNetwork::Signet)
+                .expect("key generation succeeds");
+        let client = self_custody::SelfCustodyClient::try_new(self_custody::SelfCustodyConfig {
+            account_xpub: generated.account_xpub,
+            network: self_custody::SelfCustodyNetwork::Signet,
+            esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
+        })
+        .expect("generated xpub is valid");
+
+        let wallet = client
+            .initialize_wallet("signet-loan", Some(7))
+            .await
+            .expect("wallet initializes");
+
+        assert_eq!(wallet.network, WalletNetwork::Signet);
     }
 }

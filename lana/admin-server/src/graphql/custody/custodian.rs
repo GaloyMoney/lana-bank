@@ -82,6 +82,7 @@ pub struct SelfCustodyConfig {
 pub enum SelfCustodyNetwork {
     Testnet3,
     Testnet4,
+    Signet,
     Mainnet,
 }
 
@@ -115,6 +116,7 @@ impl From<SelfCustodyNetwork> for DomainSelfCustodyNetwork {
         match network {
             SelfCustodyNetwork::Testnet3 => DomainSelfCustodyNetwork::Testnet3,
             SelfCustodyNetwork::Testnet4 => DomainSelfCustodyNetwork::Testnet4,
+            SelfCustodyNetwork::Signet => DomainSelfCustodyNetwork::Signet,
             SelfCustodyNetwork::Mainnet => DomainSelfCustodyNetwork::Mainnet,
         }
     }

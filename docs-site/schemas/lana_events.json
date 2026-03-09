@@ -849,7 +849,39 @@
             },
             "type": {
               "type": "string",
-              "const": "CustomerKycUpdated"
+              "const": "CustomerFrozen"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCustomer"
+            },
+            "type": {
+              "type": "string",
+              "const": "CustomerUnfrozen"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCustomer"
+            },
+            "type": {
+              "type": "string",
+              "const": "CustomerClosed"
             }
           },
           "required": [
@@ -1126,6 +1158,14 @@
         "interest"
       ]
     },
+    "CustomerStatus": {
+      "type": "string",
+      "enum": [
+        "active",
+        "frozen",
+        "closed"
+      ]
+    },
     "CustomerType": {
       "type": "string",
       "enum": [
@@ -1295,16 +1335,9 @@
         "not-started",
         "started",
         "pending",
+        "on-hold",
         "approved",
         "declined"
-      ]
-    },
-    "KycVerification": {
-      "type": "string",
-      "enum": [
-        "no-kyc",
-        "verified",
-        "rejected"
       ]
     },
     "LiquidationTrigger": {
@@ -1415,15 +1448,8 @@
         "new",
         "kyc-started",
         "kyc-pending",
+        "kyc-on-hold",
         "kyc-declined",
-        "converted",
-        "closed"
-      ]
-    },
-    "ProspectStatus": {
-      "type": "string",
-      "enum": [
-        "open",
         "converted",
         "closed"
       ]
@@ -1581,18 +1607,18 @@
           "type": "string",
           "format": "uuid"
         },
-        "kyc_verification": {
-          "$ref": "#/$defs/KycVerification"
-        },
         "party_id": {
           "type": "string",
           "format": "uuid"
+        },
+        "status": {
+          "$ref": "#/$defs/CustomerStatus"
         }
       },
       "required": [
         "id",
         "party_id",
-        "kyc_verification"
+        "status"
       ]
     },
     "PublicDeposit": {
@@ -1918,15 +1944,11 @@
         },
         "stage": {
           "$ref": "#/$defs/ProspectStage"
-        },
-        "status": {
-          "$ref": "#/$defs/ProspectStatus"
         }
       },
       "required": [
         "id",
         "party_id",
-        "status",
         "kyc_status",
         "stage"
       ]
@@ -2169,6 +2191,7 @@
       "enum": [
         "Testnet3",
         "Testnet4",
+        "Signet",
         "Mainnet"
       ]
     },

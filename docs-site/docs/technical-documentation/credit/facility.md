@@ -81,7 +81,7 @@ Bitcoin collateral is the primary risk mitigation mechanism for credit facilitie
 
 ### Collateral Posting
 
-After a proposal is approved, the resulting pending facility enters the **Pending Collateralization** state. At this point, the customer must deposit Bitcoin into the facility's associated custody wallet. If the facility has an assigned custodian, Lana synchronizes the collateral balance from that custody backend, either through hosted-custodian webhooks or self-custody esplora polling. In manual mode, an operator can update the collateral amount directly through the admin panel.
+After a proposal is approved, the resulting pending facility enters the **Pending Collateralization** state. At this point, the customer must deposit Bitcoin into the facility's associated custody wallet. If the facility has an assigned custodian, Lana synchronizes the collateral balance from that custody backend, either through hosted-custodian webhooks or self-custody esplora polling. The self-custody polling flow can be configured against mainnet, testnet3, testnet4, or signet esplora backends. In manual mode, an operator can update the collateral amount directly through the admin panel.
 
 ### CVL Monitoring During Facility Lifetime
 

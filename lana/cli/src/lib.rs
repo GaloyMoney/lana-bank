@@ -72,6 +72,7 @@ enum Commands {
 enum CliSelfCustodyNetwork {
     Testnet3,
     Testnet4,
+    Signet,
     Mainnet,
 }
 
@@ -80,6 +81,7 @@ impl From<CliSelfCustodyNetwork> for self_custody::SelfCustodyNetwork {
         match network {
             CliSelfCustodyNetwork::Testnet3 => self_custody::SelfCustodyNetwork::Testnet3,
             CliSelfCustodyNetwork::Testnet4 => self_custody::SelfCustodyNetwork::Testnet4,
+            CliSelfCustodyNetwork::Signet => self_custody::SelfCustodyNetwork::Signet,
             CliSelfCustodyNetwork::Mainnet => self_custody::SelfCustodyNetwork::Mainnet,
         }
     }

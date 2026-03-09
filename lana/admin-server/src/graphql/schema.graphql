@@ -2756,6 +2756,7 @@ input SelfCustodyConfig {
 enum SelfCustodyNetwork {
 	TESTNET3
 	TESTNET4
+	SIGNET
 	MAINNET
 }
 
@@ -3062,6 +3063,7 @@ type Wallet {
 enum WalletNetwork {
 	TESTNET3
 	TESTNET4
+	SIGNET
 	MAINNET
 }
 
