@@ -94,18 +94,20 @@ Eventos relacionados con custodia de Bitcoin y gestion de billeteras.
 
 Eventos relacionados con el ciclo de vida del cliente y KYC.
 
-| Evento | Descripción | Campos de payload |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `CustomerCreated` | Se creó un nuevo cliente | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
-| `CustomerKycUpdated` | No hay descripción disponible | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
-| `PartyCreated` | No hay descripción disponible | `entity.customer_type`, `entity.email`, `entity.id` |
-| `PartyEmailUpdated` | No hay descripción disponible | `entity.customer_type`, `entity.email`, `entity.id` |
-| `ProspectCreated` | Se creó un nuevo prospecto para incorporación | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycStarted` | Un prospecto inició la verificación KYC | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycPending` | La verificación KYC de un prospecto está pendiente de revisión | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycDeclined` | La verificación KYC de un prospecto fue rechazada | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectConverted` | Un prospecto fue convertido en cliente | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectClosed` | Un prospecto fue cerrado sin convertirse | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `CustomerCreated` | Se creo un nuevo cliente | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerFrozen` | Se congelo una cuenta de cliente, bloqueando operaciones financieras | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerUnfrozen` | Se descongelo una cuenta de cliente previamente congelada, restaurando operaciones normales | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerClosed` | No description available | `entity.id`, `entity.party_id`, `entity.status` |
+| `PartyCreated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
+| `PartyEmailUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
+| `ProspectCreated` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycStarted` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycPending` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycDeclined` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectConverted` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectClosed` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
 
 ---
 
