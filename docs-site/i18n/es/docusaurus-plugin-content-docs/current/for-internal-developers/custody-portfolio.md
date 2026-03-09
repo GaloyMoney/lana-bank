@@ -82,12 +82,12 @@ graph TD
 ## Capacidades de los Proveedores
 
 | Proveedor | Creación de billetera | Sincronización de saldo |
-|-----------|----------------------|-----------------------|
-| BitGo | Crea una billetera dedicada y dirección de recepción | Basado en webhook |
-| Komainu | Usa una configuración de billetera preaprovisionada | Basado en webhook |
-| Bitfinex | Solicita una nueva dirección de depósito de Bitcoin de la billetera Bitfinex configurada | Integración manual o futura mediante sondeos |
+|----------|---------------------|-----------------------|
+| BitGo | Crea una billetera dedicada y una dirección de recepción | Activada por webhook |
+| Komainu | Utiliza una configuración de billetera preaprovada | Activada por webhook |
+| Bitfinex | Solicita una nueva dirección de depósito de Bitcoin desde el tipo de billetera Bitfinex configurado | Manual o integración por sondeo en el futuro |
 
-El soporte de Bitfinex está optimizado para la generación de direcciones de colateral en Bitcoin. Cada vez que se crea una billetera de Lana se solicita una nueva dirección de depósito de Bitcoin desde la billetera configurada en Bitfinex, por lo que las facilidades no comparten direcciones. Debido a que Bitfinex limita la frecuencia de renovación de direcciones de depósito, los operadores deben evitar crear billeteras innecesariamente durante pruebas.
+El soporte de Bitfinex está optimizado para la generación de direcciones de garantía en Bitcoin. Cada vez que se crea una billetera Lana, se solicita una dirección renovada de depósito de Bitcoin desde el tipo de billetera Bitfinex configurado (`exchange`, `margin` o `funding`), para que las instalaciones no compartan direcciones. Debido a que Bitfinex limita la frecuencia de renovación de direcciones de depósito, los operadores deben evitar la creación repetida innecesaria de billeteras durante las pruebas.
 
 ## Interfaz del Proveedor de Custodia
 
