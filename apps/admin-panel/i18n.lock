@@ -26,6 +26,7 @@ checksums:
     Common/copiedToClipboard: 6a3c394a9a51646bad2f72d7311b242d
     Common/showIds: 5045a50490a16d635ee9ddc9ed487973
     Common/hideIds: 294d6648b615496a70e2bf3c589f5402
+    Common/showUser: 1dc496ab21f6c3711c871bb90043a9bd
     Common/copyId: b05ed1f0745e7f8ce758658681f61707
     Common/formatRule/noRulesDefined: c2fa3d9395c5cc7c85dde610f5b5b0aa
     Common/formatRule/allMembersMustApprove: c828e90335daa1fb324ee374d0b3936b
@@ -576,6 +577,8 @@ checksums:
     CreditFacilityProposals/ProposalDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
     CreditFacilityProposals/ProposalDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
     CreditFacilityProposals/ProposalDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    CreditFacilityProposals/ProposalDetails/eventHistory/columns/userId: 61073457a5c3901084b557d065f876be
+    CreditFacilityProposals/ProposalDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
     CreditFacilityProposals/ProposalDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     CreditFacilities/title: 4283868565aa25d5513636fc6e12d49c
     CreditFacilities/description: 18da4507529b9ddbd3762bce95c86b8f
@@ -1264,6 +1267,8 @@ checksums:
     Users/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
     Users/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
     Users/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Users/eventHistory/columns/userId: 61073457a5c3901084b557d065f876be
+    Users/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
     Users/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Users/updateRole/title: 365448e14f736c954e16abea616d4284
     Users/updateRole/description: c506d28cd2a9aa4d3fe3e17f9df0e2ca
@@ -1752,6 +1757,8 @@ checksums:
     RolesAndPermissions/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
     RolesAndPermissions/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
     RolesAndPermissions/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    RolesAndPermissions/eventHistory/columns/userId: 61073457a5c3901084b557d065f876be
+    RolesAndPermissions/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
     RolesAndPermissions/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Auth/IdleSessionDialog/title: 79bc2519d69e54e889036ac6b7d5700c
     Auth/IdleSessionDialog/description: 187addc99d1c3cec67cab0b7c32415df
