@@ -149,7 +149,7 @@ checksums:
     md-section-14: 14239d43b33cb51d6fa83c32909d7d57
     md-section-15: 49f3a0b7cf9ee3580bf72c81e2c4c5f9
     md-section-16: 4631c50e149364faf6ff672d54d5137b
-    md-section-17: c992c822f09b0a58544fe72dc25f6bbf
+    md-section-17: a4a7558bfc6ebbda5d59252c0e07d0a2
     md-section-18: 0e6254f850d7405298cce7ca395c88c0
     md-section-19: d494c284d5f224e9d7253ee20ff74645
     md-section-20: 6005063900f9eaca489ff5226af12fee
@@ -2272,39 +2272,40 @@ checksums:
     md-section-7: c3c8026a0368f60622cb48f5bbb9825d
     md-section-8: 51adf33450cab2ef392e93147386647c
     md-section-9: f52fecbe6929a1cf1252fe4b9ef9b03b
-    md-section-10: 5509f591f3721fbd46cc6f412fb57862
-    md-section-11: 88c75f27d6a0e8e081b36582ae608c2c
-    md-section-12: 8d8bd96885f02f67becb6cc084d9b782
-    md-section-13: af1d1afa1663dc55dc072198944ddaae
-    md-section-14: e2e9d696c968a4489193b458dce2e5d5
-    md-section-15: 8c197fd999d4a027e59c323c9c6dcf70
-    md-section-16: b0f923f450bc5967f6142e14a2a80fc5
-    md-section-17: 5dd0f51b1e3e5442d87a07edb3f2d1e7
-    md-section-18: 74c4417fa21456e86b9e728e01d0646b
-    md-section-19: 51adf33450cab2ef392e93147386647c
-    md-section-20: 6adda67e5f56ddf0a86341930bb01533
-    md-section-21: 0031a9118587084a24bc4fd77cda2844
-    md-section-22: 51adf33450cab2ef392e93147386647c
-    md-section-23: 7fddd8dc5a0a034250c875cdee6b8417
-    md-section-24: 1b596f6a441328d9dc1616c7b5c68b10
-    md-section-25: 51adf33450cab2ef392e93147386647c
-    md-section-26: a41ee94618a9e5b15fdda6ee92d4b065
-    md-section-27: 42146fd991adb37d6441e888a80d8a01
-    md-section-28: 51adf33450cab2ef392e93147386647c
-    md-section-29: 8e897b33117bcb7ac8b24655551a795c
-    md-section-30: 3d9463f86afe8a5073a43f692446ca3b
-    md-section-31: 51adf33450cab2ef392e93147386647c
-    md-section-32: dd24fe0b90c720d06741c07ebe9b6cb2
-    md-section-33: 4c6ecf1216943651ecf384ca6305df40
-    md-section-34: 51adf33450cab2ef392e93147386647c
-    md-section-35: 345c9269e61df80186327f2b8275aa12
-    md-section-36: 96aa44e1c1a99129495b97a8c6f15785
-    md-section-37: 51adf33450cab2ef392e93147386647c
-    md-section-38: c59640733716e7554150de6a00fd06f0
-    md-section-39: 5b56bc137fbc18c171b8e7f3b47cb879
-    md-section-40: 51adf33450cab2ef392e93147386647c
-    md-section-41: aff7dedf9bb68f294fbba78e10488b03
-    md-section-42: c04030cf1a047f98e5113cc72a473896
+    md-section-10: 57fb8b117c4f8a106ab8e6fcd7f0824f
+    md-section-11: 51adf33450cab2ef392e93147386647c
+    md-section-12: e20942affbb012de2dbaac0f28dba51b
+    md-section-13: 84a78de032bba29935ab6b8f9ea07062
+    md-section-14: 51adf33450cab2ef392e93147386647c
+    md-section-15: 66d77a452d425baf7c035ac38cc58102
+    md-section-16: da56e2fee887c09b1faaba06bc5fb67e
+    md-section-17: 51adf33450cab2ef392e93147386647c
+    md-section-18: 6adda67e5f56ddf0a86341930bb01533
+    md-section-19: 0031a9118587084a24bc4fd77cda2844
+    md-section-20: 51adf33450cab2ef392e93147386647c
+    md-section-21: 7fddd8dc5a0a034250c875cdee6b8417
+    md-section-22: 1b596f6a441328d9dc1616c7b5c68b10
+    md-section-23: 51adf33450cab2ef392e93147386647c
+    md-section-24: a41ee94618a9e5b15fdda6ee92d4b065
+    md-section-25: 42146fd991adb37d6441e888a80d8a01
+    md-section-26: 51adf33450cab2ef392e93147386647c
+    md-section-27: 8e897b33117bcb7ac8b24655551a795c
+    md-section-28: 3d9463f86afe8a5073a43f692446ca3b
+    md-section-29: 51adf33450cab2ef392e93147386647c
+    md-section-30: dd24fe0b90c720d06741c07ebe9b6cb2
+    md-section-31: 4c6ecf1216943651ecf384ca6305df40
+    md-section-32: 51adf33450cab2ef392e93147386647c
+    md-section-33: 345c9269e61df80186327f2b8275aa12
+    md-section-34: 96aa44e1c1a99129495b97a8c6f15785
+    md-section-35: 51adf33450cab2ef392e93147386647c
+    md-section-36: 260e11df081e8603e6ae1a44d9b1fe99
+    md-section-37: e39e8732b4482d86b10a32f446de87ad
+    md-section-38: 51adf33450cab2ef392e93147386647c
+    md-section-39: c59640733716e7554150de6a00fd06f0
+    md-section-40: cab0807c4c368dd82b7467191b03cce4
+    md-section-41: 51adf33450cab2ef392e93147386647c
+    md-section-42: aff7dedf9bb68f294fbba78e10488b03
+    md-section-43: c04030cf1a047f98e5113cc72a473896
     fm-attr-title: 3f23d43404945420df738f7fdcd9bff0
     fm-attr-description: 5402c711e555f105ae6bb4d1360359fe
     fm-attr-slug: 3220d87c84f79a68b0e2631f7781b1b9
@@ -2369,6 +2370,12 @@ checksums:
     CoreCustomerEvent/events/CustomerFrozen: feb3b86052f5f22fd62f8bc6d814b49c
     CoreCustomerEvent/events/CustomerUnfrozen: e00f64e7bb2b871ecb8cc08433336bb0
     CoreCustomerEvent/events/CustomerClosed: 9b208c89237e6f9da6cf8f84a9f6fa1c
+    CoreCustomerEvent/events/ProspectCreated: 23cbc870c17f67a94a51fcc29fec812f
+    CoreCustomerEvent/events/ProspectKycStarted: c0bed09e6cdb747489b9115f69ba77f5
+    CoreCustomerEvent/events/ProspectKycPending: 6691635f75e9cb64e6a2e5f534d62b9a
+    CoreCustomerEvent/events/ProspectKycDeclined: 295c7664668aeb39d3b01fa7bfdeb2c3
+    CoreCustomerEvent/events/ProspectConverted: 01fc3663e3945fcf13bf6b179dbd75a7
+    CoreCustomerEvent/events/ProspectClosed: 8440f1b9836ddc4243b8db5bf05b554d
     CoreDepositEvent/module_description: 76b672b423c26619d5c05fe0d3187e79
     CoreDepositEvent/events/DepositAccountCreated: 9c53385f4023b20dee610e179be5b21b
     CoreDepositEvent/events/DepositInitialized: 1df5378bc0a7e6fbfc165213785d5f8c

@@ -82,7 +82,13 @@
       "CustomerEmailUpdated": "Se actualizo el email del cliente",
       "CustomerFrozen": "Se congelo una cuenta de cliente, bloqueando operaciones financieras",
       "CustomerUnfrozen": "Se descongelo una cuenta de cliente previamente congelada, restaurando operaciones normales",
-      "CustomerClosed": "La cuenta del cliente fue cerrada"
+      "CustomerClosed": "La cuenta del cliente fue cerrada",
+      "ProspectCreated": "Se creó un nuevo prospecto para la incorporación",
+      "ProspectKycStarted": "Un prospecto inició la verificación KYC",
+      "ProspectKycPending": "La verificación KYC de un prospecto está pendiente de revisión",
+      "ProspectKycDeclined": "La verificación KYC de un prospecto fue rechazada",
+      "ProspectConverted": "Un prospecto fue convertido en cliente",
+      "ProspectClosed": "Un prospecto fue cerrado sin conversión"
     }
   },
   "CoreDepositEvent": {
