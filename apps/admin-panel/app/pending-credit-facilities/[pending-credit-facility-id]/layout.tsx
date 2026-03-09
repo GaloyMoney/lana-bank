@@ -2,9 +2,13 @@
 
 import { gql } from "@apollo/client"
 import { use } from "react"
+import { useTranslations } from "next-intl"
+
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 
 import PendingCreditFacilityDetailsCard from "./details"
 import { PendingCreditFacilityCollateral } from "./collateral-card"
+import { PendingCreditFacilityEventHistory } from "./event-history"
 
 import { PendingCreditFacilityTermsCard } from "./terms-card"
 
@@ -127,7 +131,7 @@ export default function PendingCreditFacilityLayout({
   params: Promise<{ "pending-credit-facility-id": string }>
 }) {
   const { "pending-credit-facility-id": pendingId } = use(params)
-
+  const tTabs = useTranslations("PendingCreditFacilities.PendingDetails.tabs")
 
   const { data, loading, error } = useGetPendingCreditFacilityLayoutDetailsQuery({
     variables: { pendingCreditFacilityId: pendingId },
@@ -159,7 +163,18 @@ export default function PendingCreditFacilityLayout({
         />
         <PendingCreditFacilityCollateral pending={data.pendingCreditFacility} />
       </div>
-      {children}
+      <Tabs defaultValue="repaymentPlan">
+        <TabsList>
+          <TabsTrigger value="repaymentPlan">{tTabs("repaymentPlan")}</TabsTrigger>
+          <TabsTrigger value="events">{tTabs("events")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="repaymentPlan">
+          {children}
+        </TabsContent>
+        <TabsContent value="events">
+          <PendingCreditFacilityEventHistory pendingId={pendingId} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }

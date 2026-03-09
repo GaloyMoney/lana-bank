@@ -1222,6 +1222,10 @@
       "not_yet_collateralized": "Not Yet Collateralized"
     },
     "PendingDetails": {
+      "tabs": {
+        "repaymentPlan": "Repayment Plan",
+        "events": "Events"
+      },
       "CollateralCard": {
         "title": "Collateral",
         "details": {
@@ -2484,6 +2488,22 @@
           "closedAsOf": "Month-End Date",
           "closedAt": "Processed At"
         }
+      }
+    },
+    "tabs": {
+      "monthClosures": "Month Closures",
+      "events": "Events"
+    },
+    "eventHistory": {
+      "title": "Events",
+      "description": "Timeline of changes made to this fiscal year",
+      "emptyMessage": "No events recorded",
+      "columns": {
+        "event": "Event",
+        "details": "Details",
+        "subject": "Performed By",
+        "auditEntryId": "Audit Entry",
+        "recordedAt": "Recorded At"
       }
     }
   },
