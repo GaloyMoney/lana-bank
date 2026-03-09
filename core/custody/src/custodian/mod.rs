@@ -12,6 +12,7 @@ pub use config::{
 };
 #[cfg(feature = "json-schema")]
 pub use entity::CustodianEvent;
+pub(crate) use entity::decrypt_custodian_config;
 pub use entity::{Custodian, NewCustodian};
 pub use notification::CustodianNotification;
 pub(super) use repo::CustodianRepo;

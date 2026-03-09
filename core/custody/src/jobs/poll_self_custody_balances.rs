@@ -159,9 +159,11 @@ where
         &self,
         current_job: &CurrentJob,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut db = self.wallets.begin_op().await?;
+
         let custodian = match self
             .custodians
-            .find_by_provider("self-custody".to_string())
+            .find_by_provider_in_op(&mut db, "self-custody".to_string())
             .await
         {
             Ok(c) => c,
@@ -171,7 +173,10 @@ where
             }
         };
 
-        let config = custodian.custodian_config(&self.encryption_config.encryption_key)?;
+        let config = crate::custodian::decrypt_custodian_config(
+            &custodian,
+            &self.encryption_config.encryption_key,
+        )?;
 
         let sc_config = match config {
             CustodianConfig::SelfCustody(sc) => sc,
@@ -185,8 +190,14 @@ where
 
         let all_wallets = self
             .wallets
-            .list_by_id(Default::default(), es_entity::ListDirection::Ascending)
+            .list_by_id_in_op(
+                &mut db,
+                Default::default(),
+                es_entity::ListDirection::Ascending,
+            )
             .await?;
+
+        db.commit().await?;
 
         let now = current_job.clock().now();
 

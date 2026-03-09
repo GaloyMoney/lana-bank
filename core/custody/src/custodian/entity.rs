@@ -72,7 +72,7 @@ impl Custodian {
         Ok(Idempotent::Executed(()))
     }
 
-    fn encrypted_config_for_key(&self, key: &EncryptionKey) -> Option<&Encrypted> {
+    pub(crate) fn encrypted_config_for_key(&self, key: &EncryptionKey) -> Option<&Encrypted> {
         self.events.iter_all().rev().find_map(|event| match event {
             CustodianEvent::ConfigUpdated {
                 encrypted_custodian_config,
@@ -81,10 +81,7 @@ impl Custodian {
         })
     }
 
-    pub(crate) fn custodian_config(
-        &self,
-        key: &EncryptionKey,
-    ) -> Result<CustodianConfig, CustodianError> {
+    fn custodian_config(&self, key: &EncryptionKey) -> Result<CustodianConfig, CustodianError> {
         let encrypted = self
             .encrypted_config_for_key(key)
             .ok_or(CustodianError::StaleEncryptionKey)?;
@@ -125,6 +122,16 @@ impl Custodian {
             .map_err(CustodianClientError::client)?
             .custodian_client(provider_config)
     }
+}
+
+pub(crate) fn decrypt_custodian_config(
+    custodian: &Custodian,
+    key: &EncryptionKey,
+) -> Result<CustodianConfig, CustodianError> {
+    let encrypted = custodian
+        .encrypted_config_for_key(key)
+        .ok_or(CustodianError::StaleEncryptionKey)?;
+    CustodianConfig::decrypt(key, encrypted)
 }
 
 impl TryFromEvents<CustodianEvent> for Custodian {

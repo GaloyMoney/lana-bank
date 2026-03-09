@@ -544,9 +544,11 @@ where
             .find_by_id_in_op(&mut *db, &custodian_id)
             .await?;
 
-        let config = custodian
-            .custodian_config(&self.encryption_config.encryption_key)
-            .map_err(|e| CoreCustodyError::Custodian(e))?;
+        let config = crate::custodian::decrypt_custodian_config(
+            &custodian,
+            &self.encryption_config.encryption_key,
+        )
+        .map_err(CoreCustodyError::Custodian)?;
 
         let external_wallet = match config {
             CustodianConfig::SelfCustody(ref sc_config) => {
