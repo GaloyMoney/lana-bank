@@ -95,12 +95,13 @@ where
         .map_err(|e| async_graphql::Error::new(format!("Invalid cursor: {e}")))?
         .map(|c| c.sequence);
 
-    let all_events: Vec<_> = events.iter_persisted().collect();
+    let mut all_events: Vec<_> = events.iter_persisted().collect();
+    all_events.reverse();
 
     let filtered: Vec<_> = if let Some(after_seq) = after_sequence {
         all_events
             .into_iter()
-            .filter(|pe| pe.sequence as i32 > after_seq)
+            .filter(|pe| (pe.sequence as i32) < after_seq)
             .collect()
     } else {
         all_events
