@@ -2758,6 +2758,7 @@ type TermValues {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
+	effectiveAnnualRate: AnnualRatePct!
 	disbursalPolicy: DisbursalPolicy!
 	duration: Duration!
 	liquidationCvl: CvlPct!

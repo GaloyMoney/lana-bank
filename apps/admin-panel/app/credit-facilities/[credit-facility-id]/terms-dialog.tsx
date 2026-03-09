@@ -9,7 +9,7 @@ import { formatDate } from "@lana/web/utils"
 import { GetCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { calculateEffectiveRate, formatCvl } from "@/lib/utils"
+import { formatCvl } from "@/lib/utils"
 
 type CreditFacilityTermsDialogProps = {
   openTermsDialog: boolean
@@ -26,18 +26,7 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.TermsDialog")
 
-  let effectiveRateDisplay: string
-  try {
-    const effectiveRate = calculateEffectiveRate({
-      annualRate: Number(creditFacility.creditFacilityTerms.annualRate),
-      oneTimeFeeRate: Number(creditFacility.creditFacilityTerms.oneTimeFeeRate),
-      durationUnits: creditFacility.creditFacilityTerms.duration.units,
-      durationPeriod: creditFacility.creditFacilityTerms.duration.period,
-    })
-    effectiveRateDisplay = `${effectiveRate.toFixed(2)}%`
-  } catch {
-    effectiveRateDisplay = "ERROR"
-  }
+  const effectiveRateDisplay = `${Number(creditFacility.creditFacilityTerms.effectiveAnnualRate).toFixed(2)}%`
 
   const disbursalPolicyLabel =
     creditFacility.creditFacilityTerms.disbursalPolicy === "SINGLE_DISBURSAL"

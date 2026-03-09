@@ -43,6 +43,7 @@ gql`
       accrualInterval
       accrualCycleInterval
       oneTimeFeeRate
+      effectiveAnnualRate
       disbursalPolicy
       duration {
         period

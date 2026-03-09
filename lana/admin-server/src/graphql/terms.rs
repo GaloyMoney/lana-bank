@@ -13,6 +13,7 @@ pub struct TermValues {
     accrual_interval: InterestInterval,
     accrual_cycle_interval: InterestInterval,
     one_time_fee_rate: OneTimeFeeRatePct,
+    effective_annual_rate: AnnualRatePct,
     disbursal_policy: DisbursalPolicy,
     duration: Duration,
     liquidation_cvl: CVLPct,
@@ -22,11 +23,13 @@ pub struct TermValues {
 
 impl From<DomainTermValues> for TermValues {
     fn from(values: DomainTermValues) -> Self {
+        let effective_annual_rate = values.effective_annual_rate();
         Self {
             annual_rate: values.annual_rate,
             accrual_interval: values.accrual_interval,
             accrual_cycle_interval: values.accrual_cycle_interval,
             one_time_fee_rate: values.one_time_fee_rate,
+            effective_annual_rate,
             disbursal_policy: values.disbursal_policy,
             duration: values.duration.into(),
             liquidation_cvl: values.liquidation_cvl.into(),

@@ -4,7 +4,6 @@ import { twMerge } from "tailwind-merge"
 import {
   CvlPctDataFragment,
   GetRealtimePriceUpdatesQuery,
-  Period,
 } from "./graphql/generated"
 
 import { Satoshis, UsdCents } from "@/types"
@@ -111,32 +110,6 @@ export const formatCvl = (cvl: CvlPctDataFragment): string =>
 
 export const getCvlValue = (cvl: CvlPctDataFragment): number =>
   cvl.__typename === "FiniteCvlPct" ? Number(cvl.value) : Infinity
-
-export const calculateEffectiveRate = ({
-  annualRate,
-  oneTimeFeeRate,
-  durationUnits,
-  durationPeriod,
-}: {
-  annualRate: number
-  oneTimeFeeRate: number
-  durationUnits: number
-  durationPeriod: Period
-}): number => {
-  if (durationUnits <= 0) throw new Error("durationUnits must be positive")
-  let annualFactor: number
-  switch (durationPeriod) {
-    case Period.Months:
-      annualFactor = 12 / durationUnits
-      break
-    case Period.Days:
-      annualFactor = 365 / durationUnits
-      break
-    default:
-      throw new Error(`Unsupported duration period: ${durationPeriod}`)
-  }
-  return annualRate + oneTimeFeeRate * annualFactor
-}
 
 /**
  * Validates and sanitizes a URL to ensure it's a safe internal navigation path.

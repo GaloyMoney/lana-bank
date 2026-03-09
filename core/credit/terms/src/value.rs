@@ -367,6 +367,16 @@ impl TermValues {
         self.obligation_overdue_duration_from_due
             .map(|d| d.end_date(due_date))
     }
+
+    pub fn effective_annual_rate(&self) -> AnnualRatePct {
+        let annualization_factor = match self.duration {
+            FacilityDuration::Months(months) if months > 0 => {
+                Decimal::from(12) / Decimal::from(months)
+            }
+            _ => Decimal::ZERO,
+        };
+        AnnualRatePct(self.annual_rate.0 + self.one_time_fee_rate.0 * annualization_factor)
+    }
 }
 
 impl TermValuesBuilder {

@@ -106,6 +106,7 @@ gql`
         }
       }
       oneTimeFeeRate
+      effectiveAnnualRate
       disbursalPolicy
       duration {
         period
