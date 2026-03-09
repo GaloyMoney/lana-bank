@@ -795,6 +795,12 @@
           "noTemplates": "No terms templates available please create one or manually specify the terms below.",
           "fillAllFields": "Please fill in all the fields.",
           "cvlOrderError": "Initial CVL must be greater than Margin Call CVL, which must be greater than Liquidation CVL.",
+          "annualRateRange": "Annual rate must be between 0% and 50%.",
+          "durationRange": "Duration must be between 1 and 120 months.",
+          "oneTimeFeeRateRange": "Structuring fee rate must be between 0% and 10%.",
+          "initialCvlRange": "Initial CVL must be between 100% and 500%.",
+          "marginCallCvlRange": "Margin Call CVL must be between 100% and 500%.",
+          "liquidationCvlRange": "Liquidation CVL must be between 100% and 500%.",
           "success": "Credit Facility Proposal created successfully"
         }
       }
@@ -1560,7 +1566,13 @@
         "errors": {
           "general": "An unexpected error occurred. Please try again.",
           "updateFailed": "Failed to update Terms Template",
-          "cvlOrderError": "Initial CVL must be greater than Margin Call CVL, which must be greater than Liquidation CVL."
+          "cvlOrderError": "Initial CVL must be greater than Margin Call CVL, which must be greater than Liquidation CVL.",
+          "annualRateRange": "Annual rate must be between 0% and 50%.",
+          "durationRange": "Duration must be between 1 and 120 months.",
+          "oneTimeFeeRateRange": "Structuring fee rate must be between 0% and 10%.",
+          "initialCvlRange": "Initial CVL must be between 100% and 500%.",
+          "marginCallCvlRange": "Margin Call CVL must be between 100% and 500%.",
+          "liquidationCvlRange": "Liquidation CVL must be between 100% and 500%."
         },
         "success": {
           "updated": "Terms Template updated successfully"
@@ -1600,7 +1612,13 @@
         "errors": {
           "general": "An unexpected error occurred. Please try again.",
           "creationFailed": "Failed to create Terms Template",
-          "cvlOrderError": "Initial CVL must be greater than Margin Call CVL, which must be greater than Liquidation CVL."
+          "cvlOrderError": "Initial CVL must be greater than Margin Call CVL, which must be greater than Liquidation CVL.",
+          "annualRateRange": "Annual rate must be between 0% and 50%.",
+          "durationRange": "Duration must be between 1 and 120 months.",
+          "oneTimeFeeRateRange": "Structuring fee rate must be between 0% and 10%.",
+          "initialCvlRange": "Initial CVL must be between 100% and 500%.",
+          "marginCallCvlRange": "Margin Call CVL must be between 100% and 500%.",
+          "liquidationCvlRange": "Liquidation CVL must be between 100% and 500%."
         },
         "success": {
           "created": "Terms Template created successfully"

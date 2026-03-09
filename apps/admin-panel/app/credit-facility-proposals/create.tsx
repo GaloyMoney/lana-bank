@@ -40,7 +40,7 @@ import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 import { Satoshis } from "@/types"
-import { DEFAULT_TERMS } from "@/lib/constants/terms"
+import { DEFAULT_TERMS, TERMS_FIELD_LIMITS, validateTermsFields } from "@/lib/constants/terms"
 
 const DEFAULT_CUSTODIAN = "manual-custodian"
 
@@ -196,15 +196,19 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       return
     }
 
-    const initialCvlNum = parseFloat(initialCvl)
-    const marginCallCvlNum = parseFloat(marginCallCvl)
-    const liquidationCvlNum = parseFloat(liquidationCvl)
-    if (
-      initialCvlNum <= marginCallCvlNum ||
-      marginCallCvlNum <= liquidationCvlNum
-    ) {
-      toast.error(t("form.messages.cvlOrderError"))
-      return
+    if (!useTemplateTerms) {
+      const validationError = validateTermsFields({
+        annualRate,
+        durationUnits,
+        oneTimeFeeRate,
+        initialCvl,
+        marginCallCvl,
+        liquidationCvl,
+      })
+      if (validationError) {
+        toast.error(t(`form.messages.${validationError}`))
+        return
+      }
     }
 
     try {
@@ -452,8 +456,8 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.annualRate}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.annualRate")}
-                    min={0}
-                    max={50}
+                    min={TERMS_FIELD_LIMITS.annualRate.min}
+                    max={TERMS_FIELD_LIMITS.annualRate.max}
                     step="any"
                     endAdornment="%"
                     required
@@ -467,8 +471,8 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.initialCvl}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.initialCvl")}
-                    min={100}
-                    max={500}
+                    min={TERMS_FIELD_LIMITS.initialCvl.min}
+                    max={TERMS_FIELD_LIMITS.initialCvl.max}
                     step="any"
                     required
                   />
@@ -483,8 +487,8 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                       value={formValues.durationUnits}
                       onChange={handleChange}
                       placeholder={t("form.placeholders.duration")}
-                      min={1}
-                      max={120}
+                      min={TERMS_FIELD_LIMITS.durationUnits.min}
+                      max={TERMS_FIELD_LIMITS.durationUnits.max}
                       endAdornment={`${t("form.labels.months")}`}
                       required
                     />
@@ -498,8 +502,8 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.marginCallCvl}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.marginCallCvl")}
-                    min={100}
-                    max={500}
+                    min={TERMS_FIELD_LIMITS.marginCallCvl.min}
+                    max={TERMS_FIELD_LIMITS.marginCallCvl.max}
                     step="any"
                     required
                   />
@@ -512,8 +516,8 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.oneTimeFeeRate}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.structuringFeeRate")}
-                    min={0}
-                    max={10}
+                    min={TERMS_FIELD_LIMITS.oneTimeFeeRate.min}
+                    max={TERMS_FIELD_LIMITS.oneTimeFeeRate.max}
                     step="any"
                     endAdornment="%"
                     required
@@ -527,8 +531,8 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.liquidationCvl}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.liquidationCvl")}
-                    min={100}
-                    max={500}
+                    min={TERMS_FIELD_LIMITS.liquidationCvl.min}
+                    max={TERMS_FIELD_LIMITS.liquidationCvl.max}
                     step="any"
                     required
                   />
@@ -566,7 +570,12 @@ export const CreateCreditFacilityProposalDialog: React.FC<
             {!useTemplateTerms && (
               <Button
                 type="button"
-                onClick={() => setUseTemplateTerms(true)}
+                onClick={() => {
+                  setUseTemplateTerms(true)
+                  if (selectedTemplateId) {
+                    handleTemplateChange(selectedTemplateId)
+                  }
+                }}
                 variant="ghost"
               >
                 {commonT("back")}
