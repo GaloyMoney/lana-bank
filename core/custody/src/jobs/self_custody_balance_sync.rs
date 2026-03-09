@@ -151,6 +151,10 @@ where
         custodian_op.commit().await?;
 
         for custodian in custodians {
+            if !custodian.requires_balance_polling() {
+                continue;
+            }
+
             let client = custodian.clone().custodian_client(
                 &self.encryption_config.encryption_key,
                 &self.config.custody_providers,
