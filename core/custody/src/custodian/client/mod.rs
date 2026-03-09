@@ -1,7 +1,6 @@
 pub mod error;
 
 use async_trait::async_trait;
-use bitgo::TransferState;
 use bytes::Bytes;
 use chrono::Utc;
 
@@ -62,9 +61,10 @@ impl CustodianClient for bitgo::BitgoClient {
     ) -> Result<Option<CustodianNotification>, CustodianClientError> {
         let notification = self.validate_webhook_notification(headers, &payload)?;
 
-        use bitgo::Notification;
+        use bitgo::{Notification, TransferState};
 
         let custodian_notification = match notification {
+            Notification::Transfer(transfer) if transfer.simulation => None,
             Notification::Transfer(transfer) if transfer.state == TransferState::Confirmed => {
                 let transfer = self
                     .get_transfer(&transfer.transfer, &transfer.wallet)
