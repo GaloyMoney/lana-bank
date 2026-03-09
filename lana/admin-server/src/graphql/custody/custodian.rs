@@ -73,6 +73,7 @@ pub struct BitgoConfig {
 #[derive(InputObject)]
 pub struct SelfCustodyConfig {
     name: String,
+    #[graphql(secret)]
     account_xpub: String,
     network: SelfCustodyNetwork,
     esplora_url: String,

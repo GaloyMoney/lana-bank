@@ -1,56 +1,25 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod config;
+mod error;
+
+pub use config::{SelfCustodyConfig, SelfCustodyNetwork};
+pub use error::SelfCustodyError;
+
 use std::str::FromStr;
 
 use bitcoin::{
-    Address, CompressedPublicKey, Network,
+    Address, CompressedPublicKey,
     bip32::{ChildNumber, DerivationPath, Xpriv, Xpub},
     key::Secp256k1,
+    network::NetworkKind,
 };
 use money::Satoshis;
 use rand::{TryRng as _, rngs::SysRng};
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use url::Url;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum SelfCustodyNetwork {
-    Testnet3,
-    Testnet4,
-    Signet,
-    Mainnet,
-}
-
-impl SelfCustodyNetwork {
-    fn bitcoin_network(self) -> Network {
-        match self {
-            Self::Mainnet => Network::Bitcoin,
-            Self::Testnet3 | Self::Testnet4 => Network::Testnet,
-            Self::Signet => Network::Signet,
-        }
-    }
-
-    fn bip84_account_path(self) -> DerivationPath {
-        let coin_type = match self {
-            Self::Mainnet => 0,
-            Self::Testnet3 | Self::Testnet4 | Self::Signet => 1,
-        };
-        DerivationPath::from(vec![
-            ChildNumber::from_hardened_idx(84).expect("constant index is valid"),
-            ChildNumber::from_hardened_idx(coin_type).expect("constant index is valid"),
-            ChildNumber::from_hardened_idx(0).expect("constant index is valid"),
-        ])
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SelfCustodyConfig {
-    pub account_xpub: String,
-    pub network: SelfCustodyNetwork,
-    pub esplora_url: Url,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DerivedWallet {
@@ -69,24 +38,6 @@ pub struct GeneratedAccountKeys {
     pub network: SelfCustodyNetwork,
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum SelfCustodyError {
-    #[error("SelfCustodyError - InvalidXpub: {0}")]
-    InvalidXpub(String),
-    #[error("SelfCustodyError - Http: {0}")]
-    Http(#[from] reqwest::Error),
-    #[error("SelfCustodyError - Serde: {0}")]
-    Serde(#[from] serde_json::Error),
-    #[error("SelfCustodyError - UrlParse: {0}")]
-    UrlParse(#[from] url::ParseError),
-    #[error("SelfCustodyError - Bip32: {0}")]
-    Bip32(#[from] bitcoin::bip32::Error),
-    #[error("SelfCustodyError - InvalidDerivedPublicKey")]
-    InvalidDerivedPublicKey,
-    #[error("SelfCustodyError - InvalidEsploraBalance")]
-    InvalidEsploraBalance,
-}
-
 #[derive(Clone, Debug)]
 pub struct SelfCustodyClient {
     http_client: Client,
@@ -100,6 +51,7 @@ impl SelfCustodyClient {
         let _ = rustls::crypto::ring::default_provider().install_default();
         let account_xpub = Xpub::from_str(&config.account_xpub)
             .map_err(|err| SelfCustodyError::InvalidXpub(err.to_string()))?;
+        validate_account_xpub_network(account_xpub.network, config.network)?;
 
         Ok(Self {
             http_client: Client::new(),
@@ -197,6 +149,21 @@ pub fn generate_account_keys(
     })
 }
 
+fn validate_account_xpub_network(
+    account_xpub_network: NetworkKind,
+    selected_network: SelfCustodyNetwork,
+) -> Result<(), SelfCustodyError> {
+    // Extended key version bytes only distinguish mainnet from the test-family networks.
+    if account_xpub_network != selected_network.xpub_network_kind() {
+        return Err(SelfCustodyError::XpubNetworkMismatch {
+            expected: selected_network,
+            actual: account_xpub_network,
+        });
+    }
+
+    Ok(())
+}
+
 fn normalize_base_url(mut url: Url) -> Url {
     if !url.path().ends_with('/') {
         let path = format!("{}/", url.path().trim_end_matches('/'));
@@ -232,6 +199,23 @@ mod tests {
     };
 
     use super::*;
+
+    #[test]
+    fn self_custody_config_debug_redacts_account_xpub() {
+        let generated =
+            generate_account_keys(SelfCustodyNetwork::Mainnet).expect("key generation succeeds");
+        let debug = format!(
+            "{:?}",
+            SelfCustodyConfig {
+                account_xpub: generated.account_xpub.clone(),
+                network: SelfCustodyNetwork::Mainnet,
+                esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
+            }
+        );
+
+        assert!(debug.contains("<redacted>"));
+        assert!(!debug.contains(&generated.account_xpub));
+    }
 
     #[test]
     fn generate_account_keys_produces_valid_account_xpub() {
@@ -272,6 +256,26 @@ mod tests {
         assert_ne!(first.address, second.address);
         assert_eq!(first.derivation_path, "m/84'/0'/0'/0/0");
         assert_eq!(second.derivation_path, "m/84'/0'/0'/0/1");
+    }
+
+    #[test]
+    fn try_new_rejects_xpub_from_another_network_family() {
+        let generated =
+            generate_account_keys(SelfCustodyNetwork::Mainnet).expect("key generation succeeds");
+        let error = SelfCustodyClient::try_new(SelfCustodyConfig {
+            account_xpub: generated.account_xpub,
+            network: SelfCustodyNetwork::Signet,
+            esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
+        })
+        .expect_err("mainnet xpub must be rejected for signet");
+
+        assert!(matches!(
+            error,
+            SelfCustodyError::XpubNetworkMismatch {
+                expected: SelfCustodyNetwork::Signet,
+                actual: NetworkKind::Main,
+            }
+        ));
     }
 
     #[test]
