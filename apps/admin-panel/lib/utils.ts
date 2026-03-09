@@ -1,7 +1,10 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-import { CvlPctDataFragment, GetRealtimePriceUpdatesQuery } from "./graphql/generated"
+import {
+  CvlPctDataFragment,
+  GetRealtimePriceUpdatesQuery,
+} from "./graphql/generated"
 
 import { Satoshis, UsdCents } from "@/types"
 

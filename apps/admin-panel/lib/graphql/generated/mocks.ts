@@ -3404,6 +3404,7 @@ export const mockTermValues = (overrides?: Partial<TermValues>, _relationshipsTo
         annualRate: overrides && overrides.hasOwnProperty('annualRate') ? overrides.annualRate! : faker.number.int({ min: 5, max: 20 }),
         disbursalPolicy: overrides && overrides.hasOwnProperty('disbursalPolicy') ? overrides.disbursalPolicy! : DisbursalPolicy.MultipleDisbursal,
         duration: overrides && overrides.hasOwnProperty('duration') ? overrides.duration! : relationshipsToOmit.has('Duration') ? {} as Duration : mockDuration({}, relationshipsToOmit),
+        effectiveAnnualRate: overrides && overrides.hasOwnProperty('effectiveAnnualRate') ? overrides.effectiveAnnualRate! : generateMockValue.int(),
         initialCvl: overrides && overrides.hasOwnProperty('initialCvl') ? overrides.initialCvl! : faker.number.int({ min: 95, max: 98 }),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : faker.number.int({ min: 85, max: 88 }),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : faker.number.int({ min: 90, max: 92 }),

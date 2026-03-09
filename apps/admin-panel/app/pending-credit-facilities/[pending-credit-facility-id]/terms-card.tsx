@@ -21,9 +21,7 @@ export const PendingCreditFacilityTermsCard: React.FC<
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.TermsDialog")
   const tCard = useTranslations("PendingCreditFacilities.PendingDetails.TermsCard")
 
-  const effectiveRate =
-    Number(pendingCreditFacility.creditFacilityTerms.annualRate) +
-    Number(pendingCreditFacility.creditFacilityTerms.oneTimeFeeRate)
+  const effectiveRateDisplay = `${Number(pendingCreditFacility.creditFacilityTerms.effectiveAnnualRate).toFixed(2)}%`
 
   const disbursalPolicyLabel =
     pendingCreditFacility.creditFacilityTerms.disbursalPolicy === "SINGLE_DISBURSAL"
@@ -62,7 +60,7 @@ export const PendingCreditFacilityTermsCard: React.FC<
       label: t("details.structuringFeeRate"),
       value: `${pendingCreditFacility.creditFacilityTerms.oneTimeFeeRate}%`,
     },
-    { label: t("details.effectiveRate"), value: `${effectiveRate}%` },
+    { label: t("details.effectiveRate"), value: effectiveRateDisplay },
     {
       label: t("details.disbursalPolicy"),
       value: disbursalPolicyLabel,

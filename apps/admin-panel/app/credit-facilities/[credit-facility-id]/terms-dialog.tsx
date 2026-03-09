@@ -26,9 +26,7 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.TermsDialog")
 
-  const effectiveRate =
-    Number(creditFacility.creditFacilityTerms.annualRate) +
-    Number(creditFacility.creditFacilityTerms.oneTimeFeeRate)
+  const effectiveRateDisplay = `${Number(creditFacility.creditFacilityTerms.effectiveAnnualRate).toFixed(2)}%`
 
   const disbursalPolicyLabel =
     creditFacility.creditFacilityTerms.disbursalPolicy === "SINGLE_DISBURSAL"
@@ -69,7 +67,7 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
       label: t("details.structuringFeeRate"),
       value: `${creditFacility.creditFacilityTerms.oneTimeFeeRate}%`,
     },
-    { label: t("details.effectiveRate"), value: `${effectiveRate}%` },
+    { label: t("details.effectiveRate"), value: effectiveRateDisplay },
     {
       label: t("details.disbursalPolicy"),
       value: disbursalPolicyLabel,
