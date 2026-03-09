@@ -67,6 +67,7 @@ Lana integrates with cryptocurrency custody providers:
 
 - **BitGo**: Primary custody provider
 - **Komainu**: Alternative custody provider
+- **Bitfinex**: Bitcoin deposit-address provider for custodial wallet creation
 
 ## Architecture
 
@@ -75,7 +76,18 @@ graph TD
     CORE["Lana Core<br/>(Credit Collateral Module)"] --> ADAPTER["Custody Adapter<br/>(Provider-agnostic interface)"]
     ADAPTER --> BITGO["BitGo<br/>(Provider)"]
     ADAPTER --> KOMAINU["Komainu<br/>(Provider)"]
+    ADAPTER --> BITFINEX["Bitfinex<br/>(Provider)"]
 ```
+
+## Provider Capabilities
+
+| Provider | Wallet creation | Balance sync |
+|----------|-----------------|--------------|
+| BitGo | Creates a dedicated wallet and receive address | Webhook-driven |
+| Komainu | Uses a pre-provisioned wallet configuration | Webhook-driven |
+| Bitfinex | Requests a fresh Bitcoin deposit address from the configured Bitfinex wallet | Manual or future polling integration |
+
+Bitfinex support is optimized for Bitcoin collateral address generation. Each Lana wallet creation requests a renewed Bitcoin deposit address from the configured Bitfinex wallet so facilities do not share addresses. Because Bitfinex rate-limits deposit-address renewal, operators should avoid repeated non-essential wallet creation during testing.
 
 ## Custody Provider Interface
 
@@ -219,4 +231,3 @@ graph TD
 - Role-based permissions
 - Dual authorization for large transfers
 - Audit logging
-

@@ -243,6 +243,13 @@ export type BalanceSheetAccount = {
   name: Scalars['String']['output'];
 };
 
+export type BitfinexConfig = {
+  apiKey: Scalars['String']['input'];
+  apiSecret: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  wallet: Scalars['String']['input'];
+};
+
 export type BitgoConfig = {
   enterpriseId: Scalars['String']['input'];
   longLivedToken: Scalars['String']['input'];
@@ -1000,8 +1007,9 @@ export type Custodian = {
 };
 
 export type CustodianConfigInput =
-  { bitgo: BitgoConfig; komainu?: never; }
-  |  { bitgo?: never; komainu: KomainuConfig; };
+  { bitfinex: BitfinexConfig; bitgo?: never; komainu?: never; }
+  |  { bitfinex?: never; bitgo: BitgoConfig; komainu?: never; }
+  |  { bitfinex?: never; bitgo?: never; komainu: KomainuConfig; };
 
 export type CustodianConfigUpdateInput = {
   config: CustodianConfigInput;
@@ -1024,8 +1032,9 @@ export type CustodianConnection = {
 };
 
 export type CustodianCreateInput =
-  { bitgo: BitgoConfig; komainu?: never; }
-  |  { bitgo?: never; komainu: KomainuConfig; };
+  { bitfinex: BitfinexConfig; bitgo?: never; komainu?: never; }
+  |  { bitfinex?: never; bitgo: BitgoConfig; komainu?: never; }
+  |  { bitfinex?: never; bitgo?: never; komainu: KomainuConfig; };
 
 export type CustodianCreatePayload = {
   __typename?: 'CustodianCreatePayload';

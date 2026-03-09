@@ -12,6 +12,7 @@ use error::CustodianClientError;
 use crate::primitives::{ExternalWallet, WalletNetwork};
 
 use super::notification::CustodianNotification;
+use crate::custodian::config::{BitfinexConfig, BitfinexDirectoryConfig};
 
 #[async_trait]
 pub trait CustodianClient: Send {
@@ -29,6 +30,23 @@ pub trait CustodianClient: Send {
         headers: &http::HeaderMap,
         payload: Bytes,
     ) -> Result<Option<CustodianNotification>, CustodianClientError>;
+}
+
+pub struct BitfinexCustodianClient {
+    client: bfx_client::BfxAuthClient,
+    wallet: String,
+}
+
+impl BitfinexCustodianClient {
+    pub fn try_new(
+        config: BitfinexConfig,
+        directory: BitfinexDirectoryConfig,
+    ) -> Result<Self, bfx_client::BfxClientError> {
+        let wallet = config.wallet.clone();
+        let client = bfx_client::BfxAuthClient::try_new(config.into(), directory)?;
+
+        Ok(Self { client, wallet })
+    }
 }
 
 #[async_trait]
@@ -92,6 +110,53 @@ impl CustodianClient for bitgo::BitgoClient {
 }
 
 #[async_trait]
+impl CustodianClient for BitfinexCustodianClient {
+    async fn verify_client(&self) -> Result<(), CustodianClientError> {
+        let _ = self.client.get_wallets().await?;
+        Ok(())
+    }
+
+    async fn initialize_wallet(
+        &self,
+        _label: &str,
+    ) -> Result<ExternalWallet, CustodianClientError> {
+        let notification = self
+            .client
+            .get_deposit_address(&self.wallet, "bitcoin", true)
+            .await?;
+
+        if notification.status != "SUCCESS" {
+            return Err(CustodianClientError::client(
+                bfx_client::BfxClientError::InvalidNotificationStatus {
+                    status: notification.status,
+                    text: notification.text,
+                },
+            ));
+        }
+
+        let address = notification.data.address.clone();
+        let network = bitfinex_network_for_address(&address);
+        let full_response =
+            serde_json::to_value(&notification).map_err(CustodianClientError::client)?;
+
+        Ok(ExternalWallet {
+            external_id: address.clone(),
+            address,
+            network,
+            full_response,
+        })
+    }
+
+    async fn process_webhook(
+        &self,
+        _headers: &http::HeaderMap,
+        _payload: Bytes,
+    ) -> Result<Option<CustodianNotification>, CustodianClientError> {
+        Ok(None)
+    }
+}
+
+#[async_trait]
 impl CustodianClient for komainu::KomainuClient {
     async fn verify_client(&self) -> Result<(), CustodianClientError> {
         let _ = self.list_wallets().await?;
@@ -140,6 +205,18 @@ impl CustodianClient for komainu::KomainuClient {
         };
 
         Ok(custodian_notification)
+    }
+}
+
+fn bitfinex_network_for_address(address: &str) -> WalletNetwork {
+    if address.starts_with("tb1")
+        || address.starts_with('m')
+        || address.starts_with('n')
+        || address.starts_with('2')
+    {
+        WalletNetwork::Testnet3
+    } else {
+        WalletNetwork::Mainnet
     }
 }
 
