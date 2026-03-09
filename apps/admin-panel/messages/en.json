@@ -714,6 +714,18 @@
             "createdAt": "Created At"
           }
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this customer",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },

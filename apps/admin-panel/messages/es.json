@@ -714,6 +714,18 @@
             "createdAt": "Fecha de registro"
           }
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en este cliente",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Auditoría",
+          "recordedAt": "Registrado el"
+        }
       }
     }
   },
