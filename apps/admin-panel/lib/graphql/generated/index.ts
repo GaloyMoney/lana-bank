@@ -1049,8 +1049,9 @@ export type Custodian = {
 };
 
 export type CustodianConfigInput =
-  { bitgo: BitgoConfig; komainu?: never; }
-  |  { bitgo?: never; komainu: KomainuConfig; };
+  { bitgo: BitgoConfig; komainu?: never; selfCustody?: never; }
+  |  { bitgo?: never; komainu: KomainuConfig; selfCustody?: never; }
+  |  { bitgo?: never; komainu?: never; selfCustody: SelfCustodyConfig; };
 
 export type CustodianConfigUpdateInput = {
   config: CustodianConfigInput;
@@ -1073,8 +1074,9 @@ export type CustodianConnection = {
 };
 
 export type CustodianCreateInput =
-  { bitgo: BitgoConfig; komainu?: never; }
-  |  { bitgo?: never; komainu: KomainuConfig; };
+  { bitgo: BitgoConfig; komainu?: never; selfCustody?: never; }
+  |  { bitgo?: never; komainu: KomainuConfig; selfCustody?: never; }
+  |  { bitgo?: never; komainu?: never; selfCustody: SelfCustodyConfig; };
 
 export type CustodianCreatePayload = {
   __typename?: 'CustodianCreatePayload';
@@ -3492,6 +3494,19 @@ export enum RolesSortBy {
   Name = 'NAME'
 }
 
+export type SelfCustodyConfig = {
+  accountXpub: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  network: SelfCustodyNetwork;
+};
+
+export enum SelfCustodyNetwork {
+  Mainnet = 'MAINNET',
+  Signet = 'SIGNET',
+  Testnet3 = 'TESTNET3',
+  Testnet4 = 'TESTNET4'
+}
+
 export enum SortDirection {
   Asc = 'ASC',
   Desc = 'DESC'
@@ -3832,6 +3847,7 @@ export type Wallet = {
 
 export enum WalletNetwork {
   Mainnet = 'MAINNET',
+  Signet = 'SIGNET',
   Testnet3 = 'TESTNET3',
   Testnet4 = 'TESTNET4'
 }

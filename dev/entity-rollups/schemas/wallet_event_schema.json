@@ -9,6 +9,7 @@
       "enum": [
         "Testnet3",
         "Testnet4",
+        "Signet",
         "Mainnet"
       ],
       "type": "string"

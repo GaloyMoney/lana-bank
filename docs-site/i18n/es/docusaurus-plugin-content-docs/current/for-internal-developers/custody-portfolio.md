@@ -63,45 +63,25 @@ graph TD
 
 ## Propósito y Alcance
 
-El módulo proporciona:
+Lana se integra con proveedores de custodia de criptomonedas:
 
-- Registro y configuración de custodios
-- Creación y gestión del ciclo de vida de carteras de Bitcoin
-- Generación de direcciones de cartera para depósitos
-- Sincronización de saldos desde custodios externos
-- Integración con el sistema de colateral de facilidades de crédito
+- **BitGo**: Proveedor principal de custodia
+- **Komainu**: Proveedor alternativo de custodia
+- **Custodia propia**: Derivación de direcciones basada en xpub con sondeo de saldo a través de esplora
 
 ## Arquitectura del Sistema
 
+```mermaid
+graph TD
+    CORE["Lana Core<br/>(Módulo de Colateral de Crédito)"] --> ADAPTER["Adaptador de Custodia<br/>(Interfaz independiente del proveedor)"]
+    ADAPTER --> BITGO["BitGo<br/>(Proveedor)"]
+    ADAPTER --> KOMAINU["Komainu<br/>(Proveedor)"]
+    ADAPTER --> SELF["Autocustodia<br/>(xpub + esplora)"]
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Consumer - core-credit                       │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                   CoreCredit                             │   │
-│  │              custody: CoreCustody                        │   │
-│  │           collaterals: Collaterals                       │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Domain Layer - core-custody                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                   CoreCustody                            │   │
-│  │        create_wallet_in_op()                             │   │
-│  │        generate_wallet_address_in_op()                   │   │
-│  │        sync_balance()                                    │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                External Integration Layer                       │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌────────────────┐  │
-│  │     BitGo       │  │    Komainu      │  │ Mock Custodian │  │
-│  └─────────────────┘  └─────────────────┘  └────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
+
+La autocustodia se diferencia de los custodios alojados en un aspecto clave: el backend solo almacena una cuenta `xpub`. Los operadores generan localmente la `xpriv` correspondiente con `lana-cli genxpriv` y la mantienen fuera del backend. El endpoint de esplora se carga al inicio desde `app.custody.custody_providers.self_custody_directory` en `lana.yml`, con una URL separada para cada red compatible. Este flujo soporta claves de cuenta para mainnet, testnet3, testnet4 y signet. Para cada nuevo préstamo, Lana deriva una dirección de recepción nueva a partir del `xpub` almacenado y luego consulta esplora para detectar cambios confirmados en el saldo, en lugar de depender de webhooks.
+
+Para una guía práctica local sobre Signet, incluyendo la configuración de la cartera, la inspección de descriptores y la financiación de una facilidad pendiente desde `bitcoin-cli`, consulta [Pruebas de Autocustodia en Signet](self-custody-signet).
 
 ## Tipos de Datos Principales
 

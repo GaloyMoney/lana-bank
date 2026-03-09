@@ -67,6 +67,7 @@ Lana integrates with cryptocurrency custody providers:
 
 - **BitGo**: Primary custody provider
 - **Komainu**: Alternative custody provider
+- **Self-Custody**: xpub-based address derivation with esplora balance polling
 
 ## Architecture
 
@@ -75,7 +76,12 @@ graph TD
     CORE["Lana Core<br/>(Credit Collateral Module)"] --> ADAPTER["Custody Adapter<br/>(Provider-agnostic interface)"]
     ADAPTER --> BITGO["BitGo<br/>(Provider)"]
     ADAPTER --> KOMAINU["Komainu<br/>(Provider)"]
+    ADAPTER --> SELF["Self-Custody<br/>(xpub + esplora)"]
 ```
+
+Self-custody differs from the hosted custodians in one important way: the backend stores only an account `xpub`. Operators generate the matching account `xpriv` locally with `lana-cli genxpriv` and keep it off the backend. The esplora endpoint is loaded at startup from `app.custody.custody_providers.self_custody_directory` in `lana.yml`, with a separate URL per supported network. This flow supports mainnet, testnet3, testnet4, and signet account keys. For each new loan, Lana derives a fresh receive address from the stored `xpub`, then polls esplora for confirmed balance changes instead of relying on webhooks.
+
+For a local Signet walkthrough, including wallet setup, descriptor inspection, and funding a pending facility from `bitcoin-cli`, see [Testing Self-Custody on Signet](self-custody-signet).
 
 ## Custody Provider Interface
 
@@ -219,4 +225,3 @@ graph TD
 - Role-based permissions
 - Dual authorization for large transfers
 - Audit logging
-

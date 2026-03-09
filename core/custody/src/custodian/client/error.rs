@@ -32,6 +32,12 @@ impl From<money::ConversionError> for CustodianClientError {
     }
 }
 
+impl From<self_custody::SelfCustodyError> for CustodianClientError {
+    fn from(error: self_custody::SelfCustodyError) -> Self {
+        Self::ClientError(Box::new(error))
+    }
+}
+
 impl ErrorSeverity for CustodianClientError {
     fn severity(&self) -> Level {
         match self {

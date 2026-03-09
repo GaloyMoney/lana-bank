@@ -29,13 +29,14 @@ Construye y amplía el panel de administración y el portal del cliente:
 
 ## Arquitectura de dominio
 
-Comprende el diseño interno de cada módulo:
+Comprenda el diseño interno de cada módulo:
 
-- [Servicios de dominio](domain-services): estructura de módulos DDD e interacciones
-- [Sistema de eventos](event-system): event sourcing, patrón outbox, eventos públicos vs privados
-- [Trabajos en segundo plano](background-jobs): procesamiento de trabajos, programación y trabajos específicos
-- [Integración con Cala Ledger](cala-ledger-integration): motor de contabilidad de doble entrada
-- [Custodia y cartera](custody-portfolio): integración con BitGo/Komainu, gestión de garantías
+- [Servicios de Dominio](domain-services): estructura e interacciones del módulo DDD
+- [Sistema de Eventos](event-system): event sourcing, patrón outbox, eventos públicos vs privados
+- [Tareas en Segundo Plano](background-jobs): procesamiento de tareas, programación y trabajos específicos
+- [Integración de Cala Ledger](cala-ledger-integration): motor de contabilidad por partida doble
+- [Custodia y Portafolio](custody-portfolio): integración con BitGo/Komainu y gestión de colaterales
+- [Pruebas de Autocustodia en Signet](self-custody-signet): wallets locales de Signet, configuración de xpub y provisión de fondos para instalaciones pendientes
 
 ## Infraestructura y operaciones
 

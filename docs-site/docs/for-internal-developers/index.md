@@ -36,6 +36,7 @@ Understand the internal design of each module:
 - [Background Jobs](background-jobs) — Job processing, scheduling, and specific jobs
 - [Cala Ledger Integration](cala-ledger-integration) — Double-entry accounting engine
 - [Custody & Portfolio](custody-portfolio) — BitGo/Komainu integration, collateral management
+- [Testing Self-Custody on Signet](self-custody-signet) — Local Signet wallets, xpub setup, and funding pending facilities
 
 ## Infrastructure & Operations
 
@@ -43,4 +44,3 @@ Understand the internal design of each module:
 - [Observability](observability) — OpenTelemetry, tracing, Honeycomb
 - [Audit System](audit-system) — Authorization logging and compliance
 - [Configuration](configuration) — Domain config system and macros
-

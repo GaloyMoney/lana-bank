@@ -36,6 +36,7 @@ pub struct ExternalWallet {
 pub enum WalletNetwork {
     Testnet3,
     Testnet4,
+    Signet,
     Mainnet,
 }
 

@@ -105,16 +105,18 @@ Events related to customer lifecycle and KYC.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `CustomerCreated` | A new customer was created | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
-| `CustomerKycUpdated` | No description available | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
+| `CustomerCreated` | A new customer was created | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerFrozen` | A customer account was frozen, blocking financial operations | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerUnfrozen` | A previously frozen customer account was unfrozen, restoring normal operations | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerClosed` | Customer account was closed | `entity.id`, `entity.party_id`, `entity.status` |
 | `PartyCreated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
 | `PartyEmailUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
-| `ProspectCreated` | A new prospect was created for onboarding | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycStarted` | A prospect started KYC verification | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycPending` | A prospect's KYC verification is pending review | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycDeclined` | A prospect's KYC verification was declined | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectConverted` | A prospect was converted to a customer | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectClosed` | A prospect was closed without converting | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectCreated` | A new prospect was created for onboarding | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycStarted` | A prospect started KYC verification | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycPending` | A prospect's KYC verification is pending review | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycDeclined` | A prospect's KYC verification was declined | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectConverted` | A prospect was converted to a customer | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectClosed` | A prospect was closed without converting | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
 
 ---
 

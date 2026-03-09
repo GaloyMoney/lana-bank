@@ -1847,7 +1847,11 @@
         "longLivedToken": "Long Lived Token",
         "passphrase": "Passphrase",
         "enterpriseId": "Enterprise ID",
-        "testingInstance": "Use Testing Environment"
+        "testingInstance": "Use Testing Environment",
+        "selfCustodyLabel": "Self-Custody",
+        "accountXpub": "Account XPub",
+        "esploraUrl": "Esplora URL",
+        "network": "Network"
       },
       "placeholders": {
         "selectType": "Select a Provider",
@@ -1859,7 +1863,9 @@
         "webhookUrl": "Enter webhook URL",
         "longLivedToken": "Enter your long lived token",
         "passphrase": "Enter your wallet passphrase",
-        "enterpriseId": "Enter your enterprise ID"
+        "enterpriseId": "Enter your enterprise ID",
+        "accountXpub": "Enter the account xpub/tpub/vpub/upub",
+        "esploraUrl": "Enter the Esplora base URL"
       },
       "buttons": {
         "create": "Add Custodian"

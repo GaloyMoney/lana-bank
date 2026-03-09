@@ -194,6 +194,7 @@ export default CreditFacilityDetailsCard
 
 const MEMPOOL_BASE = {
   MAINNET: "https://mempool.space/address",
+  SIGNET: "https://mempool.space/signet/address",
   TESTNET3: "https://mempool.space/testnet/address",
   TESTNET4: "https://mempool.space/testnet4/address",
 } satisfies Record<WalletNetwork, string>

@@ -1,7 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { use } from "react"
+import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
@@ -22,6 +22,8 @@ import {
   usePendingCreditFacilityCollateralizationUpdatedSubscription,
   usePendingCreditFacilityCompletedSubscription,
 } from "@/lib/graphql/generated"
+
+const PENDING_CREDIT_FACILITY_POLL_INTERVAL_MS = 60_000
 
 gql`
   fragment PendingCreditFacilityLayoutFragment on PendingCreditFacility {
@@ -134,9 +136,10 @@ export default function PendingCreditFacilityLayout({
   const { "pending-credit-facility-id": pendingId } = use(params)
   const tTabs = useTranslations("PendingCreditFacilities.PendingDetails.tabs")
 
-  const { data, loading, error } = useGetPendingCreditFacilityLayoutDetailsQuery({
-    variables: { pendingCreditFacilityId: pendingId },
-  })
+  const { data, loading, error, startPolling, stopPolling } =
+    useGetPendingCreditFacilityLayoutDetailsQuery({
+      variables: { pendingCreditFacilityId: pendingId },
+    })
 
   usePendingCreditFacilityCollateralizationUpdatedSubscription({
     variables: { pendingCreditFacilityId: pendingId },
@@ -144,6 +147,17 @@ export default function PendingCreditFacilityLayout({
 
   const completed =
     data?.pendingCreditFacility?.status === PendingCreditFacilityStatus.Completed
+
+  useEffect(() => {
+    if (!data?.pendingCreditFacility || completed) {
+      stopPolling()
+      return
+    }
+
+    startPolling(PENDING_CREDIT_FACILITY_POLL_INTERVAL_MS)
+
+    return () => stopPolling()
+  }, [completed, data?.pendingCreditFacility, startPolling, stopPolling])
 
   usePendingCreditFacilityCompletedSubscription(
     data?.pendingCreditFacility && !completed

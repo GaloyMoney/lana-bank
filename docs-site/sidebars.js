@@ -133,6 +133,7 @@ const sidebars = {
             "for-internal-developers/background-jobs",
             "for-internal-developers/cala-ledger-integration",
             "for-internal-developers/custody-portfolio",
+            "for-internal-developers/self-custody-signet",
           ],
         },
         {

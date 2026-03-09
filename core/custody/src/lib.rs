@@ -4,6 +4,7 @@
 mod config;
 pub mod custodian;
 pub mod error;
+mod jobs;
 mod primitives;
 pub mod public;
 mod publisher;
@@ -17,8 +18,8 @@ use tracing_macros::record_error_severity;
 
 use std::collections::HashMap;
 
-use es_entity::DbOp;
 use es_entity::clock::ClockHandle;
+use es_entity::{AtomicOperation, DbOp};
 use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::{Outbox, OutboxEventMarker};
 pub use public::*;
@@ -34,6 +35,7 @@ pub use wallet::*;
 
 pub use config::CustodyConfig;
 use error::CoreCustodyError;
+use jobs::self_custody_balance_sync;
 pub use primitives::*;
 
 #[cfg(feature = "json-schema")]
@@ -265,6 +267,24 @@ where
             inbox,
             clock,
         };
+
+        let self_custody_balance_sync_job_spawner = jobs.add_initializer(
+            self_custody_balance_sync::SelfCustodyBalanceSyncJobInit::new(
+                &custody.authz,
+                &custody.custodians,
+                &custody.wallets,
+                &custody.encryption_config,
+                &custody.config,
+            ),
+        );
+        self_custody_balance_sync_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                self_custody_balance_sync::SelfCustodyBalanceSyncJobConfig::<E> {
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
 
         if let Some(deprecated_key) = custody.encryption_config.deprecated_encryption_key.as_ref() {
             custody.rotate_encryption_key(deprecated_key).await?;
@@ -519,17 +539,29 @@ where
         custodian_id: CustodianId,
         wallet_label: &str,
     ) -> Result<Wallet, CoreCustodyError> {
-        let custodian = self
+        self.lock_custodian_in_op(db, custodian_id).await?;
+
+        let mut custodian = self
             .custodians
             .find_by_id_in_op(&mut *db, &custodian_id)
             .await?;
 
-        let client = custodian.custodian_client(
+        let receive_index = custodian
+            .prepare_wallet_creation()
+            .expect("wallet creation preparation always executes");
+
+        let client = custodian.clone().custodian_client(
             &self.encryption_config.encryption_key,
             &self.config.custody_providers,
         )?;
 
-        let external_wallet = client.initialize_wallet(wallet_label).await?;
+        let external_wallet = client
+            .initialize_wallet(wallet_label, receive_index)
+            .await?;
+
+        if receive_index.is_some() {
+            self.custodians.update_in_op(db, &mut custodian).await?;
+        }
 
         let new_wallet = NewWallet::builder()
             .id(WalletId::new())
@@ -544,6 +576,18 @@ where
         let wallet = self.wallets.create_in_op(db, new_wallet).await?;
 
         Ok(wallet)
+    }
+
+    async fn lock_custodian_in_op(
+        &self,
+        db: &mut DbOp<'_>,
+        custodian_id: CustodianId,
+    ) -> Result<(), CoreCustodyError> {
+        sqlx::query("SELECT id FROM core_custodians WHERE id = $1 FOR UPDATE")
+            .bind(custodian_id)
+            .execute(db.as_executor())
+            .await?;
+        Ok(())
     }
 
     #[record_error_severity]
@@ -624,6 +668,185 @@ where
             config: self.config.clone(),
             inbox: self.inbox.clone(),
             clock: self.clock.clone(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::SocketAddr;
+
+    use axum::{Router, routing::get};
+    use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+    use serde::{Deserialize, Serialize};
+
+    use super::*;
+
+    #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
+    #[serde(tag = "module")]
+    enum DummyEvent {
+        CoreCustody(CoreCustodyEvent),
+        #[serde(other)]
+        Unknown,
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    struct DummyAction;
+
+    impl From<CoreCustodyAction> for DummyAction {
+        fn from(_: CoreCustodyAction) -> Self {
+            Self
+        }
+    }
+
+    impl std::fmt::Display for DummyAction {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "dummy")
+        }
+    }
+
+    impl std::str::FromStr for DummyAction {
+        type Err = strum::ParseError;
+
+        fn from_str(_: &str) -> Result<Self, Self::Err> {
+            Ok(Self)
+        }
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    struct DummyObject;
+
+    impl From<CoreCustodyObject> for DummyObject {
+        fn from(_: CoreCustodyObject) -> Self {
+            Self
+        }
+    }
+
+    impl std::fmt::Display for DummyObject {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "dummy")
+        }
+    }
+
+    impl std::str::FromStr for DummyObject {
+        type Err = &'static str;
+
+        fn from_str(_: &str) -> Result<Self, Self::Err> {
+            Ok(Self)
+        }
+    }
+
+    type DummyPerms = authz::dummy::DummyPerms<DummyAction, DummyObject>;
+
+    #[tokio::test]
+    async fn self_custody_wallets_use_unique_receive_addresses() -> anyhow::Result<()> {
+        let Ok(pg_con) = std::env::var("PG_CON") else {
+            return Ok(());
+        };
+
+        let pool = sqlx::PgPool::connect(&pg_con).await?;
+        let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+        let outbox = obix::Outbox::<DummyEvent>::init(
+            &pool,
+            obix::MailboxConfig::builder()
+                .clock(clock.clone())
+                .build()?,
+        )
+        .await?;
+        let mut jobs = job::Jobs::init(
+            job::JobSvcConfig::builder()
+                .pool(pool.clone())
+                .build()
+                .unwrap(),
+        )
+        .await?;
+        let authz = DummyPerms::new();
+        let server = TestServer::spawn().await;
+
+        let custody = CoreCustody::init(
+            &pool,
+            &authz,
+            encryption::EncryptionConfig {
+                encryption_key: encryption::EncryptionKey::new([9u8; 32]),
+                ..Default::default()
+            },
+            CustodyConfig {
+                custody_providers: CustodyProviderConfig {
+                    self_custody_directory: SelfCustodyDirectoryConfig {
+                        testnet4_url: Some(server.base_url.clone()),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+            },
+            &outbox,
+            &mut jobs,
+            clock,
+        )
+        .await?;
+        let generated = self_custody::generate_account_keys(SelfCustodyNetwork::Testnet4)?;
+
+        let custodian = custody
+            .create_custodian(
+                &authz::dummy::DummySubject,
+                "Self Custody",
+                CustodianConfig::SelfCustody(SelfCustodyConfig {
+                    account_xpub: generated.account_xpub,
+                    network: SelfCustodyNetwork::Testnet4,
+                }),
+            )
+            .await?;
+
+        let mut op = custody.custodians.begin_op().await?;
+        let first = custody
+            .create_wallet_in_op(&mut op, custodian.id, "Loan 1")
+            .await?;
+        let second = custody
+            .create_wallet_in_op(&mut op, custodian.id, "Loan 2")
+            .await?;
+        op.commit().await?;
+
+        assert_ne!(first.address, second.address);
+        assert_eq!(first.external_wallet_id, "self-custody:0");
+        assert_eq!(second.external_wallet_id, "self-custody:1");
+
+        server.shutdown().await;
+        Ok(())
+    }
+
+    struct TestServer {
+        base_url: url::Url,
+        shutdown: tokio::sync::oneshot::Sender<()>,
+        handle: tokio::task::JoinHandle<()>,
+    }
+
+    impl TestServer {
+        async fn spawn() -> Self {
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+                .await
+                .expect("listener binds");
+            let addr: SocketAddr = listener.local_addr().expect("listener has local addr");
+            let base_url = url::Url::parse(&format!("http://{addr}")).expect("url parses");
+            let app = Router::new().route("/blocks/tip/height", get(|| async { "42" }));
+            let (shutdown, shutdown_rx) = tokio::sync::oneshot::channel();
+            let handle = tokio::spawn(async move {
+                let _ = axum::serve(listener, app)
+                    .with_graceful_shutdown(async {
+                        let _ = shutdown_rx.await;
+                    })
+                    .await;
+            });
+
+            Self {
+                base_url,
+                shutdown,
+                handle,
+            }
+        }
+
+        async fn shutdown(self) {
+            let _ = self.shutdown.send(());
+            let _ = self.handle.await;
         }
     }
 }

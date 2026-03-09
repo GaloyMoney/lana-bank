@@ -17,6 +17,7 @@ obix = { workspace = true }
 job = { workspace = true }
 bitgo = { workspace = true }
 komainu = { workspace = true }
+self-custody = { workspace = true }
 money = { workspace = true }
 
 async-trait = { workspace = true }
@@ -39,10 +40,12 @@ url = { workspace = true }
 http = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
+tokio = { workspace = true }
 
 async-graphql = { workspace = true, optional = true }
 
 [dev-dependencies]
+authz = { workspace = true, features = ["test-dummy"] }
 obix = { workspace = true, features = ["test-utils"] }
-tokio = { workspace = true }
 anyhow = { workspace = true }
+axum = { workspace = true }

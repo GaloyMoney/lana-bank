@@ -90,10 +90,7 @@ garantía cumpla política de monto y calidad.
 
 ### Interpretación práctica para operadores
 
-- **Aprobado no significa desembolsable**. Solo `Activo` habilita otorgamiento de fondos.
-- **Actualizar garantía es una acción de riesgo**. Impacta activación y seguridad continua.
-- **La calidad de plantilla es clave**. Umbrales o intervalos incorrectos generan problemas
-  operativos posteriores.
+Después de que se aprueba una propuesta, la facilidad pendiente resultante pasa al estado de **Colateralización Pendiente**. En este punto, el cliente debe depositar Bitcoin en la billetera de custodia asociada a la facilidad. Si la facilidad tiene un custodio asignado, Lana sincroniza el saldo del colateral desde ese sistema de custodia, ya sea por webhooks del custodio hospedado o consultas periódicas con esplora en auto-custodia. El flujo de auto-custodia selecciona su backend de esplora desde la configuración de inicio, con URLs separadas para mainnet, testnet3, testnet4 y signet. En modo manual, un operador puede actualizar el monto del colateral directamente a través del panel de administración.
 
 ## Recorrido en Panel de Administración: De propuesta a facilidad activa
 
