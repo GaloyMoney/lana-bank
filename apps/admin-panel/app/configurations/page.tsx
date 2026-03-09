@@ -34,6 +34,8 @@ import {
   useDomainConfigsQuery,
   useDomainConfigUpdateMutation,
 } from "@/lib/graphql/generated"
+import NotAuthorized from "@/components/not-authorized"
+import { isAuthorizationError } from "@/lib/auth-error"
 
 gql`
   query DomainConfigs($first: Int!, $after: String) {
@@ -170,6 +172,8 @@ export default function ConfigurationsPage() {
     <div className="space-y-3">
       {domainConfigLoading ? (
         <LoaderCircle className="animate-spin" />
+      ) : isAuthorizationError(domainConfigError) ? (
+        <NotAuthorized />
       ) : domainConfigError ? (
         <p className="text-sm text-destructive">
           {t("domainConfigs.loadError")}
