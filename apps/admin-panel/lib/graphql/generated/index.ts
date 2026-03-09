@@ -5674,7 +5674,7 @@ export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename
 export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Me', user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string } } } };
+export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Me', user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string } }, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean, governance: { __typename?: 'GovernanceNavigationItems', committee: boolean, policy: boolean, approvalProcess: boolean } } } };
 
 export type EventHistoryConnectionFieldsFragment = { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
         | { __typename?: 'System', actor: string }
@@ -14300,6 +14300,21 @@ export const AvatarDocument = gql`
         roleId
         name
       }
+    }
+    visibleNavigationItems {
+      term
+      user
+      customer
+      deposit
+      withdraw
+      audit
+      financials
+      governance {
+        committee
+        policy
+        approvalProcess
+      }
+      creditFacilities
     }
   }
 }

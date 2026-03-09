@@ -28,6 +28,8 @@ export function NavSection({ items, label }: NavSectionProps) {
   const pathname = usePathname()
   const { setOpenMobile, isMobile } = useSidebar()
 
+  if (items.length === 0) return null
+
   const handleClick = () => {
     if (isMobile) {
       setOpenMobile(false)
