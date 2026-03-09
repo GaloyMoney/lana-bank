@@ -9,7 +9,7 @@ mod startup_domain_config;
 use anyhow::Context;
 use chacha20poly1305::{ChaCha20Poly1305, KeyInit, aead::OsRng};
 use clap::{Parser, Subcommand, ValueEnum};
-use std::{fs, path::PathBuf, time::Duration};
+use std::{fs, fs::OpenOptions, io::Write, path::PathBuf, time::Duration};
 use tracing_utils::{error, info, warn};
 
 pub use self::build_info::BuildInfo;
@@ -103,14 +103,19 @@ pub async fn run() -> anyhow::Result<()> {
         }
         Commands::Genxpriv { network } => {
             let keys = self_custody::generate_account_keys(network.into())?;
-            println!("network: {:?}", keys.network);
-            println!("account_path: {}", keys.account_derivation_path);
-            println!("account_xpriv: {}", keys.account_xpriv);
-            println!("account_xpub: {}", keys.account_xpub);
-            println!(
+            let mut terminal = OpenOptions::new()
+                .write(true)
+                .open("/dev/tty")
+                .context("genxpriv must be run from an interactive terminal")?;
+            writeln!(terminal, "network: {:?}", keys.network)?;
+            writeln!(terminal, "account_path: {}", keys.account_derivation_path)?;
+            writeln!(terminal, "account_xpriv: {}", keys.account_xpriv)?;
+            writeln!(terminal, "account_xpub: {}", keys.account_xpub)?;
+            writeln!(
+                terminal,
                 "receive_path_template: {}/0/<loan_index>",
                 keys.account_derivation_path
-            );
+            )?;
             return Ok(());
         }
         Commands::DumpDefaultConfig => {
