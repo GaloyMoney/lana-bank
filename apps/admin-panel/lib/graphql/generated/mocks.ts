@@ -1116,7 +1116,7 @@ export const mockCreditFacilityRepaymentPlanEntry = (overrides?: Partial<CreditF
     return {
         __typename: 'CreditFacilityRepaymentPlanEntry',
         accrualAt: overrides && overrides.hasOwnProperty('accrualAt') ? overrides.accrualAt! : generateMockValue.timestamp(),
-        dueAt: overrides && overrides.hasOwnProperty('dueAt') ? overrides.dueAt! : generateMockValue.timestamp(),
+        dueAt: overrides && overrides.hasOwnProperty('dueAt') ? overrides.dueAt! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         initial: overrides && overrides.hasOwnProperty('initial') ? overrides.initial! : generateMockValue.usdCents(),
         outstanding: overrides && overrides.hasOwnProperty('outstanding') ? overrides.outstanding! : generateMockValue.usdCents(),
         repaymentType: overrides && overrides.hasOwnProperty('repaymentType') ? overrides.repaymentType! : CreditFacilityRepaymentType.Disbursal,
