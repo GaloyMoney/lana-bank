@@ -20,7 +20,6 @@ import { CollateralizationStateLabel } from "../label"
 import { CreditFacilityTermsDialog } from "./terms-dialog"
 
 import {
-  CreditFacilityRepaymentType,
   GetCreditFacilityLayoutDetailsQuery,
   WalletNetwork,
   useDomainConfigsQuery,
@@ -28,7 +27,6 @@ import {
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { CustomerLabel } from "@/app/customers/customer-label"
-import Balance from "@/components/balance/balance"
 import { useLoanAgreement } from "@/hooks/use-loan-agreement"
 
 type CreditFacilityDetailsProps = {
@@ -61,10 +59,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     generateLoanAgreementPdf(creditFacilityDetails.customer.customerId)
   }
 
-  const monthlyPaymentAmount = creditFacilityDetails.repaymentPlan.find(
-    (plan) => plan.repaymentType === CreditFacilityRepaymentType.Interest,
-  )?.initial
-
   const details: DetailItemProps[] = [
     {
       label: t("details.customer"),
@@ -91,14 +85,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         <CollateralizationStateLabel
           state={creditFacilityDetails.collateralizationState}
         />
-      ),
-    },
-    {
-      label: t("details.monthlyPayment"),
-      value: monthlyPaymentAmount ? (
-        <Balance amount={monthlyPaymentAmount} currency="usd" />
-      ) : (
-        t("details.noMonthlyPaymentAvailable")
       ),
     },
     {

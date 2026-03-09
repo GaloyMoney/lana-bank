@@ -1041,8 +1041,6 @@
           "status": "Estado",
           "dateOfIssuance": "Fecha de otorgamiento",
           "maturityDate": "Fecha de vencimiento",
-          "monthlyPayment": "Cuota mensual",
-          "noMonthlyPaymentAvailable": "No hay cuota mensual disponible",
           "custodian": "Custodio",
           "manual": "Manual",
           "walletAddress": "Dirección de la cartera",

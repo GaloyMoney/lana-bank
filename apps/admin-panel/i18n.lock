@@ -675,8 +675,6 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/dateOfIssuance: b813f3bd9092c493e51b49aca81e9219
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/maturityDate: 682c7847ef7947ed9d2812f6f1a402cd
-    CreditFacilities/CreditFacilityDetails/DetailsCard/details/monthlyPayment: 5d0ad4eae4d1d2cfa2b3b097c2139844
-    CreditFacilities/CreditFacilityDetails/DetailsCard/details/noMonthlyPaymentAvailable: 3571c074ce377c24810128d5ee89fb5e
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/custodian: 3f479171d178f75a92b6f2349be450d8
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/manual: 772ff39554ea76c8db86f09b7d96fcb9
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/walletAddress: f2610eb9cd14c93aa34d09018765bb26
