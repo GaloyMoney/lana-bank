@@ -3,6 +3,7 @@ use async_graphql::{
     connection::{Connection, CursorType, Edge, EmptyFields},
 };
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use lana_app::primitives::Subject as DomainSubject;
 
@@ -79,6 +80,54 @@ impl CursorType for EventTimelineCursor {
     }
 }
 
+fn is_uuid(s: &str) -> bool {
+    if s.len() != 36 {
+        return false;
+    }
+    let bytes = s.as_bytes();
+    if bytes[8] != b'-' || bytes[13] != b'-' || bytes[18] != b'-' || bytes[23] != b'-' {
+        return false;
+    }
+    bytes.iter().enumerate().all(|(i, &b)| {
+        if i == 8 || i == 13 || i == 18 || i == 23 {
+            true
+        } else {
+            b.is_ascii_hexdigit()
+        }
+    })
+}
+
+fn sanitize_payload(value: &mut Value) {
+    if let Some(obj) = value.as_object_mut() {
+        let keys_to_remove: Vec<String> = obj
+            .iter()
+            .filter(|(k, v)| {
+                let lower = k.to_ascii_lowercase();
+                if lower == "id" || lower.ends_with("_id") {
+                    return true;
+                }
+                if let Some(s) = v.as_str() {
+                    if is_uuid(s) {
+                        return true;
+                    }
+                }
+                false
+            })
+            .map(|(k, _)| k.clone())
+            .collect();
+        for k in keys_to_remove {
+            obj.remove(&k);
+        }
+        for v in obj.values_mut() {
+            sanitize_payload(v);
+        }
+    } else if let Some(arr) = value.as_array_mut() {
+        for item in arr {
+            sanitize_payload(item);
+        }
+    }
+}
+
 pub fn events_to_connection<E>(
     events: &es_entity::EntityEvents<E>,
     first: i32,
@@ -121,8 +170,12 @@ where
         let sequence = pe.sequence as i32;
 
         let event_type = pe.event.event_type().to_string();
-        let payload = serde_json::to_value(&pe.event)
+        let mut payload = serde_json::to_value(&pe.event)
             .map_err(|e| async_graphql::Error::new(format!("Failed to serialize event: {e}")))?;
+        sanitize_payload(&mut payload);
+        if let Some(obj) = payload.as_object_mut() {
+            obj.remove("type");
+        }
 
         // Extract audit info from event context
         let audit_info = audit::AuditInfo::from_context(&pe.context);
