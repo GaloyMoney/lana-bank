@@ -1,7 +1,11 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-import { CvlPctDataFragment, GetRealtimePriceUpdatesQuery } from "./graphql/generated"
+import {
+  CvlPctDataFragment,
+  GetRealtimePriceUpdatesQuery,
+  Period,
+} from "./graphql/generated"
 
 import { Satoshis, UsdCents } from "@/types"
 
@@ -107,6 +111,22 @@ export const formatCvl = (cvl: CvlPctDataFragment): string =>
 
 export const getCvlValue = (cvl: CvlPctDataFragment): number =>
   cvl.__typename === "FiniteCvlPct" ? Number(cvl.value) : Infinity
+
+export const calculateEffectiveRate = ({
+  annualRate,
+  oneTimeFeeRate,
+  durationUnits,
+  durationPeriod,
+}: {
+  annualRate: number
+  oneTimeFeeRate: number
+  durationUnits: number
+  durationPeriod: Period
+}): number => {
+  const annualFactor =
+    durationPeriod === Period.Months ? 12 / durationUnits : 365 / durationUnits
+  return annualRate + oneTimeFeeRate * annualFactor
+}
 
 /**
  * Validates and sanitizes a URL to ensure it's a safe internal navigation path.

@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl"
 import { GetCreditFacilityProposalLayoutDetailsQuery } from "@/lib/graphql/generated"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { formatCvl } from "@/lib/utils"
+import { calculateEffectiveRate, formatCvl } from "@/lib/utils"
 
 type CreditFacilityTermsCardProps = {
   creditFacilityProposal: NonNullable<
@@ -20,9 +20,12 @@ export const CreditFacilityTermsCard: React.FC<CreditFacilityTermsCardProps> = (
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.TermsDialog")
   const tCard = useTranslations("CreditFacilityProposals.ProposalDetails.TermsCard")
 
-  const effectiveRate =
-    Number(creditFacilityProposal.creditFacilityTerms.annualRate) +
-    Number(creditFacilityProposal.creditFacilityTerms.oneTimeFeeRate)
+  const effectiveRate = calculateEffectiveRate({
+    annualRate: Number(creditFacilityProposal.creditFacilityTerms.annualRate),
+    oneTimeFeeRate: Number(creditFacilityProposal.creditFacilityTerms.oneTimeFeeRate),
+    durationUnits: creditFacilityProposal.creditFacilityTerms.duration.units,
+    durationPeriod: creditFacilityProposal.creditFacilityTerms.duration.period,
+  })
 
   const disbursalPolicyLabel =
     creditFacilityProposal.creditFacilityTerms.disbursalPolicy === "SINGLE_DISBURSAL"
@@ -61,7 +64,7 @@ export const CreditFacilityTermsCard: React.FC<CreditFacilityTermsCardProps> = (
       label: t("details.structuringFeeRate"),
       value: `${creditFacilityProposal.creditFacilityTerms.oneTimeFeeRate}%`,
     },
-    { label: t("details.effectiveRate"), value: `${effectiveRate}%` },
+    { label: t("details.effectiveRate"), value: `${effectiveRate.toFixed(2)}%` },
     {
       label: t("details.disbursalPolicy"),
       value: disbursalPolicyLabel,

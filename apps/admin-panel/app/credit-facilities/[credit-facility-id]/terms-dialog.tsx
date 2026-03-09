@@ -9,7 +9,7 @@ import { formatDate } from "@lana/web/utils"
 import { GetCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { formatCvl } from "@/lib/utils"
+import { calculateEffectiveRate, formatCvl } from "@/lib/utils"
 
 type CreditFacilityTermsDialogProps = {
   openTermsDialog: boolean
@@ -26,9 +26,12 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.TermsDialog")
 
-  const effectiveRate =
-    Number(creditFacility.creditFacilityTerms.annualRate) +
-    Number(creditFacility.creditFacilityTerms.oneTimeFeeRate)
+  const effectiveRate = calculateEffectiveRate({
+    annualRate: Number(creditFacility.creditFacilityTerms.annualRate),
+    oneTimeFeeRate: Number(creditFacility.creditFacilityTerms.oneTimeFeeRate),
+    durationUnits: creditFacility.creditFacilityTerms.duration.units,
+    durationPeriod: creditFacility.creditFacilityTerms.duration.period,
+  })
 
   const disbursalPolicyLabel =
     creditFacility.creditFacilityTerms.disbursalPolicy === "SINGLE_DISBURSAL"
@@ -69,7 +72,7 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
       label: t("details.structuringFeeRate"),
       value: `${creditFacility.creditFacilityTerms.oneTimeFeeRate}%`,
     },
-    { label: t("details.effectiveRate"), value: `${effectiveRate}%` },
+    { label: t("details.effectiveRate"), value: `${effectiveRate.toFixed(2)}%` },
     {
       label: t("details.disbursalPolicy"),
       value: disbursalPolicyLabel,
