@@ -182,7 +182,24 @@ stateDiagram-v2
     ACTIVE --> CLOSED : Cerrar (saldo cero)
 ```
 
-## Operaciones del Ciclo de Vida de la Cuenta
+```mermaid
+stateDiagram-v2
+    [*] --> Active : Cuenta creada
+    Active --> Inactive : Inactivación operativa
+    Inactive --> Active : Reactivar
+    Active --> Frozen : Congelar
+    Frozen --> Active : Descongelar
+    Active --> Closed : Cerrar (saldo cero requerido)
+```
+
+| Estado | Descripción | Depósitos permitidos | Retiros permitidos |
+|--------|-------------|:---:|:---:|
+| **Activo** | Operaciones normales | Sí | Sí |
+| **Inactivo** | Cuenta inactiva operativamente | No | No |
+| **Congelado** | Retención por cumplimiento o disputa | No | No |
+| **Cerrado** | Desactivado permanentemente | No | No |
+
+La actividad de la cuenta se rastrea de forma independiente al estado de la cuenta. El sistema clasifica cada cuenta de depósito como `Active`, `Inactive` o `Escheatable` para el monitoreo de inactividad, determinando la última fecha de actividad a partir de la transacción más reciente dirigida por el cliente en el libro mayor de la cuenta, o desde la fecha de creación de la cuenta si aún no existen transacciones que califiquen. Las transferencias internas de saldo para congelar o descongelar están excluidas, por lo que cambiar el estado operativo de una cuenta no reinicia la inactividad por sí solo. Por defecto, las cuentas pasan a `Inactive` después de 365 días sin actividad y a `Escheatable` después de 3650 días, y estos umbrales pueden modificarse desde la aplicación de administración mediante las configuraciones de dominio expuestas `deposit-activity-inactive-threshold-days` y `deposit-activity-escheatable-threshold-days`. El `status` operativo anterior sigue controlando si se permiten depósitos y retiros.
 
 ### Congelar Cuenta
 

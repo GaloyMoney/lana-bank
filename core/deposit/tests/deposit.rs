@@ -427,6 +427,71 @@ async fn deposit_account_activity_uses_configurable_thresholds() -> anyhow::Resu
 
 #[tokio::test]
 #[serial_test::file_serial(core_deposit_activity_status)]
+async fn deposit_account_activity_ignores_internal_freeze_and_unfreeze_transactions()
+-> anyhow::Result<()> {
+    let start = Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap();
+    let ((deposit, customers, _outbox, _jobs, domain_configs), clock_ctrl) =
+        setup_at(start).await?;
+
+    domain_configs
+        .update::<DepositActivityInactiveThresholdDays>(&DummySubject, 30)
+        .await?;
+    domain_configs
+        .update::<DepositActivityEscheatableThresholdDays>(&DummySubject, 60)
+        .await?;
+
+    let customer = customers
+        .create_customer_bypassing_kyc(
+            &DummySubject,
+            format!("user{}@example.com", Uuid::new_v4()),
+            format!("telegram{}", Uuid::new_v4()),
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let account = deposit.create_account(&DummySubject, customer.id).await?;
+    deposit
+        .record_deposit(
+            &DummySubject,
+            account.id,
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
+            None,
+        )
+        .await?;
+
+    let inactive_at = start + Duration::days(45);
+    deposit.perform_activity_status_update(inactive_at).await?;
+
+    let account = deposit.find_account_by_id_without_audit(account.id).await?;
+    assert_eq!(account.activity, Activity::Inactive);
+
+    clock_ctrl
+        .advance(std::time::Duration::from_secs(24 * 60 * 60))
+        .await;
+    deposit.freeze_account(&DummySubject, account.id).await?;
+    deposit
+        .perform_activity_status_update(inactive_at + Duration::days(1))
+        .await?;
+
+    let account = deposit.find_account_by_id_without_audit(account.id).await?;
+    assert_eq!(account.activity, Activity::Inactive);
+
+    clock_ctrl
+        .advance(std::time::Duration::from_secs(24 * 60 * 60))
+        .await;
+    deposit.unfreeze_account(&DummySubject, account.id).await?;
+    deposit
+        .perform_activity_status_update(inactive_at + Duration::days(2))
+        .await?;
+
+    let account = deposit.find_account_by_id_without_audit(account.id).await?;
+    assert_eq!(account.activity, Activity::Inactive);
+
+    Ok(())
+}
+
+#[tokio::test]
+#[serial_test::file_serial(core_deposit_activity_status)]
 async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date()
 -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2015, 1, 1, 0, 0, 0).unwrap();

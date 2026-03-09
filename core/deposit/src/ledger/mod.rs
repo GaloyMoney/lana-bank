@@ -25,6 +25,7 @@ use crate::{
     DepositAccount, DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds,
     WithdrawalReversalData,
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
+    history::DepositAccountHistoryEntry,
     primitives::{
         CalaAccountId, CalaAccountSetId, DEPOSIT_ACCOUNT_ENTITY_TYPE, DEPOSIT_ACCOUNT_SET_CATALOG,
         DepositAccountType, DepositId, UsdCents, WithdrawalId,
@@ -344,24 +345,32 @@ impl DepositLedger {
         let id = id.into();
         tracing::Span::current().record("account_id", tracing::field::debug(&id));
 
-        let ret = self
-            .cala
-            .entries()
-            .list_for_account_id(
-                id,
-                es_entity::PaginatedQueryArgs {
-                    first: 1,
-                    after: None,
-                },
-                es_entity::ListDirection::Descending,
-            )
-            .await?;
+        let mut next = Some(es_entity::PaginatedQueryArgs::<
+            cala_ledger::entry::EntriesByCreatedAtCursor,
+        > {
+            first: 10,
+            after: None,
+        });
 
-        Ok(ret
-            .entities
-            .into_iter()
-            .next()
-            .map(|entry| entry.created_at()))
+        while let Some(query) = next.take() {
+            let mut ret = self
+                .cala
+                .entries()
+                .list_for_account_id(id, query, es_entity::ListDirection::Descending)
+                .await?;
+
+            for entry in ret.entities.drain(..) {
+                if let Some(recorded_at) =
+                    DepositAccountHistoryEntry::from(entry).activity_recorded_at()
+                {
+                    return Ok(Some(recorded_at));
+                }
+            }
+
+            next = ret.into_next_query();
+        }
+
+        Ok(None)
     }
 
     #[record_error_severity]
