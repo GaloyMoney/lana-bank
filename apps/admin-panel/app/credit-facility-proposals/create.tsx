@@ -196,17 +196,19 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       return
     }
 
-    const validationError = validateTermsFields({
-      annualRate,
-      durationUnits,
-      oneTimeFeeRate,
-      initialCvl,
-      marginCallCvl,
-      liquidationCvl,
-    })
-    if (validationError) {
-      toast.error(t(`form.messages.${validationError}`))
-      return
+    if (!useTemplateTerms) {
+      const validationError = validateTermsFields({
+        annualRate,
+        durationUnits,
+        oneTimeFeeRate,
+        initialCvl,
+        marginCallCvl,
+        liquidationCvl,
+      })
+      if (validationError) {
+        toast.error(t(`form.messages.${validationError}`))
+        return
+      }
     }
 
     try {
