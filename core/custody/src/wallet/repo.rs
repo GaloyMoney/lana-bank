@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
-use crate::primitives::WalletId;
+use crate::primitives::{CustodianId, WalletId};
 use crate::{CoreCustodyEvent, publisher::CustodyPublisher};
 
 use super::entity::*;
@@ -12,7 +12,10 @@ use super::entity::*;
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Wallet",
-    columns(external_wallet_id(ty = "str", find_by)),
+    columns(
+        external_wallet_id(ty = "str", find_by),
+        custodian_id(ty = "CustodianId"),
+    ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]

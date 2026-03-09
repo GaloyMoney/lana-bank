@@ -81,7 +81,10 @@ impl Custodian {
         })
     }
 
-    fn custodian_config(&self, key: &EncryptionKey) -> Result<CustodianConfig, CustodianError> {
+    pub(crate) fn custodian_config(
+        &self,
+        key: &EncryptionKey,
+    ) -> Result<CustodianConfig, CustodianError> {
         let encrypted = self
             .encrypted_config_for_key(key)
             .ok_or(CustodianError::StaleEncryptionKey)?;

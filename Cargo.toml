@@ -33,6 +33,7 @@ cloud-storage = { path = "lib/cloud-storage" }
 jwks-utils = { path = "lib/jwks-utils" }
 keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }
+self-custody = { path = "lib/self-custody" }
 encryption = { path = "lib/encryption" }
 gotenberg = { path = "lib/gotenberg" }
 money = { path = "lib/money" }
@@ -101,6 +102,8 @@ axum-extra = { version = "0.12.5", default-features = false, features = [
   "typed-header",
 ] }
 bip32 = "0.5"
+bip39 = "2.1"
+bitcoin = { version = "0.32", default-features = false, features = ["std"] }
 ccm = "0.5"
 csv = "1.4.0"
 chrono = { version = "0.4.43", features = [

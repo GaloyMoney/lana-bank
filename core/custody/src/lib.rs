@@ -4,6 +4,7 @@
 mod config;
 pub mod custodian;
 pub mod error;
+pub mod jobs;
 mod primitives;
 pub mod public;
 mod publisher;
@@ -255,6 +256,25 @@ where
 
         let inbox_config = InboxConfig::new(CUSTODY_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);
+
+        let poll_init = jobs::PollSelfCustodyBalancesJobInit::new(
+            pool,
+            authz,
+            &encryption_config,
+            &config,
+            outbox,
+            clock.clone(),
+        );
+        let poll_spawner = jobs.add_initializer(poll_init);
+        poll_spawner
+            .spawn_unique(
+                ::job::JobId::new(),
+                jobs::PollSelfCustodyBalancesJobConfig::<Perms, E> {
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await
+            .map_err(|e| CoreCustodyError::JobError(e.to_string()))?;
 
         let custody = Self {
             authz: authz.clone(),
@@ -524,12 +544,48 @@ where
             .find_by_id_in_op(&mut *db, &custodian_id)
             .await?;
 
-        let client = custodian.custodian_client(
-            &self.encryption_config.encryption_key,
-            &self.config.custody_providers,
-        )?;
+        let config = custodian
+            .custodian_config(&self.encryption_config.encryption_key)
+            .map_err(|e| CoreCustodyError::Custodian(e))?;
 
-        let external_wallet = client.initialize_wallet(wallet_label).await?;
+        let external_wallet = match config {
+            CustodianConfig::SelfCustody(ref sc_config) => {
+                let client = self_custody::SelfCustodyClient::try_new(
+                    sc_config,
+                    &self.config.custody_providers.self_custody_directory,
+                )
+                .map_err(custodian::client::error::CustodianClientError::client)?;
+                let wallet = custodian::client::initialize_self_custody_wallet(
+                    &client,
+                    sc_config.next_derivation_index,
+                )?;
+
+                // Advance derivation index
+                let mut sc_config = sc_config.clone();
+                sc_config.next_derivation_index += 1;
+                let mut custodian = self
+                    .custodians
+                    .find_by_id_in_op(&mut *db, &custodian_id)
+                    .await?;
+                if custodian
+                    .update_custodian_config(
+                        &self.encryption_config.encryption_key,
+                        CustodianConfig::SelfCustody(sc_config),
+                    )?
+                    .did_execute()
+                {
+                    self.custodians
+                        .update_in_op(&mut *db, &mut custodian)
+                        .await?;
+                }
+
+                wallet
+            }
+            other_config => {
+                let client = other_config.custodian_client(&self.config.custody_providers)?;
+                client.initialize_wallet(wallet_label).await?
+            }
+        };
 
         let new_wallet = NewWallet::builder()
             .id(WalletId::new())

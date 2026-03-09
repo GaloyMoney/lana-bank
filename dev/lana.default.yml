@@ -48,6 +48,8 @@ app:
       bitgo_directory:
         testing_url: https://app.bitgo-test.com/
         production_url: https://app.bitgo.com/
+      self_custody_directory:
+        esplora_url: https://blockstream.info/api
   notification:
     email:
       relay: ''

@@ -1685,7 +1685,10 @@
         "longLivedToken": "Token de larga duración",
         "passphrase": "Frase de contraseña",
         "enterpriseId": "ID de empresa",
-        "testingInstance": "Usar Entorno de Pruebas"
+        "testingInstance": "Usar Entorno de Pruebas",
+        "selfCustodyLabel": "Self-Custody (BDK)",
+        "xpub": "Extended Public Key (xpub)",
+        "network": "Red"
       },
       "placeholders": {
         "selectType": "Seleccionar un proveedor",
@@ -1697,7 +1700,8 @@
         "webhookUrl": "Introduce la URL del webhook",
         "longLivedToken": "Introduce tu token de larga duración",
         "passphrase": "Introduce la frase de contraseña de tu cartera",
-        "enterpriseId": "Introduce tu ID de empresa"
+        "enterpriseId": "Introduce tu ID de empresa",
+        "xpub": "Ingrese la clave pública extendida (xpub/tpub)"
       },
       "buttons": {
         "create": "Agregar Custodio"

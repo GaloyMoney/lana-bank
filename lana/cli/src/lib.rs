@@ -57,6 +57,12 @@ enum Commands {
     BuildInfo,
     /// Generate encryption key
     Genencryptionkey,
+    /// Generate a BIP84 xpub/xpriv keypair for self-custody
+    Genxpub {
+        /// Network: mainnet or testnet (default: mainnet)
+        #[clap(long, default_value = "mainnet")]
+        network: String,
+    },
     /// Generate default configuration file (lana.yml) with all default values
     DumpDefaultConfig,
     /// Run the main server (default when no subcommand is specified)
@@ -75,6 +81,10 @@ pub async fn run() -> anyhow::Result<()> {
         Commands::Genencryptionkey => {
             let key = ChaCha20Poly1305::generate_key(&mut OsRng);
             println!("{}", hex::encode(key));
+            return Ok(());
+        }
+        Commands::Genxpub { network } => {
+            generate_xpub(&network)?;
             return Ok(());
         }
         Commands::DumpDefaultConfig => {
@@ -298,6 +308,64 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     eprintln!("shutdown complete");
 
     result
+}
+
+fn generate_xpub(network: &str) -> anyhow::Result<()> {
+    use bitcoin::NetworkKind;
+    use bitcoin::bip32::{ChildNumber, Xpriv};
+
+    let (network_kind, derivation_path, network_label) = match network {
+        "mainnet" => (NetworkKind::Main, [84, 0, 0], "mainnet"),
+        "testnet" => (NetworkKind::Test, [84, 1, 0], "testnet"),
+        other => anyhow::bail!("Unknown network: {other}. Use 'mainnet' or 'testnet'."),
+    };
+
+    let mut entropy = [0u8; 32];
+    rand::fill(&mut entropy);
+    let mnemonic = bip39::Mnemonic::from_entropy(&entropy)
+        .map_err(|e| anyhow::anyhow!("Failed to generate mnemonic: {e}"))?;
+
+    let seed = mnemonic.to_seed("");
+
+    let secp = bitcoin::secp256k1::Secp256k1::new();
+    let master = Xpriv::new_master(network_kind, &seed).context("Failed to derive master key")?;
+
+    // Derive BIP84 account key: m/84'/coin'/0'
+    let account_key = master
+        .derive_priv(
+            &secp,
+            &[
+                ChildNumber::Hardened {
+                    index: derivation_path[0],
+                },
+                ChildNumber::Hardened {
+                    index: derivation_path[1],
+                },
+                ChildNumber::Hardened {
+                    index: derivation_path[2],
+                },
+            ],
+        )
+        .context("Failed to derive account key")?;
+
+    let account_xpub = bitcoin::bip32::Xpub::from_priv(&secp, &account_key);
+
+    println!("Mnemonic (KEEP SECRET - store offline):");
+    println!("  {mnemonic}");
+    println!();
+    println!("Extended Private Key (KEEP SECRET - store offline):");
+    println!("  {account_key}");
+    println!();
+    println!("Extended Public Key (configure in system):");
+    println!("  {account_xpub}");
+    println!();
+    println!("Network: {network_label}");
+    println!(
+        "Derivation path: m/{}'/{}'/{}'",
+        derivation_path[0], derivation_path[1], derivation_path[2]
+    );
+
+    Ok(())
 }
 
 pub fn store_server_pid(lana_home: &str, pid: u32) -> anyhow::Result<()> {

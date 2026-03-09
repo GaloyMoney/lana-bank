@@ -32,6 +32,12 @@ impl From<money::ConversionError> for CustodianClientError {
     }
 }
 
+impl From<self_custody::SelfCustodyError> for CustodianClientError {
+    fn from(error: self_custody::SelfCustodyError) -> Self {
+        Self::ClientError(Box::new(error))
+    }
+}
+
 impl ErrorSeverity for CustodianClientError {
     fn severity(&self) -> Level {
         match self {
@@ -43,6 +49,8 @@ impl ErrorSeverity for CustodianClientError {
                     komainu_err.severity()
                 } else if let Some(money_err) = e.downcast_ref::<money::ConversionError>() {
                     money_err.severity()
+                } else if e.downcast_ref::<self_custody::SelfCustodyError>().is_some() {
+                    Level::ERROR
                 } else {
                     // Default to ERROR for unknown error types
                     Level::ERROR

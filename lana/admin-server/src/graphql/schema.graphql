@@ -967,6 +967,7 @@ type Custodian {
 input CustodianConfigInput @oneOf {
 	komainu: KomainuConfig
 	bitgo: BitgoConfig
+	selfCustody: SelfCustodyConfig
 }
 
 input CustodianConfigUpdateInput {
@@ -996,6 +997,7 @@ type CustodianConnection {
 input CustodianCreateInput @oneOf {
 	komainu: KomainuConfig
 	bitgo: BitgoConfig
+	selfCustody: SelfCustodyConfig
 }
 
 type CustodianCreatePayload {
@@ -2658,6 +2660,18 @@ enum RolesSortBy {
 }
 
 scalar Satoshis
+
+input SelfCustodyConfig {
+	name: String!
+	xpub: String!
+	network: SelfCustodyNetwork!
+}
+
+enum SelfCustodyNetwork {
+	MAINNET
+	TESTNET
+	SIGNET
+}
 
 scalar SignedSatoshis
 

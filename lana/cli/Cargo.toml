@@ -38,5 +38,8 @@ sqlx = { workspace = true }
 log = { workspace = true }
 hex = { workspace = true }
 chacha20poly1305 = { workspace = true }
+bitcoin = { workspace = true }
+bip39 = { workspace = true }
+rand = { workspace = true }
 encryption = { workspace = true }
 rustls = { workspace = true }

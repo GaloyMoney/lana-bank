@@ -1685,7 +1685,10 @@
         "longLivedToken": "Long Lived Token",
         "passphrase": "Passphrase",
         "enterpriseId": "Enterprise ID",
-        "testingInstance": "Use Testing Environment"
+        "testingInstance": "Use Testing Environment",
+        "selfCustodyLabel": "Self-Custody (BDK)",
+        "xpub": "Extended Public Key (xpub)",
+        "network": "Network"
       },
       "placeholders": {
         "selectType": "Select a Provider",
@@ -1697,7 +1700,8 @@
         "webhookUrl": "Enter webhook URL",
         "longLivedToken": "Enter your long lived token",
         "passphrase": "Enter your wallet passphrase",
-        "enterpriseId": "Enter your enterprise ID"
+        "enterpriseId": "Enter your enterprise ID",
+        "xpub": "Enter the extended public key (xpub/tpub)"
       },
       "buttons": {
         "create": "Add Custodian"

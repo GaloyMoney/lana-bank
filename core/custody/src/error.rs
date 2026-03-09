@@ -25,6 +25,8 @@ pub enum CoreCustodyError {
     Wallet(#[from] crate::wallet::error::WalletError),
     #[error("CoreCustodyError - InboxError: {0}")]
     InboxError(#[from] obix::inbox::InboxError),
+    #[error("CoreCustodyError - JobError: {0}")]
+    JobError(String),
 }
 
 impl From<CustodianCreateError> for CoreCustodyError {
@@ -85,6 +87,7 @@ impl ErrorSeverity for CoreCustodyError {
             Self::CustodianClient(e) => e.severity(),
             Self::Wallet(e) => e.severity(),
             Self::InboxError(_) => Level::ERROR,
+            Self::JobError(_) => Level::ERROR,
         }
     }
 }

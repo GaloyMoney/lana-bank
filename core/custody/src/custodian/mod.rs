@@ -7,7 +7,8 @@ mod repo;
 
 pub use config::{
     BitgoConfig, CustodianConfig, CustodianConfigDiscriminants, CustodyProviderConfig,
-    KomainuConfig,
+    KomainuConfig, SelfCustodyClient, SelfCustodyConfig, SelfCustodyDirectoryConfig,
+    SelfCustodyNetwork,
 };
 #[cfg(feature = "json-schema")]
 pub use entity::CustodianEvent;

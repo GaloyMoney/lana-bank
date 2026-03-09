@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_wallets (created_at, id, external_wallet_id, custodian_id) SELECT COALESCE($1, NOW()), unnested.id, unnested.external_wallet_id, unnested.custodian_id FROM UNNEST($2, $3, $4) AS unnested(id, external_wallet_id, custodian_id)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "UuidArray",
+        "VarcharArray",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f558de717020b304f48d8b8cf1da0b91234cb7bdb3265a7449b909499ab6f6ca"
+}

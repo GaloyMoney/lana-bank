@@ -92,6 +92,57 @@ impl CustodianClient for bitgo::BitgoClient {
 }
 
 #[async_trait]
+impl CustodianClient for self_custody::SelfCustodyClient {
+    async fn verify_client(&self) -> Result<(), CustodianClientError> {
+        self.derive_address(0)
+            .map_err(CustodianClientError::client)?;
+        Ok(())
+    }
+
+    async fn initialize_wallet(
+        &self,
+        _label: &str,
+    ) -> Result<ExternalWallet, CustodianClientError> {
+        // Self-custody wallet initialization is handled by create_wallet_in_op
+        // which manages the derivation index. This should not be called directly.
+        Err(CustodianClientError::client(
+            self_custody::SelfCustodyError::DerivationError(
+                "self-custody wallet creation is managed by create_wallet_in_op".to_string(),
+            ),
+        ))
+    }
+
+    async fn process_webhook(
+        &self,
+        _headers: &http::HeaderMap,
+        _payload: Bytes,
+    ) -> Result<Option<CustodianNotification>, CustodianClientError> {
+        Ok(None)
+    }
+}
+
+pub fn initialize_self_custody_wallet(
+    client: &self_custody::SelfCustodyClient,
+    index: u32,
+) -> Result<ExternalWallet, CustodianClientError> {
+    let address = client
+        .derive_address(index)
+        .map_err(CustodianClientError::client)?;
+    let network = if client.is_testnet() {
+        WalletNetwork::Testnet4
+    } else {
+        WalletNetwork::Mainnet
+    };
+
+    Ok(ExternalWallet {
+        external_id: format!("self-custody-{index}"),
+        address,
+        network,
+        full_response: serde_json::Value::Null,
+    })
+}
+
+#[async_trait]
 impl CustodianClient for komainu::KomainuClient {
     async fn verify_client(&self) -> Result<(), CustodianClientError> {
         let _ = self.list_wallets().await?;

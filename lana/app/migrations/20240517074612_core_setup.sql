@@ -282,6 +282,7 @@ CREATE TABLE core_user_events (
 CREATE TABLE core_wallets (
   id UUID PRIMARY KEY,
   external_wallet_id VARCHAR NULL,
+  custodian_id UUID,
   created_at TIMESTAMPTZ NOT NULL
 );
 
