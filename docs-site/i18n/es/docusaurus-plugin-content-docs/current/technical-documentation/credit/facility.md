@@ -90,7 +90,7 @@ garantía cumpla política de monto y calidad.
 
 ### Interpretación práctica para operadores
 
-Después de aprobarse una propuesta, la facilidad resultante pendiente entra en el estado de **Colateralización Pendiente**. En este punto, el cliente debe depositar Bitcoin en la billetera de custodia asociada a la facilidad. Si la facilidad tiene un custodio asignado, Lana sincroniza el saldo del colateral desde ese backend de custodia, ya sea mediante webhooks de custodio alojado o mediante sondeos de esplora en autocustodia. En modo manual, un operador puede actualizar el monto del colateral directamente desde el panel de administración.
+Después de que se aprueba una propuesta, la facilidad pendiente resultante entra en el estado de **Colateralización Pendiente**. En este momento, el cliente debe depositar Bitcoin en la billetera de custodia asociada a la facilidad. Si la facilidad tiene un custodio asignado, Lana sincroniza el saldo del colateral desde ese backend de custodia, ya sea a través de webhooks de custodia alojados o mediante sondeo de esplora en autocustodia. El flujo de sondeo de autocustodia se puede configurar para mainnet, testnet3, testnet4 o backends de esplora en signet. En modo manual, un operador puede actualizar directamente el monto del colateral a través del panel de administración.
 
 ## Recorrido en Panel de Administración: De propuesta a facilidad activa
 

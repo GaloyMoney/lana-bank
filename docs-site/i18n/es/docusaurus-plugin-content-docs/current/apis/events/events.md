@@ -103,18 +103,20 @@ Eventos relacionados con la custodia de Bitcoin y la gestión de billeteras.
 
 Eventos relacionados con el ciclo de vida del cliente y KYC.
 
-| Evento | Descripción | Campos de datos |
-|--------|-------------|----------------|
-| `CustomerCreated` | Se creó un nuevo cliente | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
-| `CustomerKycUpdated` | No hay descripción disponible | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
-| `PartyCreated` | No hay descripción disponible | `entity.customer_type`, `entity.email`, `entity.id` |
-| `PartyEmailUpdated` | No hay descripción disponible | `entity.customer_type`, `entity.email`, `entity.id` |
-| `ProspectCreated` | Se creó un nuevo prospecto para onboarding | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycStarted` | Un prospecto inició la verificación KYC | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycPending` | La verificación KYC de un prospecto está pendiente de revisión | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycDeclined` | Se rechazó la verificación KYC de un prospecto | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectConverted` | Un prospecto fue convertido en cliente | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectClosed` | Un prospecto fue cerrado sin conversión | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| Evento | Descripción | Campos de carga útil |
+|--------|-------------|---------------------|
+| `CustomerCreated` | Se creó un nuevo cliente | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerFrozen` | La cuenta de un cliente fue congelada, bloqueando las operaciones financieras | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerUnfrozen` | Se descongeló una cuenta de cliente previamente congelada, restaurando las operaciones normales | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerClosed` | La cuenta del cliente fue cerrada | `entity.id`, `entity.party_id`, `entity.status` |
+| `PartyCreated` | Sin descripción disponible | `entity.customer_type`, `entity.email`, `entity.id` |
+| `PartyEmailUpdated` | Sin descripción disponible | `entity.customer_type`, `entity.email`, `entity.id` |
+| `ProspectCreated` | Se creó un nuevo prospecto para el onboarding | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycStarted` | Un prospecto inició la verificación KYC | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycPending` | La verificación KYC de un prospecto está pendiente de revisión | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycDeclined` | Se rechazó la verificación KYC de un prospecto | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectConverted` | Un prospecto fue convertido en cliente | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectClosed` | Un prospecto fue cerrado sin convertirse | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
 
 ---
 
