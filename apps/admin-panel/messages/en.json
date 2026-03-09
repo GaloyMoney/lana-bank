@@ -1041,8 +1041,6 @@
           "status": "Status",
           "dateOfIssuance": "Date of Issuance",
           "maturityDate": "Maturity Date",
-          "averageMonthlyPayment": "Average Monthly Payment",
-          "noAverageMonthlyPayment": "No average monthly payment available",
           "custodian": "Custodian",
           "manual": "Manual",
           "walletAddress": "Wallet Address",

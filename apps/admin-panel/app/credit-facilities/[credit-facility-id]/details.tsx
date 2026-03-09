@@ -27,7 +27,6 @@ import {
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { CustomerLabel } from "@/app/customers/customer-label"
-import Balance from "@/components/balance/balance"
 import { useLoanAgreement } from "@/hooks/use-loan-agreement"
 
 type CreditFacilityDetailsProps = {
@@ -60,13 +59,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     generateLoanAgreementPdf(creditFacilityDetails.customer.customerId)
   }
 
-  const averageMonthlyPayment = Math.round(
-    (creditFacilityDetails.facilityAmount *
-      Number(creditFacilityDetails.creditFacilityTerms.annualRate)) /
-      100 /
-      12,
-  )
-
   const details: DetailItemProps[] = [
     {
       label: t("details.customer"),
@@ -93,14 +85,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         <CollateralizationStateLabel
           state={creditFacilityDetails.collateralizationState}
         />
-      ),
-    },
-    {
-      label: t("details.averageMonthlyPayment"),
-      value: averageMonthlyPayment ? (
-        <Balance amount={averageMonthlyPayment} currency="usd" />
-      ) : (
-        t("details.noAverageMonthlyPayment")
       ),
     },
     {
