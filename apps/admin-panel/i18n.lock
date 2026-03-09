@@ -479,6 +479,14 @@ checksums:
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/collateral: b0dcbdb652cb11f0d9eeb77666c8ca8d
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Customers/CustomerDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Customers/CustomerDetails/eventHistory/description: 31e9877703138cbaaa331069bb2684a3
+    Customers/CustomerDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Customers/CustomerDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Customers/CustomerDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Customers/CustomerDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Customers/CustomerDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Customers/CustomerDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     CreditFacilityProposals/title: 11a59748c3c3c261a3b99fd7afb4a023
     CreditFacilityProposals/description: 2a883823caefdfda33d041e80dba79f9
     CreditFacilityProposals/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
