@@ -1020,6 +1020,18 @@
             echo "customer-portal codegen is up to date ✓"
           '';
 
+          admin-panel-build = mkFrontendCheck "admin-panel-build" ''
+            echo "Running build for admin-panel..."
+            pnpm --filter admin-panel build
+            echo "admin-panel build passed ✓"
+          '';
+
+          customer-portal-build = mkFrontendCheck "customer-portal-build" ''
+            echo "Running build for customer-portal..."
+            pnpm --filter customer-portal build
+            echo "customer-portal build passed ✓"
+          '';
+
           check-fmt = pkgs.stdenv.mkDerivation {
             name = "check-fmt";
             src = ./.;
