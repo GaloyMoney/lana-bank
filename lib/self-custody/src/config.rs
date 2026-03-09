@@ -60,12 +60,27 @@ impl fmt::Display for SelfCustodyNetwork {
 pub struct SelfCustodyConfig {
     pub account_xpub: String,
     pub network: SelfCustodyNetwork,
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct SelfCustodyClientConfig {
+    pub account_xpub: String,
+    pub network: SelfCustodyNetwork,
     pub esplora_url: Url,
 }
 
 impl fmt::Debug for SelfCustodyConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("SelfCustodyConfig")
+            .field("account_xpub", &"<redacted>")
+            .field("network", &self.network)
+            .finish()
+    }
+}
+
+impl fmt::Debug for SelfCustodyClientConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SelfCustodyClientConfig")
             .field("account_xpub", &"<redacted>")
             .field("network", &self.network)
             .field("esplora_url", &self.esplora_url)

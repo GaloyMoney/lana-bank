@@ -2750,7 +2750,6 @@ input SelfCustodyConfig {
 	name: String!
 	accountXpub: String!
 	network: SelfCustodyNetwork!
-	esploraUrl: String!
 }
 
 enum SelfCustodyNetwork {

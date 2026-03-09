@@ -76,7 +76,6 @@ pub struct SelfCustodyConfig {
     #[graphql(secret)]
     account_xpub: String,
     network: SelfCustodyNetwork,
-    esplora_url: String,
 }
 
 #[derive(async_graphql::Enum, Clone, Copy, Debug, PartialEq, Eq)]
@@ -128,7 +127,6 @@ impl From<SelfCustodyConfig> for DomainSelfCustodyConfig {
         Self {
             account_xpub: config.account_xpub,
             network: config.network.into(),
-            esplora_url: Url::parse(&config.esplora_url).expect("esplora_url must be a valid URL"),
         }
     }
 }

@@ -4,7 +4,7 @@
 mod config;
 mod error;
 
-pub use config::{SelfCustodyConfig, SelfCustodyNetwork};
+pub use config::{SelfCustodyClientConfig, SelfCustodyConfig, SelfCustodyNetwork};
 pub use error::SelfCustodyError;
 
 use std::str::FromStr;
@@ -38,7 +38,7 @@ pub struct GeneratedAccountKeys {
     pub network: SelfCustodyNetwork,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct SelfCustodyClient {
     http_client: Client,
     esplora_url: Url,
@@ -47,7 +47,7 @@ pub struct SelfCustodyClient {
 }
 
 impl SelfCustodyClient {
-    pub fn try_new(config: SelfCustodyConfig) -> Result<Self, SelfCustodyError> {
+    pub fn try_new(config: SelfCustodyClientConfig) -> Result<Self, SelfCustodyError> {
         let _ = rustls::crypto::ring::default_provider().install_default();
         let account_xpub = Xpub::from_str(&config.account_xpub)
             .map_err(|err| SelfCustodyError::InvalidXpub(err.to_string()))?;
@@ -124,6 +124,17 @@ impl SelfCustodyClient {
             .ok_or(SelfCustodyError::InvalidEsploraBalance)?;
 
         Ok(balance.into())
+    }
+}
+
+impl core::fmt::Debug for SelfCustodyClient {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("SelfCustodyClient")
+            .field("http_client", &self.http_client)
+            .field("esplora_url", &self.esplora_url)
+            .field("account_xpub", &"<redacted>")
+            .field("network", &self.network)
+            .finish()
     }
 }
 
@@ -209,7 +220,6 @@ mod tests {
             SelfCustodyConfig {
                 account_xpub: generated.account_xpub.clone(),
                 network: SelfCustodyNetwork::Mainnet,
-                esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
             }
         );
 
@@ -221,7 +231,7 @@ mod tests {
     fn generate_account_keys_produces_valid_account_xpub() {
         let generated =
             generate_account_keys(SelfCustodyNetwork::Testnet4).expect("key generation succeeds");
-        let client = SelfCustodyClient::try_new(SelfCustodyConfig {
+        let client = SelfCustodyClient::try_new(SelfCustodyClientConfig {
             account_xpub: generated.account_xpub.clone(),
             network: SelfCustodyNetwork::Testnet4,
             esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
@@ -239,7 +249,7 @@ mod tests {
     fn derive_receive_wallet_uses_unique_addresses_per_index() {
         let generated =
             generate_account_keys(SelfCustodyNetwork::Mainnet).expect("key generation succeeds");
-        let client = SelfCustodyClient::try_new(SelfCustodyConfig {
+        let client = SelfCustodyClient::try_new(SelfCustodyClientConfig {
             account_xpub: generated.account_xpub,
             network: SelfCustodyNetwork::Mainnet,
             esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
@@ -262,7 +272,7 @@ mod tests {
     fn try_new_rejects_xpub_from_another_network_family() {
         let generated =
             generate_account_keys(SelfCustodyNetwork::Mainnet).expect("key generation succeeds");
-        let error = SelfCustodyClient::try_new(SelfCustodyConfig {
+        let error = SelfCustodyClient::try_new(SelfCustodyClientConfig {
             account_xpub: generated.account_xpub,
             network: SelfCustodyNetwork::Signet,
             esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
@@ -282,7 +292,7 @@ mod tests {
     fn generate_account_keys_and_addresses_support_signet() {
         let generated =
             generate_account_keys(SelfCustodyNetwork::Signet).expect("key generation succeeds");
-        let client = SelfCustodyClient::try_new(SelfCustodyConfig {
+        let client = SelfCustodyClient::try_new(SelfCustodyClientConfig {
             account_xpub: generated.account_xpub,
             network: SelfCustodyNetwork::Signet,
             esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
@@ -306,7 +316,7 @@ mod tests {
             balances: Arc::new(AtomicU64::new(250_000)),
         };
         let server = TestServer::spawn(state.clone()).await;
-        let client = SelfCustodyClient::try_new(SelfCustodyConfig {
+        let client = SelfCustodyClient::try_new(SelfCustodyClientConfig {
             account_xpub: generated.account_xpub,
             network: SelfCustodyNetwork::Testnet3,
             esplora_url: server.base_url.clone(),

@@ -3384,7 +3384,6 @@ export const mockSelfCustodyConfig = (overrides?: Partial<SelfCustodyConfig>, _r
     relationshipsToOmit.add('SelfCustodyConfig');
     return {
         accountXpub: overrides && overrides.hasOwnProperty('accountXpub') ? overrides.accountXpub! : faker.lorem.word(),
-        esploraUrl: overrides && overrides.hasOwnProperty('esploraUrl') ? overrides.esploraUrl! : faker.lorem.word(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         network: overrides && overrides.hasOwnProperty('network') ? overrides.network! : SelfCustodyNetwork.Mainnet,
     };

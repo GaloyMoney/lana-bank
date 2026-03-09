@@ -9,7 +9,7 @@ use tracing_macros::record_error_severity;
 pub use bitgo::{BitgoConfig, BitgoDirectoryConfig};
 use encryption::{Encrypted, EncryptionKey};
 pub use komainu::{KomainuConfig, KomainuDirectoryConfig};
-pub use self_custody::{SelfCustodyConfig, SelfCustodyNetwork};
+pub use self_custody::{SelfCustodyConfig, SelfCustodyDirectoryConfig, SelfCustodyNetwork};
 
 use super::{
     client::{CustodianClient, error::CustodianClientError},
@@ -23,6 +23,8 @@ pub struct CustodyProviderConfig {
     pub komainu_directory: KomainuDirectoryConfig,
     #[serde(default)]
     pub bitgo_directory: BitgoDirectoryConfig,
+    #[serde(default)]
+    pub self_custody_directory: SelfCustodyDirectoryConfig,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, strum::EnumDiscriminants)]
@@ -61,8 +63,13 @@ impl CustodianConfig {
                 .map_err(CustodianClientError::client)?,
             )),
             CustodianConfig::SelfCustody(config) => Ok(Box::new(
-                ::self_custody::SelfCustodyClient::try_new(config)
-                    .map_err(CustodianClientError::client)?,
+                ::self_custody::SelfCustodyClient::try_new(
+                    provider_config
+                        .self_custody_directory
+                        .client_config(config)
+                        .map_err(CustodianClientError::client)?,
+                )
+                .map_err(CustodianClientError::client)?,
             )),
 
             #[cfg(feature = "mock-custodian")]

@@ -48,6 +48,11 @@ app:
       bitgo_directory:
         testing_url: https://app.bitgo-test.com/
         production_url: https://app.bitgo.com/
+      self_custody_directory:
+        mainnet_url: null
+        testnet3_url: null
+        testnet4_url: null
+        signet_url: null
   notification:
     email:
       relay: ''

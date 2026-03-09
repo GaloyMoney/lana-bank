@@ -79,7 +79,7 @@ graph TD
     ADAPTER --> SELF["Self-Custody<br/>(xpub + esplora)"]
 ```
 
-Self-custody differs from the hosted custodians in one important way: the backend stores only an account `xpub` and an esplora endpoint. Operators generate the matching account `xpriv` locally with `lana-cli genxpriv` and keep it off the backend. This flow supports mainnet, testnet3, testnet4, and signet account keys. For each new loan, Lana derives a fresh receive address from the stored `xpub`, then polls esplora for confirmed balance changes instead of relying on webhooks.
+Self-custody differs from the hosted custodians in one important way: the backend stores only an account `xpub`. Operators generate the matching account `xpriv` locally with `lana-cli genxpriv` and keep it off the backend. The esplora endpoint is loaded at startup from `app.custody.custody_providers.self_custody_directory` in `lana.yml`, with a separate URL per supported network. This flow supports mainnet, testnet3, testnet4, and signet account keys. For each new loan, Lana derives a fresh receive address from the stored `xpub`, then polls esplora for confirmed balance changes instead of relying on webhooks.
 
 ## Custody Provider Interface
 

@@ -321,12 +321,13 @@ mod tests {
         let generated =
             self_custody::generate_account_keys(self_custody::SelfCustodyNetwork::Signet)
                 .expect("key generation succeeds");
-        let client = self_custody::SelfCustodyClient::try_new(self_custody::SelfCustodyConfig {
-            account_xpub: generated.account_xpub,
-            network: self_custody::SelfCustodyNetwork::Signet,
-            esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
-        })
-        .expect("generated xpub is valid");
+        let client =
+            self_custody::SelfCustodyClient::try_new(self_custody::SelfCustodyClientConfig {
+                account_xpub: generated.account_xpub,
+                network: self_custody::SelfCustodyNetwork::Signet,
+                esplora_url: Url::parse("http://127.0.0.1:3001").expect("valid url"),
+            })
+            .expect("generated xpub is valid");
 
         let wallet = client
             .initialize_wallet("signet-loan", Some(7))

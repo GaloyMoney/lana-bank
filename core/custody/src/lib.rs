@@ -770,7 +770,15 @@ mod tests {
                 encryption_key: encryption::EncryptionKey::new([9u8; 32]),
                 ..Default::default()
             },
-            CustodyConfig::default(),
+            CustodyConfig {
+                custody_providers: CustodyProviderConfig {
+                    self_custody_directory: SelfCustodyDirectoryConfig {
+                        testnet4_url: Some(server.base_url.clone()),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+            },
             &outbox,
             &mut jobs,
             clock,
@@ -785,7 +793,6 @@ mod tests {
                 CustodianConfig::SelfCustody(SelfCustodyConfig {
                     account_xpub: generated.account_xpub,
                     network: SelfCustodyNetwork::Testnet4,
-                    esplora_url: server.base_url.clone(),
                 }),
             )
             .await?;

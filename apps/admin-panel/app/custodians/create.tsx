@@ -86,7 +86,6 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     name: "",
     accountXpub: "",
     network: SelfCustodyNetwork.Mainnet,
-    esploraUrl: "",
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -113,7 +112,6 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
       name: "",
       accountXpub: "",
       network: SelfCustodyNetwork.Mainnet,
-      esploraUrl: "",
     })
     setError(null)
   }
@@ -456,22 +454,6 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   required
                   disabled={loading}
                   data-testid="custodian-account-xpub-input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="esploraUrl" required>
-                  {t("fields.esploraUrl")}
-                </Label>
-                <Input
-                  id="esploraUrl"
-                  name="esploraUrl"
-                  type="url"
-                  value={selfCustodyConfig.esploraUrl}
-                  onChange={handleSelfCustodyInputChange}
-                  placeholder={t("placeholders.esploraUrl")}
-                  required
-                  disabled={loading}
-                  data-testid="custodian-esplora-url-input"
                 />
               </div>
               <div>

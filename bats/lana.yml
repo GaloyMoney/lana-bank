@@ -25,6 +25,13 @@ app:
     credit_config_path: "./bats/accounting-init/credit-module-config.json"
     deposit_config_path: "./bats/accounting-init/deposit-module-config.json"
     chart_of_accounts_integration_config_path: "./bats/accounting-init/accounting-base-config.json"
+  custody:
+    custody_providers:
+      self_custody_directory:
+        mainnet_url: null
+        testnet3_url: null
+        testnet4_url: null
+        signet_url: null
 time:
   type: artificial
   start_at: 2024-01-01T00:00:00Z

@@ -3496,7 +3496,6 @@ export enum RolesSortBy {
 
 export type SelfCustodyConfig = {
   accountXpub: Scalars['String']['input'];
-  esploraUrl: Scalars['String']['input'];
   name: Scalars['String']['input'];
   network: SelfCustodyNetwork;
 };

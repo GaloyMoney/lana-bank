@@ -247,7 +247,6 @@ mod tests {
                 CustodianConfig::SelfCustody(SelfCustodyConfig {
                     account_xpub: generated.account_xpub,
                     network: SelfCustodyNetwork::Testnet4,
-                    esplora_url: "https://example.com".parse().expect("valid url"),
                 }),
                 &key,
             )
@@ -287,7 +286,6 @@ mod tests {
         let config = CustodianConfig::SelfCustody(SelfCustodyConfig {
             account_xpub: generated.account_xpub,
             network: SelfCustodyNetwork::Testnet4,
-            esplora_url: "https://example.com".parse().expect("valid url"),
         });
         let new_custodian = NewCustodian::builder()
             .id(CustodianId::new())
