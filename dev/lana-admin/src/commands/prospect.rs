@@ -216,11 +216,11 @@ pub async fn execute(client: &mut GraphQLClient, action: ProspectAction, json: b
             }
         }
         ProspectAction::SumsubLink { prospect_id } => {
-            let vars = sumsub_permalink_create::Variables {
-                input: sumsub_permalink_create::SumsubPermalinkCreateInput { prospect_id },
+            let vars = prospect_kyc_link_create::Variables {
+                input: prospect_kyc_link_create::ProspectKycLinkCreateInput { prospect_id },
             };
-            let data = client.execute::<SumsubPermalinkCreate>(vars).await?;
-            let url = data.sumsub_permalink_create.url;
+            let data = client.execute::<ProspectKycLinkCreate>(vars).await?;
+            let url = data.prospect_kyc_link_create.url;
             if json {
                 output::print_json(&serde_json::json!({ "url": url }))?;
             } else {

@@ -35,8 +35,8 @@ pub async fn execute(
             let vars = approval_process_deny::Variables {
                 input: approval_process_deny::ApprovalProcessDenyInput {
                     approval_process_id: process_id,
+                    reason,
                 },
-                reason,
             };
             let data = client.execute::<ApprovalProcessDeny>(vars).await?;
             let ap = data.approval_process_deny.approval_process;

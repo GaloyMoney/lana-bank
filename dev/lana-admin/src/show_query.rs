@@ -121,7 +121,7 @@ fn lookup_query(path: &[&str]) -> Option<QuerySpec> {
         ["prospect", "get"] => q("ProspectGet", PROSPECT_DOC),
         ["prospect", "convert"] => q("ProspectConvert", PROSPECT_DOC),
         ["prospect", "close"] => q("ProspectClose", PROSPECT_DOC),
-        ["prospect", "sumsub-link"] => q("SumsubPermalinkCreate", PROSPECT_DOC),
+        ["prospect", "sumsub-link"] => q("ProspectKycLinkCreate", PROSPECT_DOC),
 
         ["customer", "list"] => q("CustomersList", CUSTOMER_DOC),
         ["customer", "get"] => q("CustomerGet", CUSTOMER_DOC),
