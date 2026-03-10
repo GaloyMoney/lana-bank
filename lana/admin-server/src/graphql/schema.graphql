@@ -731,7 +731,7 @@ type CreditFacilityProposal {
 	createdAt: Timestamp!
 	creditFacilityProposalId: UUID!
 	creditFacilityTerms: TermValues!
-	custodian: Custodian
+	custodian: Custodian!
 	customer: Customer!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	facilityAmount: UsdCents!
@@ -765,6 +765,7 @@ input CreditFacilityProposalCreateInput {
 	customerId: UUID!
 	facility: UsdCents!
 	terms: TermsInput!
+	custodianId: UUID!
 }
 
 type CreditFacilityProposalCreatePayload {
@@ -1007,6 +1008,7 @@ input CustodianCreateInput @oneOf {
 	bitgo: BitgoConfig
 	komainu: KomainuConfig
 	selfCustody: SelfCustodyConfig
+	manual: ManualConfig
 }
 
 type CustodianCreatePayload {
@@ -2018,6 +2020,10 @@ enum LoanAgreementStatus {
 	COMPLETED
 	FAILED
 	PENDING
+}
+
+input ManualConfig {
+	name: String!
 }
 
 input ManualTransactionEntryInput {
