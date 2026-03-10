@@ -21,6 +21,7 @@ declare global {
       takeScreenshot(filename: string): Chainable<null>
       createCustomer(email: string, telegramHandle: string): Chainable<Customer>
       createTermsTemplate(input: TermsTemplateCreateInput): Chainable<string>
+      createCustodian(name: string): Chainable<string>
       graphqlRequest<T>(query: string, variables?: Record<string, unknown>): Chainable<T>
       getIdFromUrl(pathSegment: string): Chainable<string>
       createDeposit(amount: number, depositAccountId: string): Chainable<string> // Returns deposit public ID
@@ -257,6 +258,35 @@ Cypress.Commands.add(
         },
       })
       .then((response) => response.data.termsTemplateCreate.termsTemplate.termsTemplateId)
+  },
+)
+
+interface CustodianCreateResponse {
+  data: {
+    custodianCreate: {
+      custodian: {
+        custodianId: string
+      }
+    }
+  }
+}
+Cypress.Commands.add(
+  "createCustodian",
+  (name: string): Cypress.Chainable<string> => {
+    const mutation = `
+      mutation CustodianCreate($input: CustodianCreateInput!) {
+        custodianCreate(input: $input) {
+          custodian {
+            custodianId
+          }
+        }
+      }
+    `
+    return cy
+      .graphqlRequest<CustodianCreateResponse>(mutation, {
+        input: { manual: { name } },
+      })
+      .then((response) => response.data.custodianCreate.custodian.custodianId)
   },
 )
 

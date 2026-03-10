@@ -359,7 +359,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
               disabled={custodiansLoading}
               required
             >
-              <SelectTrigger>
+              <SelectTrigger data-testid="custodian-select">
                 <SelectValue placeholder={t("form.placeholders.custodian")} />
               </SelectTrigger>
               <SelectContent>
