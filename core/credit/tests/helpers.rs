@@ -528,6 +528,7 @@ pub struct TestContext {
     pub jobs: job::Jobs,
     pub pool: sqlx::PgPool,
     pub clock: ClockHandle,
+    pub manual_custodian_id: core_custody::CustodianId,
 }
 
 pub fn test_terms() -> TermValues {
@@ -580,6 +581,34 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         clock.clone(),
     )
     .await?;
+
+    let manual_custodian = {
+        let custodians = custody
+            .list_custodians(
+                &DummySubject,
+                es_entity::PaginatedQueryArgs::default(),
+                es_entity::Sort {
+                    by: core_custody::CustodiansSortBy::Name,
+                    direction: es_entity::ListDirection::Ascending,
+                },
+            )
+            .await?;
+        if let Some(existing) = custodians
+            .entities
+            .into_iter()
+            .find(|c| c.name == "Manual Custodian")
+        {
+            existing
+        } else {
+            custody
+                .create_custodian(
+                    &DummySubject,
+                    "Manual Custodian",
+                    core_custody::CustodianConfig::Manual,
+                )
+                .await?
+        }
+    };
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -655,6 +684,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         jobs,
         pool,
         clock,
+        manual_custodian_id: manual_custodian.id,
     })
 }
 
@@ -695,7 +725,7 @@ pub async fn create_pending_facility(
             deposit_account.id,
             amount,
             terms,
-            None::<core_custody::CustodianId>,
+            ctx.manual_custodian_id,
         )
         .await?;
 

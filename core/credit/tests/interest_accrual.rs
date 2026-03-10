@@ -72,6 +72,34 @@ async fn setup_with_clock_control() -> anyhow::Result<(
     )
     .await?;
 
+    let manual_custodian = {
+        let custodians = custody
+            .list_custodians(
+                &authz::dummy::DummySubject,
+                es_entity::PaginatedQueryArgs::default(),
+                es_entity::Sort {
+                    by: core_custody::CustodiansSortBy::Name,
+                    direction: es_entity::ListDirection::Ascending,
+                },
+            )
+            .await?;
+        if let Some(existing) = custodians
+            .entities
+            .into_iter()
+            .find(|c| c.name == "Manual Custodian")
+        {
+            existing
+        } else {
+            custody
+                .create_custodian(
+                    &authz::dummy::DummySubject,
+                    "Manual Custodian",
+                    core_custody::CustodianConfig::Manual,
+                )
+                .await?
+        }
+    };
+
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
@@ -151,6 +179,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
             jobs,
             pool: pool.clone(),
             clock: clock.clone(),
+            manual_custodian_id: manual_custodian.id,
         },
         clock_ctrl,
         clock,
@@ -207,7 +236,7 @@ async fn create_active_facility_with_clock(
             deposit_account.id,
             amount,
             terms,
-            None::<core_custody::CustodianId>,
+            ctx.manual_custodian_id,
         )
         .await?;
 

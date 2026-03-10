@@ -50,7 +50,7 @@ async fn facility_proposal_created_event_on_create() -> anyhow::Result<()> {
                 deposit_account_id,
                 amount,
                 terms,
-                None::<core_custody::CustodianId>,
+                core_custody::CustodianId::new(),
             )
         },
         |result, e| match e {
@@ -123,7 +123,7 @@ async fn facility_proposal_concluded_event_on_approval() -> anyhow::Result<()> {
             deposit_account_id,
             amount,
             terms,
-            None::<core_custody::CustodianId>,
+            ctx.manual_custodian_id,
         )
         .await?;
 

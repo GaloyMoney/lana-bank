@@ -815,10 +815,12 @@ mod tests {
         let mut op = custody.custodians.begin_op().await?;
         let first = custody
             .create_wallet_in_op(&mut op, custodian.id, "Loan 1")
-            .await?;
+            .await?
+            .unwrap();
         let second = custody
             .create_wallet_in_op(&mut op, custodian.id, "Loan 2")
-            .await?;
+            .await?
+            .unwrap();
         op.commit().await?;
 
         assert_ne!(first.address, second.address);
