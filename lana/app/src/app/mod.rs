@@ -465,7 +465,7 @@ impl LanaApp {
         customer_id: impl Into<crate::primitives::CustomerId> + std::fmt::Debug + Copy,
         amount: money::UsdCents,
         terms: core_credit::TermValues,
-        custodian_id: Option<impl Into<crate::primitives::CustodianId> + std::fmt::Debug + Copy>,
+        custodian_id: impl Into<crate::primitives::CustodianId> + std::fmt::Debug + Copy,
     ) -> Result<crate::credit::CreditFacilityProposal, ApplicationError> {
         let customer_id = customer_id.into();
         let deposit_account = self

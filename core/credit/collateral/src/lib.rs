@@ -33,7 +33,7 @@ use repo::CollateralRepo;
 
 use ledger::CollateralLedger;
 
-pub use config::ManualCollateral;
+pub use config::EnableManualCustodian;
 pub use {
     entity::{Collateral, CollateralAdjustment, NewCollateral},
     ledger::{
@@ -305,9 +305,9 @@ where
 
         let mut db = self.repo.begin_op().await?;
 
-        let manual_collateral_enabled = self
+        let manual_custodian_enabled = self
             .domain_configs
-            .get_without_audit_in_op::<ManualCollateral>(&mut db)
+            .get_without_audit_in_op::<EnableManualCustodian>(&mut db)
             .await?
             .value();
 
@@ -317,7 +317,7 @@ where
             .record_collateral_update_via_manual_input(
                 updated_collateral,
                 effective,
-                manual_collateral_enabled,
+                manual_custodian_enabled,
             )?
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;

@@ -550,7 +550,7 @@ where
         db: &mut DbOp<'_>,
         custodian_id: CustodianId,
         wallet_label: &str,
-    ) -> Result<Wallet, CoreCustodyError> {
+    ) -> Result<Option<Wallet>, CoreCustodyError> {
         self.lock_custodian_in_op(db, custodian_id).await?;
 
         let mut custodian = self
@@ -575,19 +575,22 @@ where
             self.custodians.update_in_op(db, &mut custodian).await?;
         }
 
-        let new_wallet = NewWallet::builder()
-            .id(WalletId::new())
-            .custodian_id(custodian_id)
-            .external_wallet_id(external_wallet.external_id)
-            .custodian_response(external_wallet.full_response)
-            .address(external_wallet.address)
-            .network(external_wallet.network)
-            .build()
-            .expect("all fields for new wallet provided");
+        if let Some(external_wallet) = external_wallet {
+            let new_wallet = NewWallet::builder()
+                .id(WalletId::new())
+                .custodian_id(custodian_id)
+                .external_wallet_id(external_wallet.external_id)
+                .custodian_response(external_wallet.full_response)
+                .address(external_wallet.address)
+                .network(external_wallet.network)
+                .build()
+                .expect("all fields for new wallet provided");
 
-        let wallet = self.wallets.create_in_op(db, new_wallet).await?;
-
-        Ok(wallet)
+            let wallet = self.wallets.create_in_op(db, new_wallet).await?;
+            Ok(Some(wallet))
+        } else {
+            Ok(None)
+        }
     }
 
     async fn lock_custodian_in_op(
@@ -812,10 +815,12 @@ mod tests {
         let mut op = custody.custodians.begin_op().await?;
         let first = custody
             .create_wallet_in_op(&mut op, custodian.id, "Loan 1")
-            .await?;
+            .await?
+            .unwrap();
         let second = custody
             .create_wallet_in_op(&mut op, custodian.id, "Loan 2")
-            .await?;
+            .await?
+            .unwrap();
         op.commit().await?;
 
         assert_ne!(first.address, second.address);

@@ -61,6 +61,11 @@ describe("credit facility", () => {
       customerPublicId = customer.publicId
       cy.log(`Created customer with ID: ${customerId}`)
     })
+
+    cy.createCustodian("Manual Custodian").then((custodianId) => {
+      Cypress.env("custodianId", custodianId)
+      cy.log(`Created manual custodian with ID: ${custodianId}`)
+    })
   })
 
   beforeEach(() => {
@@ -136,6 +141,9 @@ describe("credit facility", () => {
     cy.get('[data-testid="facility-amount-input"]').type("5000")
     cy.get('[data-testid="credit-facility-terms-template-select"]').click()
     cy.get('[role="option"]').contains(termsTemplateName).click()
+
+    cy.get('[data-testid="custodian-select"]').click()
+    cy.get('[role="option"]').contains("Manual Custodian").click()
 
     cy.takeScreenshot("03_enter_facility_amount")
 

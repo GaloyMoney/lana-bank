@@ -7,10 +7,13 @@ RUN_LOG_FILE="liquidation.run.e2e-logs"
 
 setup_file() {
   export LANA_DOMAIN_CONFIG_ALLOW_MANUAL_CONVERSION=true
-  export LANA_DOMAIN_CONFIG_MANUAL_COLLATERAL=true
+  export LANA_DOMAIN_CONFIG_ENABLE_MANUAL_CUSTODIAN=true
   start_server
   login_superadmin
   reset_log_files "$PERSISTED_LOG_FILE" "$RUN_LOG_FILE"
+
+  manual_custodian_id=$(get_or_create_manual_custodian)
+  cache_value 'manual_custodian_id' "$manual_custodian_id"
 }
 
 teardown_file() {
@@ -68,14 +71,17 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   deposit_account_id=$(create_deposit_account_for_customer "$customer_id")
 
   facility=10000000
+  custodian_id=$(read_value 'manual_custodian_id')
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
     --argjson facility "$facility" \
+    --arg custodianId "$custodian_id" \
     '{
       input: {
         customerId: $customerId,
         facility: $facility,
+        custodianId: $custodianId,
         terms: {
           annualRate: "12",
           accrualCycleInterval: "END_OF_MONTH",

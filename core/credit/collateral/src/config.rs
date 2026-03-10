@@ -1,13 +1,13 @@
 use domain_config::define_exposed_config;
 
 define_exposed_config! {
-    /// Controls whether manual collateral updates are enabled.
-    /// Manual collateral is intended for testing purposes only.
-    /// When set to false, admin users cannot manually update collateral amounts
-    /// via the admin API. Custodian sync and liquidation updates are unaffected.
-    pub struct ManualCollateral(bool);
+    /// Controls whether manual custodian is enabled.
+    /// Manual custodian is intended for testing purposes only.
+    /// When set to false, admin users cannot select manual custodian
+    /// when creating credit facility proposals.
+    pub struct EnableManualCustodian(bool);
     spec {
-        key: "manual-collateral";
+        key: "enable-manual-custodian";
         default: || Some(false);
     }
 }

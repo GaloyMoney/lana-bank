@@ -22,12 +22,12 @@ import { CreditFacilityTermsDialog } from "./terms-dialog"
 import {
   GetCreditFacilityLayoutDetailsQuery,
   WalletNetwork,
-  useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { CustomerLabel } from "@/app/customers/customer-label"
 import { useLoanAgreement } from "@/hooks/use-loan-agreement"
+import { useManualCustodianEnabled } from "@/hooks/use-manual-custodian-enabled"
 
 type CreditFacilityDetailsProps = {
   creditFacilityDetails: NonNullable<
@@ -45,13 +45,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     React.useState(false)
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
 
-  const { data: domainConfigsData } = useDomainConfigsQuery({
-    variables: { first: 100 },
-  })
-  const manualCollateralEnabled =
-    domainConfigsData?.domainConfigs.nodes.find(
-      (c) => c.key === "manual-collateral",
-    )?.value !== false
+  const manualCustodianEnabled = useManualCustodianEnabled()
 
   const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()
 
@@ -152,7 +146,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         <Download className="h-4 w-4 mr-2" />
         {t("buttons.loanAgreement")}
       </Button>
-      {creditFacilityDetails.userCanUpdateCollateral && manualCollateralEnabled && (
+      {creditFacilityDetails.userCanUpdateCollateral && manualCustodianEnabled && (
         <Button
           variant="outline"
           data-testid="update-collateral-button"

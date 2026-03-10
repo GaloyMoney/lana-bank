@@ -509,7 +509,7 @@ create_deposit_account_for_customer() {
 
   variables=$(
     jq -n \
-      --arg customerId "$customer_id" \
+    --arg customerId "$customer_id" \
     '{
       input: {
         customerId: $customerId
@@ -521,6 +521,29 @@ create_deposit_account_for_customer() {
   deposit_account_id=$(graphql_output '.data.depositAccountCreate.account.depositAccountId')
   [[ "$deposit_account_id" != "null" ]] || exit 1
   echo "$deposit_account_id"
+}
+
+get_or_create_manual_custodian() {
+  variables=$(jq -n '{first: 100}')
+  exec_admin_graphql 'custodians' "$variables"
+  manual_custodian_id=$(graphql_output '.data.custodians.edges[] | select(.node.name == "manual") | .node.custodianId')
+
+  if [[ -z "$manual_custodian_id" || "$manual_custodian_id" == "null" ]]; then
+    variables=$(
+      jq -n \
+      '{
+        input: {
+          manual: {
+            name: "manual"
+          }
+        }
+      }'
+    )
+    exec_admin_graphql 'custodian-create' "$variables"
+    manual_custodian_id=$(graphql_output '.data.custodianCreate.custodian.custodianId')
+  fi
+
+  echo "$manual_custodian_id"
 }
 
 assert_balance_sheet_balanced() {

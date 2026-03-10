@@ -804,7 +804,7 @@ export type CreditFacilityProposal = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacilityProposalId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
-  custodian?: Maybe<Custodian>;
+  custodian: Custodian;
   customer: Customer;
   eventHistory: EventTimelineEntryConnection;
   facilityAmount: Scalars['UsdCents']['output'];
@@ -836,7 +836,7 @@ export type CreditFacilityProposalConnection = {
 };
 
 export type CreditFacilityProposalCreateInput = {
-  custodianId?: InputMaybe<Scalars['UUID']['input']>;
+  custodianId: Scalars['UUID']['input'];
   customerId: Scalars['UUID']['input'];
   facility: Scalars['UsdCents']['input'];
   terms: TermsInput;
@@ -1046,6 +1046,7 @@ export type Custodian = {
   createdAt: Scalars['Timestamp']['output'];
   custodianId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
+  isManual: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   provider: Scalars['String']['output'];
 };
@@ -1076,9 +1077,10 @@ export type CustodianConnection = {
 };
 
 export type CustodianCreateInput =
-  { bitgo: BitgoConfig; komainu?: never; selfCustody?: never; }
-  |  { bitgo?: never; komainu: KomainuConfig; selfCustody?: never; }
-  |  { bitgo?: never; komainu?: never; selfCustody: SelfCustodyConfig; };
+  { bitgo: BitgoConfig; komainu?: never; manual?: never; selfCustody?: never; }
+  |  { bitgo?: never; komainu: KomainuConfig; manual?: never; selfCustody?: never; }
+  |  { bitgo?: never; komainu?: never; manual: ManualConfig; selfCustody?: never; }
+  |  { bitgo?: never; komainu?: never; manual?: never; selfCustody: SelfCustodyConfig; };
 
 export type CustodianCreatePayload = {
   __typename?: 'CustodianCreatePayload';
@@ -2088,6 +2090,10 @@ export enum LoanAgreementStatus {
   Failed = 'FAILED',
   Pending = 'PENDING'
 }
+
+export type ManualConfig = {
+  name: Scalars['String']['input'];
+};
 
 export type ManualTransactionEntryInput = {
   accountRef: Scalars['String']['input'];
@@ -4427,7 +4433,7 @@ export type CreditFacilityProposalCustomerApprovalConcludeMutationVariables = Ex
 }>;
 
 
-export type CreditFacilityProposalCustomerApprovalConcludeMutation = { __typename?: 'Mutation', creditFacilityProposalCustomerApprovalConclude: { __typename?: 'CreditFacilityProposalCustomerApprovalConcludePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian?: { __typename?: 'Custodian', name: string } | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalCustomerApprovalConcludeMutation = { __typename?: 'Mutation', creditFacilityProposalCustomerApprovalConclude: { __typename?: 'CreditFacilityProposalCustomerApprovalConcludePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4453,7 +4459,7 @@ export type CreditFacilityProposalEventHistoryQuery = { __typename?: 'Query', cr
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian?: { __typename?: 'Custodian', name: string } | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
     , marginCallCvl:
@@ -4472,7 +4478,7 @@ export type GetCreditFacilityProposalLayoutDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian?: { __typename?: 'Custodian', name: string } | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -4491,7 +4497,7 @@ export type CreditFacilityProposalConcludedSubscriptionVariables = Exact<{
 }>;
 
 
-export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscription', creditFacilityProposalConcluded: { __typename?: 'CreditFacilityProposalConcludedPayload', status: CreditFacilityProposalStatus, creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian?: { __typename?: 'Custodian', name: string } | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscription', creditFacilityProposalConcluded: { __typename?: 'CreditFacilityProposalConcludedPayload', status: CreditFacilityProposalStatus, creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4536,7 +4542,7 @@ export type CustodianCreateMutationVariables = Exact<{
 
 export type CustodianCreateMutation = { __typename?: 'Mutation', custodianCreate: { __typename?: 'CustodianCreatePayload', custodian: { __typename?: 'Custodian', id: string, custodianId: string, name: string, createdAt: string } } };
 
-export type CustodianFieldsFragment = { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string };
+export type CustodianFieldsFragment = { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string, isManual: boolean };
 
 export type CustodiansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4545,7 +4551,7 @@ export type CustodiansQueryVariables = Exact<{
 }>;
 
 
-export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string, isManual: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CustomerCloseMutationVariables = Exact<{
   input: CustomerCloseInput;
@@ -6254,6 +6260,7 @@ export const CustodianFieldsFragmentDoc = gql`
   createdAt
   name
   provider
+  isManual
 }
     `;
 export const CustomerDetailsFragmentFragmentDoc = gql`

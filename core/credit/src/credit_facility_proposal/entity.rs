@@ -24,7 +24,7 @@ pub enum CreditFacilityProposalEvent {
         id: CreditFacilityProposalId,
         customer_id: CustomerId,
         customer_type: CustomerType,
-        custodian_id: Option<CustodianId>,
+        custodian_id: CustodianId,
         disbursal_credit_account_id: CalaAccountId,
         terms: TermValues,
         amount: UsdCents,
@@ -49,7 +49,7 @@ pub struct CreditFacilityProposal {
     pub id: CreditFacilityProposalId,
     pub customer_id: CustomerId,
     pub customer_type: CustomerType,
-    pub custodian_id: Option<CustodianId>,
+    pub custodian_id: CustodianId,
     #[builder(default, setter(strip_option))]
     pub approval_process_id: Option<ApprovalProcessId>,
     pub disbursal_credit_account_id: CalaAccountId,
@@ -106,7 +106,7 @@ impl CreditFacilityProposal {
         &mut self,
         approved: bool,
     ) -> Result<
-        Idempotent<Option<(NewPendingCreditFacility, Option<CustodianId>)>>,
+        Idempotent<Option<(NewPendingCreditFacility, CustodianId)>>,
         CreditFacilityProposalError,
     > {
         idempotency_guard!(
@@ -223,8 +223,7 @@ pub struct NewCreditFacilityProposal {
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
     pub(super) customer_type: CustomerType,
-    #[builder(setter(into), default)]
-    pub(super) custodian_id: Option<CustodianId>,
+    pub(super) custodian_id: CustodianId,
     #[builder(setter(into))]
     pub(super) disbursal_credit_account_id: CalaAccountId,
     terms: TermValues,

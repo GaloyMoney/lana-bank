@@ -32,8 +32,8 @@ pub enum CollateralError {
     LiquidationError(#[from] super::liquidation::LiquidationError),
     #[error("CollateralError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("CollateralError - ManualCollateralDisabled")]
-    ManualCollateralDisabled,
+    #[error("CollateralError - ManualCustodianDisabled")]
+    ManualCustodianDisabled,
     #[error("CollateralError - DomainConfigError: {0}")]
     DomainConfigError(#[from] domain_config::error::DomainConfigError),
 }
@@ -59,7 +59,7 @@ impl ErrorSeverity for CollateralError {
             Self::RegisterEventHandler(_) => Level::ERROR,
             Self::LiquidationError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
-            Self::ManualCollateralDisabled => Level::WARN,
+            Self::ManualCustodianDisabled => Level::WARN,
             Self::DomainConfigError(_) => Level::ERROR,
         }
     }

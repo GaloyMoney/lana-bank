@@ -20,13 +20,13 @@ import Balance from "@/components/balance/balance"
 import {
   GetPendingCreditFacilityLayoutDetailsQuery,
   PendingCreditFacilityStatus,
-  useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 import { CustomerLabel } from "@/app/customers/customer-label"
 import { mempoolAddressUrl } from "@/app/credit-facilities/[credit-facility-id]/details"
 import { usePublicIdForCreditFacility } from "@/hooks/use-public-id"
+import { useManualCustodianEnabled } from "@/hooks/use-manual-custodian-enabled"
 
 type PendingCreditFacilityDetailsCardProps = {
   pendingDetails: NonNullable<
@@ -43,13 +43,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
 
-  const { data: domainConfigsData } = useDomainConfigsQuery({
-    variables: { first: 100 },
-  })
-  const manualCollateralEnabled =
-    domainConfigsData?.domainConfigs.nodes.find(
-      (c) => c.key === "manual-collateral",
-    )?.value !== false
+  const manualCustodianEnabled = useManualCustodianEnabled()
 
   const { publicId: facilityPublicId } = usePublicIdForCreditFacility(
     pendingDetails.status === PendingCreditFacilityStatus.Completed
@@ -128,7 +122,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
   const footerContent = (
     <>
       {pendingDetails.status !== PendingCreditFacilityStatus.Completed &&
-        manualCollateralEnabled && (
+        manualCustodianEnabled && (
           <Button
             variant="outline"
             onClick={() => setOpenCollateralUpdateDialog(true)}

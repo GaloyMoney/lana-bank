@@ -1,0 +1,11 @@
+query Custodians($first: Int!, $after: String, $sort: CustodiansSort) {
+  custodians(first: $first, after: $after, sort: $sort) {
+    edges {
+      node {
+        id
+        custodianId
+        name
+      }
+    }
+  }
+}

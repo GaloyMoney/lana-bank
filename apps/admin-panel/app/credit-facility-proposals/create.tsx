@@ -39,10 +39,9 @@ import {
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
+import { useManualCustodianEnabled } from "@/hooks/use-manual-custodian-enabled"
 import { Satoshis } from "@/types"
 import { DEFAULT_TERMS, TERMS_FIELD_LIMITS, validateTermsFields } from "@/lib/constants/terms"
-
-const DEFAULT_CUSTODIAN = "manual-custodian"
 
 gql`
   mutation CreditFacilityProposalCreate($input: CreditFacilityProposalCreateInput!) {
@@ -70,7 +69,7 @@ type CreateCreditFacilityProposalDialogProps = {
 
 const initialFormValues = {
   facility: "0",
-  custodianId: DEFAULT_CUSTODIAN,
+  custodianId: "",
   annualRate: "",
   liquidationCvl: "",
   marginCallCvl: "",
@@ -109,6 +108,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
   const { data: custodiansData, loading: custodiansLoading } = useCustodiansQuery({
     variables: { first: 50 },
   })
+  const manualCustodianEnabled = useManualCustodianEnabled()
   const [createCreditFacility, { loading, error, reset }] =
     useCreditFacilityProposalCreateMutation()
 
@@ -184,6 +184,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
 
     if (
       !facility ||
+      !custodianId ||
       !annualRate ||
       !liquidationCvl ||
       !marginCallCvl ||
@@ -217,7 +218,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
           input: {
             customerId,
             facility: currencyConverter.usdToCents(Number(facility)),
-            custodianId: custodianId === DEFAULT_CUSTODIAN ? null : custodianId,
+            custodianId,
             terms: {
               annualRate: parseFloat(annualRate),
               accrualCycleInterval: DEFAULT_TERMS.ACCRUAL_CYCLE_INTERVAL,
@@ -270,7 +271,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       setSelectedTemplateId(latestTemplate.id)
       setFormValues({
         facility: "0",
-        custodianId: DEFAULT_CUSTODIAN,
+        custodianId: "",
         annualRate: latestTemplate.values.annualRate.toString(),
         liquidationCvl: getCvlValue(latestTemplate.values.liquidationCvl).toString(),
         marginCallCvl: getCvlValue(latestTemplate.values.marginCallCvl).toString(),
@@ -345,25 +346,27 @@ export const CreateCreditFacilityProposalDialog: React.FC<
           <div>
             <Label>{t("form.labels.custodian")}</Label>
             <Select
-              defaultValue={DEFAULT_CUSTODIAN}
               value={formValues.custodianId}
               onValueChange={(value) =>
                 setFormValues((prev) => ({ ...prev, custodianId: value }))
               }
               disabled={custodiansLoading}
+              required
             >
-              <SelectTrigger>
+              <SelectTrigger data-testid="custodian-select">
                 <SelectValue placeholder={t("form.placeholders.custodian")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem key={DEFAULT_CUSTODIAN} value={DEFAULT_CUSTODIAN}>
-                  {t("form.labels.manualCustodian")}
-                </SelectItem>
-                {custodiansData?.custodians.edges.map(({ node: custodian }) => (
-                  <SelectItem key={custodian.id} value={custodian.custodianId}>
-                    {custodian.name}
-                  </SelectItem>
-                ))}
+                {custodiansData?.custodians.edges
+                  .filter(
+                    ({ node: custodian }) =>
+                      manualCustodianEnabled || !custodian.isManual,
+                  )
+                  .map(({ node: custodian }) => (
+                    <SelectItem key={custodian.id} value={custodian.custodianId}>
+                      {custodian.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

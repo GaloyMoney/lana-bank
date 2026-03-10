@@ -20,11 +20,12 @@ pub trait CustodianClient: Send {
 
     /// Performs initialization of a wallet on the custodian.
     /// This call may or may not create new wallet.
+    /// Returns None if no wallet was created (e.g., Manual custodian).
     async fn initialize_wallet(
         &self,
         label: &str,
         receive_index: Option<u32>,
-    ) -> Result<ExternalWallet, CustodianClientError>;
+    ) -> Result<Option<ExternalWallet>, CustodianClientError>;
 
     /// Fetches the confirmed balance for a wallet when the provider supports polling.
     async fn fetch_wallet_balance(
@@ -53,7 +54,7 @@ impl CustodianClient for bitgo::BitgoClient {
         &self,
         label: &str,
         _receive_index: Option<u32>,
-    ) -> Result<ExternalWallet, CustodianClientError> {
+    ) -> Result<Option<ExternalWallet>, CustodianClientError> {
         let (wallet, full_response) = self.add_wallet(label).await?;
         let network = if self.is_testnet() {
             WalletNetwork::Testnet4
@@ -61,12 +62,12 @@ impl CustodianClient for bitgo::BitgoClient {
             WalletNetwork::Mainnet
         };
 
-        Ok(ExternalWallet {
+        Ok(Some(ExternalWallet {
             external_id: wallet.id,
             address: wallet.receive_address.address,
             network,
             full_response,
-        })
+        }))
     }
 
     async fn fetch_wallet_balance(
@@ -125,13 +126,13 @@ impl CustodianClient for komainu::KomainuClient {
         &self,
         _label: &str,
         _receive_index: Option<u32>,
-    ) -> Result<ExternalWallet, CustodianClientError> {
-        Ok(ExternalWallet {
+    ) -> Result<Option<ExternalWallet>, CustodianClientError> {
+        Ok(Some(ExternalWallet {
             external_id: "efabc792-a0fe-44b6-b0b5-4966997e8962".to_string(),
             address: "tb1qplx6wllreywl3nadc7wh6waah58xq7p48857qh".to_string(),
             network: WalletNetwork::Testnet3,
             full_response: serde_json::Value::Null,
-        })
+        }))
     }
 
     async fn fetch_wallet_balance(
@@ -186,7 +187,7 @@ impl CustodianClient for self_custody::SelfCustodyClient {
         &self,
         _label: &str,
         receive_index: Option<u32>,
-    ) -> Result<ExternalWallet, CustodianClientError> {
+    ) -> Result<Option<ExternalWallet>, CustodianClientError> {
         let receive_index = receive_index.ok_or_else(|| {
             CustodianClientError::client(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
@@ -196,7 +197,7 @@ impl CustodianClient for self_custody::SelfCustodyClient {
 
         let wallet = self.derive_receive_wallet(receive_index)?;
 
-        Ok(ExternalWallet {
+        Ok(Some(ExternalWallet {
             external_id: wallet.external_id,
             address: wallet.address,
             network: match wallet.network {
@@ -210,7 +211,7 @@ impl CustodianClient for self_custody::SelfCustodyClient {
                 "derivation_path": wallet.derivation_path,
                 "type": "self_custody"
             }),
-        })
+        }))
     }
 
     async fn fetch_wallet_balance(
@@ -255,13 +256,13 @@ pub mod mock {
             &self,
             _label: &str,
             _receive_index: Option<u32>,
-        ) -> Result<ExternalWallet, CustodianClientError> {
-            Ok(ExternalWallet {
+        ) -> Result<Option<ExternalWallet>, CustodianClientError> {
+            Ok(Some(ExternalWallet {
                 external_id: "123".to_string(),
                 address: "bt1qaddressmock".to_string(),
                 network: WalletNetwork::Testnet4,
                 full_response: serde_json::Value::Null,
-            })
+            }))
         }
 
         async fn fetch_wallet_balance(
@@ -287,6 +288,39 @@ pub mod mock {
                 Ok(None)
             }
         }
+    }
+}
+
+pub struct ManualCustodian;
+
+#[async_trait]
+impl CustodianClient for ManualCustodian {
+    async fn verify_client(&self) -> Result<(), CustodianClientError> {
+        Ok(())
+    }
+
+    async fn fetch_wallet_balance(
+        &self,
+        _external_wallet_id: &str,
+        _address: &str,
+    ) -> Result<Option<Satoshis>, CustodianClientError> {
+        Ok(None)
+    }
+
+    async fn initialize_wallet(
+        &self,
+        _label: &str,
+        _receive_index: Option<u32>,
+    ) -> Result<Option<ExternalWallet>, CustodianClientError> {
+        Ok(None)
+    }
+
+    async fn process_webhook(
+        &self,
+        _headers: &http::HeaderMap,
+        _payload: Bytes,
+    ) -> Result<Option<CustodianNotification>, CustodianClientError> {
+        Ok(None)
     }
 }
 
@@ -334,6 +368,6 @@ mod tests {
             .await
             .expect("wallet initializes");
 
-        assert_eq!(wallet.network, WalletNetwork::Signet);
+        assert_eq!(wallet.unwrap().network, WalletNetwork::Signet);
     }
 }

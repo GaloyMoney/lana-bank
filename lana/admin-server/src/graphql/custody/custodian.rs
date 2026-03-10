@@ -42,6 +42,10 @@ impl Custodian {
         &self.entity.name
     }
 
+    async fn is_manual(&self) -> bool {
+        self.entity.provider == "manual"
+    }
+
     async fn provider(&self) -> &str {
         &self.entity.provider
     }
@@ -88,6 +92,17 @@ pub enum SelfCustodyNetwork {
     Testnet4,
     Signet,
     Mainnet,
+}
+
+#[derive(InputObject)]
+pub struct ManualConfig {
+    name: String,
+}
+
+impl From<ManualConfig> for DomainCustodianConfig {
+    fn from(_config: ManualConfig) -> Self {
+        DomainCustodianConfig::Manual
+    }
 }
 
 impl From<KomainuConfig> for DomainKomainuConfig {
@@ -140,6 +155,7 @@ pub enum CustodianCreateInput {
     Komainu(KomainuConfig),
     Bitgo(BitgoConfig),
     SelfCustody(SelfCustodyConfig),
+    Manual(ManualConfig),
 }
 
 impl CustodianCreateInput {
@@ -148,6 +164,7 @@ impl CustodianCreateInput {
             CustodianCreateInput::Komainu(conf) => &conf.name,
             CustodianCreateInput::Bitgo(conf) => &conf.name,
             CustodianCreateInput::SelfCustody(conf) => &conf.name,
+            CustodianCreateInput::Manual(conf) => &conf.name,
         }
     }
 }
@@ -160,6 +177,7 @@ impl From<CustodianCreateInput> for DomainCustodianConfig {
             CustodianCreateInput::SelfCustody(config) => {
                 DomainCustodianConfig::SelfCustody(config.into())
             }
+            CustodianCreateInput::Manual(..) => DomainCustodianConfig::Manual,
         }
     }
 }
