@@ -12,7 +12,9 @@ use es_entity::clock::{ClockController, ClockHandle};
 use rust_decimal_macros::dec;
 use tracing::{Instrument, Span, info, instrument};
 
-use lana_app::{app::LanaApp, customer::AllowManualConversion, primitives::*};
+use lana_app::{
+    app::LanaApp, credit::ManualCollateral, customer::AllowManualConversion, primitives::*,
+};
 
 pub use config::*;
 
@@ -33,6 +35,10 @@ pub async fn run(
     // Enable manual conversion to allow creating customers without SumSub KYC
     app.exposed_domain_configs()
         .update::<AllowManualConversion>(&sub, true)
+        .await?;
+    // Enable manual collateral updates for simulation
+    app.exposed_domain_configs()
+        .update::<ManualCollateral>(&sub, true)
         .await?;
 
     match create_term_templates(&sub, app).await {

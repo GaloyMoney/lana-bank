@@ -8,6 +8,6 @@ define_exposed_config! {
     pub struct ManualCollateral(bool);
     spec {
         key: "manual-collateral";
-        default: || Some(true);
+        default: || Some(false);
     }
 }
