@@ -297,7 +297,8 @@
       "email": "Correo electrónico",
       "telegramHandle": "Telegram",
       "stage": "Etapa",
-      "customerType": "Tipo"
+      "customerType": "Tipo",
+      "createdAt": "Fecha de Creación"
     },
     "stage": {
       "new": "Nuevo",
@@ -449,6 +450,7 @@
       "status": "Estado",
       "kycVerification": "Estado KYC",
       "customerType": "Tipo",
+      "createdAt": "Fecha de Creación",
       "depositAccount": "Saldo USD"
     },
     "status": {

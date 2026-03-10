@@ -3,6 +3,7 @@
 import { gql } from "@apollo/client"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
+import { formatDate } from "@lana/web/utils"
 
 import { CustomerStatusBadge } from "./customer-status-badge"
 import { CustomerTypeBadge } from "./customer-type-badge"
@@ -44,6 +45,7 @@ gql`
           telegramHandle
           applicantId
           customerType
+          createdAt
           depositAccount {
             balance {
               settled
@@ -100,6 +102,12 @@ const CustomersList = () => {
       label: t("columns.customerType"),
       filterValues: Object.values(CustomerType),
       filterLabel: (type) => <CustomerTypeBadge customerType={type} />,
+    },
+    {
+      key: "createdAt",
+      label: t("columns.createdAt"),
+      sortable: true,
+      render: (createdAt) => formatDate(createdAt),
     },
     {
       key: "depositAccount",
