@@ -347,13 +347,9 @@ where
         custodian_name: impl AsRef<str> + std::fmt::Debug,
         custodian_config: CustodianConfig,
     ) -> Result<Custodian, CoreCustodyError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCustodyObject::all_custodians(),
-                CoreCustodyAction::CUSTODIAN_CREATE,
-            )
-            .await?;
+        self.subject_can_create_custodian(sub, true)
+            .await?
+            .expect("audit info missing");
 
         // We should not be calling any external service in any environment
         // with mock custodian.
