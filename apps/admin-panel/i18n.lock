@@ -1656,6 +1656,9 @@ checksums:
     PaginatedTable/clearAllFilters: 0bc64da95ec15d9bc7fb12cb77f2838a
     PaginatedTable/clearAll: 854be0c051e4a3491a2cdd9dd8c1b4d5
     Modules/notYetConfigured: e53fce92eb14f228a880be973a193cf3
+    Modules/tableHeaders/group: f21779a23c82c0eebd40d6ac403f360e
+    Modules/tableHeaders/chartParent: 7c81e678af328ed0172d86196bdc264e
+    Modules/tableHeaders/category: 1b0340cd175aa5a2be745a0d54908466
     Modules/accountCategories/offBalanceSheet: 6b84f41a7ced3ff1db94af889f8330ed
     Modules/accountCategories/asset: ebad9812d55bf3d170664a38b83c7ca9
     Modules/accountCategories/liability: fa84f8581ce18c0a8829e20665b6b452
