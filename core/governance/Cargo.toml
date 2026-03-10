@@ -8,7 +8,6 @@ edition = "2024"
 fail-on-warnings = []
 graphql = ["es-entity/graphql", "dep:async-graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "authz/json-schema"]
-test-dummy = ["authz/test-dummy"]
 
 [dependencies]
 permission-sets-macro = { workspace = true }
