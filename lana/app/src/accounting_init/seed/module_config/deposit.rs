@@ -56,25 +56,25 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
             individual_deposit_accounts_parent_code.parse()?,
         chart_of_accounts_government_entity_deposit_accounts_parent_code:
             government_entity_deposit_accounts_parent_code.parse()?,
-        chart_of_account_private_company_deposit_accounts_parent_code:
+        chart_of_accounts_private_company_deposit_accounts_parent_code:
             private_company_deposit_accounts_parent_code.parse()?,
-        chart_of_account_bank_deposit_accounts_parent_code: bank_deposit_accounts_parent_code
+        chart_of_accounts_bank_deposit_accounts_parent_code: bank_deposit_accounts_parent_code
             .parse()?,
-        chart_of_account_financial_institution_deposit_accounts_parent_code:
+        chart_of_accounts_financial_institution_deposit_accounts_parent_code:
             financial_institution_deposit_accounts_parent_code.parse()?,
-        chart_of_account_non_domiciled_company_deposit_accounts_parent_code:
+        chart_of_accounts_non_domiciled_company_deposit_accounts_parent_code:
             non_domiciled_company_deposit_accounts_parent_code.parse()?,
         chart_of_accounts_frozen_individual_deposit_accounts_parent_code:
             frozen_individual_deposit_accounts_parent_code.parse()?,
         chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code:
             frozen_government_entity_deposit_accounts_parent_code.parse()?,
-        chart_of_account_frozen_private_company_deposit_accounts_parent_code:
+        chart_of_accounts_frozen_private_company_deposit_accounts_parent_code:
             frozen_private_company_deposit_accounts_parent_code.parse()?,
-        chart_of_account_frozen_bank_deposit_accounts_parent_code:
+        chart_of_accounts_frozen_bank_deposit_accounts_parent_code:
             frozen_bank_deposit_accounts_parent_code.parse()?,
-        chart_of_account_frozen_financial_institution_deposit_accounts_parent_code:
+        chart_of_accounts_frozen_financial_institution_deposit_accounts_parent_code:
             frozen_financial_institution_deposit_accounts_parent_code.parse()?,
-        chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code:
+        chart_of_accounts_frozen_non_domiciled_company_deposit_accounts_parent_code:
             frozen_non_domiciled_company_deposit_accounts_parent_code.parse()?,
     };
 
