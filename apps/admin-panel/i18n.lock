@@ -114,8 +114,8 @@ checksums:
     Configurations/deposit-activity-inactive-threshold-days/description: 662507a2773df057f18722f5ff0b3b63
     Configurations/deposit-activity-escheatable-threshold-days/title: 5abc7bf0e87862b406b39a0246c9d839
     Configurations/deposit-activity-escheatable-threshold-days/description: e160f1067b72de051ea7557e45ea0e2f
-    Configurations/manual-collateral/title: 055aca87455b7d3392296a52d5a53eef
-    Configurations/manual-collateral/description: d8f87ff90fbd2ce12d5265ed26560d52
+    Configurations/enable-manual-custodian/title: 0a8b59ef393d52319d4752ee866b4086
+    Configurations/enable-manual-custodian/description: 884af2e80a5852292666f4223a213e47
     Configurations/sumsub-api-key/title: dd29a0723bea12971cb2d1ee46136ba9
     Configurations/sumsub-api-key/description: c07793f938e83089516c7abe29a82a3d
     Configurations/sumsub-api-secret/title: 804c2c14a63732c2eb2a061c89f31d5d
