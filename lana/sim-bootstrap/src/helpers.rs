@@ -1,3 +1,7 @@
+use rust_decimal_macros::dec;
+
+use es_entity::{ListDirection, PaginatedQueryArgs, Sort};
+
 use lana_app::{
     app::LanaApp,
     custody::{CustodiansSortBy, custodian::CustodianConfig},
@@ -5,7 +9,6 @@ use lana_app::{
     primitives::{CustodianId, DepositAccountId, Subject, UsdCents},
     terms::{DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, TermValues},
 };
-use rust_decimal_macros::dec;
 
 #[tracing::instrument(name = "sim_bootstrap.helpers.create_customer", skip(app), err)]
 pub async fn create_customer(
@@ -133,8 +136,6 @@ pub fn std_terms_12m() -> TermValues {
         .build()
         .expect("std_terms_12m builder should be valid")
 }
-
-use es_entity::{ListDirection, PaginatedQueryArgs, Sort};
 
 #[tracing::instrument(
     name = "sim_bootstrap.helpers.get_or_create_manual_custodian",
