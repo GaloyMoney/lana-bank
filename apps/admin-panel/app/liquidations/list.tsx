@@ -107,9 +107,13 @@ const LiquidationsList = () => {
     },
   ]
 
+  if (error)
+    return (
+      <div className="text-destructive text-sm">{t("errors.general")}</div>
+    )
+
   return (
     <div>
-      {error && <p className="text-destructive text-sm">{t("errors.general")}</p>}
       <PaginatedTable<Liquidation>
         columns={columns}
         data={data?.liquidations as PaginatedData<Liquidation>}
