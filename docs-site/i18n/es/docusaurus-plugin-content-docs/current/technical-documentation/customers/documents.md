@@ -113,3 +113,8 @@ El input incluye:
 | EXPIRED | Documento vencido |
 
 ## Flujo de Aprobación de Documentos
+
+- **URLs pre-firmadas**: Los enlaces de descarga tienen un tiempo limitado y están firmados por el proveedor de almacenamiento en la nube. Expiran después de un periodo configurado, evitando el acceso indefinido por enlaces compartidos o filtrados.
+- **Transmisión cifrada**: Todas las subidas y descargas utilizan TLS.
+- **Cifrado en reposo**: Los archivos en el almacenamiento en la nube están cifrados mediante el cifrado del lado del servidor del proveedor.
+- **Autorización**: Cada operación sobre un documento requiere el permiso correspondiente, que se aplica mediante el sistema RBAC. Todas las operaciones se registran en el log de auditoría.
