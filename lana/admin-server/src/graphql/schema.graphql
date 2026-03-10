@@ -108,6 +108,7 @@ type ApprovalProcessConnection {
 
 input ApprovalProcessDenyInput {
 	approvalProcessId: UUID!
+	reason: String!
 }
 
 type ApprovalProcessDenyPayload {
@@ -2093,7 +2094,7 @@ type Mutation {
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
-	approvalProcessDeny(input: ApprovalProcessDenyInput!, reason: String!): ApprovalProcessDenyPayload!
+	approvalProcessDeny(input: ApprovalProcessDenyInput!): ApprovalProcessDenyPayload!
 	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!

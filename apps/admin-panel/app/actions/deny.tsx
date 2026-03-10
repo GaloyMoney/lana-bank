@@ -28,8 +28,8 @@ import { DetailItem, DetailsGroup } from "@/components/details"
 import { useProcessTypeLabel } from "@/app/actions/hooks"
 
 gql`
-  mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!, $reason: String!) {
-    approvalProcessDeny(input: $input, reason: $reason) {
+  mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
+    approvalProcessDeny(input: $input) {
       approvalProcess {
         ...ApprovalProcessFields
       }
@@ -80,8 +80,8 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
         variables: {
           input: {
             approvalProcessId: approvalProcess.approvalProcessId,
+            reason: reason.trim(),
           },
-          reason: reason.trim(),
         },
         onCompleted: async () => {
           await client.refetchQueries({

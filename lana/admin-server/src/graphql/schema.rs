@@ -2400,7 +2400,6 @@ impl Mutation {
         &self,
         ctx: &Context<'_>,
         input: ApprovalProcessDenyInput,
-        reason: String,
     ) -> async_graphql::Result<ApprovalProcessDenyPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
@@ -2408,7 +2407,7 @@ impl Mutation {
             ApprovalProcess,
             ctx,
             app.governance()
-                .deny_process(sub, input.approval_process_id, reason)
+                .deny_process(sub, input.approval_process_id, input.reason)
         )
     }
 
