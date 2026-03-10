@@ -160,11 +160,7 @@ const ProfitAndLossStatement = ({
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
-  const total = data?.total
-  const netPeriod =
-    currency === "usd"
-      ? total?.usd?.usdDiff[layer].net
-      : total?.btc?.btcDiff[layer].net
+  const netPeriod = getBalanceNet(data?.total, currency, layer)
 
   return (
     <Card>
@@ -282,6 +278,10 @@ function getBalanceNet(
   layer: ReportLayer,
 ): number {
   if (!balanceRange) return 0
-  if (currency === "usd") return balanceRange.usd.usdDiff[layer].net
-  return balanceRange.btc.btcDiff[layer].net
+  switch (currency) {
+    case "usd":
+      return balanceRange.usd.usdDiff[layer].net
+    case "btc":
+      return balanceRange.btc.btcDiff[layer].net
+  }
 }
