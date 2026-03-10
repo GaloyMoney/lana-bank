@@ -14,7 +14,7 @@ use public_id::PublicIds;
 use rust_decimal_macros::dec;
 use std::time::Duration;
 
-const ONE_DAY: Duration = Duration::from_secs(86400);
+const ONE_DAY: Duration = Duration::from_secs(86_400);
 const POLL_INTERVAL: Duration = Duration::from_millis(100);
 
 async fn cleanup_stale_accrual_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
@@ -380,6 +380,44 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
         .expect("posting should be present after cycle completion");
     // 12% annual on $10,000 for 1 day: 10000 * 1 * 0.12 / 365 = 328.77 → 329 (rounded away from zero)
     assert_eq!(posting.amount, UsdCents::from(329));
+
+    // Wait for the history projection handler to process the AccrualPosted event.
+    // Keep nudging the artificial clock so the outbox poll job remains eligible —
+    // without advances the frozen clock prevents scheduled polls from firing.
+    let history_entries = tokio::time::timeout(Duration::from_secs(30), async {
+        loop {
+            let entries: Vec<CreditFacilityHistoryEntry> = ctx
+                .credit
+                .histories()
+                .find_for_credit_facility_id(&DummySubject, facility_id)
+                .await
+                .expect("history query succeeds");
+            let interest_entries: Vec<_> = entries
+                .iter()
+                .filter(|e| matches!(e, CreditFacilityHistoryEntry::Interest(_)))
+                .collect();
+            if !interest_entries.is_empty() {
+                return entries;
+            }
+            clock_ctrl.advance(Duration::from_secs(1)).await;
+            tokio::time::sleep(POLL_INTERVAL).await;
+        }
+    })
+    .await
+    .expect("Timed out waiting for history projection");
+
+    let interest_entries: Vec<_> = history_entries
+        .into_iter()
+        .filter_map(|e| match e {
+            CreditFacilityHistoryEntry::Interest(accrual) => Some(accrual),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(interest_entries.len(), 1);
+    assert_eq!(interest_entries[0].cents, UsdCents::from(329));
+    assert_eq!(interest_entries[0].days, 1);
+    assert_eq!(interest_entries[0].tx_id, posting.tx_id);
 
     // `shutdown()` calls `kill_remaining_jobs`, which rewrites still-running
     // rows to `pending` with `execute_at = clock.now()`. Because this test
