@@ -133,30 +133,35 @@ jobs:
     - #@ exec_phase(["lana-deps"])
     - in_parallel:
       - #@ exec_phase(["nextest"])
-      - #@ exec_phase(["simulation"])
-      - #@ exec_phase(["lana-cli-debug", "bats"])
-    - in_parallel:
       - do:
         - #@ check_latest_commit()
-        - task: nix-flake-check
-          config:
-            platform: linux
-            image_resource: #@ nix_flake_cachix_image_config()
-            inputs:
-            - name: prs
-              path: repo
-            params:
-              CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-              CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
-            run:
-              path: sh
-              args:
-                - -exc
-                - |
-                  set -euo pipefail
-                  cd repo
-                  cachix use $CACHIX_CACHE_NAME
-                  cachix watch-exec ${CACHIX_CACHE_NAME} -- nix flake check
+        - in_parallel:
+          - #@ set_pr_status("Running", context = "nix-flake-check")
+          - task: nix-flake-check
+            config:
+              platform: linux
+              image_resource: #@ nix_flake_cachix_image_config()
+              inputs:
+              - name: prs
+                path: repo
+              params:
+                CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+                CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+              run:
+                path: sh
+                args:
+                  - -exc
+                  - |
+                    set -euo pipefail
+                    cd repo
+                    cachix use $CACHIX_CACHE_NAME
+                    cachix watch-exec ${CACHIX_CACHE_NAME} -- nix flake check
+          on_failure: #@ set_pr_status("Failed", context = "nix-flake-check", status = "failure")
+          on_abort: #@ set_pr_status("Aborted", context = "nix-flake-check", status = "failure")
+          on_error: #@ set_pr_status("Errored", context = "nix-flake-check", status = "error")
+        - #@ set_pr_status("Complete", context = "nix-flake-check", status = "success")
+      - #@ exec_phase(["lana-cli-debug", "bats"])
+    - in_parallel:
       - do:
         - #@ check_latest_commit()
         - in_parallel:
