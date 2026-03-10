@@ -6,7 +6,6 @@ build = "build.rs"
 
 [features]
 
-sim-bootstrap = ["dep:sim-bootstrap"]
 mock-custodian = ["admin-server/mock-custodian"]
 sumsub-testing = ["lana-app/sumsub-testing", "admin-server/sumsub-testing"]
 
@@ -21,7 +20,7 @@ admin-server = { workspace = true }
 customer-server = { workspace = true }
 self-custody = { workspace = true }
 
-sim-bootstrap = { workspace = true, optional = true }
+sim-bootstrap = { workspace = true }
 
 tracing-utils = { workspace = true, features = ["http"] }
 

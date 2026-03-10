@@ -185,15 +185,6 @@
         }
       );
 
-      lana-cli-bootstrap = craneLib.buildPackage (
-        individualCrateArgs
-        // {
-          pname = "lana-cli-bootstrap";
-          cargoExtraArgs = "-p lana-cli --all-features";
-          src = rustSource;
-        }
-      );
-
       lana-cli-release = let
         rustTarget = "x86_64-unknown-linux-musl";
         muslCC = pkgs.pkgsCross.musl64.stdenv.cc;
@@ -211,7 +202,7 @@
         };
         cargoArtifactsMusl = craneLibMusl.buildDepsOnly (muslCommonArgs
           // {
-            cargoExtraArgs = "--features sim-bootstrap --target ${rustTarget}";
+            cargoExtraArgs = "--target ${rustTarget}";
           });
       in
         craneLibMusl.buildPackage (muslCommonArgs
@@ -222,7 +213,7 @@
             doCheck = false;
             pname = "lana-cli-release";
             CARGO_PROFILE = "release";
-            cargoExtraArgs = "-p lana-cli --features sim-bootstrap --target ${rustTarget}";
+            cargoExtraArgs = "-p lana-cli --target ${rustTarget}";
             RELEASE_BUILD_VERSION = cliVersion;
           });
 
@@ -534,7 +525,7 @@
                 pkgs.wait4x
                 pkgs.gnugrep
                 pkgs.coreutils
-                lana-cli-bootstrap
+                lana-cli-debug
               ];
               postBuild = ''
                 mkdir -p $out/bin
@@ -573,7 +564,7 @@
 
                 echo "Running cli"
                 export LANA_CONFIG="./bats/lana-bootstrap.yml"
-                ${lana-cli-bootstrap}/bin/lana-cli 2>&1 | tee server.log &
+                ${lana-cli-debug}/bin/lana-cli 2>&1 | tee server.log &
                 echo "$!" > .server.pid
 
                 # Wait for simulation to complete by polling logs
@@ -947,14 +938,14 @@
             ];
 
             buildInputs = [
-              lana-cli-bootstrap
+              lana-cli-debug
             ];
 
             ENCRYPTION_KEY = devEnvVars.ENCRYPTION_KEY;
 
             buildPhase = ''
               echo "Generating default config..."
-              ${lana-cli-bootstrap}/bin/lana-cli dump-default-config > default-config-generated.yml
+              ${lana-cli-debug}/bin/lana-cli dump-default-config > default-config-generated.yml
 
               echo "Comparing default config..."
               if ! diff -u dev/lana.default.yml default-config-generated.yml; then
