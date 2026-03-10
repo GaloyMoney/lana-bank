@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use audit::{
-    AuditCursor, AuditEntry, AuditInfo, AuditSvc, PaginatedQueryArgs, PaginatedQueryRet,
-    error::AuditError,
+    AuditCursor, AuditEntry, AuditEntryId, AuditInfo, AuditSvc, PaginatedQueryArgs,
+    PaginatedQueryRet, error::AuditError,
 };
 use core_access::{CoreAccessAction, CoreAccessEvent, CoreAccessObject, UserId};
 
@@ -112,6 +112,7 @@ impl AuditSvc for TestAudit {
     async fn list(
         &self,
         _query: PaginatedQueryArgs<AuditCursor>,
+        _id_filter: Option<AuditEntryId>,
         _subject_filter: Option<String>,
         _authorized_filter: Option<bool>,
         _object_filter: Option<String>,

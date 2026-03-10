@@ -120,6 +120,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
     async fn list(
         &self,
         query: es_entity::PaginatedQueryArgs<AuditCursor>,
+        id_filter: Option<AuditEntryId>,
         subject_filter: Option<String>,
         authorized_filter: Option<bool>,
         object_filter: Option<String>,
@@ -139,14 +140,16 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
                 SELECT id AS "id: AuditEntryId", subject, object, action, authorized, recorded_at
                 FROM audit_entries
                 WHERE COALESCE(id < $1, true)
-                  AND COALESCE(subject = $2, true)
-                  AND COALESCE(authorized = $3, true)
-                  AND COALESCE(object = $4, true)
-                  AND COALESCE(action = $5, true)
+                  AND COALESCE(id = $2, true)
+                  AND COALESCE(subject = $3, true)
+                  AND COALESCE(authorized = $4, true)
+                  AND COALESCE(object = $5, true)
+                  AND COALESCE(action = $6, true)
                 ORDER BY id DESC
-                LIMIT $6
+                LIMIT $7
                 "#,
             after_id as Option<AuditEntryId>,
+            id_filter as Option<AuditEntryId>,
             subject_filter,
             authorized_filter,
             object_filter,

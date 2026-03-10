@@ -2966,6 +2966,7 @@ export type QueryApprovalProcessesArgs = {
 export type QueryAuditArgs = {
   action?: InputMaybe<Scalars['String']['input']>;
   after?: InputMaybe<Scalars['String']['input']>;
+  auditEntryId?: InputMaybe<Scalars['AuditEntryId']['input']>;
   authorized?: InputMaybe<Scalars['Boolean']['input']>;
   first: Scalars['Int']['input'];
   object?: InputMaybe<Scalars['String']['input']>;
@@ -4013,6 +4014,7 @@ export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typ
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  auditEntryId?: InputMaybe<Scalars['AuditEntryId']['input']>;
   subject?: InputMaybe<Scalars['AuditSubjectId']['input']>;
   authorized?: InputMaybe<Scalars['Boolean']['input']>;
   object?: InputMaybe<Scalars['String']['input']>;
@@ -7122,10 +7124,11 @@ export type AllActionsLazyQueryHookResult = ReturnType<typeof useAllActionsLazyQ
 export type AllActionsSuspenseQueryHookResult = ReturnType<typeof useAllActionsSuspenseQuery>;
 export type AllActionsQueryResult = Apollo.QueryResult<AllActionsQuery, AllActionsQueryVariables>;
 export const AuditLogsDocument = gql`
-    query AuditLogs($first: Int!, $after: String, $subject: AuditSubjectId, $authorized: Boolean, $object: String, $action: String) {
+    query AuditLogs($first: Int!, $after: String, $auditEntryId: AuditEntryId, $subject: AuditSubjectId, $authorized: Boolean, $object: String, $action: String) {
   audit(
     first: $first
     after: $after
+    auditEntryId: $auditEntryId
     subject: $subject
     authorized: $authorized
     object: $object
@@ -7179,6 +7182,7 @@ export const AuditLogsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      auditEntryId: // value for 'auditEntryId'
  *      subject: // value for 'subject'
  *      authorized: // value for 'authorized'
  *      object: // value for 'object'

@@ -2491,7 +2491,7 @@ type Query {
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(after: String, first: Int!): ApprovalProcessConnection!
-	audit(action: String, after: String, authorized: Boolean, first: Int!, object: String, subject: AuditSubjectId): AuditEntryConnection!
+	audit(action: String, after: String, auditEntryId: AuditEntryId, authorized: Boolean, first: Int!, object: String, subject: AuditSubjectId): AuditEntryConnection!
 	auditSubjects: [AuditSubjectId!]!
 	availableReportDefinitions: [ReportDefinition!]!
 	balanceSheet(asOf: Date!): BalanceSheet!
