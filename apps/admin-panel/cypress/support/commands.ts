@@ -261,6 +261,17 @@ Cypress.Commands.add(
   },
 )
 
+interface CustodiansListResponse {
+  data: {
+    custodians: {
+      nodes: Array<{
+        custodianId: string
+        name: string
+      }>
+    }
+  }
+}
+
 interface CustodianCreateResponse {
   data: {
     custodianCreate: {
@@ -273,6 +284,16 @@ interface CustodianCreateResponse {
 Cypress.Commands.add(
   "createCustodian",
   (name: string): Cypress.Chainable<string> => {
+    const query = `
+      query ListCustodians($first: Int!) {
+        custodians(first: $first) {
+          nodes {
+            custodianId
+            name
+          }
+        }
+      }
+    `
     const mutation = `
       mutation CustodianCreate($input: CustodianCreateInput!) {
         custodianCreate(input: $input) {
@@ -282,11 +303,25 @@ Cypress.Commands.add(
         }
       }
     `
+
     return cy
-      .graphqlRequest<CustodianCreateResponse>(mutation, {
-        input: { manual: { name } },
+      .graphqlRequest<CustodiansListResponse>(query, { first: 100 })
+      .then((response) => {
+        const existingCustodian = response.data.custodians.nodes.find(
+          (c) => c.name === name,
+        )
+        if (existingCustodian) {
+          return cy.wrap(existingCustodian.custodianId)
+        }
+
+        return cy
+          .graphqlRequest<CustodianCreateResponse>(mutation, {
+            input: { manual: { name } },
+          })
+          .then((createResponse) =>
+            cy.wrap(createResponse.data.custodianCreate.custodian.custodianId),
+          )
       })
-      .then((response) => response.data.custodianCreate.custodian.custodianId)
   },
 )
 
