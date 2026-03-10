@@ -1,0 +1,457 @@
+scalar AnnualRatePct
+
+scalar CVLPct
+
+type CancelledWithdrawalEntry {
+	recordedAt: Timestamp!
+	withdrawal: Withdrawal!
+}
+
+type Collateral {
+	btcBalance: Satoshis!
+}
+
+enum CollateralDirection {
+	ADD
+	REMOVE
+}
+
+enum CollateralizationState {
+	FULLY_COLLATERALIZED
+	NO_COLLATERAL
+	NO_EXPOSURE
+	UNDER_LIQUIDATION_THRESHOLD
+	UNDER_MARGIN_CALL_THRESHOLD
+}
+
+type CreditFacility {
+	activatedAt: Timestamp!
+	balance: CreditFacilityBalance!
+	collateralizationState: CollateralizationState!
+	creditFacilityId: UUID!
+	creditFacilityTerms: TermValues!
+	currentCvl: CVLPct!
+	disbursals: [CreditFacilityDisbursal!]!
+	facilityAmount: UsdCents!
+	history: [CreditFacilityHistoryEntry!]!
+	id: ID!
+	maturesAt: Timestamp!
+	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	status: CreditFacilityStatus!
+}
+
+type CreditFacilityApproved {
+	cents: UsdCents!
+	effective: Date!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+type CreditFacilityBalance {
+	collateral: Collateral!
+	disbursed: Disbursed!
+	dueOutstanding: Outstanding!
+	facilityRemaining: FacilityRemaining!
+	interest: Interest!
+	outstanding: Outstanding!
+}
+
+type CreditFacilityCollateralSentOut {
+	amount: Satoshis!
+	effective: Date!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+type CreditFacilityCollateralUpdated {
+	direction: CollateralDirection!
+	effective: Date!
+	recordedAt: Timestamp!
+	satoshis: Satoshis!
+	txId: UUID!
+}
+
+type CreditFacilityCollateralizationUpdated {
+	collateral: Satoshis!
+	effective: Date!
+	outstandingDisbursal: UsdCents!
+	outstandingInterest: UsdCents!
+	price: UsdCents!
+	recordedAt: Timestamp!
+	state: CollateralizationState!
+}
+
+type CreditFacilityDisbursal {
+	amount: UsdCents!
+	createdAt: Timestamp!
+	creditFacilityDisbursalId: UUID!
+	id: ID!
+	status: DisbursalStatus!
+}
+
+type CreditFacilityDisbursalExecuted {
+	cents: UsdCents!
+	effective: Date!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityCollateralSentOut | CreditFacilityRepaymentAmountReceived
+
+type CreditFacilityIncrementalPayment {
+	cents: UsdCents!
+	effective: Date!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+type CreditFacilityInterestAccrued {
+	cents: UsdCents!
+	days: Int!
+	effective: Date!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+type CreditFacilityPaymentAllocation {
+	amount: UsdCents!
+	createdAt: Timestamp!
+	creditFacility: CreditFacility!
+	creditFacilityPaymentAllocationId: UUID!
+	id: ID!
+}
+
+type CreditFacilityRepaymentAmountReceived {
+	cents: UsdCents!
+	effective: Date!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+type CreditFacilityRepaymentPlanEntry {
+	accrualAt: Timestamp!
+	dueAt: Date!
+	initial: UsdCents!
+	outstanding: UsdCents!
+	repaymentType: CreditFacilityRepaymentType!
+	status: CreditFacilityRepaymentStatus!
+}
+
+enum CreditFacilityRepaymentStatus {
+	DEFAULTED
+	DUE
+	NOT_YET_DUE
+	OVERDUE
+	PAID
+	UPCOMING
+}
+
+enum CreditFacilityRepaymentType {
+	DISBURSAL
+	INTEREST
+}
+
+enum CreditFacilityStatus {
+	ACTIVE
+	CLOSED
+	MATURED
+}
+
+type Customer {
+	createdAt: Timestamp!
+	creditFacilities: [CreditFacility!]!
+	customerId: UUID!
+	customerType: CustomerType!
+	depositAccount: DepositAccount!
+	email: String!
+	id: ID!
+	level: KycLevel!
+	personalInfo: PersonalInfo
+	status: CustomerStatus!
+	telegramHandle: String!
+}
+
+enum CustomerStatus {
+	ACTIVE
+	CLOSED
+	FROZEN
+}
+
+enum CustomerType {
+	BANK
+	FINANCIAL_INSTITUTION
+	FOREIGN_AGENCY_OR_SUBSIDIARY
+	GOVERNMENT_ENTITY
+	INDIVIDUAL
+	NON_DOMICILED_COMPANY
+	PRIVATE_COMPANY
+}
+
+"""
+An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represents a business date; timezone-naive by design.
+"""
+scalar Date
+
+type Deposit {
+	accountId: UUID!
+	amount: UsdCents!
+	createdAt: Timestamp!
+	depositId: UUID!
+	id: ID!
+	reference: String!
+	status: DepositStatus!
+}
+
+type DepositAccount {
+	balance: DepositAccountBalance!
+	createdAt: Timestamp!
+	customerId: UUID!
+	depositAccountId: UUID!
+	deposits: [Deposit!]!
+	history(after: String, first: Int!): DepositAccountHistoryEntryConnection!
+	id: ID!
+	withdrawals: [Withdrawal!]!
+}
+
+type DepositAccountBalance {
+	pending: UsdCents!
+	settled: UsdCents!
+}
+
+union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | FreezeEntry | UnfreezeEntry | UnknownEntry
+
+type DepositAccountHistoryEntryConnection {
+	"""
+	A list of edges.
+	"""
+	edges: [DepositAccountHistoryEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [DepositAccountHistoryEntry!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+}
+
+"""
+An edge in a connection.
+"""
+type DepositAccountHistoryEntryEdge {
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: DepositAccountHistoryEntry!
+}
+
+type DepositEntry {
+	deposit: Deposit!
+	recordedAt: Timestamp!
+}
+
+enum DepositStatus {
+	CONFIRMED
+	REVERTED
+}
+
+type DisbursalEntry {
+	disbursal: CreditFacilityDisbursal!
+	recordedAt: Timestamp!
+}
+
+enum DisbursalStatus {
+	APPROVED
+	CONFIRMED
+	DENIED
+	NEW
+}
+
+type Disbursed {
+	dueOutstanding: Outstanding!
+	outstanding: Outstanding!
+	total: Total!
+}
+
+type Duration {
+	period: Period!
+	units: Int!
+}
+
+type FacilityRemaining {
+	usdBalance: UsdCents!
+}
+
+type FreezeEntry {
+	amount: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+type Interest {
+	dueOutstanding: Outstanding!
+	outstanding: Outstanding!
+	total: Total!
+}
+
+enum InterestInterval {
+	END_OF_DAY
+	END_OF_MONTH
+}
+
+enum KycLevel {
+	ADVANCED
+	BASIC
+	NOT_KYCED
+}
+
+type Me {
+	customer: Customer!
+}
+
+scalar OneTimeFeeRatePct
+
+type Outstanding {
+	usdBalance: UsdCents!
+}
+
+"""
+Information about pagination in a connection
+"""
+type PageInfo {
+	"""
+	When paginating forwards, the cursor to continue.
+	"""
+	endCursor: String
+	"""
+	When paginating forwards, are there more items?
+	"""
+	hasNextPage: Boolean!
+	"""
+	When paginating backwards, are there more items?
+	"""
+	hasPreviousPage: Boolean!
+	"""
+	When paginating backwards, the cursor to continue.
+	"""
+	startCursor: String
+}
+
+type PaymentEntry {
+	payment: CreditFacilityPaymentAllocation!
+	recordedAt: Timestamp!
+}
+
+enum PendingCreditFacilityCollateralizationState {
+	FULLY_COLLATERALIZED
+	NOT_YET_COLLATERALIZED
+	UNDER_COLLATERALIZED
+}
+
+type PendingCreditFacilityCollateralizationUpdated {
+	collateral: Satoshis!
+	effective: Date!
+	price: UsdCents!
+	recordedAt: Timestamp!
+	state: PendingCreditFacilityCollateralizationState!
+}
+
+enum Period {
+	MONTHS
+}
+
+type PersonalInfo {
+	address: String
+	companyName: String
+	dateOfBirth: String
+	firstName: String!
+	lastName: String!
+	nationality: String
+}
+
+type Query {
+	creditFacility(id: UUID!): CreditFacility
+	me: Me!
+	realtimePrice: RealtimePrice!
+}
+
+type RealtimePrice {
+	usdCentsPerBtc: UsdCents!
+}
+
+scalar Satoshis
+
+type TermValues {
+	accrualCycleInterval: InterestInterval!
+	accrualInterval: InterestInterval!
+	annualRate: AnnualRatePct!
+	duration: Duration!
+	initialCvl: CVLPct!
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	oneTimeFeeRate: OneTimeFeeRatePct!
+}
+
+"""
+An ISO 8601 UTC timestamp (e.g., 2024-01-15T09:30:00Z). Always in UTC.
+"""
+scalar Timestamp
+
+type Total {
+	usdBalance: UsdCents!
+}
+
+scalar UUID
+
+type UnfreezeEntry {
+	amount: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+type UnknownEntry {
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+scalar UsdCents
+
+type Withdrawal {
+	accountId: UUID!
+	amount: UsdCents!
+	createdAt: Timestamp!
+	id: ID!
+	reference: String!
+	status: WithdrawalStatus!
+	withdrawalId: UUID!
+}
+
+type WithdrawalEntry {
+	recordedAt: Timestamp!
+	withdrawal: Withdrawal!
+}
+
+enum WithdrawalStatus {
+	CANCELLED
+	CONFIRMED
+	DENIED
+	PENDING_APPROVAL
+	PENDING_CONFIRMATION
+	REVERTED
+}
+
+"""
+Directs the executor to include this field or fragment only when the `if` argument is true.
+"""
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Directs the executor to skip this field or fragment when the `if` argument is true.
+"""
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+schema {
+	query: Query
+}
