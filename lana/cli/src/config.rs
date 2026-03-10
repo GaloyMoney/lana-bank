@@ -4,9 +4,7 @@ use es_entity::clock::{ArtificialClockConfig, ClockController, ClockHandle};
 use serde::{Deserialize, Serialize};
 use tracing_utils::TracingConfig;
 
-#[cfg(feature = "sim-bootstrap")]
 use sim_bootstrap::BootstrapConfig;
-
 use std::path::Path;
 
 use super::db::*;
@@ -60,8 +58,7 @@ pub struct Config {
     #[serde(default)]
     pub time: TimeConfig,
 
-    /// Bootstrap configuration for simulation setup (only available in sim-bootstrap feature)
-    #[cfg(feature = "sim-bootstrap")]
+    /// Bootstrap configuration for simulation setup (inactive by default)
     #[serde(default)]
     pub bootstrap: BootstrapConfig,
 }

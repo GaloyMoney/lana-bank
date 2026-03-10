@@ -222,13 +222,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let mut server_handles = Vec::new();
     let pool = db::init_pool(&config.db).await?;
 
-    #[cfg(feature = "sim-bootstrap")]
-    let superuser_email = config
-        .app
-        .access
-        .superuser_email
-        .clone()
-        .expect("super user");
+    let superuser_email = config.app.access.superuser_email.clone();
 
     let (clock, _clock_ctrl) = config.time.into_clock();
 
@@ -242,8 +236,9 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     .await
     .context("Failed to initialize Lana app")?;
 
-    #[cfg(feature = "sim-bootstrap")]
-    if let Some(ctrl) = _clock_ctrl {
+    if config.bootstrap.active
+        && let (Some(ctrl), Some(superuser_email)) = (_clock_ctrl, superuser_email)
+    {
         let seed_only = config.bootstrap.seed_only;
         let _ = sim_bootstrap::run(
             superuser_email.to_string(),
