@@ -157,16 +157,6 @@ impl TestFixtures {
 cargo run -- seed
 ```
 
-## Coverage
-
-```bash
-# Generate coverage report
-cargo llvm-cov --html
-
-# Open report
-open target/llvm-cov/html/index.html
-```
-
 ## CI Integration
 
 Tests run on every PR:
@@ -175,5 +165,4 @@ Tests run on every PR:
 - Integration tests
 - E2E tests (BATS)
 - Frontend tests (Cypress)
-- Code coverage check
 

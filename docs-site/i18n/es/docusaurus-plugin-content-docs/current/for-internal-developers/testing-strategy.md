@@ -166,19 +166,6 @@ impl TestFixtures {
 cargo run -- seed
 ```
 
-## Cobertura
-
-```bash
-
-# Generar informe de cobertura
-
-cargo llvm-cov --html
-
-# Abrir informe
-
-open target/llvm-cov/html/index.html
-```
-
 ## Integracion con CI
 
 Las pruebas se ejecutan en cada PR:
@@ -187,4 +174,3 @@ Las pruebas se ejecutan en cada PR:
 - Pruebas de integracion
 - Pruebas E2E (BATS)
 - Pruebas de frontend (Cypress)
-- Verificacion de cobertura de codigo
