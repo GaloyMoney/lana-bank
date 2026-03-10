@@ -29,6 +29,14 @@ gql`
   query ProfitAndLossStatement($from: Date!, $until: Date) {
     profitAndLossStatement(from: $from, until: $until) {
       name
+      total {
+        usd {
+          ...UsdLedgerBalanceRangeFragment
+        }
+        btc {
+          ...BtcLedgerBalanceRangeFragment
+        }
+      }
       categories {
         profitAndLossAccountId
         ledgerAccountId
@@ -152,10 +160,11 @@ const ProfitAndLossStatement = ({
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
-  const netPeriod = data?.categories?.reduce(
-    (sum, category) => sum + getBalanceNet(category.balanceRange, currency, layer),
-    0,
-  )
+  const total = data?.total
+  const netPeriod =
+    currency === "usd"
+      ? total?.usd?.usdDiff[layer].net
+      : total?.btc?.btcDiff[layer].net
 
   return (
     <Card>
