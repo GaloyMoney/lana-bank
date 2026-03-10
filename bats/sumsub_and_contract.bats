@@ -51,7 +51,7 @@ wait_for_loan_agreement_completion() {
   echo "prospect_id: $prospect_id"
   [[ "$prospect_id" != "null" ]] || exit 1
 
-  # Create permalink (for reference and fallback testing)
+  # Create KYC link (for reference and fallback testing)
 
   variables=$(
     jq -n \
@@ -63,10 +63,10 @@ wait_for_loan_agreement_completion() {
     }'
   )
 
-  exec_admin_graphql 'sumsub-permalink-create' "$variables"
-  url=$(graphql_output .data.sumsubPermalinkCreate.url)
+  exec_admin_graphql 'prospect-kyc-link-create' "$variables"
+  url=$(graphql_output .data.prospectKycLinkCreate.url)
   [[ "$url" != "null" ]] || exit 1
-  echo "Created permalink: $url"
+  echo "Created KYC link: $url"
 
   # Test complete KYC flow via GraphQL mutation
   echo "Testing complete KYC flow via sumsubTestApplicantCreate..."
@@ -277,4 +277,3 @@ wait_for_loan_agreement_completion() {
   [[ "$level" == "BASIC" ]] || exit 1
   [[ "$status" == "FROZEN" ]] || exit 1
 }
-

@@ -13,14 +13,14 @@ import { KycStatusBadge } from "@/app/prospects/kyc-status-badge"
 import {
   KycLevel,
   KycStatus,
-  useSumsubPermalinkCreateMutation,
+  useProspectKycLinkCreateMutation,
 } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { removeUnderscore } from "@/lib/utils"
 
 gql`
-  mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
-    sumsubPermalinkCreate(input: $input) {
+  mutation prospectKycLinkCreate($input: ProspectKycLinkCreateInput!) {
+    prospectKycLinkCreate(input: $input) {
       url
     }
   }
@@ -50,12 +50,12 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
   const sumsubLink = `https://cockpit.sumsub.com/checkus#/applicant/${applicantId}/client/basicInfo`
 
   const [createLink, { data: linkData, loading: linkLoading, error: linkError }] =
-    useSumsubPermalinkCreateMutation({
+    useProspectKycLinkCreateMutation({
       refetchQueries: ["GetProspectBasicDetails"],
     })
 
   const effectiveVerificationLink =
-    linkData?.sumsubPermalinkCreate?.url || verificationLink
+    linkData?.prospectKycLinkCreate?.url || verificationLink
 
   const [linkMayBeExpired, setLinkMayBeExpired] = useState(false)
   useEffect(() => {

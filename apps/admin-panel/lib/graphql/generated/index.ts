@@ -2168,11 +2168,11 @@ export type Mutation = {
   prospectClose: ProspectClosePayload;
   prospectConvert: ProspectConvertPayload;
   prospectCreate: ProspectCreatePayload;
+  prospectKycLinkCreate: ProspectKycLinkCreatePayload;
   reportFileGenerateDownloadLink: ReportFileGenerateDownloadLinkPayload;
   roleAddPermissionSets: RoleAddPermissionSetsPayload;
   roleCreate: RoleCreatePayload;
   roleRemovePermissionSets: RoleRemovePermissionSetsPayload;
-  sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
   triggerReportRun: ReportRunCreatePayload;
@@ -2436,6 +2436,11 @@ export type MutationProspectCreateArgs = {
 };
 
 
+export type MutationProspectKycLinkCreateArgs = {
+  input: ProspectKycLinkCreateInput;
+};
+
+
 export type MutationReportFileGenerateDownloadLinkArgs = {
   input: ReportFileGenerateDownloadLinkInput;
 };
@@ -2453,11 +2458,6 @@ export type MutationRoleCreateArgs = {
 
 export type MutationRoleRemovePermissionSetsArgs = {
   input: RoleRemovePermissionSetsInput;
-};
-
-
-export type MutationSumsubPermalinkCreateArgs = {
-  input: SumsubPermalinkCreateInput;
 };
 
 
@@ -2819,6 +2819,15 @@ export type ProspectEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node: Prospect;
+};
+
+export type ProspectKycLinkCreateInput = {
+  prospectId: Scalars['UUID']['input'];
+};
+
+export type ProspectKycLinkCreatePayload = {
+  __typename?: 'ProspectKycLinkCreatePayload';
+  url: Scalars['String']['output'];
 };
 
 export type ProspectKycUpdatedPayload = {
@@ -3564,15 +3573,6 @@ export type SubscriptionProspectKycUpdatedArgs = {
 
 export type SubscriptionWithdrawalApprovalConcludedArgs = {
   withdrawalId: Scalars['UUID']['input'];
-};
-
-export type SumsubPermalinkCreateInput = {
-  prospectId: Scalars['UUID']['input'];
-};
-
-export type SumsubPermalinkCreatePayload = {
-  __typename?: 'SumsubPermalinkCreatePayload';
-  url: Scalars['String']['output'];
 };
 
 export type System = {
@@ -5345,12 +5345,12 @@ export type ProspectEventHistoryQuery = { __typename?: 'Query', prospectByPublic
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type SumsubPermalinkCreateMutationVariables = Exact<{
-  input: SumsubPermalinkCreateInput;
+export type ProspectKycLinkCreateMutationVariables = Exact<{
+  input: ProspectKycLinkCreateInput;
 }>;
 
 
-export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
+export type ProspectKycLinkCreateMutation = { __typename?: 'Mutation', prospectKycLinkCreate: { __typename?: 'ProspectKycLinkCreatePayload', url: string } };
 
 export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null };
 
@@ -12707,39 +12707,39 @@ export type ProspectEventHistoryQueryHookResult = ReturnType<typeof useProspectE
 export type ProspectEventHistoryLazyQueryHookResult = ReturnType<typeof useProspectEventHistoryLazyQuery>;
 export type ProspectEventHistorySuspenseQueryHookResult = ReturnType<typeof useProspectEventHistorySuspenseQuery>;
 export type ProspectEventHistoryQueryResult = Apollo.QueryResult<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables>;
-export const SumsubPermalinkCreateDocument = gql`
-    mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
-  sumsubPermalinkCreate(input: $input) {
+export const ProspectKycLinkCreateDocument = gql`
+    mutation prospectKycLinkCreate($input: ProspectKycLinkCreateInput!) {
+  prospectKycLinkCreate(input: $input) {
     url
   }
 }
     `;
-export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+export type ProspectKycLinkCreateMutationFn = Apollo.MutationFunction<ProspectKycLinkCreateMutation, ProspectKycLinkCreateMutationVariables>;
 
 /**
- * __useSumsubPermalinkCreateMutation__
+ * __useProspectKycLinkCreateMutation__
  *
- * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useProspectKycLinkCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProspectKycLinkCreateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
+ * const [prospectKycLinkCreateMutation, { data, loading, error }] = useProspectKycLinkCreateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
+export function useProspectKycLinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<ProspectKycLinkCreateMutation, ProspectKycLinkCreateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
+        return Apollo.useMutation<ProspectKycLinkCreateMutation, ProspectKycLinkCreateMutationVariables>(ProspectKycLinkCreateDocument, options);
       }
-export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
-export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
-export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+export type ProspectKycLinkCreateMutationHookResult = ReturnType<typeof useProspectKycLinkCreateMutation>;
+export type ProspectKycLinkCreateMutationResult = Apollo.MutationResult<ProspectKycLinkCreateMutation>;
+export type ProspectKycLinkCreateMutationOptions = Apollo.BaseMutationOptions<ProspectKycLinkCreateMutation, ProspectKycLinkCreateMutationVariables>;
 export const GetProspectBasicDetailsDocument = gql`
     query GetProspectBasicDetails($id: PublicId!) {
   prospectByPublicId(id: $id) {

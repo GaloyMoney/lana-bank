@@ -1301,11 +1301,11 @@ impl Mutation {
         )
     }
 
-    pub async fn sumsub_permalink_create(
+    pub async fn prospect_kyc_link_create(
         &self,
         ctx: &Context<'_>,
-        input: SumsubPermalinkCreateInput,
-    ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
+        input: ProspectKycLinkCreateInput,
+    ) -> async_graphql::Result<ProspectKycLinkCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let permalink = app
             .customer_kyc()
@@ -1314,7 +1314,7 @@ impl Mutation {
                 lana_app::primitives::ProspectId::from(input.prospect_id),
             )
             .await?;
-        Ok(SumsubPermalinkCreatePayload { url: permalink.url })
+        Ok(ProspectKycLinkCreatePayload { url: permalink.url })
     }
 
     /// ⚠️ TEST ONLY: Creates a complete test applicant for Sumsub integration testing.
