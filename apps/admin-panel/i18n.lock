@@ -28,6 +28,8 @@ checksums:
     Common/hideIds: 294d6648b615496a70e2bf3c589f5402
     Common/showUser: 1dc496ab21f6c3711c871bb90043a9bd
     Common/copyId: b05ed1f0745e7f8ce758658681f61707
+    Common/notAuthorized/title: 5c8281428e0a26391f2b60286f94bd83
+    Common/notAuthorized/description: c60f14385f63155d42a85461da205bf8
     Common/formatRule/noRulesDefined: c2fa3d9395c5cc7c85dde610f5b5b0aa
     Common/formatRule/allMembersMustApprove: c828e90335daa1fb324ee374d0b3936b
     Common/formatRule/systemAutoApproval: 7080937d79641fb6d9d8c30b5b2f0f38
