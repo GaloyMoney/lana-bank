@@ -29,6 +29,7 @@ import {
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
   useCustodiansQuery,
+  useDomainConfigsQuery,
   DisbursalPolicy,
 } from "@/lib/graphql/generated"
 import {
@@ -109,6 +110,13 @@ export const CreateCreditFacilityProposalDialog: React.FC<
   const { data: custodiansData, loading: custodiansLoading } = useCustodiansQuery({
     variables: { first: 50 },
   })
+  const { data: domainConfigsData } = useDomainConfigsQuery({
+    variables: { first: 100 },
+  })
+  const manualCollateralEnabled =
+    domainConfigsData?.domainConfigs.nodes.find(
+      (c) => c.key === "manual-collateral",
+    )?.value !== false
   const [createCreditFacility, { loading, error, reset }] =
     useCreditFacilityProposalCreateMutation()
 
@@ -356,14 +364,21 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                 <SelectValue placeholder={t("form.placeholders.custodian")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem key={MANUAL_CUSTODIAN_ID} value={MANUAL_CUSTODIAN_ID}>
-                  {t("form.labels.manualCustodian")}
-                </SelectItem>
-                {custodiansData?.custodians.edges.map(({ node: custodian }) => (
-                  <SelectItem key={custodian.id} value={custodian.custodianId}>
-                    {custodian.name}
+                {manualCollateralEnabled && (
+                  <SelectItem key={MANUAL_CUSTODIAN_ID} value={MANUAL_CUSTODIAN_ID}>
+                    {t("form.labels.manualCustodian")}
                   </SelectItem>
-                ))}
+                )}
+                {custodiansData?.custodians.edges
+                  .filter(
+                    ({ node: custodian }) =>
+                      custodian.custodianId !== MANUAL_CUSTODIAN_ID,
+                  )
+                  .map(({ node: custodian }) => (
+                    <SelectItem key={custodian.id} value={custodian.custodianId}>
+                      {custodian.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
