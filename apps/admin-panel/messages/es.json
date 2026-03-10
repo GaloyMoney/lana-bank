@@ -1852,6 +1852,7 @@
         "enterpriseId": "ID de empresa",
         "testingInstance": "Usar Entorno de Pruebas",
         "selfCustodyLabel": "Auto-custodia",
+        "manualLabel": "Manual",
         "accountXpub": "XPub de la cuenta",
         "esploraUrl": "URL de Esplora",
         "network": "Red"

@@ -1135,6 +1135,7 @@ checksums:
     Custodians/create/fields/enterpriseId: bd11d12acaad12cde1ec730fdff8a733
     Custodians/create/fields/testingInstance: 45ba24fdcad1a9047ae34f0c91d66f70
     Custodians/create/fields/selfCustodyLabel: bb6afc6fbd2a41a88f826d925c3cf098
+    Custodians/create/fields/manualLabel: 772ff39554ea76c8db86f09b7d96fcb9
     Custodians/create/fields/accountXpub: 0b2820dc10a250de2f43fb33c724998f
     Custodians/create/fields/esploraUrl: 9b4cd8b60f7b442951bb672cb779ecb6
     Custodians/create/fields/network: 151d08f2b23fa8334be0a46af7b7aeaa
