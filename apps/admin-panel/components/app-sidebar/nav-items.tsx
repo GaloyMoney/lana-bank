@@ -32,8 +32,11 @@ import { useTranslations } from "next-intl"
 
 import type { NavItem } from "./nav-section"
 
+import { useAvatarQuery, type VisibleNavigationItems } from "@/lib/graphql/generated"
+
 export function useNavItems() {
   const t = useTranslations("Sidebar.navItems")
+  const { data } = useAvatarQuery()
 
   const navDashboardItems: NavItem[] = [
     { title: t("dashboard"), url: "/dashboard", icon: Home },
@@ -106,15 +109,26 @@ export function useNavItems() {
     },
   ]
 
+  const visibility = data?.me?.visibleNavigationItems
+
+  const filteredDashboardItems = navDashboardItems
+  const filteredCustomerItems = filterByVisibility(navCustomerItems, visibility)
+  const filteredLoansItems = filterByVisibility(navLoansItems, visibility)
+  const filteredTransactionItems = filterByVisibility(navTransactionItems, visibility)
+  const filteredAdminItems = filterByVisibility(navAdminItems, visibility)
+  const filteredFinanceItems = filterByVisibility(navFinanceItems, visibility)
+  const filteredGovernanceItems = filterGovernanceItems(navGovernanceItems, visibility)
+  const filteredAccountingItems = filterByVisibility(navAccountingItems, visibility)
+
   const allNavItems: NavItem[] = [
-    ...navDashboardItems,
-    ...navCustomerItems,
-    ...navLoansItems,
-    ...navTransactionItems,
-    ...navAdminItems,
-    ...navFinanceItems,
-    ...navGovernanceItems,
-    ...navAccountingItems,
+    ...filteredDashboardItems,
+    ...filteredCustomerItems,
+    ...filteredLoansItems,
+    ...filteredTransactionItems,
+    ...filteredAdminItems,
+    ...filteredFinanceItems,
+    ...filteredGovernanceItems,
+    ...filteredAccountingItems,
   ]
 
   const navItemsByUrl = new Map<string, NavItem>()
@@ -127,17 +141,80 @@ export function useNavItems() {
   }
 
   return {
-    navDashboardItems,
-    navCustomerItems,
-    navLoansItems,
-    navTransactionItems,
-    navAdminItems,
-    navFinanceItems,
-    navGovernanceItems,
-    navAccountingItems,
+    navDashboardItems: filteredDashboardItems,
+    navCustomerItems: filteredCustomerItems,
+    navLoansItems: filteredLoansItems,
+    navTransactionItems: filteredTransactionItems,
+    navAdminItems: filteredAdminItems,
+    navFinanceItems: filteredFinanceItems,
+    navGovernanceItems: filteredGovernanceItems,
+    navAccountingItems: filteredAccountingItems,
 
     allNavItems,
     navItemsByUrl,
     findNavItemByUrl,
   }
+}
+
+function filterByVisibility(
+  items: NavItem[],
+  visibility: VisibleNavigationItems | undefined,
+): NavItem[] {
+  if (!visibility) return items
+
+  const urlVisibilityMap: Record<string, (v: VisibleNavigationItems) => boolean> = {
+    "/prospects": (v) => v.customer,
+    "/customers": (v) => v.customer,
+    "/credit-facility-proposals": (v) => v.creditFacilities,
+    "/pending-credit-facilities": (v) => v.creditFacilities,
+    "/credit-facilities": (v) => v.creditFacilities,
+    "/disbursals": (v) => v.creditFacilities,
+    "/liquidations": (v) => v.creditFacilities,
+    "/terms-templates": (v) => v.term,
+    "/deposit-accounts": (v) => v.deposit,
+    "/deposits": (v) => v.deposit,
+    "/withdrawals": (v) => v.withdraw,
+    "/audit": (v) => v.audit,
+    "/users": (v) => v.user,
+    "/roles-and-permissions": (v) => v.user,
+    "/custodians": (v) => v.user,
+    "/configurations": (v) => v.user,
+    "/balance-sheet": (v) => v.financials,
+    "/profit-and-loss": (v) => v.financials,
+    "/trial-balance": (v) => v.financials,
+    "/regulatory-reporting": (v) => v.financials,
+    "/chart-of-accounts": (v) => v.financials,
+    "/fiscal-years": (v) => v.financials,
+    "/ledger-accounts": (v) => v.financials,
+    "/ledger-transactions": (v) => v.financials,
+    "/journal": (v) => v.financials,
+    "/modules": (v) => v.financials,
+    "/transaction-templates": (v) => v.financials,
+  }
+
+  return items.filter((item) => {
+    const checkVisibility = urlVisibilityMap[item.url]
+    if (!checkVisibility) return true
+    return checkVisibility(visibility)
+  })
+}
+
+function filterGovernanceItems(
+  items: NavItem[],
+  visibility: VisibleNavigationItems | undefined,
+): NavItem[] {
+  if (!visibility) return items
+
+  const governance = visibility.governance
+
+  return items.filter((item) => {
+    switch (item.url) {
+      case "/committees":
+        return governance.committee
+      case "/policies":
+        return governance.policy
+      default:
+        return true
+    }
+  })
 }

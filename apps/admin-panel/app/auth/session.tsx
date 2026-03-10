@@ -64,15 +64,15 @@ export const Authenticated: React.FC<Props> = ({ children }) => {
   }
 
   return (
-    <BreadcrumbProvider>
-      <ApolloProvider client={client}>
+    <ApolloProvider client={client}>
+      <BreadcrumbProvider>
         <Toast />
         <AppLayout>
           <IdleSessionGuard />
           {children}
         </AppLayout>
-      </ApolloProvider>
-    </BreadcrumbProvider>
+      </BreadcrumbProvider>
+    </ApolloProvider>
   )
 }
 
