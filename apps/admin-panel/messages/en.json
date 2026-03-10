@@ -1852,6 +1852,7 @@
         "enterpriseId": "Enterprise ID",
         "testingInstance": "Use Testing Environment",
         "selfCustodyLabel": "Self-Custody",
+        "manualLabel": "Manual",
         "accountXpub": "Account XPub",
         "esploraUrl": "Esplora URL",
         "network": "Network"

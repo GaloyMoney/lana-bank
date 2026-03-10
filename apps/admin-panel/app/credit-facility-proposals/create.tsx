@@ -42,8 +42,6 @@ import { useModalNavigation } from "@/hooks/use-modal-navigation"
 import { Satoshis } from "@/types"
 import { DEFAULT_TERMS, TERMS_FIELD_LIMITS, validateTermsFields } from "@/lib/constants/terms"
 
-const DEFAULT_CUSTODIAN = "manual-custodian"
-
 gql`
   mutation CreditFacilityProposalCreate($input: CreditFacilityProposalCreateInput!) {
     creditFacilityProposalCreate(input: $input) {
@@ -70,7 +68,7 @@ type CreateCreditFacilityProposalDialogProps = {
 
 const initialFormValues = {
   facility: "0",
-  custodianId: DEFAULT_CUSTODIAN,
+  custodianId: "",
   annualRate: "",
   liquidationCvl: "",
   marginCallCvl: "",
@@ -217,7 +215,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
           input: {
             customerId,
             facility: currencyConverter.usdToCents(Number(facility)),
-            custodianId: custodianId === DEFAULT_CUSTODIAN ? null : custodianId,
+            custodianId,
             terms: {
               annualRate: parseFloat(annualRate),
               accrualCycleInterval: DEFAULT_TERMS.ACCRUAL_CYCLE_INTERVAL,
@@ -270,7 +268,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       setSelectedTemplateId(latestTemplate.id)
       setFormValues({
         facility: "0",
-        custodianId: DEFAULT_CUSTODIAN,
+        custodianId: "",
         annualRate: latestTemplate.values.annualRate.toString(),
         liquidationCvl: getCvlValue(latestTemplate.values.liquidationCvl).toString(),
         marginCallCvl: getCvlValue(latestTemplate.values.marginCallCvl).toString(),
@@ -345,20 +343,17 @@ export const CreateCreditFacilityProposalDialog: React.FC<
           <div>
             <Label>{t("form.labels.custodian")}</Label>
             <Select
-              defaultValue={DEFAULT_CUSTODIAN}
               value={formValues.custodianId}
               onValueChange={(value) =>
                 setFormValues((prev) => ({ ...prev, custodianId: value }))
               }
               disabled={custodiansLoading}
+              required
             >
               <SelectTrigger>
                 <SelectValue placeholder={t("form.placeholders.custodian")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem key={DEFAULT_CUSTODIAN} value={DEFAULT_CUSTODIAN}>
-                  {t("form.labels.manualCustodian")}
-                </SelectItem>
                 {custodiansData?.custodians.edges.map(({ node: custodian }) => (
                   <SelectItem key={custodian.id} value={custodian.custodianId}>
                     {custodian.name}

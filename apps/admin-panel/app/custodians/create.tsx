@@ -32,6 +32,7 @@ import {
   type KomainuConfig,
   type BitgoConfig,
   type SelfCustodyConfig,
+  type ManualConfig,
   type CustodianCreateInput,
   SelfCustodyNetwork,
   CustodiansDocument,
@@ -50,7 +51,7 @@ gql`
   }
 `
 
-type CustodianType = "komainu" | "bitgo" | "selfCustody"
+type CustodianType = "komainu" | "bitgo" | "selfCustody" | "manual"
 
 interface CreateCustodianDialogProps {
   openCreateCustodianDialog: boolean
@@ -87,6 +88,9 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     accountXpub: "",
     network: SelfCustodyNetwork.Mainnet,
   })
+  const [manualConfig, setManualConfig] = useState<ManualConfig>({
+    name: "",
+  })
   const [error, setError] = useState<string | null>(null)
 
   const resetForm = () => {
@@ -112,6 +116,9 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
       name: "",
       accountXpub: "",
       network: SelfCustodyNetwork.Mainnet,
+    })
+    setManualConfig({
+      name: "",
     })
     setError(null)
   }
@@ -140,6 +147,11 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     setSelfCustodyConfig((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleManualInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setManualConfig((prev) => ({ ...prev, [name]: value }))
+  }
+
   const handleKomainuCheckboxChange = (checked: boolean) => {
     setKomainuConfig((prev) => ({ ...prev, testingInstance: checked }))
   }
@@ -156,6 +168,8 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
         return { bitgo: bitgoConfig }
       case "selfCustody":
         return { selfCustody: selfCustodyConfig }
+      case "manual":
+        return { manual: manualConfig }
       default:
         throw new Error(`Unsupported custodian type: ${selectedType}`)
     }
@@ -217,6 +231,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                 <SelectItem value="komainu">Komainu</SelectItem>
                 <SelectItem value="bitgo">BitGo</SelectItem>
                 <SelectItem value="selfCustody">{t("fields.selfCustodyLabel")}</SelectItem>
+                <SelectItem value="manual">{t("fields.manualLabel")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -475,6 +490,25 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                     <SelectItem value={SelfCustodyNetwork.Signet}>Signet</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </>
+          )}
+          {selectedType === "manual" && (
+            <>
+              <div>
+                <Label htmlFor="name" required>
+                  {t("fields.name")}
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={manualConfig.name}
+                  onChange={handleManualInputChange}
+                  placeholder={t("placeholders.name")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-name-input"
+                />
               </div>
             </>
           )}
