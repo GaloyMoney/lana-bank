@@ -83,6 +83,7 @@
     "mutations": {
       "customerDocumentAttach": "Carga y adjunta un documento al perfil de un cliente",
       "sumsubPermalinkCreate": "Genera un enlace permanente de verificacion KYC de Sumsub para un cliente",
+      "prospectKycLinkCreate": "Genera un enlace de verificación KYC para un prospecto",
       "userCreate": "Crea un nuevo usuario con un rol especificado",
       "userUpdateRole": "Actualiza el rol asignado a un usuario existente",
       "roleCreate": "Crea un nuevo rol con conjuntos de permisos especificados",
