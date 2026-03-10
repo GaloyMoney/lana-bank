@@ -24,8 +24,8 @@ mutation ProspectConvert($input: ProspectConvertInput!) {
   }
 }
 
-mutation SumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
-  sumsubPermalinkCreate(input: $input) {
+mutation ProspectKycLinkCreate($input: ProspectKycLinkCreateInput!) {
+  prospectKycLinkCreate(input: $input) {
     url
   }
 }

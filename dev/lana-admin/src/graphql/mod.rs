@@ -78,7 +78,7 @@ pub struct ProspectClose;
     query_path = "src/graphql/prospect_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
-pub struct SumsubPermalinkCreate;
+pub struct ProspectKycLinkCreate;
 
 // -- Customer operations --
 

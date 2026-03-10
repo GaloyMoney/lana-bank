@@ -83,8 +83,8 @@ mutation ProspectClose($input: ProspectCloseInput!) {
   }
 }
 
-mutation SumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
-  sumsubPermalinkCreate(input: $input) {
+mutation ProspectKycLinkCreate($input: ProspectKycLinkCreateInput!) {
+  prospectKycLinkCreate(input: $input) {
     url
   }
 }

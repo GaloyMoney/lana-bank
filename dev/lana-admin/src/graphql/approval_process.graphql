@@ -9,8 +9,8 @@ mutation ApprovalProcessApprove($input: ApprovalProcessApproveInput!) {
   }
 }
 
-mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!, $reason: String!) {
-  approvalProcessDeny(input: $input, reason: $reason) {
+mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
+  approvalProcessDeny(input: $input) {
     approvalProcess {
       approvalProcessId
       approvalProcessType
