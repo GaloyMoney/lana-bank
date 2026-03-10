@@ -29,6 +29,7 @@ import { gql } from "@apollo/client"
 
 import {
   useCustodianCreateMutation,
+  useDomainConfigsQuery,
   type KomainuConfig,
   type BitgoConfig,
   type SelfCustodyConfig,
@@ -64,6 +65,14 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
 }) => {
   const t = useTranslations("Custodians.create")
   const tCommon = useTranslations("Common")
+
+  const { data: domainConfigsData } = useDomainConfigsQuery({
+    variables: { first: 100 },
+  })
+  const manualCollateralEnabled =
+    domainConfigsData?.domainConfigs.nodes.find(
+      (c) => c.key === "manual-collateral",
+    )?.value !== false
 
   const [selectedType, setSelectedType] = useState<CustodianType>("komainu")
   const [komainuConfig, setKomainuConfig] = useState<KomainuConfig>({
@@ -231,7 +240,9 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                 <SelectItem value="komainu">Komainu</SelectItem>
                 <SelectItem value="bitgo">BitGo</SelectItem>
                 <SelectItem value="selfCustody">{t("fields.selfCustodyLabel")}</SelectItem>
-                <SelectItem value="manual">{t("fields.manualLabel")}</SelectItem>
+                {manualCollateralEnabled && (
+                  <SelectItem value="manual">{t("fields.manualLabel")}</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
