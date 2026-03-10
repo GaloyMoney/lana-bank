@@ -1,9 +1,13 @@
--- This model is superseded by report_nrp_91_01_saldo_cuenta_daily
--- which provides full daily history with as_of_date partitioning.
--- Kept for backwards compatibility with non-daily consumers.
+{{
+    config(
+        materialized="table",
+        partition_by={"field": "as_of_date", "data_type": "date"},
+    )
+}}
+
 select
+    as_of_date,
     cast(format("%.2f", round(`valor`, 2)) as string) as `valor`,
     right(`id_codigo_cuenta`, 10) as `id_codigo_cuenta`,
     upper(left(regexp_replace(`nom_cuenta`, r'[&<>"]', "_"), 80)) as `nom_cuenta`
 from {{ ref("int_nrp_91_01_saldo_cuenta_daily") }}
-where as_of_date = current_date("UTC")

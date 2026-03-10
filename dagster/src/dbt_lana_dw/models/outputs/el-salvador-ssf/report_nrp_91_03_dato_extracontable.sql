@@ -1,5 +1,5 @@
 select
-    cast(null as string) as `id_codigo_extracontable`,
-    cast(null as string) as `desc_extra_contable`,
-    cast(null as string) as `Valor`
-where false
+    cast(round(`Valor`, 2) as string) as `Valor`,
+    left(`id_codigo_extracontable`, 10) as `id_codigo_extracontable`,
+    left(`desc_extra_contable`, 80) as `desc_extra_contable`
+from {{ ref("int_nrp_91_03_dato_extracontable") }}

@@ -1,7 +1,7 @@
 select
-    cast(null as string) as `id_codigo_banco`,
-    cast(null as string) as `nom_banco`,
-    cast(null as string) as `Pais`,
-    cast(null as string) as `Categoria`,
-    cast(null as string) as `Valor`
-where false
+    left(`id_codigo_banco`, 10) as `id_codigo_banco`,
+    left(`nom_banco`, 80) as `nom_banco`,
+    left(`Pais`, 20) as `Pais`,
+    left(`Categoria`, 2) as `Categoria`,
+    cast(round(`Valor`, 2) as string) as `Valor`
+from {{ ref("int_nrp_91_02_deposito_extranjero") }}

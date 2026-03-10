@@ -1,16 +1,16 @@
 select
-    cast(null as string) as `id_codigo_cuentaproy`,
-    cast(null as string) as `nom_cuentaproy`,
-    cast(null as string) as `enero`,
-    cast(null as string) as `febrero`,
-    cast(null as string) as `marzo`,
-    cast(null as string) as `abril`,
-    cast(null as string) as `mayo`,
-    cast(null as string) as `junio`,
-    cast(null as string) as `julio`,
-    cast(null as string) as `agosto`,
-    cast(null as string) as `septiembre`,
-    cast(null as string) as `octubre`,
-    cast(null as string) as `noviembre`,
-    cast(null as string) as `diciembre`
-where false
+    left(`id_codigo_cuentaproy`, 10) as `id_codigo_cuentaproy`,
+    left(`nom_cuentaproy`, 80) as `nom_cuentaproy`,
+    cast(round(`enero`, 2) as string) as `enero`,
+    cast(round(`febrero`, 2) as string) as `febrero`,
+    cast(round(`marzo`, 2) as string) as `marzo`,
+    cast(round(`abril`, 2) as string) as `abril`,
+    cast(round(`mayo`, 2) as string) as `mayo`,
+    cast(round(`junio`, 2) as string) as `junio`,
+    cast(round(`julio`, 2) as string) as `julio`,
+    cast(round(`agosto`, 2) as string) as `agosto`,
+    cast(round(`septiembre`, 2) as string) as `septiembre`,
+    cast(round(`octubre`, 2) as string) as `octubre`,
+    cast(round(`noviembre`, 2) as string) as `noviembre`,
+    cast(round(`diciembre`, 2) as string) as `diciembre`
+from {{ ref("int_nrp_91_08_balance_proyectado") }}

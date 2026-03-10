@@ -1,7 +1,7 @@
 select
-    cast(null as string) as `id_codigo_banco`,
-    cast(null as string) as `nom_banco`,
-    cast(null as string) as `Pais`,
-    cast(null as string) as `categoria`,
-    cast(null as string) as `valor_aval_fianza`
-where false
+    left(`id_codigo_banco`, 10) as `id_codigo_banco`,
+    left(`nom_banco`, 80) as `nom_banco`,
+    left(`Pais`, 20) as `Pais`,
+    left(`categoria`, 2) as `categoria`,
+    cast(round(`valor_aval_fianza`, 2) as string) as `valor_aval_fianza`
+from {{ ref("int_nrp_91_06_aval_garantizado") }}

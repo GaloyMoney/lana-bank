@@ -1,14 +1,16 @@
 version: 2
 
 models:
-  - name: report_nrp_91_01_saldo_cuenta
+  - name: report_nrp_91_01_saldo_cuenta_daily
     description: >
-      saldo_cuenta.xml per NRP-91 (Anexo 1, file 1). Reports the chart of accounts with balances
-      for Bancos de Inversión to the SSF via the CEBI system. Every account and sub-account up to
-      10 digits must be sent with its balance, even when the balance is zero. Account codes must be
-      sent without zero-padding. Account names must be in uppercase and must not be modified from
-      the official catalog. Corresponds to XSD ssf_cebi_saldo_cuenta.xsd.
+      Full daily history for saldo_cuenta.xml with as_of_date table grain. Reports the chart of
+      accounts with balances for Bancos de Inversión to the SSF via the CEBI system. Every account
+      and sub-account up to 10 digits must be sent with its balance, even when the balance is zero.
+      Account codes must be sent without zero-padding. Account names must be in uppercase and must
+      not be modified from the official catalog. Corresponds to XSD ssf_cebi_saldo_cuenta.xsd.
     tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [as_of_date, id_codigo_cuenta]
       - dbt_utils.expression_is_true:
           expression: "regexp_contains(id_codigo_cuenta, r'^[0-9]{1,10}$')"
           config:
@@ -28,6 +30,10 @@ models:
             description: "Balance must be formatted as XsDecimal with totalDigits=17 and fractionDigits=2"
 
     columns:
+      - name: as_of_date
+        description: As-of date for the precomputed saldo_cuenta snapshot.
+        tests:
+          - not_null
       - name: id_codigo_cuenta
         description: >
           Account code from the Banco de Inversión chart of accounts (XsString, length <= 10).
@@ -35,7 +41,6 @@ models:
           This value is provided by the SSF catalog and must not be modified by the reporting entity.
         tests:
           - not_null
-          - unique
       - name: nom_cuenta
         description: >
           Account description (XsString, length <= 80, uppercase). Provided by the SSF catalog
