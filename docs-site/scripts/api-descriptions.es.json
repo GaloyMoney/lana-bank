@@ -81,7 +81,7 @@
       "prospects": "Devuelve una lista paginada de todos los prospectos, opcionalmente filtrada por etapa"
     },
     "mutations": {
-      "customerDocumentAttach": "Carga y adjunta un documento al perfil de un cliente",
+      "customerDocumentCreate": "Carga y adjunta un documento al perfil de un cliente",
       "prospectKycLinkCreate": "Genera un enlace de verificación KYC para un prospecto",
       "userCreate": "Crea un nuevo usuario con un rol especificado",
       "userUpdateRole": "Actualiza el rol asignado a un usuario existente",

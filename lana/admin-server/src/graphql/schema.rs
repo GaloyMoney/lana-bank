@@ -1275,7 +1275,7 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
-    pub async fn customer_document_attach(
+    pub async fn customer_document_create(
         &self,
         ctx: &Context<'_>,
         input: CustomerDocumentCreateInput,

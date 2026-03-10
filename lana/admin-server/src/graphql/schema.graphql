@@ -2047,7 +2047,7 @@ type Me {
 }
 
 type Mutation {
-	customerDocumentAttach(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
+	customerDocumentCreate(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
 	prospectKycLinkCreate(input: ProspectKycLinkCreateInput!): ProspectKycLinkCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!

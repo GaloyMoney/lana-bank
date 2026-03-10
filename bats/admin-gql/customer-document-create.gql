@@ -1,0 +1,9 @@
+mutation customerDocumentCreate($file: Upload!, $customerId: String!) {
+  customerDocumentCreate(input: { file: $file, customerId: $customerId }) {
+    document {
+      customerDocumentId
+      customerId
+      filename
+    }
+  }
+}
