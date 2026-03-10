@@ -75,7 +75,7 @@ describe("Customers", () => {
 
   it("KYC verification and customer creation", () => {
     cy.intercept("POST", "/graphql", (req) => {
-      if (req.body.operationName === "sumsubPermalinkCreate") {
+      if (req.body.operationName === "prospectKycLinkCreate") {
         req.reply({
           statusCode: 200,
           headers: {
@@ -83,9 +83,9 @@ describe("Customers", () => {
           },
           body: {
             data: {
-              sumsubPermalinkCreate: {
+              prospectKycLinkCreate: {
                 url: "https://in.sumsub.com/test/link",
-                __typename: "SumsubPermalinkCreatePayload",
+                __typename: "ProspectKycLinkCreatePayload",
               },
             },
           },

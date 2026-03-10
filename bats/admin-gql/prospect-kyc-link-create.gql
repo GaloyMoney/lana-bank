@@ -1,0 +1,5 @@
+mutation prospectKycLinkCreate($input: ProspectKycLinkCreateInput!) {
+  prospectKycLinkCreate(input: $input) {
+    url
+  }
+}

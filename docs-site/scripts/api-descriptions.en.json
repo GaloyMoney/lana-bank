@@ -82,7 +82,7 @@
     },
     "mutations": {
       "customerDocumentAttach": "Uploads and attaches a document to a customer's profile",
-      "sumsubPermalinkCreate": "Generates a Sumsub KYC verification permalink for a customer",
+      "prospectKycLinkCreate": "Generates a KYC verification link for a prospect",
       "userCreate": "Creates a new user with a specified role",
       "userUpdateRole": "Updates the role assigned to an existing user",
       "roleCreate": "Creates a new role with specified permission sets",
