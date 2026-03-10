@@ -166,7 +166,7 @@ const AuditLogsList = () => {
             setAuthorizedFilter(val === "all" ? undefined : val === "true")
           }
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[220px]">
             <SelectValue placeholder={t("filters.allAuthorized")} />
           </SelectTrigger>
           <SelectContent>
