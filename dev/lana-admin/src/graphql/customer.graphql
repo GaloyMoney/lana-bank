@@ -1,0 +1,110 @@
+query CustomersList($first: Int!, $after: String) {
+  customers(first: $first, after: $after) {
+    nodes {
+      customerId
+      publicId
+    email
+    telegramHandle
+    customerType
+    status
+    level
+    personalInfo {
+      firstName
+        lastName
+        companyName
+      }
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query CustomerGet($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    publicId
+    email
+    telegramHandle
+    customerType
+    status
+    level
+    personalInfo {
+      firstName
+      lastName
+      companyName
+    }
+    createdAt
+  }
+}
+
+query CustomerGetByEmail($email: String!) {
+  customerByEmail(email: $email) {
+    customerId
+    publicId
+    email
+    telegramHandle
+    customerType
+    status
+    level
+    personalInfo {
+      firstName
+      lastName
+      companyName
+    }
+    createdAt
+  }
+}
+
+mutation CustomerClose($input: CustomerCloseInput!) {
+  customerClose(input: $input) {
+    customer {
+      customerId
+      publicId
+      email
+      status
+      personalInfo {
+        firstName
+        lastName
+        companyName
+      }
+      createdAt
+    }
+  }
+}
+
+mutation CustomerFreeze($input: CustomerFreezeInput!) {
+  customerFreeze(input: $input) {
+    customer {
+      customerId
+      publicId
+      email
+      status
+      personalInfo {
+        firstName
+        lastName
+        companyName
+      }
+      createdAt
+    }
+  }
+}
+
+mutation CustomerUnfreeze($input: CustomerUnfreezeInput!) {
+  customerUnfreeze(input: $input) {
+    customer {
+      customerId
+      publicId
+      email
+      status
+      personalInfo {
+        firstName
+        lastName
+        companyName
+      }
+      createdAt
+    }
+  }
+}

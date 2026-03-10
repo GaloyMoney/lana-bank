@@ -1,0 +1,60 @@
+query RolesList($first: Int!, $after: String) {
+  roles(first: $first, after: $after) {
+    nodes {
+      roleId
+      name
+      permissionSets {
+        permissionSetId
+        name
+        description
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query RoleGet($id: UUID!) {
+  role(id: $id) {
+    roleId
+    name
+    createdAt
+    permissionSets {
+      permissionSetId
+      name
+      description
+    }
+  }
+}
+
+mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
+  roleAddPermissionSets(input: $input) {
+    role {
+      roleId
+      name
+      createdAt
+      permissionSets {
+        permissionSetId
+        name
+        description
+      }
+    }
+  }
+}
+
+mutation RoleRemovePermissionSets($input: RoleRemovePermissionSetsInput!) {
+  roleRemovePermissionSets(input: $input) {
+    role {
+      roleId
+      name
+      createdAt
+      permissionSets {
+        permissionSetId
+        name
+        description
+      }
+    }
+  }
+}
