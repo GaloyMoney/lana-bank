@@ -36,8 +36,7 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 /// Remove stale job rows that can prevent outbox handlers from running.
 ///
 /// Between test runs the poller process dies but the database persists.
-/// Leftover rows block `spawn_unique` from creating fresh handler jobs,
-/// so the new poller never picks them up.
+/// Leftover rows can block the new poller from claiming handler jobs.
 pub async fn cleanup_stale_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
     sqlx::query(
         "DELETE FROM job_executions
@@ -47,20 +46,18 @@ pub async fn cleanup_stale_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
     .execute(pool)
     .await?;
 
-    // Delete all outbox handler jobs from prior test runs. These can be:
-    // - 'running' from a dead poller (test exited without shutdown)
-    // - 'pending' with execute_at far in the future (shutdown after
-    //   artificial time advancement set execute_at = clock.now())
-    // Either way, spawn_unique silently catches the duplicate and the new
-    // poller can never claim the job, so the handler never runs.
+    // Clean stale outbox events and handler jobs from prior test runs.
     //
-    // Must delete from all three tables: job_executions and job_events
-    // first (FK children), then jobs (FK parent). The `jobs` table has a
-    // UNIQUE index on job_type when unique_per_type = true. If we only
-    // delete job_executions, spawn_unique hits the unique constraint on
-    // the stale `jobs` row, silently catches the duplicate, and never
-    // creates a new execution.
-    sqlx::query("DELETE FROM job_executions WHERE job_type LIKE 'outbox.%'")
+    // Each test creates its own state from scratch, so historical outbox
+    // events are unnecessary. On a fresh CI database (no prior handler
+    // cursors), all 10 outbox handlers would start from EventSequence::BEGIN
+    // (0) and replay every historical event sequentially before reaching
+    // the current test's events — easily exceeding assertion timeouts.
+    //
+    // Cleaning the events table eliminates this replay overhead. We also
+    // delete handler job rows so they're freshly created by spawn_unique
+    // with a cursor matching the now-empty event space.
+    sqlx::query("DELETE FROM persistent_outbox_events")
         .execute(pool)
         .await?;
     sqlx::query(
@@ -68,6 +65,9 @@ pub async fn cleanup_stale_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
     )
     .execute(pool)
     .await?;
+    sqlx::query("DELETE FROM job_executions WHERE job_type LIKE 'outbox.%'")
+        .execute(pool)
+        .await?;
     sqlx::query("DELETE FROM jobs WHERE job_type LIKE 'outbox.%'")
         .execute(pool)
         .await?;

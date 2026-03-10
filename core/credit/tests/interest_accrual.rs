@@ -14,7 +14,7 @@ use public_id::PublicIds;
 use rust_decimal_macros::dec;
 use std::time::Duration;
 
-const ONE_DAY: Duration = Duration::from_secs(86400);
+const ONE_DAY: Duration = Duration::from_secs(86_400);
 const POLL_INTERVAL: Duration = Duration::from_millis(100);
 
 async fn setup_with_clock_control() -> anyhow::Result<(
@@ -339,8 +339,10 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
     // 12% annual on $10,000 for 1 day: 10000 * 1 * 0.12 / 365 = 328.77 → 329 (rounded away from zero)
     assert_eq!(posting.amount, UsdCents::from(329));
 
-    // Wait for the history projection handler to process the AccrualPosted event
-    let history_entries = tokio::time::timeout(Duration::from_secs(10), async {
+    // Wait for the history projection handler to process the AccrualPosted event.
+    // Keep nudging the artificial clock so the outbox poll job remains eligible —
+    // without advances the frozen clock prevents scheduled polls from firing.
+    let history_entries = tokio::time::timeout(Duration::from_secs(30), async {
         loop {
             let entries: Vec<CreditFacilityHistoryEntry> = ctx
                 .credit
@@ -355,6 +357,7 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
             if !interest_entries.is_empty() {
                 return entries;
             }
+            clock_ctrl.advance(Duration::from_secs(1)).await;
             tokio::time::sleep(POLL_INTERVAL).await;
         }
     })
