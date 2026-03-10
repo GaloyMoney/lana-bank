@@ -1,0 +1,78 @@
+version: 2
+models:
+  - name: report_nrp_92_16_garantia_criptomonedas
+    description: >
+      Output table for NRP-92 (Anexo A, Archivo 16: garantia_criptomonedas.xml). Reports cryptocurrency
+      collateral backing credit facility loans to the Central de Riesgos.
+    columns:
+      - name: num_referencia
+        description: >
+          Loan reference number (Archivo 16 field 16.1). Matches the num_referencia in the referencia file.
+          Truncated to 20 characters.
+        tests:
+          - not_null
+      - name: cod_cartera
+        description: >
+          Portfolio type code (Archivo 16 field 16.2, Tabla 1). '01' = cartera propia.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['01', '99']
+      - name: cod_activo
+        description: >
+          Risk asset type code (Archivo 16 field 16.3, Tabla 2). 'PD' = préstamos.
+        tests:
+          - not_null
+      - name: identificacion_garantia
+        description: >
+          Unique guarantee identifier (Archivo 16 field 16.4). Truncated to 20 characters.
+        tests:
+          - not_null
+          - unique
+      - name: num_criptomonedas
+        description: >
+          Nominal value in cryptocurrency units (Archivo 16 field 16.5). BTC amount with 8 decimal places.
+        tests:
+          - not_null
+      - name: valor_contractual
+        description: >
+          Contractual value in USD (Archivo 16 field 16.6). The USD value of the crypto collateral at the
+          time it was first deposited.
+        tests:
+          - not_null
+      - name: valor_mercado
+        description: >
+          Current market value in USD (Archivo 16 field 16.7). Calculated as BTC amount times the latest
+          BTC/USD price.
+        tests:
+          - not_null
+      - name: fecha_valuacion_mercado
+        description: >
+          Date of the market valuation (Archivo 16 field 16.8). The date of the most recent BTC price
+          snapshot used for valor_mercado.
+        tests:
+          - not_null
+      - name: hora_valuacion_mercado
+        description: >
+          Time of the market valuation (Archivo 16 field 16.9). The time of the most recent BTC price
+          snapshot, formatted as HH:MM:SS.
+        tests:
+          - not_null
+      - name: tasas_conversion
+        description: >
+          USD conversion rate (Archivo 16 field 16.10). The BTC/USD exchange rate used for the market
+          valuation.
+        tests:
+          - not_null
+      - name: monto_garantizado
+        description: >
+          Guaranteed amount in USD (Archivo 16 field 16.11). The proportional collateral amount covering
+          this loan reference.
+        tests:
+          - not_null
+      - name: fecha_otorgamiento
+        description: >
+          Guarantee grant date (Archivo 16 field 16.12). The date the cryptocurrency collateral was deposited.
+        tests:
+          - not_null

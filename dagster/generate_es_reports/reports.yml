@@ -169,6 +169,14 @@ report_jobs:
         validation_schema_id: ssf_ctri_garantia_prendaria
       - type: csv
 
+  #--- NRP-92 Reports ---
+  - norm: nrp_92
+    id: "16_garantia_criptomonedas"
+    friendly_name: "garantia_criptomonedas"
+    source_table: report_nrp_92_16_garantia_criptomonedas
+    outputs:
+      - type: csv
+
   #--- NRP-51 Reports ---
   - norm: nrp_51
     id: "01_saldo_cuenta"

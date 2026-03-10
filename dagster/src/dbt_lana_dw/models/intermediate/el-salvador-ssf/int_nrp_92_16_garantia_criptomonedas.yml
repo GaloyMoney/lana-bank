@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: int_nrp_92_16_garantia_criptomonedas
+    columns:
+      - name: num_referencia
+        tests:
+          - not_null_quoted
+      - name: identificacion_garantia
+        tests:
+          - not_null_quoted
