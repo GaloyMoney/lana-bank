@@ -369,11 +369,7 @@ where
             )
             .await?;
         let new_process = policy.spawn_process(id.into(), target_ref);
-        let mut process = self.process_repo.create_in_op(db, new_process).await?;
-        let eligible = self.eligible_voters_for_process_in_op(db, &process).await?;
-        if process.check_concluded(&eligible).did_execute() {
-            self.process_repo.update_in_op(db, &mut process).await?;
-        }
+        let process = self.process_repo.create_in_op(db, new_process).await?;
         Ok(process)
     }
 
@@ -715,22 +711,6 @@ where
         let res = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
                 .find_by_id(committee_id)
-                .await?
-                .members()
-        } else {
-            HashSet::new()
-        };
-        Ok(res)
-    }
-
-    async fn eligible_voters_for_process_in_op(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        process: &ApprovalProcess,
-    ) -> Result<HashSet<CommitteeMemberId>, GovernanceError> {
-        let res = if let Some(committee_id) = process.committee_id() {
-            self.committee_repo
-                .find_by_id_in_op(db, committee_id)
                 .await?
                 .members()
         } else {

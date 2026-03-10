@@ -100,21 +100,6 @@ impl ApprovalProcess {
             && !self.deniers().contains(&member_id)
     }
 
-    pub(crate) fn check_concluded(
-        &mut self,
-        eligible: &HashSet<CommitteeMemberId>,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: ApprovalProcessEvent::Concluded { .. },
-        );
-        if self.maybe_conclude(eligible) {
-            Idempotent::Executed(())
-        } else {
-            Idempotent::AlreadyApplied
-        }
-    }
-
     fn maybe_conclude(&mut self, eligible_members: &HashSet<CommitteeMemberId>) -> bool {
         if let Some(approved) =
             self.rules
@@ -263,16 +248,18 @@ impl NewApprovalProcess {
 
 impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
     fn into_events(self) -> EntityEvents<ApprovalProcessEvent> {
-        EntityEvents::init(
-            self.id,
-            [ApprovalProcessEvent::Initialized {
-                id: self.id,
-                policy_id: self.policy_id,
-                process_type: self.process_type,
-                rules: self.rules,
-                target_ref: self.target_ref,
-            }],
-        )
+        let auto_approve = matches!(self.rules, ApprovalRules::SystemAutoApprove);
+        let mut events = vec![ApprovalProcessEvent::Initialized {
+            id: self.id,
+            policy_id: self.policy_id,
+            process_type: self.process_type,
+            rules: self.rules,
+            target_ref: self.target_ref,
+        }];
+        if auto_approve {
+            events.push(ApprovalProcessEvent::Concluded { approved: true });
+        }
+        EntityEvents::init(self.id, events)
     }
 }
 
@@ -281,16 +268,19 @@ mod tests {
     use super::*;
 
     fn init_events(rules: ApprovalRules) -> EntityEvents<ApprovalProcessEvent> {
-        EntityEvents::init(
-            ApprovalProcessId::new(),
-            [ApprovalProcessEvent::Initialized {
-                id: ApprovalProcessId::new(),
-                policy_id: PolicyId::new(),
-                process_type: ApprovalProcessType::from_owned("type".to_string()),
-                rules,
-                target_ref: "target_ref".to_string(),
-            }],
-        )
+        let id = ApprovalProcessId::new();
+        let auto_approve = matches!(rules, ApprovalRules::SystemAutoApprove);
+        let mut events = vec![ApprovalProcessEvent::Initialized {
+            id,
+            policy_id: PolicyId::new(),
+            process_type: ApprovalProcessType::from_owned("type".to_string()),
+            rules,
+            target_ref: "target_ref".to_string(),
+        }];
+        if auto_approve {
+            events.push(ApprovalProcessEvent::Concluded { approved: true });
+        }
+        EntityEvents::init(id, events)
     }
 
     #[test]
@@ -337,7 +327,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
-        let _ = process.check_concluded(&HashSet::new());
+        assert_eq!(process.status(), ApprovalProcessStatus::Approved);
         let approver = CommitteeMemberId::new();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
         assert!(process.approve(&eligible, approver).was_already_applied());
@@ -405,7 +395,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
-        let _ = process.check_concluded(&HashSet::new());
+        assert_eq!(process.status(), ApprovalProcessStatus::Approved);
         let denier = CommitteeMemberId::new();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(
