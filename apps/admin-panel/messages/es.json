@@ -2288,7 +2288,7 @@
       },
       "totalCollateral": {
         "title": "Garantía Total",
-        "description": "Valor total de la garantía en bitcoin a precio de mercado que posee el banco",
+        "description": "Valor total de la garantía en bitcoin en manos del banco a precio de mercado",
         "buttonText": "Ver Líneas de Crédito"
       }
     }
