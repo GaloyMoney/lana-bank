@@ -761,11 +761,10 @@ type CreditFacilityProposalConnection {
 }
 
 input CreditFacilityProposalCreateInput {
-	custodianId: UUID
+	custodianId: UUID!
 	customerId: UUID!
 	facility: UsdCents!
 	terms: TermsInput!
-	custodianId: UUID!
 }
 
 type CreditFacilityProposalCreatePayload {
@@ -970,6 +969,7 @@ type Custodian {
 	createdAt: Timestamp!
 	custodianId: UUID!
 	id: ID!
+	isManual: Boolean!
 	name: String!
 	provider: String!
 }
@@ -1007,8 +1007,8 @@ type CustodianConnection {
 input CustodianCreateInput @oneOf {
 	bitgo: BitgoConfig
 	komainu: KomainuConfig
-	selfCustody: SelfCustodyConfig
 	manual: ManualConfig
+	selfCustody: SelfCustodyConfig
 }
 
 type CustodianCreatePayload {

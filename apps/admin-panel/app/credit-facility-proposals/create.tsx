@@ -29,6 +29,7 @@ import {
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
   useCustodiansQuery,
+  useDomainConfigsQuery,
   DisbursalPolicy,
 } from "@/lib/graphql/generated"
 import {
@@ -107,6 +108,13 @@ export const CreateCreditFacilityProposalDialog: React.FC<
   const { data: custodiansData, loading: custodiansLoading } = useCustodiansQuery({
     variables: { first: 50 },
   })
+  const { data: domainConfigsData } = useDomainConfigsQuery({
+    variables: { first: 100 },
+  })
+  const manualCollateralEnabled =
+    domainConfigsData?.domainConfigs.nodes.find(
+      (c) => c.key === "manual-collateral",
+    )?.value !== false
   const [createCreditFacility, { loading, error, reset }] =
     useCreditFacilityProposalCreateMutation()
 
@@ -182,6 +190,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
 
     if (
       !facility ||
+      !custodianId ||
       !annualRate ||
       !liquidationCvl ||
       !marginCallCvl ||
@@ -354,11 +363,16 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                 <SelectValue placeholder={t("form.placeholders.custodian")} />
               </SelectTrigger>
               <SelectContent>
-                {custodiansData?.custodians.edges.map(({ node: custodian }) => (
-                  <SelectItem key={custodian.id} value={custodian.custodianId}>
-                    {custodian.name}
-                  </SelectItem>
-                ))}
+                {custodiansData?.custodians.edges
+                  .filter(
+                    ({ node: custodian }) =>
+                      manualCollateralEnabled || !custodian.isManual,
+                  )
+                  .map(({ node: custodian }) => (
+                    <SelectItem key={custodian.id} value={custodian.custodianId}>
+                      {custodian.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

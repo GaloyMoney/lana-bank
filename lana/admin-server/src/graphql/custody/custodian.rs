@@ -45,6 +45,10 @@ impl Custodian {
     async fn provider(&self) -> &str {
         &self.entity.provider
     }
+
+    async fn is_manual(&self) -> bool {
+        self.entity.provider == "manual"
+    }
 }
 
 #[derive(InputObject)]
