@@ -161,7 +161,6 @@ with
             modified_at as credit_facility_modified_at,
 
             json_value(account_ids, "$.facility_account_id") as facility_account_id,
-            json_value(account_ids, "$.collateral_account_id") as collateral_account_id,
             json_value(account_ids, "$.fee_income_account_id") as fee_income_account_id,
             json_value(
                 account_ids, "$.interest_income_account_id"
