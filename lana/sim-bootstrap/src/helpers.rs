@@ -1,7 +1,8 @@
 use lana_app::{
     app::LanaApp,
+    custody::{CustodiansSortBy, custodian::CustodianConfig},
     customer::{CustomerId, CustomerType},
-    primitives::{DepositAccountId, Subject, UsdCents},
+    primitives::{CustodianId, DepositAccountId, Subject, UsdCents},
     terms::{DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, TermValues},
 };
 use rust_decimal_macros::dec;
@@ -131,4 +132,43 @@ pub fn std_terms_12m() -> TermValues {
         .disbursal_policy(DisbursalPolicy::MultipleDisbursal)
         .build()
         .expect("std_terms_12m builder should be valid")
+}
+
+use es_entity::{ListDirection, PaginatedQueryArgs, Sort};
+
+#[tracing::instrument(
+    name = "sim_bootstrap.helpers.get_or_create_manual_custodian",
+    skip(app, sub),
+    err
+)]
+pub async fn get_or_create_manual_custodian(
+    sub: &Subject,
+    app: &LanaApp,
+) -> anyhow::Result<CustodianId> {
+    let custodians = app
+        .custody()
+        .list_custodians(
+            sub,
+            PaginatedQueryArgs::default(),
+            Sort {
+                by: CustodiansSortBy::Name,
+                direction: ListDirection::Ascending,
+            },
+        )
+        .await?;
+
+    if let Some(existing) = custodians
+        .entities
+        .into_iter()
+        .find(|c| c.name == "Manual Custodian")
+    {
+        return Ok(existing.id);
+    }
+
+    let custodian = app
+        .custody()
+        .create_custodian(sub, "Manual Custodian", CustodianConfig::Manual)
+        .await?;
+
+    Ok(custodian.id)
 }

@@ -41,8 +41,9 @@ pub async fn interest_under_payment_scenario(
 
     let cf_terms = helpers::std_terms();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
+    let custodian_id = helpers::get_or_create_manual_custodian(&sub, app).await?;
     let cf_proposal = app
-        .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, CustodianId::new())
+        .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, custodian_id)
         .await?;
     let proposal_id = cf_proposal.id;
     let cf_id: CreditFacilityId = proposal_id.into();

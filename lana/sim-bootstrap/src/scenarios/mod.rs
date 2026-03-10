@@ -62,13 +62,14 @@ pub async fn process_facility_lifecycle(
 
     let mut stream = app.outbox().listen_persisted(None);
 
+    let custodian_id = helpers::get_or_create_manual_custodian(&sub, &app).await?;
     let cf_proposal = app
         .create_facility_proposal(
             &sub,
             customer_id,
             UsdCents::try_from_usd(dec!(10_000_000))?,
             terms,
-            CustodianId::new(),
+            custodian_id,
         )
         .await?;
 
