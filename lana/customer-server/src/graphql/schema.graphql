@@ -1,6 +1,6 @@
 scalar AnnualRatePct
 
-scalar CVLPct
+scalar CVLPctValue
 
 type CancelledWithdrawalEntry {
 	recordedAt: Timestamp!
@@ -30,7 +30,7 @@ type CreditFacility {
 	collateralizationState: CollateralizationState!
 	creditFacilityId: UUID!
 	creditFacilityTerms: TermValues!
-	currentCvl: CVLPct!
+	currentCvl: CvlPct!
 	disbursals: [CreditFacilityDisbursal!]!
 	facilityAmount: UsdCents!
 	history: [CreditFacilityHistoryEntry!]!
@@ -187,6 +187,8 @@ enum CustomerType {
 	PRIVATE_COMPANY
 }
 
+union CvlPct = FiniteCvlPct | InfiniteCvlPct
+
 """
 An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represents a business date; timezone-naive by design.
 """
@@ -286,10 +288,18 @@ type FacilityRemaining {
 	usdBalance: UsdCents!
 }
 
+type FiniteCvlPct {
+	value: CVLPctValue!
+}
+
 type FreezeEntry {
 	amount: UsdCents!
 	recordedAt: Timestamp!
 	txId: UUID!
+}
+
+type InfiniteCvlPct {
+	isInfinite: Boolean!
 }
 
 type Interest {
@@ -390,9 +400,9 @@ type TermValues {
 	accrualInterval: InterestInterval!
 	annualRate: AnnualRatePct!
 	duration: Duration!
-	initialCvl: CVLPct!
-	liquidationCvl: CVLPct!
-	marginCallCvl: CVLPct!
+	initialCvl: CvlPct!
+	liquidationCvl: CvlPct!
+	marginCallCvl: CvlPct!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 }
 

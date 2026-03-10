@@ -29,6 +29,16 @@ import { removeUnderscore } from "@/lib/utils"
 import { GetCreditFacilityQuery } from "@/lib/graphql/generated"
 
 gql`
+  fragment CvlPctData on CvlPct {
+    __typename
+    ... on FiniteCvlPct {
+      value
+    }
+    ... on InfiniteCvlPct {
+      isInfinite
+    }
+  }
+
   query GetCreditFacility($id: UUID!) {
     creditFacility(id: $id) {
       id
@@ -54,9 +64,15 @@ gql`
           period
           units
         }
-        liquidationCvl
-        marginCallCvl
-        initialCvl
+        liquidationCvl {
+          ...CvlPctData
+        }
+        marginCallCvl {
+          ...CvlPctData
+        }
+        initialCvl {
+          ...CvlPctData
+        }
       }
       balance {
         facilityRemaining {
@@ -94,7 +110,9 @@ gql`
           usdBalance
         }
       }
-      currentCvl
+      currentCvl {
+        ...CvlPctData
+      }
       repaymentPlan {
         repaymentType
         status

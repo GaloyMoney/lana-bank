@@ -1850,6 +1850,7 @@ dependencies = [
  "es-entity",
  "jwks-utils",
  "lana-app",
+ "rust_decimal",
  "serde",
  "thiserror 2.0.18",
  "tokio",

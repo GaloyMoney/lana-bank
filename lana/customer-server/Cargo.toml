@@ -16,6 +16,7 @@ jwks-utils = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
 
 serde = { workspace = true }
+rust_decimal = { workspace = true }
 url = { workspace = true }
 async-graphql = { workspace = true }
 async-graphql-axum = { workspace = true }
