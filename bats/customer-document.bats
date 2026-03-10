@@ -33,8 +33,8 @@ teardown_file() {
     }')
 
   # Execute the GraphQL mutation for file upload
-  response=$(exec_admin_graphql_upload "customer-document-attach" "$variables" "$temp_file")
-  document_id=$(echo "$response" | jq -r '.data.customerDocumentAttach.document.customerDocumentId')
+  response=$(exec_admin_graphql_upload "customer-document-create" "$variables" "$temp_file")
+  document_id=$(echo "$response" | jq -r '.data.customerDocumentCreate.document.customerDocumentId')
   [[ "$document_id" != null ]] || exit 1
   
   rm "$temp_file"

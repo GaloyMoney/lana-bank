@@ -12,7 +12,7 @@ The document management system handles file uploads, cloud storage, and secure d
 
 ```mermaid
 graph TD
-    AP["Admin Panel<br/>(file upload)"] --> GQL["GraphQL API<br/>(customerDocumentAttach)"]
+    AP["Admin Panel<br/>(file upload)"] --> GQL["GraphQL API<br/>(customerDocumentCreate)"]
     GQL --> DS["Document Storage Service<br/>(creates record + uploads atomically)"]
     DS --> DB[("PostgreSQL<br/>(document metadata)")]
     DS --> GCS["Cloud Storage<br/>(file bytes)"]

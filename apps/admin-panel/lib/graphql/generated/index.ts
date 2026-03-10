@@ -2142,7 +2142,7 @@ export type Mutation = {
   custodianCreate: CustodianCreatePayload;
   customerClose: CustomerClosePayload;
   customerDocumentArchive: CustomerDocumentArchivePayload;
-  customerDocumentAttach: CustomerDocumentCreatePayload;
+  customerDocumentCreate: CustomerDocumentCreatePayload;
   customerDocumentDelete: CustomerDocumentDeletePayload;
   customerDocumentDownloadLinkGenerate: CustomerDocumentDownloadLinksGeneratePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
@@ -2301,7 +2301,7 @@ export type MutationCustomerDocumentArchiveArgs = {
 };
 
 
-export type MutationCustomerDocumentAttachArgs = {
+export type MutationCustomerDocumentCreateArgs = {
   input: CustomerDocumentCreateInput;
 };
 
@@ -4568,13 +4568,13 @@ export type CustomerDocumentDeleteMutationVariables = Exact<{
 
 export type CustomerDocumentDeleteMutation = { __typename?: 'Mutation', customerDocumentDelete: { __typename?: 'CustomerDocumentDeletePayload', deletedDocumentId: string } };
 
-export type CustomerDocumentAttachMutationVariables = Exact<{
+export type CustomerDocumentCreateMutationVariables = Exact<{
   file: Scalars['Upload']['input'];
   customerId: Scalars['UUID']['input'];
 }>;
 
 
-export type CustomerDocumentAttachMutation = { __typename?: 'Mutation', customerDocumentAttach: { __typename?: 'CustomerDocumentCreatePayload', document: { __typename?: 'CustomerDocument', id: string, customerId: string, filename: string } } };
+export type CustomerDocumentCreateMutation = { __typename?: 'Mutation', customerDocumentCreate: { __typename?: 'CustomerDocumentCreatePayload', document: { __typename?: 'CustomerDocument', id: string, customerId: string, filename: string } } };
 
 export type GetCustomerDocumentsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -9064,9 +9064,9 @@ export function useCustomerDocumentDeleteMutation(baseOptions?: Apollo.MutationH
 export type CustomerDocumentDeleteMutationHookResult = ReturnType<typeof useCustomerDocumentDeleteMutation>;
 export type CustomerDocumentDeleteMutationResult = Apollo.MutationResult<CustomerDocumentDeleteMutation>;
 export type CustomerDocumentDeleteMutationOptions = Apollo.BaseMutationOptions<CustomerDocumentDeleteMutation, CustomerDocumentDeleteMutationVariables>;
-export const CustomerDocumentAttachDocument = gql`
-    mutation CustomerDocumentAttach($file: Upload!, $customerId: UUID!) {
-  customerDocumentAttach(input: {file: $file, customerId: $customerId}) {
+export const CustomerDocumentCreateDocument = gql`
+    mutation CustomerDocumentCreate($file: Upload!, $customerId: UUID!) {
+  customerDocumentCreate(input: {file: $file, customerId: $customerId}) {
     document {
       id
       customerId
@@ -9075,33 +9075,33 @@ export const CustomerDocumentAttachDocument = gql`
   }
 }
     `;
-export type CustomerDocumentAttachMutationFn = Apollo.MutationFunction<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>;
+export type CustomerDocumentCreateMutationFn = Apollo.MutationFunction<CustomerDocumentCreateMutation, CustomerDocumentCreateMutationVariables>;
 
 /**
- * __useCustomerDocumentAttachMutation__
+ * __useCustomerDocumentCreateMutation__
  *
- * To run a mutation, you first call `useCustomerDocumentAttachMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCustomerDocumentAttachMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCustomerDocumentCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerDocumentCreateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [customerDocumentAttachMutation, { data, loading, error }] = useCustomerDocumentAttachMutation({
+ * const [customerDocumentCreateMutation, { data, loading, error }] = useCustomerDocumentCreateMutation({
  *   variables: {
  *      file: // value for 'file'
  *      customerId: // value for 'customerId'
  *   },
  * });
  */
-export function useCustomerDocumentAttachMutation(baseOptions?: Apollo.MutationHookOptions<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>) {
+export function useCustomerDocumentCreateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerDocumentCreateMutation, CustomerDocumentCreateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>(CustomerDocumentAttachDocument, options);
+        return Apollo.useMutation<CustomerDocumentCreateMutation, CustomerDocumentCreateMutationVariables>(CustomerDocumentCreateDocument, options);
       }
-export type CustomerDocumentAttachMutationHookResult = ReturnType<typeof useCustomerDocumentAttachMutation>;
-export type CustomerDocumentAttachMutationResult = Apollo.MutationResult<CustomerDocumentAttachMutation>;
-export type CustomerDocumentAttachMutationOptions = Apollo.BaseMutationOptions<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>;
+export type CustomerDocumentCreateMutationHookResult = ReturnType<typeof useCustomerDocumentCreateMutation>;
+export type CustomerDocumentCreateMutationResult = Apollo.MutationResult<CustomerDocumentCreateMutation>;
+export type CustomerDocumentCreateMutationOptions = Apollo.BaseMutationOptions<CustomerDocumentCreateMutation, CustomerDocumentCreateMutationVariables>;
 export const GetCustomerDocumentsDocument = gql`
     query GetCustomerDocuments($id: PublicId!) {
   customerByPublicId(id: $id) {

@@ -15,7 +15,7 @@ import DataTable, { Column } from "@/components/data-table"
 import {
   GetCustomerDocumentsDocument,
   GetCustomerDocumentsQuery,
-  useCustomerDocumentAttachMutation,
+  useCustomerDocumentCreateMutation,
   useCustomerDocumentDeleteMutation,
   useCustomerDocumentDownloadLinkGenerateMutation,
 } from "@/lib/graphql/generated"
@@ -53,8 +53,8 @@ gql`
     }
   }
 
-  mutation CustomerDocumentAttach($file: Upload!, $customerId: UUID!) {
-    customerDocumentAttach(input: { file: $file, customerId: $customerId }) {
+  mutation CustomerDocumentCreate($file: Upload!, $customerId: UUID!) {
+    customerDocumentCreate(input: { file: $file, customerId: $customerId }) {
       document {
         id
         customerId
@@ -176,14 +176,14 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
 const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
   const t = useTranslations("Customers.CustomerDetails.Documents")
 
-  const [customerDocumentAttach, { loading }] = useCustomerDocumentAttachMutation({
+  const [customerDocumentCreate, { loading }] = useCustomerDocumentCreateMutation({
     refetchQueries: [GetCustomerDocumentsDocument],
   })
 
   const handleFileUpload = useCallback(
     async (file: File) => {
       try {
-        await customerDocumentAttach({
+        await customerDocumentCreate({
           variables: {
             customerId: customer.customerId,
             file,
@@ -196,7 +196,7 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
         toast.error(errorMessage)
       }
     },
-    [customerDocumentAttach, customer.customerId, refetch, t],
+    [customerDocumentCreate, customer.customerId, refetch, t],
   )
 
   const onDrop = useCallback(
