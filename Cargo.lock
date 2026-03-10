@@ -1124,6 +1124,7 @@ name = "codegen"
 version = "0.1.0"
 dependencies = [
  "admin-server",
+ "async-graphql",
  "customer-server",
  "heck",
  "permission-sets-macro",

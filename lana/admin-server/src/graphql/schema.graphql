@@ -1,11 +1,11 @@
 enum AccountCategory {
 	ASSET
-	LIABILITY
-	EQUITY
-	REVENUE
 	COST_OF_REVENUE
+	EQUITY
 	EXPENSES
+	LIABILITY
 	OFF_BALANCE_SHEET
+	REVENUE
 }
 
 scalar AccountCode
@@ -18,38 +18,38 @@ type AccountInfo {
 
 input AccountingBaseConfigInput {
 	assetsCode: String!
-	liabilitiesCode: String!
+	costOfRevenueCode: String!
 	equityCode: String!
 	equityRetainedEarningsGainCode: String!
 	equityRetainedEarningsLossCode: String!
-	revenueCode: String!
-	costOfRevenueCode: String!
 	expensesCode: String!
+	liabilitiesCode: String!
+	revenueCode: String!
 }
 
 type AccountingBaseConfigOutput {
 	assetsCode: String!
-	liabilitiesCode: String!
+	costOfRevenueCode: String!
 	equityCode: String!
 	equityRetainedEarningsGainCode: String!
 	equityRetainedEarningsLossCode: String!
-	revenueCode: String!
-	costOfRevenueCode: String!
 	expensesCode: String!
+	liabilitiesCode: String!
+	revenueCode: String!
 }
 
 type AccountingCsvDocument {
-	id: ID!
 	accountingCsvDocumentId: UUID!
-	ledgerAccountId: UUID!
-	status: DocumentStatus!
 	createdAt: Timestamp!
 	filename: String!
+	id: ID!
+	ledgerAccountId: UUID!
+	status: DocumentStatus!
 }
 
 type AccountingCsvDownloadLink {
-	url: String!
 	csvId: UUID!
+	url: String!
 }
 
 input AccountingCsvDownloadLinkGenerateInput {
@@ -61,26 +61,26 @@ type AccountingCsvDownloadLinkGeneratePayload {
 }
 
 enum Activity {
-	INACTIVE
 	ACTIVE
 	ESCHEATABLE
+	INACTIVE
 }
 
 scalar AnnualRatePct
 
 type ApprovalProcess {
-	id: ID!
 	approvalProcessId: UUID!
 	approvalProcessType: ApprovalProcessType!
-	status: ApprovalProcessStatus!
 	createdAt: Timestamp!
-	rules: ApprovalRules!
 	deniedReason: String
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
 	policy: Policy!
+	rules: ApprovalRules!
+	status: ApprovalProcessStatus!
+	target: ApprovalProcessTarget!
 	userCanSubmitDecision: Boolean!
 	voters: [ApprovalProcessVoter!]!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
-	target: ApprovalProcessTarget!
 }
 
 input ApprovalProcessApproveInput {
@@ -93,10 +93,6 @@ type ApprovalProcessApprovePayload {
 
 type ApprovalProcessConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [ApprovalProcessEdge!]!
@@ -104,6 +100,10 @@ type ApprovalProcessConnection {
 	A list of nodes.
 	"""
 	nodes: [ApprovalProcess!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 input ApprovalProcessDenyInput {
@@ -120,13 +120,13 @@ An edge in a connection.
 """
 type ApprovalProcessEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: ApprovalProcess!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: ApprovalProcess!
 }
 
 enum ApprovalProcessStatus {
@@ -138,37 +138,33 @@ enum ApprovalProcessStatus {
 union ApprovalProcessTarget = Withdrawal | CreditFacilityProposal | CreditFacilityDisbursal
 
 enum ApprovalProcessType {
-	WITHDRAWAL_APPROVAL
-	DISBURSAL_APPROVAL
 	CREDIT_FACILITY_PROPOSAL_APPROVAL
+	DISBURSAL_APPROVAL
+	WITHDRAWAL_APPROVAL
 }
 
 type ApprovalProcessVoter {
-	stillEligible: Boolean!
-	didVote: Boolean!
 	didApprove: Boolean!
 	didDeny: Boolean!
-	votedAt: Timestamp
+	didVote: Boolean!
+	stillEligible: Boolean!
 	user: User!
+	votedAt: Timestamp
 }
 
 union ApprovalRules = SystemApproval | CommitteeApproval
 
 type AuditEntry {
-	id: ID!
-	auditEntryId: AuditEntryId!
-	object: String!
 	action: String!
+	auditEntryId: AuditEntryId!
 	authorized: Boolean!
+	id: ID!
+	object: String!
 	recordedAt: Timestamp!
 	subject: AuditSubject!
 }
 
 type AuditEntryConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -177,6 +173,10 @@ type AuditEntryConnection {
 	A list of nodes.
 	"""
 	nodes: [AuditEntry!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -184,13 +184,13 @@ An edge in a connection.
 """
 type AuditEntryEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: AuditEntry!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: AuditEntry!
 }
 
 scalar AuditEntryId
@@ -200,30 +200,30 @@ union AuditSubject = User | System
 scalar AuditSubjectId
 
 type BalanceSheet {
-	name: String!
 	assetsBalance: LedgerAccountBalanceByCurrency!
-	liabilitiesBalance: LedgerAccountBalanceByCurrency!
-	equityBalance: LedgerAccountBalanceByCurrency!
 	categories: [BalanceSheetAccount!]!
+	equityBalance: LedgerAccountBalanceByCurrency!
+	liabilitiesBalance: LedgerAccountBalanceByCurrency!
+	name: String!
 }
 
 type BalanceSheetAccount {
-	balanceSheetAccountId: ID!
-	ledgerAccountId: UUID!
-	code: AccountCode
-	name: String!
 	balance: LedgerAccountBalanceByCurrency!
+	balanceSheetAccountId: ID!
 	children: [BalanceSheetAccount!]!
+	code: AccountCode
+	ledgerAccountId: UUID!
+	name: String!
 }
 
 input BitgoConfig {
-	name: String!
+	enterpriseId: String!
 	longLivedToken: String!
+	name: String!
 	passphrase: String!
 	testingInstance: Boolean!
-	enterpriseId: String!
-	webhookUrl: String!
 	webhookSecret: String!
+	webhookUrl: String!
 }
 
 type BtcAmount {
@@ -231,28 +231,28 @@ type BtcAmount {
 }
 
 type BtcBalanceDetails {
-	debit: Satoshis!
 	credit: Satoshis!
+	debit: Satoshis!
 	net: SignedSatoshis!
 }
 
 type BtcLedgerAccountBalance {
-	settled: BtcBalanceDetails!
-	pending: BtcBalanceDetails!
 	encumbrance: BtcBalanceDetails!
+	pending: BtcBalanceDetails!
+	settled: BtcBalanceDetails!
 }
 
 type BtcLedgerAccountBalanceRange {
+	close: BtcLedgerAccountBalance!
 	open: BtcLedgerAccountBalance!
 	periodActivity: BtcLedgerAccountBalance!
-	close: BtcLedgerAccountBalance!
 }
 
 type BuildInfo {
-	version: String!
 	buildProfile: String!
 	buildTarget: String!
 	enabledFeatures: [String!]!
+	version: String!
 }
 
 scalar CVLPctValue
@@ -263,23 +263,23 @@ type CancelledWithdrawalEntry {
 }
 
 type ChartNode {
-	name: String!
 	accountCode: AccountCode!
 	children: [ChartNode!]!
+	name: String!
 }
 
 type ChartOfAccounts {
-	id: ID!
-	chartOfAccountsId: UUID!
-	name: String!
-	children: [ChartNode!]!
 	accountingBaseConfig: AccountingBaseConfigOutput
+	chartOfAccountsId: UUID!
+	children: [ChartNode!]!
+	id: ID!
+	name: String!
 }
 
 input ChartOfAccountsAddChildNodeInput {
-	parent: AccountCode!
 	code: AccountCode!
 	name: String!
+	parent: AccountCode!
 }
 
 type ChartOfAccountsAddChildNodePayload {
@@ -295,8 +295,8 @@ type ChartOfAccountsCsvImportPayload {
 }
 
 input ChartOfAccountsCsvImportWithBaseConfigInput {
-	file: Upload!
 	baseConfig: AccountingBaseConfigInput!
+	file: Upload!
 }
 
 type ChartOfAccountsCsvImportWithBaseConfigPayload {
@@ -304,13 +304,13 @@ type ChartOfAccountsCsvImportWithBaseConfigPayload {
 }
 
 type Collateral {
-	id: ID!
-	collateralId: UUID!
-	walletId: UUID
-	accountId: UUID!
 	account: LedgerAccount!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
+	accountId: UUID!
+	collateralId: UUID!
 	creditFacility: CreditFacility
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
+	walletId: UUID
 }
 
 type CollateralBalance {
@@ -323,8 +323,8 @@ enum CollateralDirection {
 }
 
 input CollateralRecordProceedsFromLiquidationInput {
-	collateralId: UUID!
 	amount: UsdCents!
+	collateralId: UUID!
 }
 
 type CollateralRecordProceedsFromLiquidationPayload {
@@ -332,8 +332,8 @@ type CollateralRecordProceedsFromLiquidationPayload {
 }
 
 input CollateralRecordSentToLiquidationInput {
-	collateralId: UUID!
 	amount: Satoshis!
+	collateralId: UUID!
 }
 
 type CollateralRecordSentToLiquidationPayload {
@@ -341,8 +341,8 @@ type CollateralRecordSentToLiquidationPayload {
 }
 
 input CollateralUpdateInput {
-	collateralId: UUID!
 	collateral: Satoshis!
+	collateralId: UUID!
 	effective: Date!
 }
 
@@ -352,19 +352,19 @@ type CollateralUpdatePayload {
 
 enum CollateralizationState {
 	FULLY_COLLATERALIZED
-	UNDER_MARGIN_CALL_THRESHOLD
-	UNDER_LIQUIDATION_THRESHOLD
 	NO_COLLATERAL
 	NO_EXPOSURE
+	UNDER_LIQUIDATION_THRESHOLD
+	UNDER_MARGIN_CALL_THRESHOLD
 }
 
 type Committee {
-	id: ID!
 	committeeId: UUID!
 	createdAt: Timestamp!
-	name: String!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	currentMembers: [User!]!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
+	name: String!
 }
 
 input CommitteeAddUserInput {
@@ -382,10 +382,6 @@ type CommitteeApproval {
 
 type CommitteeConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [CommitteeEdge!]!
@@ -393,11 +389,15 @@ type CommitteeConnection {
 	A list of nodes.
 	"""
 	nodes: [Committee!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 input CommitteeCreateInput {
-	name: String!
 	memberUserIds: [UUID!]!
+	name: String!
 }
 
 type CommitteeCreatePayload {
@@ -409,13 +409,13 @@ An edge in a connection.
 """
 type CommitteeEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: Committee!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: Committee!
 }
 
 input CommitteeRemoveUserInput {
@@ -439,23 +439,23 @@ enum CommitteesSortBy {
 
 enum ConfigType {
 	BOOL
-	STRING
-	INT
-	UINT
-	DECIMAL
-	TIMEZONE
-	TIME
 	COMPLEX
+	DECIMAL
+	INT
+	STRING
+	TIME
+	TIMEZONE
+	UINT
 }
 
 enum ConversionReason {
-	SUMSUB_APPROVED
 	MANUALLY_CONVERTED
+	SUMSUB_APPROVED
 }
 
 input CreditFacilitiesFilter {
-	status: CreditFacilityStatus
 	collateralizationState: CollateralizationState
+	status: CreditFacilityStatus
 }
 
 input CreditFacilitiesSort {
@@ -469,87 +469,87 @@ enum CreditFacilitiesSortBy {
 }
 
 type CreditFacility {
-	id: ID!
-	creditFacilityId: UUID!
-	collateralId: UUID!
-	createdAt: Timestamp!
-	maturesAt: Timestamp!
 	activatedAt: Timestamp!
-	collateralizationState: CollateralizationState!
-	status: CreditFacilityStatus!
-	facilityAmount: UsdCents!
-	publicId: PublicId!
+	balance: CreditFacilityBalance!
 	canBeCompleted: Boolean!
+	collateralId: UUID!
+	collateralizationState: CollateralizationState!
+	createdAt: Timestamp!
+	creditFacilityId: UUID!
 	creditFacilityTerms: TermValues!
 	currentCvl: CvlPct!
-	history: [CreditFacilityHistoryEntry!]!
-	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	customer: Customer!
 	disbursals: [CreditFacilityDisbursal!]!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	facilityAmount: UsdCents!
+	history: [CreditFacilityHistoryEntry!]!
+	id: ID!
+	ledgerAccounts: CreditFacilityLedgerAccounts!
 	liquidations: [Liquidation!]!
-	userCanUpdateCollateral: Boolean!
+	maturesAt: Timestamp!
+	publicId: PublicId!
+	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	status: CreditFacilityStatus!
+	userCanComplete: Boolean!
 	userCanInitiateDisbursal: Boolean!
 	userCanRecordPayment: Boolean!
 	userCanRecordPaymentWithDate: Boolean!
-	userCanComplete: Boolean!
-	customer: Customer!
-	balance: CreditFacilityBalance!
+	userCanUpdateCollateral: Boolean!
 	wallet: Wallet
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
-	ledgerAccounts: CreditFacilityLedgerAccounts!
 }
 
 type CreditFacilityApproved {
 	cents: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
+	recordedAt: Timestamp!
 	txId: UUID!
 }
 
 type CreditFacilityBalance {
-	facilityRemaining: FacilityRemaining!
+	collateral: CollateralBalance!
 	disbursed: Disbursed!
+	dueOutstanding: Outstanding!
+	facilityRemaining: FacilityRemaining!
 	interest: Interest!
 	outstanding: Outstanding!
 	outstandingPayable: Outstanding!
-	dueOutstanding: Outstanding!
-	collateral: CollateralBalance!
 	paymentsUnapplied: PaymentsUnapplied!
 }
 
 type CreditFacilityCollateralSentOut {
 	amount: Satoshis!
-	recordedAt: Timestamp!
 	effective: Date!
+	recordedAt: Timestamp!
 	txId: UUID!
 }
 
 type CreditFacilityCollateralUpdated {
-	satoshis: Satoshis!
-	recordedAt: Timestamp!
-	effective: Date!
 	direction: CollateralDirection!
+	effective: Date!
+	recordedAt: Timestamp!
+	satoshis: Satoshis!
 	txId: UUID!
 }
 
 type CreditFacilityCollateralizationPayload {
-	state: CollateralizationState!
 	collateral: Satoshis!
-	outstandingInterest: UsdCents!
-	outstandingDisbursal: UsdCents!
-	recordedAt: Timestamp!
-	effective: Date!
-	price: UsdCents!
 	creditFacility: CreditFacility!
+	effective: Date!
+	outstandingDisbursal: UsdCents!
+	outstandingInterest: UsdCents!
+	price: UsdCents!
+	recordedAt: Timestamp!
+	state: CollateralizationState!
 }
 
 type CreditFacilityCollateralizationUpdated {
-	state: CollateralizationState!
 	collateral: Satoshis!
-	outstandingInterest: UsdCents!
-	outstandingDisbursal: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
+	outstandingDisbursal: UsdCents!
+	outstandingInterest: UsdCents!
 	price: UsdCents!
+	recordedAt: Timestamp!
+	state: CollateralizationState!
 }
 
 input CreditFacilityCompleteInput {
@@ -562,10 +562,6 @@ type CreditFacilityCompletePayload {
 
 type CreditFacilityConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [CreditFacilityEdge!]!
@@ -573,26 +569,26 @@ type CreditFacilityConnection {
 	A list of nodes.
 	"""
 	nodes: [CreditFacility!]!
-}
-
-type CreditFacilityDisbursal {
-	id: ID!
-	creditFacilityDisbursalId: UUID!
-	amount: UsdCents!
-	status: DisbursalStatus!
-	createdAt: Timestamp!
-	publicId: PublicId!
-	creditFacility: CreditFacility!
-	approvalProcess: ApprovalProcess!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
-	ledgerTransactions: [LedgerTransaction!]!
-}
-
-type CreditFacilityDisbursalConnection {
 	"""
 	Information to aid in pagination.
 	"""
 	pageInfo: PageInfo!
+}
+
+type CreditFacilityDisbursal {
+	amount: UsdCents!
+	approvalProcess: ApprovalProcess!
+	createdAt: Timestamp!
+	creditFacility: CreditFacility!
+	creditFacilityDisbursalId: UUID!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
+	ledgerTransactions: [LedgerTransaction!]!
+	publicId: PublicId!
+	status: DisbursalStatus!
+}
+
+type CreditFacilityDisbursalConnection {
 	"""
 	A list of edges.
 	"""
@@ -601,6 +597,10 @@ type CreditFacilityDisbursalConnection {
 	A list of nodes.
 	"""
 	nodes: [CreditFacilityDisbursal!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -608,25 +608,25 @@ An edge in a connection.
 """
 type CreditFacilityDisbursalEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: CreditFacilityDisbursal!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: CreditFacilityDisbursal!
 }
 
 type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
+	recordedAt: Timestamp!
 	txId: UUID!
 }
 
 input CreditFacilityDisbursalInitiateInput {
-	creditFacilityId: UUID!
 	amount: UsdCents!
+	creditFacilityId: UUID!
 }
 
 type CreditFacilityDisbursalInitiatePayload {
@@ -638,72 +638,72 @@ An edge in a connection.
 """
 type CreditFacilityEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: CreditFacility!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: CreditFacility!
 }
 
 union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityCollateralSentOut | CreditFacilityRepaymentAmountReceived
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
+	recordedAt: Timestamp!
 	txId: UUID!
 }
 
 type CreditFacilityInterestAccrued {
 	cents: UsdCents!
-	recordedAt: Timestamp!
-	effective: Date!
-	txId: UUID!
 	days: Int!
+	effective: Date!
+	recordedAt: Timestamp!
+	txId: UUID!
 }
 
 type CreditFacilityLedgerAccounts {
-	facilityAccountId: UUID!
-	disbursedReceivableNotYetDueAccountId: UUID!
-	disbursedReceivableDueAccountId: UUID!
-	disbursedReceivableOverdueAccountId: UUID!
-	disbursedDefaultedAccountId: UUID!
-	collateralAccountId: UUID!
-	collateralInLiquidationAccountId: UUID!
-	liquidatedCollateralAccountId: UUID!
-	proceedsFromLiquidationAccountId: UUID!
-	interestReceivableNotYetDueAccountId: UUID!
-	interestReceivableDueAccountId: UUID!
-	interestReceivableOverdueAccountId: UUID!
-	interestDefaultedAccountId: UUID!
-	interestIncomeAccountId: UUID!
-	feeIncomeAccountId: UUID!
-	paymentHoldingAccountId: UUID!
-	uncoveredOutstandingAccountId: UUID!
-	facilityAccount: LedgerAccount!
-	disbursedReceivableNotYetDueAccount: LedgerAccount!
-	disbursedReceivableDueAccount: LedgerAccount!
-	disbursedReceivableOverdueAccount: LedgerAccount!
-	disbursedDefaultedAccount: LedgerAccount!
 	collateralAccount: LedgerAccount!
+	collateralAccountId: UUID!
 	collateralInLiquidationAccount: LedgerAccount!
-	liquidatedCollateralAccount: LedgerAccount!
-	proceedsFromLiquidationAccount: LedgerAccount!
-	interestReceivableNotYetDueAccount: LedgerAccount!
-	interestReceivableDueAccount: LedgerAccount!
-	interestReceivableOverdueAccount: LedgerAccount!
-	interestDefaultedAccount: LedgerAccount!
-	interestIncomeAccount: LedgerAccount!
+	collateralInLiquidationAccountId: UUID!
+	disbursedDefaultedAccount: LedgerAccount!
+	disbursedDefaultedAccountId: UUID!
+	disbursedReceivableDueAccount: LedgerAccount!
+	disbursedReceivableDueAccountId: UUID!
+	disbursedReceivableNotYetDueAccount: LedgerAccount!
+	disbursedReceivableNotYetDueAccountId: UUID!
+	disbursedReceivableOverdueAccount: LedgerAccount!
+	disbursedReceivableOverdueAccountId: UUID!
+	facilityAccount: LedgerAccount!
+	facilityAccountId: UUID!
 	feeIncomeAccount: LedgerAccount!
+	feeIncomeAccountId: UUID!
+	interestDefaultedAccount: LedgerAccount!
+	interestDefaultedAccountId: UUID!
+	interestIncomeAccount: LedgerAccount!
+	interestIncomeAccountId: UUID!
+	interestReceivableDueAccount: LedgerAccount!
+	interestReceivableDueAccountId: UUID!
+	interestReceivableNotYetDueAccount: LedgerAccount!
+	interestReceivableNotYetDueAccountId: UUID!
+	interestReceivableOverdueAccount: LedgerAccount!
+	interestReceivableOverdueAccountId: UUID!
+	liquidatedCollateralAccount: LedgerAccount!
+	liquidatedCollateralAccountId: UUID!
 	paymentHoldingAccount: LedgerAccount!
+	paymentHoldingAccountId: UUID!
+	proceedsFromLiquidationAccount: LedgerAccount!
+	proceedsFromLiquidationAccountId: UUID!
 	uncoveredOutstandingAccount: LedgerAccount!
+	uncoveredOutstandingAccountId: UUID!
 }
 
 input CreditFacilityPartialPaymentRecordInput {
-	creditFacilityId: UUID!
 	amount: UsdCents!
+	creditFacilityId: UUID!
 }
 
 type CreditFacilityPartialPaymentRecordPayload {
@@ -711,45 +711,41 @@ type CreditFacilityPartialPaymentRecordPayload {
 }
 
 input CreditFacilityPartialPaymentWithDateRecordInput {
-	creditFacilityId: UUID!
 	amount: UsdCents!
+	creditFacilityId: UUID!
 	effective: Date!
 }
 
 type CreditFacilityPaymentAllocation {
-	id: ID!
-	creditFacilityPaymentAllocationId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	creditFacility: CreditFacility!
+	creditFacilityPaymentAllocationId: UUID!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
 }
 
 type CreditFacilityProposal {
-	id: ID!
-	creditFacilityProposalId: UUID!
+	approvalProcess: ApprovalProcess
 	approvalProcessId: UUID
-	status: CreditFacilityProposalStatus!
 	createdAt: Timestamp!
-	facilityAmount: UsdCents!
+	creditFacilityProposalId: UUID!
 	creditFacilityTerms: TermValues!
 	custodian: Custodian
 	customer: Customer!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	facilityAmount: UsdCents!
+	id: ID!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
-	approvalProcess: ApprovalProcess
+	status: CreditFacilityProposalStatus!
 }
 
 type CreditFacilityProposalConcludedPayload {
-	status: CreditFacilityProposalStatus!
 	creditFacilityProposal: CreditFacilityProposal!
+	status: CreditFacilityProposalStatus!
 }
 
 type CreditFacilityProposalConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -758,13 +754,17 @@ type CreditFacilityProposalConnection {
 	A list of nodes.
 	"""
 	nodes: [CreditFacilityProposal!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 input CreditFacilityProposalCreateInput {
+	custodianId: UUID
 	customerId: UUID!
 	facility: UsdCents!
 	terms: TermsInput!
-	custodianId: UUID
 }
 
 type CreditFacilityProposalCreatePayload {
@@ -772,8 +772,8 @@ type CreditFacilityProposalCreatePayload {
 }
 
 input CreditFacilityProposalCustomerApprovalConcludeInput {
-	creditFacilityProposalId: UUID!
 	approved: Boolean!
+	creditFacilityProposalId: UUID!
 }
 
 type CreditFacilityProposalCustomerApprovalConcludePayload {
@@ -785,21 +785,21 @@ An edge in a connection.
 """
 type CreditFacilityProposalEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: CreditFacilityProposal!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: CreditFacilityProposal!
 }
 
 enum CreditFacilityProposalStatus {
-	PENDING_CUSTOMER_APPROVAL
-	CUSTOMER_DENIED
-	PENDING_APPROVAL
 	APPROVED
+	CUSTOMER_DENIED
 	DENIED
+	PENDING_APPROVAL
+	PENDING_CUSTOMER_APPROVAL
 }
 
 input CreditFacilityProposalsFilter {
@@ -818,27 +818,27 @@ enum CreditFacilityProposalsSortBy {
 
 type CreditFacilityRepaymentAmountReceived {
 	cents: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
+	recordedAt: Timestamp!
 	txId: UUID!
 }
 
 type CreditFacilityRepaymentPlanEntry {
-	repaymentType: CreditFacilityRepaymentType!
-	status: CreditFacilityRepaymentStatus!
-	initial: UsdCents!
-	outstanding: UsdCents!
 	accrualAt: Timestamp!
 	dueAt: Date!
+	initial: UsdCents!
+	outstanding: UsdCents!
+	repaymentType: CreditFacilityRepaymentType!
+	status: CreditFacilityRepaymentStatus!
 }
 
 enum CreditFacilityRepaymentStatus {
-	UPCOMING
-	NOT_YET_DUE
-	DUE
-	OVERDUE
 	DEFAULTED
+	DUE
+	NOT_YET_DUE
+	OVERDUE
 	PAID
+	UPCOMING
 }
 
 enum CreditFacilityRepaymentType {
@@ -848,117 +848,117 @@ enum CreditFacilityRepaymentType {
 
 enum CreditFacilityStatus {
 	ACTIVE
-	MATURED
 	CLOSED
+	MATURED
 }
 
 type CreditModuleConfig {
-	chartOfAccountsId: UUID
-	chartOfAccountFacilityOmnibusParentCode: String
-	chartOfAccountCollateralOmnibusParentCode: String
-	chartOfAccountLiquidationProceedsOmnibusParentCode: String
-	chartOfAccountPaymentsMadeOmnibusParentCode: String
-	chartOfAccountInterestAddedToObligationsOmnibusParentCode: String
-	chartOfAccountFacilityParentCode: String
-	chartOfAccountCollateralParentCode: String
 	chartOfAccountCollateralInLiquidationParentCode: String
-	chartOfAccountLiquidatedCollateralParentCode: String
-	chartOfAccountProceedsFromLiquidationParentCode: String
-	chartOfAccountInterestIncomeParentCode: String
-	chartOfAccountFeeIncomeParentCode: String
-	chartOfAccountPaymentHoldingParentCode: String
-	chartOfAccountUncoveredOutstandingParentCode: String
+	chartOfAccountCollateralOmnibusParentCode: String
+	chartOfAccountCollateralParentCode: String
 	chartOfAccountDisbursedDefaultedParentCode: String
+	chartOfAccountFacilityOmnibusParentCode: String
+	chartOfAccountFacilityParentCode: String
+	chartOfAccountFeeIncomeParentCode: String
+	chartOfAccountInterestAddedToObligationsOmnibusParentCode: String
 	chartOfAccountInterestDefaultedParentCode: String
-	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String
-	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String
-	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String
-	chartOfAccountShortTermBankDisbursedReceivableParentCode: String
-	chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: String
-	chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
-	chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: String
-	chartOfAccountLongTermIndividualDisbursedReceivableParentCode: String
-	chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: String
-	chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountInterestIncomeParentCode: String
+	chartOfAccountLiquidatedCollateralParentCode: String
+	chartOfAccountLiquidationProceedsOmnibusParentCode: String
 	chartOfAccountLongTermBankDisbursedReceivableParentCode: String
-	chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: String
-	chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
-	chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: String
-	chartOfAccountShortTermIndividualInterestReceivableParentCode: String
-	chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: String
-	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String
-	chartOfAccountShortTermBankInterestReceivableParentCode: String
-	chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: String
-	chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String
-	chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: String
-	chartOfAccountLongTermIndividualInterestReceivableParentCode: String
-	chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: String
-	chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: String
 	chartOfAccountLongTermBankInterestReceivableParentCode: String
+	chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: String
 	chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: String
+	chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
 	chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String
+	chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: String
+	chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: String
+	chartOfAccountLongTermIndividualDisbursedReceivableParentCode: String
+	chartOfAccountLongTermIndividualInterestReceivableParentCode: String
+	chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: String
 	chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: String
-	chartOfAccountOverdueIndividualDisbursedReceivableParentCode: String
-	chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: String
-	chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: String
 	chartOfAccountOverdueBankDisbursedReceivableParentCode: String
 	chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: String
 	chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
+	chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: String
+	chartOfAccountOverdueIndividualDisbursedReceivableParentCode: String
 	chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: String
+	chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountPaymentHoldingParentCode: String
+	chartOfAccountPaymentsMadeOmnibusParentCode: String
+	chartOfAccountProceedsFromLiquidationParentCode: String
+	chartOfAccountShortTermBankDisbursedReceivableParentCode: String
+	chartOfAccountShortTermBankInterestReceivableParentCode: String
+	chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: String
+	chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: String
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String
+	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String
+	chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: String
+	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String
+	chartOfAccountShortTermIndividualInterestReceivableParentCode: String
+	chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: String
+	chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: String
+	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String
+	chartOfAccountUncoveredOutstandingParentCode: String
+	chartOfAccountsId: UUID
 }
 
 input CreditModuleConfigureInput {
-	chartOfAccountFacilityOmnibusParentCode: String!
-	chartOfAccountCollateralOmnibusParentCode: String!
-	chartOfAccountLiquidationProceedsOmnibusParentCode: String!
-	chartOfAccountPaymentsMadeOmnibusParentCode: String!
-	chartOfAccountInterestAddedToObligationsOmnibusParentCode: String!
-	chartOfAccountFacilityParentCode: String!
-	chartOfAccountCollateralParentCode: String!
 	chartOfAccountCollateralInLiquidationParentCode: String!
-	chartOfAccountLiquidatedCollateralParentCode: String!
-	chartOfAccountProceedsFromLiquidationParentCode: String!
-	chartOfAccountInterestIncomeParentCode: String!
-	chartOfAccountFeeIncomeParentCode: String!
-	chartOfAccountPaymentHoldingParentCode: String!
-	chartOfAccountUncoveredOutstandingParentCode: String!
+	chartOfAccountCollateralOmnibusParentCode: String!
+	chartOfAccountCollateralParentCode: String!
 	chartOfAccountDisbursedDefaultedParentCode: String!
+	chartOfAccountFacilityOmnibusParentCode: String!
+	chartOfAccountFacilityParentCode: String!
+	chartOfAccountFeeIncomeParentCode: String!
+	chartOfAccountInterestAddedToObligationsOmnibusParentCode: String!
 	chartOfAccountInterestDefaultedParentCode: String!
-	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermBankDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermIndividualDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountInterestIncomeParentCode: String!
+	chartOfAccountLiquidatedCollateralParentCode: String!
+	chartOfAccountLiquidationProceedsOmnibusParentCode: String!
 	chartOfAccountLongTermBankDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermIndividualInterestReceivableParentCode: String!
-	chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: String!
-	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String!
-	chartOfAccountShortTermBankInterestReceivableParentCode: String!
-	chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: String!
-	chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String!
-	chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: String!
-	chartOfAccountLongTermIndividualInterestReceivableParentCode: String!
-	chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: String!
-	chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: String!
 	chartOfAccountLongTermBankInterestReceivableParentCode: String!
+	chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: String!
 	chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: String!
+	chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
 	chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String!
+	chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: String!
+	chartOfAccountLongTermIndividualDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermIndividualInterestReceivableParentCode: String!
+	chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: String!
 	chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: String!
-	chartOfAccountOverdueIndividualDisbursedReceivableParentCode: String!
-	chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: String!
-	chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: String!
 	chartOfAccountOverdueBankDisbursedReceivableParentCode: String!
 	chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: String!
 	chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueIndividualDisbursedReceivableParentCode: String!
 	chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountPaymentHoldingParentCode: String!
+	chartOfAccountPaymentsMadeOmnibusParentCode: String!
+	chartOfAccountProceedsFromLiquidationParentCode: String!
+	chartOfAccountShortTermBankDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermBankInterestReceivableParentCode: String!
+	chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: String!
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String!
+	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: String!
+	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermIndividualInterestReceivableParentCode: String!
+	chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: String!
+	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String!
+	chartOfAccountUncoveredOutstandingParentCode: String!
 }
 
 type CreditModuleConfigurePayload {
@@ -966,21 +966,21 @@ type CreditModuleConfigurePayload {
 }
 
 type Custodian {
-	id: ID!
-	custodianId: UUID!
 	createdAt: Timestamp!
+	custodianId: UUID!
+	id: ID!
 	name: String!
 }
 
 input CustodianConfigInput @oneOf {
-	komainu: KomainuConfig
 	bitgo: BitgoConfig
+	komainu: KomainuConfig
 	selfCustody: SelfCustodyConfig
 }
 
 input CustodianConfigUpdateInput {
-	custodianId: UUID!
 	config: CustodianConfigInput!
+	custodianId: UUID!
 }
 
 type CustodianConfigUpdatePayload {
@@ -989,10 +989,6 @@ type CustodianConfigUpdatePayload {
 
 type CustodianConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [CustodianEdge!]!
@@ -1000,11 +996,15 @@ type CustodianConnection {
 	A list of nodes.
 	"""
 	nodes: [Custodian!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 input CustodianCreateInput @oneOf {
-	komainu: KomainuConfig
 	bitgo: BitgoConfig
+	komainu: KomainuConfig
 	selfCustody: SelfCustodyConfig
 }
 
@@ -1017,13 +1017,13 @@ An edge in a connection.
 """
 type CustodianEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: Custodian!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: Custodian!
 }
 
 input CustodiansSort {
@@ -1032,30 +1032,30 @@ input CustodiansSort {
 }
 
 enum CustodiansSortBy {
-	NAME
 	CREATED_AT
+	NAME
 }
 
 type Customer {
-	id: ID!
-	customerId: UUID!
-	status: CustomerStatus!
-	level: KycLevel!
-	createdAt: Timestamp!
-	email: String!
-	telegramHandle: String!
-	publicId: PublicId!
 	applicantId: String
 	conversionReason: ConversionReason!
-	customerType: CustomerType!
-	personalInfo: PersonalInfo
-	depositAccount: DepositAccount
+	createdAt: Timestamp!
 	creditFacilities: [CreditFacility!]!
-	pendingCreditFacilities: [PendingCreditFacility!]!
 	creditFacilityProposals: [CreditFacilityProposal!]!
+	customerId: UUID!
+	customerType: CustomerType!
+	depositAccount: DepositAccount
 	documents: [CustomerDocument!]!
+	email: String!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
+	level: KycLevel!
+	pendingCreditFacilities: [PendingCreditFacility!]!
+	personalInfo: PersonalInfo
+	publicId: PublicId!
+	status: CustomerStatus!
+	telegramHandle: String!
 	userCanCreateCreditFacility: Boolean!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 }
 
 input CustomerCloseInput {
@@ -1068,10 +1068,6 @@ type CustomerClosePayload {
 
 type CustomerConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [CustomerEdge!]!
@@ -1079,15 +1075,19 @@ type CustomerConnection {
 	A list of nodes.
 	"""
 	nodes: [Customer!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 type CustomerDocument {
-	id: ID!
 	customerDocumentId: UUID!
 	customerId: UUID!
-	status: DocumentStatus!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	filename: String!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
+	id: ID!
+	status: DocumentStatus!
 }
 
 input CustomerDocumentArchiveInput {
@@ -1099,8 +1099,8 @@ type CustomerDocumentArchivePayload {
 }
 
 input CustomerDocumentCreateInput {
-	file: Upload!
 	customerId: UUID!
+	file: Upload!
 }
 
 type CustomerDocumentCreatePayload {
@@ -1129,13 +1129,13 @@ An edge in a connection.
 """
 type CustomerEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: Customer!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: Customer!
 }
 
 input CustomerEmailUpdateInput {
@@ -1157,8 +1157,8 @@ type CustomerFreezePayload {
 
 enum CustomerStatus {
 	ACTIVE
-	FROZEN
 	CLOSED
+	FROZEN
 }
 
 input CustomerTelegramHandleUpdateInput {
@@ -1171,13 +1171,13 @@ type CustomerTelegramHandleUpdatePayload {
 }
 
 enum CustomerType {
-	INDIVIDUAL
-	GOVERNMENT_ENTITY
-	PRIVATE_COMPANY
 	BANK
 	FINANCIAL_INSTITUTION
 	FOREIGN_AGENCY_OR_SUBSIDIARY
+	GOVERNMENT_ENTITY
+	INDIVIDUAL
 	NON_DOMICILED_COMPANY
+	PRIVATE_COMPANY
 }
 
 input CustomerUnfreezeInput {
@@ -1207,8 +1207,8 @@ union CvlPct = FiniteCvlPct | InfiniteCvlPct
 type Dashboard {
 	activeFacilities: Int!
 	pendingFacilities: Int!
-	totalDisbursed: UsdCents!
 	totalCollateral: Satoshis!
+	totalDisbursed: UsdCents!
 }
 
 """
@@ -1217,46 +1217,46 @@ An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represent
 scalar Date
 
 enum DebitOrCredit {
-	DEBIT
 	CREDIT
+	DEBIT
 }
 
 scalar Decimal
 
 type Deposit {
-	id: ID!
-	depositId: UUID!
+	account: DepositAccount!
 	accountId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	depositId: UUID!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
+	ledgerTransactions: [LedgerTransaction!]!
 	publicId: PublicId!
 	reference: String!
 	status: DepositStatus!
-	account: DepositAccount!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
-	ledgerTransactions: [LedgerTransaction!]!
 }
 
 type DepositAccount {
-	id: ID!
-	depositAccountId: UUID!
-	customerId: UUID!
-	createdAt: Timestamp!
-	status: DepositAccountStatus!
 	activity: Activity!
-	publicId: PublicId!
-	deposits: [Deposit!]!
-	withdrawals: [Withdrawal!]!
-	history(first: Int!, after: String): DepositAccountHistoryEntryConnection!
 	balance: DepositAccountBalance!
+	createdAt: Timestamp!
 	customer: Customer!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
+	customerId: UUID!
+	depositAccountId: UUID!
+	deposits: [Deposit!]!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	history(after: String, first: Int!): DepositAccountHistoryEntryConnection!
+	id: ID!
 	ledgerAccounts: DepositAccountLedgerAccounts!
+	publicId: PublicId!
+	status: DepositAccountStatus!
+	withdrawals: [Withdrawal!]!
 }
 
 type DepositAccountBalance {
-	settled: UsdCents!
 	pending: UsdCents!
+	settled: UsdCents!
 }
 
 input DepositAccountCloseInput {
@@ -1269,10 +1269,6 @@ type DepositAccountClosePayload {
 
 type DepositAccountConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [DepositAccountEdge!]!
@@ -1280,6 +1276,10 @@ type DepositAccountConnection {
 	A list of nodes.
 	"""
 	nodes: [DepositAccount!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 input DepositAccountCreateInput {
@@ -1295,13 +1295,13 @@ An edge in a connection.
 """
 type DepositAccountEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: DepositAccount!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: DepositAccount!
 }
 
 input DepositAccountFreezeInput {
@@ -1316,10 +1316,6 @@ union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWit
 
 type DepositAccountHistoryEntryConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [DepositAccountHistoryEntryEdge!]!
@@ -1327,6 +1323,10 @@ type DepositAccountHistoryEntryConnection {
 	A list of nodes.
 	"""
 	nodes: [DepositAccountHistoryEntry!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -1334,26 +1334,26 @@ An edge in a connection.
 """
 type DepositAccountHistoryEntryEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: DepositAccountHistoryEntry!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: DepositAccountHistoryEntry!
 }
 
 type DepositAccountLedgerAccounts {
-	depositAccountId: UUID!
-	frozenDepositAccountId: UUID!
 	depositAccount: LedgerAccount!
+	depositAccountId: UUID!
 	frozenDepositAccount: LedgerAccount!
+	frozenDepositAccountId: UUID!
 }
 
 enum DepositAccountStatus {
 	ACTIVE
-	FROZEN
 	CLOSED
+	FROZEN
 }
 
 input DepositAccountUnfreezeInput {
@@ -1365,8 +1365,8 @@ type DepositAccountUnfreezePayload {
 }
 
 input DepositAccountsFilter {
-	status: DepositAccountStatus
 	activity: Activity
+	status: DepositAccountStatus
 }
 
 input DepositAccountsSort {
@@ -1381,10 +1381,6 @@ enum DepositAccountsSortBy {
 
 type DepositConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [DepositEdge!]!
@@ -1392,6 +1388,10 @@ type DepositConnection {
 	A list of nodes.
 	"""
 	nodes: [Deposit!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -1399,51 +1399,51 @@ An edge in a connection.
 """
 type DepositEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: Deposit!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: Deposit!
 }
 
 type DepositEntry {
-	recordedAt: Timestamp!
 	deposit: Deposit!
+	recordedAt: Timestamp!
 }
 
 type DepositModuleConfig {
-	chartOfAccountsId: UUID
-	chartOfAccountsOmnibusParentCode: String
-	chartOfAccountsIndividualDepositAccountsParentCode: String
-	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String
-	chartOfAccountPrivateCompanyDepositAccountsParentCode: String
 	chartOfAccountBankDepositAccountsParentCode: String
 	chartOfAccountFinancialInstitutionDepositAccountsParentCode: String
-	chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: String
-	chartOfAccountsFrozenIndividualDepositAccountsParentCode: String
-	chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: String
-	chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: String
 	chartOfAccountFrozenBankDepositAccountsParentCode: String
 	chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode: String
 	chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode: String
+	chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: String
+	chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: String
+	chartOfAccountPrivateCompanyDepositAccountsParentCode: String
+	chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: String
+	chartOfAccountsFrozenIndividualDepositAccountsParentCode: String
+	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String
+	chartOfAccountsId: UUID
+	chartOfAccountsIndividualDepositAccountsParentCode: String
+	chartOfAccountsOmnibusParentCode: String
 }
 
 input DepositModuleConfigureInput {
-	chartOfAccountsOmnibusParentCode: String!
-	chartOfAccountsIndividualDepositAccountsParentCode: String!
-	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String!
-	chartOfAccountPrivateCompanyDepositAccountsParentCode: String!
 	chartOfAccountBankDepositAccountsParentCode: String!
 	chartOfAccountFinancialInstitutionDepositAccountsParentCode: String!
-	chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: String!
-	chartOfAccountsFrozenIndividualDepositAccountsParentCode: String!
-	chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: String!
-	chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: String!
 	chartOfAccountFrozenBankDepositAccountsParentCode: String!
 	chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode: String!
 	chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode: String!
+	chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: String!
+	chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: String!
+	chartOfAccountPrivateCompanyDepositAccountsParentCode: String!
+	chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: String!
+	chartOfAccountsFrozenIndividualDepositAccountsParentCode: String!
+	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String!
+	chartOfAccountsIndividualDepositAccountsParentCode: String!
+	chartOfAccountsOmnibusParentCode: String!
 }
 
 type DepositModuleConfigurePayload {
@@ -1451,8 +1451,8 @@ type DepositModuleConfigurePayload {
 }
 
 input DepositRecordInput {
-	depositAccountId: UUID!
 	amount: UsdCents!
+	depositAccountId: UUID!
 	reference: String
 }
 
@@ -1483,31 +1483,31 @@ input DepositsSort {
 }
 
 enum DepositsSortBy {
-	CREATED_AT
 	AMOUNT
+	CREATED_AT
 	PUBLIC_ID
 }
 
 type DisbursalApprovalConcludedPayload {
-	status: DisbursalStatus!
 	disbursal: CreditFacilityDisbursal!
+	status: DisbursalStatus!
 }
 
 type DisbursalEntry {
-	recordedAt: Timestamp!
 	disbursal: CreditFacilityDisbursal!
+	recordedAt: Timestamp!
 }
 
 enum DisbursalPolicy {
-	SINGLE_DISBURSAL
 	MULTIPLE_DISBURSAL
+	SINGLE_DISBURSAL
 }
 
 enum DisbursalStatus {
-	NEW
 	APPROVED
-	DENIED
 	CONFIRMED
+	DENIED
+	NEW
 }
 
 input DisbursalsFilter {
@@ -1520,39 +1520,35 @@ input DisbursalsSort {
 }
 
 enum DisbursalsSortBy {
-	CREATED_AT
 	AMOUNT
+	CREATED_AT
 }
 
 type Disbursed {
-	total: Total!
 	outstanding: Outstanding!
 	outstandingPayable: Outstanding!
+	total: Total!
 }
 
 enum DocumentStatus {
-	NEW
-	FAILED
 	ACTIVE
 	ARCHIVED
 	DELETED
+	FAILED
+	NEW
 }
 
 type DomainConfig {
-	id: ID!
-	domainConfigId: UUID!
 	configType: ConfigType!
+	domainConfigId: UUID!
 	encrypted: Boolean!
+	id: ID!
+	isSet: Boolean!
 	key: String!
 	value: Json!
-	isSet: Boolean!
 }
 
 type DomainConfigConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -1561,6 +1557,10 @@ type DomainConfigConnection {
 	A list of nodes.
 	"""
 	nodes: [DomainConfig!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -1568,13 +1568,13 @@ An edge in a connection.
 """
 type DomainConfigEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: DomainConfig!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: DomainConfig!
 }
 
 input DomainConfigUpdateInput {
@@ -1597,19 +1597,15 @@ input DurationInput {
 }
 
 type EventTimelineEntry {
-	sequence: Int!
-	eventType: String!
-	recordedAt: Timestamp!
-	payload: Json!
 	auditEntryId: AuditEntryId
+	eventType: String!
+	payload: Json!
+	recordedAt: Timestamp!
+	sequence: Int!
 	subject: AuditSubject
 }
 
 type EventTimelineEntryConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -1618,6 +1614,10 @@ type EventTimelineEntryConnection {
 	A list of nodes.
 	"""
 	nodes: [EventTimelineEntry!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -1625,13 +1625,13 @@ An edge in a connection.
 """
 type EventTimelineEntryEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: EventTimelineEntry!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: EventTimelineEntry!
 }
 
 type FacilityRemaining {
@@ -1648,19 +1648,19 @@ type FiscalMonthClosure {
 }
 
 type FiscalYear {
-	id: ID!
-	fiscalYearId: UUID!
 	chartId: UUID!
-	isOpen: Boolean!
-	openedAsOf: Date!
 	closedAsOf: Date
 	createdAt: Timestamp!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	fiscalYearId: UUID!
+	id: ID!
+	isLastMonthOfYearClosed: Boolean!
+	isOpen: Boolean!
+	monthClosures: [FiscalMonthClosure!]!
+	nextMonthToClose: Date
+	openedAsOf: Date!
 	reference: String!
 	year: String!
-	monthClosures: [FiscalMonthClosure!]!
-	isLastMonthOfYearClosed: Boolean!
-	nextMonthToClose: Date
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 }
 
 input FiscalYearCloseInput {
@@ -1681,10 +1681,6 @@ type FiscalYearClosePayload {
 
 type FiscalYearConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [FiscalYearEdge!]!
@@ -1692,6 +1688,10 @@ type FiscalYearConnection {
 	A list of nodes.
 	"""
 	nodes: [FiscalYear!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -1699,13 +1699,13 @@ An edge in a connection.
 """
 type FiscalYearEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: FiscalYear!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: FiscalYear!
 }
 
 input FiscalYearInitInput {
@@ -1735,15 +1735,15 @@ enum FiscalYearsSortBy {
 }
 
 type FreezeEntry {
-	txId: UUID!
-	recordedAt: Timestamp!
 	amount: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
 }
 
 type GovernanceNavigationItems {
+	approvalProcess: Boolean!
 	committee: Boolean!
 	policy: Boolean!
-	approvalProcess: Boolean!
 }
 
 type InfiniteCvlPct {
@@ -1751,37 +1751,33 @@ type InfiniteCvlPct {
 }
 
 type Interest {
-	total: Total!
 	outstanding: Outstanding!
 	outstandingPayable: Outstanding!
+	total: Total!
 }
 
 enum InterestInterval {
-	END_OF_MONTH
 	END_OF_DAY
+	END_OF_MONTH
 }
 
 type JournalEntry {
+	amount: JournalEntryAmount!
+	createdAt: Timestamp!
+	description: String
+	direction: DebitOrCredit!
+	entryType: String!
 	id: ID!
 	journalEntryId: UUID!
-	txId: UUID!
-	amount: JournalEntryAmount!
-	direction: DebitOrCredit!
 	layer: Layer!
-	createdAt: Timestamp!
-	entryType: String!
-	description: String
 	ledgerAccount: LedgerAccount!
 	ledgerTransaction: LedgerTransaction!
+	txId: UUID!
 }
 
 union JournalEntryAmount = UsdAmount | BtcAmount
 
 type JournalEntryConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -1790,6 +1786,10 @@ type JournalEntryConnection {
 	A list of nodes.
 	"""
 	nodes: [JournalEntry!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -1797,72 +1797,72 @@ An edge in a connection.
 """
 type JournalEntryEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: JournalEntry!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: JournalEntry!
 }
 
 scalar Json
 
 input KomainuConfig {
-	name: String!
 	apiKey: String!
 	apiSecret: String!
-	testingInstance: Boolean!
+	name: String!
 	secretKey: String!
+	testingInstance: Boolean!
 	webhookSecret: String!
 }
 
 enum KycLevel {
-	NOT_KYCED
-	BASIC
 	ADVANCED
+	BASIC
+	NOT_KYCED
 }
 
 enum KycStatus {
-	NOT_STARTED
-	STARTED
-	PENDING
-	ON_HOLD
 	APPROVED
 	DECLINED
+	NOT_STARTED
+	ON_HOLD
+	PENDING
+	STARTED
 }
 
 enum Layer {
-	SETTLED
-	PENDING
 	ENCUMBRANCE
+	PENDING
+	SETTLED
 }
 
 type LedgerAccount {
-	id: ID!
-	ledgerAccountId: UUID!
+	ancestors: [LedgerAccount!]!
+	balanceRange: LedgerAccountBalanceRange!
+	children: [LedgerAccount!]!
+	closestAccountWithCode: LedgerAccount
 	code: AccountCode
 	entity: LedgerAccountEntity
+	history(after: String, first: Int!): JournalEntryConnection!
+	id: ID!
+	isRootAccount: Boolean!
+	ledgerAccountId: UUID!
 	name: String!
 	normalBalanceType: DebitOrCredit!
-	balanceRange: LedgerAccountBalanceRange!
-	isRootAccount: Boolean!
-	ancestors: [LedgerAccount!]!
-	closestAccountWithCode: LedgerAccount
-	children: [LedgerAccount!]!
-	history(first: Int!, after: String): JournalEntryConnection!
 }
 
 type LedgerAccountBalanceByCurrency {
-	usd: UsdLedgerAccountBalance!
 	btc: BtcLedgerAccountBalance!
+	usd: UsdLedgerAccountBalance!
 }
 
 union LedgerAccountBalanceRange = UsdLedgerAccountBalanceRange | BtcLedgerAccountBalanceRange
 
 type LedgerAccountBalanceRangeByCurrency {
-	usd: UsdLedgerAccountBalanceRange!
 	btc: BtcLedgerAccountBalanceRange!
+	usd: UsdLedgerAccountBalanceRange!
 }
 
 input LedgerAccountCsvCreateInput {
@@ -1880,21 +1880,17 @@ type LedgerAccountCsvExportUploadedPayload {
 union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
 
 type LedgerTransaction {
-	id: ID!
-	ledgerTransactionId: UUID!
 	createdAt: Timestamp!
-	effective: Date!
 	description: String
+	effective: Date!
 	entity: LedgerTransactionEntity
-	initiatedBy: LedgerTransactionInitiator!
 	entries: [JournalEntry!]!
+	id: ID!
+	initiatedBy: LedgerTransactionInitiator!
+	ledgerTransactionId: UUID!
 }
 
 type LedgerTransactionConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -1903,6 +1899,10 @@ type LedgerTransactionConnection {
 	A list of nodes.
 	"""
 	nodes: [LedgerTransaction!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -1910,13 +1910,13 @@ An edge in a connection.
 """
 type LedgerTransactionEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: LedgerTransaction!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: LedgerTransaction!
 }
 
 union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
@@ -1924,18 +1924,18 @@ union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
 union LedgerTransactionInitiator = User | System
 
 type Liquidation {
+	amountReceived: UsdCents!
+	collateral: Collateral!
+	collateralId: UUID!
+	completed: Boolean!
+	createdAt: Timestamp!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	expectedToReceive: UsdCents!
 	id: ID!
 	liquidationId: UUID!
-	collateralId: UUID!
-	expectedToReceive: UsdCents!
-	sentTotal: Satoshis!
-	amountReceived: UsdCents!
-	createdAt: Timestamp!
-	completed: Boolean!
-	sentCollateral: [LiquidationCollateralSent!]!
 	receivedProceeds: [LiquidationProceedsReceived!]!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
-	collateral: Collateral!
+	sentCollateral: [LiquidationCollateralSent!]!
+	sentTotal: Satoshis!
 }
 
 type LiquidationCollateralSent {
@@ -1945,10 +1945,6 @@ type LiquidationCollateralSent {
 
 type LiquidationConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [LiquidationEdge!]!
@@ -1956,6 +1952,10 @@ type LiquidationConnection {
 	A list of nodes.
 	"""
 	nodes: [Liquidation!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -1963,13 +1963,13 @@ An edge in a connection.
 """
 type LiquidationEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: Liquidation!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: Liquidation!
 }
 
 type LiquidationProceedsReceived {
@@ -1983,17 +1983,17 @@ input LiquidationsSort {
 }
 
 enum LiquidationsSortBy {
+	AMOUNT_RECEIVED
 	CREATED_AT
 	EXPECTED_TO_RECEIVE
-	AMOUNT_RECEIVED
 	SENT_TOTAL
 }
 
 type LoanAgreement {
+	createdAt: Timestamp!
 	id: ID!
 	loanAgreementId: UUID!
 	status: LoanAgreementStatus!
-	createdAt: Timestamp!
 }
 
 input LoanAgreementDownloadLinksGenerateInput {
@@ -2001,8 +2001,8 @@ input LoanAgreementDownloadLinksGenerateInput {
 }
 
 type LoanAgreementDownloadLinksGeneratePayload {
-	loanAgreementId: UUID!
 	link: String!
+	loanAgreementId: UUID!
 }
 
 input LoanAgreementGenerateInput {
@@ -2014,24 +2014,24 @@ type LoanAgreementGeneratePayload {
 }
 
 enum LoanAgreementStatus {
-	PENDING
 	COMPLETED
 	FAILED
+	PENDING
 }
 
 input ManualTransactionEntryInput {
 	accountRef: String!
 	amount: Decimal!
 	currency: String!
-	direction: DebitOrCredit!
 	description: String!
+	direction: DebitOrCredit!
 }
 
 input ManualTransactionExecuteInput {
 	description: String!
-	reference: String
 	effective: Date
 	entries: [ManualTransactionEntryInput!]!
+	reference: String
 }
 
 type ManualTransactionExecutePayload {
@@ -2040,78 +2040,78 @@ type ManualTransactionExecutePayload {
 
 type Me {
 	user: User!
-	visibleNavigationItems: VisibleNavigationItems!
-	userCanCreateProspect: Boolean!
-	userCanCreateUser: Boolean!
-	userCanCreateTermsTemplate: Boolean!
 	userCanCreateCustodian: Boolean!
+	userCanCreateProspect: Boolean!
+	userCanCreateTermsTemplate: Boolean!
+	userCanCreateUser: Boolean!
+	visibleNavigationItems: VisibleNavigationItems!
 }
 
 type Mutation {
+	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
+	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
+	approvalProcessDeny(input: ApprovalProcessDenyInput!): ApprovalProcessDenyPayload!
+	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
+	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
+	chartOfAccountsCsvImportWithBaseConfig(input: ChartOfAccountsCsvImportWithBaseConfigInput!): ChartOfAccountsCsvImportWithBaseConfigPayload!
+	collateralRecordProceedsFromLiquidation(input: CollateralRecordProceedsFromLiquidationInput!): CollateralRecordProceedsFromLiquidationPayload!
+	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
+	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
+	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
+	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
+	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
+	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
+	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
+	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
+	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
+	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
+	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload!
+	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
+	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
+	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
+	customerClose(input: CustomerCloseInput!): CustomerClosePayload!
+	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	customerDocumentCreate(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
-	prospectKycLinkCreate(input: ProspectKycLinkCreateInput!): ProspectKycLinkCreatePayload!
-	userCreate(input: UserCreateInput!): UserCreatePayload!
-	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
-	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
-	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
-	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
-	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
-	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
-	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
-	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
+	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
+	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	customerFreeze(input: CustomerFreezeInput!): CustomerFreezePayload!
+	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
 	customerUnfreeze(input: CustomerUnfreezeInput!): CustomerUnfreezePayload!
-	customerClose(input: CustomerCloseInput!): CustomerClosePayload!
-	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
-	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
-	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
-	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
-	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
-	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
-	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
-	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
-	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
+	depositAccountClose(input: DepositAccountCloseInput!): DepositAccountClosePayload!
 	depositAccountCreate(input: DepositAccountCreateInput!): DepositAccountCreatePayload!
 	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
 	depositAccountUnfreeze(input: DepositAccountUnfreezeInput!): DepositAccountUnfreezePayload!
-	depositAccountClose(input: DepositAccountCloseInput!): DepositAccountClosePayload!
+	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
+	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
+	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
+	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
+	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
+	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
+	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
+	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
+	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
+	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
+	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
+	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
+	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
+	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
+	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
+	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
+	prospectKycLinkCreate(input: ProspectKycLinkCreateInput!): ProspectKycLinkCreatePayload!
+	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
+	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
+	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
+	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
-	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
-	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
-	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload!
-	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
-	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
-	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
-	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
-	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
-	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
-	collateralRecordProceedsFromLiquidation(input: CollateralRecordProceedsFromLiquidationInput!): CollateralRecordProceedsFromLiquidationPayload!
-	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
-	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
-	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
-	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
-	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
-	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
-	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
-	approvalProcessDeny(input: ApprovalProcessDenyInput!): ApprovalProcessDenyPayload!
-	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
-	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
-	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
-	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
-	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
-	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
-	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
-	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
-	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
-	chartOfAccountsCsvImportWithBaseConfig(input: ChartOfAccountsCsvImportWithBaseConfigInput!): ChartOfAccountsCsvImportWithBaseConfigPayload!
-	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
-	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
-	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
-	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	triggerReportRun(input: TriggerReportRunInput!): ReportRunCreatePayload!
-	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
+	userCreate(input: UserCreateInput!): UserCreatePayload!
+	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
+	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
+	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
+	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
+	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
 }
 
 scalar OneTimeFeeRatePct
@@ -2125,26 +2125,26 @@ Information about pagination in a connection
 """
 type PageInfo {
 	"""
-	When paginating backwards, are there more items?
+	When paginating forwards, the cursor to continue.
 	"""
-	hasPreviousPage: Boolean!
+	endCursor: String
 	"""
 	When paginating forwards, are there more items?
 	"""
 	hasNextPage: Boolean!
 	"""
+	When paginating backwards, are there more items?
+	"""
+	hasPreviousPage: Boolean!
+	"""
 	When paginating backwards, the cursor to continue.
 	"""
 	startCursor: String
-	"""
-	When paginating forwards, the cursor to continue.
-	"""
-	endCursor: String
 }
 
 type PaymentEntry {
-	recordedAt: Timestamp!
 	payment: CreditFacilityPaymentAllocation!
+	recordedAt: Timestamp!
 }
 
 type PaymentsUnapplied {
@@ -2152,8 +2152,8 @@ type PaymentsUnapplied {
 }
 
 input PendingCreditFacilitiesFilter {
-	status: PendingCreditFacilityStatus
 	collateralizationState: PendingCreditFacilityCollateralizationState
+	status: PendingCreditFacilityStatus
 }
 
 input PendingCreditFacilitiesSort {
@@ -2167,63 +2167,59 @@ enum PendingCreditFacilitiesSortBy {
 }
 
 type PendingCreditFacility {
-	id: ID!
-	pendingCreditFacilityId: UUID!
+	approvalProcess: ApprovalProcess!
+	approvalProcessId: UUID!
+	collateral: CollateralBalance!
+	collateralId: UUID!
+	collateralizationState: PendingCreditFacilityCollateralizationState!
+	createdAt: Timestamp!
 	"""
 	Canonical credit facility identifier reserved for this facility.
 	Today this matches `pendingCreditFacilityId`, but clients should use
 	this field when they need the active facility reference.
 	"""
 	creditFacilityId: UUID!
-	collateralId: UUID!
-	status: PendingCreditFacilityStatus!
-	approvalProcessId: UUID!
-	createdAt: Timestamp!
-	collateralizationState: PendingCreditFacilityCollateralizationState!
-	facilityAmount: UsdCents!
-	wallet: Wallet
-	collateral: CollateralBalance!
-	customer: Customer!
 	creditFacilityTerms: TermValues!
+	customer: Customer!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	facilityAmount: UsdCents!
+	id: ID!
+	pendingCreditFacilityId: UUID!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
-	approvalProcess: ApprovalProcess!
+	status: PendingCreditFacilityStatus!
+	wallet: Wallet
 }
 
 type PendingCreditFacilityCollateralizationPayload {
-	state: PendingCreditFacilityCollateralizationState!
 	collateral: Satoshis!
-	price: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
 	pendingCreditFacility: PendingCreditFacility!
+	price: UsdCents!
+	recordedAt: Timestamp!
+	state: PendingCreditFacilityCollateralizationState!
 }
 
 enum PendingCreditFacilityCollateralizationState {
 	FULLY_COLLATERALIZED
-	UNDER_COLLATERALIZED
 	NOT_YET_COLLATERALIZED
+	UNDER_COLLATERALIZED
 }
 
 type PendingCreditFacilityCollateralizationUpdated {
-	state: PendingCreditFacilityCollateralizationState!
 	collateral: Satoshis!
+	effective: Date!
 	price: UsdCents!
 	recordedAt: Timestamp!
-	effective: Date!
+	state: PendingCreditFacilityCollateralizationState!
 }
 
 type PendingCreditFacilityCompletedPayload {
-	status: PendingCreditFacilityStatus!
-	recordedAt: Timestamp!
 	pendingCreditFacility: PendingCreditFacility!
+	recordedAt: Timestamp!
+	status: PendingCreditFacilityStatus!
 }
 
 type PendingCreditFacilityConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -2232,6 +2228,10 @@ type PendingCreditFacilityConnection {
 	A list of nodes.
 	"""
 	nodes: [PendingCreditFacility!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -2239,38 +2239,34 @@ An edge in a connection.
 """
 type PendingCreditFacilityEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: PendingCreditFacility!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: PendingCreditFacility!
 }
 
 enum PendingCreditFacilityStatus {
-	PENDING_COLLATERALIZATION
 	COMPLETED
+	PENDING_COLLATERALIZATION
 }
 
 enum Period {
-	MONTHS
 	DAYS
+	MONTHS
 }
 
 type PermissionSet {
-	id: ID!
-	permissionSetId: UUID!
-	name: String!
 	description: String!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
+	name: String!
+	permissionSetId: UUID!
 }
 
 type PermissionSetConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -2279,6 +2275,10 @@ type PermissionSetConnection {
 	A list of nodes.
 	"""
 	nodes: [PermissionSet!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -2286,35 +2286,35 @@ An edge in a connection.
 """
 type PermissionSetEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: PermissionSet!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: PermissionSet!
 }
 
 type PersonalInfo {
-	firstName: String!
-	lastName: String!
-	dateOfBirth: String
-	nationality: String
 	address: String
 	companyName: String
+	dateOfBirth: String
+	firstName: String!
+	lastName: String!
+	nationality: String
 }
 
 type Policy {
+	approvalProcessType: ApprovalProcessType!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	id: ID!
 	policyId: UUID!
-	approvalProcessType: ApprovalProcessType!
 	rules: ApprovalRules!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 }
 
 input PolicyAssignCommitteeInput {
-	policyId: UUID!
 	committeeId: UUID!
+	policyId: UUID!
 }
 
 type PolicyAssignCommitteePayload {
@@ -2323,10 +2323,6 @@ type PolicyAssignCommitteePayload {
 
 type PolicyConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [PolicyEdge!]!
@@ -2334,6 +2330,10 @@ type PolicyConnection {
 	A list of nodes.
 	"""
 	nodes: [Policy!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -2341,47 +2341,47 @@ An edge in a connection.
 """
 type PolicyEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: Policy!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: Policy!
 }
 
 type ProfitAndLossAccount {
-	profitAndLossAccountId: ID!
-	ledgerAccountId: UUID!
-	code: AccountCode
-	name: String!
 	balanceRange: LedgerAccountBalanceRange!
 	children: [ProfitAndLossAccount!]!
+	code: AccountCode
+	ledgerAccountId: UUID!
+	name: String!
+	profitAndLossAccountId: ID!
 }
 
 type ProfitAndLossStatement {
+	categories: [ProfitAndLossAccount!]!
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
-	categories: [ProfitAndLossAccount!]!
 }
 
 type Prospect {
+	applicantId: String
+	createdAt: Timestamp!
+	customer: Customer
+	customerType: CustomerType!
+	email: String!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	id: ID!
-	prospectId: UUID!
 	kycStatus: KycStatus!
 	level: KycLevel!
-	createdAt: Timestamp!
-	stage: ProspectStage!
-	email: String!
-	telegramHandle: String!
-	customerType: CustomerType!
+	personalInfo: PersonalInfo
+	prospectId: UUID!
 	publicId: PublicId!
-	applicantId: String
+	stage: ProspectStage!
+	telegramHandle: String!
 	verificationLink: String
 	verificationLinkCreatedAt: Timestamp
-	personalInfo: PersonalInfo
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
-	customer: Customer
 }
 
 input ProspectCloseInput {
@@ -2394,10 +2394,6 @@ type ProspectClosePayload {
 
 type ProspectConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [ProspectEdge!]!
@@ -2405,6 +2401,10 @@ type ProspectConnection {
 	A list of nodes.
 	"""
 	nodes: [Prospect!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 input ProspectConvertInput {
@@ -2416,9 +2416,9 @@ type ProspectConvertPayload {
 }
 
 input ProspectCreateInput {
+	customerType: CustomerType!
 	email: String!
 	telegramHandle: String!
-	customerType: CustomerType!
 }
 
 type ProspectCreatePayload {
@@ -2430,13 +2430,13 @@ An edge in a connection.
 """
 type ProspectEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: Prospect!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: Prospect!
 }
 
 input ProspectKycLinkCreateInput {
@@ -2453,18 +2453,18 @@ type ProspectKycUpdatedPayload {
 }
 
 enum ProspectStage {
-	NEW
-	KYC_STARTED
-	KYC_PENDING
-	KYC_ON_HOLD
-	KYC_DECLINED
-	CONVERTED
 	CLOSED
+	CONVERTED
+	KYC_DECLINED
+	KYC_ON_HOLD
+	KYC_PENDING
+	KYC_STARTED
+	NEW
 }
 
 input ProspectsFilter {
-	stage: ProspectStage
 	customerType: CustomerType
+	stage: ProspectStage
 }
 
 input ProspectsSort {
@@ -2481,78 +2481,78 @@ scalar PublicId
 union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
+	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
+	approvalProcess(id: UUID!): ApprovalProcess
+	approvalProcesses(after: String, first: Int!): ApprovalProcessConnection!
+	audit(action: String, after: String, authorized: Boolean, first: Int!, object: String, subject: AuditSubjectId): AuditEntryConnection!
+	auditSubjects: [AuditSubjectId!]!
+	availableReportDefinitions: [ReportDefinition!]!
+	balanceSheet(asOf: Date!): BalanceSheet!
 	buildInfo: BuildInfo!
-	me: Me!
-	dashboard: Dashboard!
-	user(id: UUID!): User
-	users(first: Int!, after: String, sort: UsersSort = {by: CREATED_AT, direction: DESC}): UserConnection!
-	role(id: UUID!): Role
-	roles(first: Int!, after: String, sort: RolesSort = {by: CREATED_AT, direction: DESC}): RoleConnection!
-	permissionSets(first: Int!, after: String): PermissionSetConnection!
+	chartOfAccounts: ChartOfAccounts!
+	committee(id: UUID!): Committee
+	committees(after: String, first: Int!, sort: CommitteesSort = {by: CREATED_AT, direction: DESC}): CommitteeConnection!
+	creditConfig: CreditModuleConfig
+	creditFacilities(after: String, filter: CreditFacilitiesFilter, first: Int!, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): CreditFacilityConnection!
+	creditFacility(id: UUID!): CreditFacility
+	creditFacilityByPublicId(id: PublicId!): CreditFacility
+	creditFacilityProposal(id: UUID!): CreditFacilityProposal
+	creditFacilityProposals(after: String, filter: CreditFacilityProposalsFilter, first: Int!, sort: CreditFacilityProposalsSort = {by: CREATED_AT, direction: DESC}): CreditFacilityProposalConnection!
+	custodians(after: String, first: Int!, sort: CustodiansSort = {by: CREATED_AT, direction: DESC}): CustodianConnection!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
 	customerByPublicId(id: PublicId!): Customer
-	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT, direction: DESC}, filter: CustomersFilter): CustomerConnection!
-	prospect(id: UUID!): Prospect
-	prospectByPublicId(id: PublicId!): Prospect
-	prospects(first: Int!, after: String, sort: ProspectsSort = {by: CREATED_AT, direction: DESC}, filter: ProspectsFilter): ProspectConnection!
-	withdrawal(id: UUID!): Withdrawal
-	withdrawalByPublicId(id: PublicId!): Withdrawal
-	withdrawals(first: Int!, after: String, sort: WithdrawalsSort = {by: CREATED_AT, direction: DESC}, filter: WithdrawalsFilter): WithdrawalConnection!
+	customerDocument(id: UUID!): CustomerDocument
+	customers(after: String, filter: CustomersFilter, first: Int!, sort: CustomersSort = {by: CREATED_AT, direction: DESC}): CustomerConnection!
+	dashboard: Dashboard!
 	deposit(id: UUID!): Deposit
-	depositByPublicId(id: PublicId!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	depositAccountByPublicId(id: PublicId!): DepositAccount
-	depositAccounts(first: Int!, after: String, sort: DepositAccountsSort = {by: CREATED_AT, direction: DESC}, filter: DepositAccountsFilter): DepositAccountConnection!
-	deposits(first: Int!, after: String, sort: DepositsSort = {by: CREATED_AT, direction: DESC}, filter: DepositsFilter): DepositConnection!
-	termsTemplate(id: UUID!): TermsTemplate
-	termsTemplates: [TermsTemplate!]!
-	creditFacility(id: UUID!): CreditFacility
-	creditFacilityProposal(id: UUID!): CreditFacilityProposal
-	creditFacilityProposals(first: Int!, after: String, sort: CreditFacilityProposalsSort = {by: CREATED_AT, direction: DESC}, filter: CreditFacilityProposalsFilter): CreditFacilityProposalConnection!
-	pendingCreditFacility(id: UUID!): PendingCreditFacility
-	pendingCreditFacilities(first: Int!, after: String, sort: PendingCreditFacilitiesSort = {by: CREATED_AT, direction: DESC}, filter: PendingCreditFacilitiesFilter): PendingCreditFacilityConnection!
-	creditFacilityByPublicId(id: PublicId!): CreditFacility
-	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: DESC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
+	depositAccounts(after: String, filter: DepositAccountsFilter, first: Int!, sort: DepositAccountsSort = {by: CREATED_AT, direction: DESC}): DepositAccountConnection!
+	depositByPublicId(id: PublicId!): Deposit
+	depositConfig: DepositModuleConfig
+	deposits(after: String, filter: DepositsFilter, first: Int!, sort: DepositsSort = {by: CREATED_AT, direction: DESC}): DepositConnection!
+	descendantAccountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
-	disbursals(first: Int!, after: String, sort: DisbursalsSort = {by: CREATED_AT, direction: DESC}, filter: DisbursalsFilter): CreditFacilityDisbursalConnection!
-	liquidation(id: UUID!): Liquidation
-	liquidations(first: Int!, after: String, sort: LiquidationsSort = {by: CREATED_AT, direction: DESC}): LiquidationConnection!
-	custodians(first: Int!, after: String, sort: CustodiansSort = {by: CREATED_AT, direction: DESC}): CustodianConnection!
-	committee(id: UUID!): Committee
-	committees(first: Int!, after: String, sort: CommitteesSort = {by: CREATED_AT, direction: DESC}): CommitteeConnection!
-	policy(id: UUID!): Policy
-	policies(first: Int!, after: String): PolicyConnection!
-	approvalProcess(id: UUID!): ApprovalProcess
-	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
-	customerDocument(id: UUID!): CustomerDocument
-	ledgerAccount(id: UUID!): LedgerAccount
-	ledgerAccountByCode(code: String!): LedgerAccount
-	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
-	ledgerTransaction(id: UUID!): LedgerTransaction
-	ledgerTransactionsForTemplateCode(templateCode: String!, first: Int!, after: String): LedgerTransactionConnection!
-	journalEntries(first: Int!, after: String): JournalEntryConnection!
-	trialBalance(from: Date!, until: Date!): TrialBalance!
-	chartOfAccounts: ChartOfAccounts!
-	descendantAccountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
+	disbursals(after: String, filter: DisbursalsFilter, first: Int!, sort: DisbursalsSort = {by: CREATED_AT, direction: DESC}): CreditFacilityDisbursalConnection!
+	domainConfigs(after: String, first: Int!): DomainConfigConnection!
 	fiscalYear(id: UUID!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
-	fiscalYears(first: Int!, after: String, sort: FiscalYearsSort = {by: CREATED_AT, direction: DESC}): FiscalYearConnection!
-	balanceSheet(asOf: Date!): BalanceSheet!
-	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
-	realtimePrice: RealtimePrice!
-	audit(first: Int!, after: String, subject: AuditSubjectId, authorized: Boolean, object: String, action: String): AuditEntryConnection!
-	auditSubjects: [AuditSubjectId!]!
-	depositConfig: DepositModuleConfig
-	domainConfigs(first: Int!, after: String): DomainConfigConnection!
-	creditConfig: CreditModuleConfig
-	publicIdTarget(id: PublicId!): PublicIdTarget
+	fiscalYears(after: String, first: Int!, sort: FiscalYearsSort = {by: CREATED_AT, direction: DESC}): FiscalYearConnection!
+	journalEntries(after: String, first: Int!): JournalEntryConnection!
+	ledgerAccount(id: UUID!): LedgerAccount
+	ledgerAccountByCode(code: String!): LedgerAccount
+	ledgerTransaction(id: UUID!): LedgerTransaction
+	ledgerTransactionsForTemplateCode(after: String, first: Int!, templateCode: String!): LedgerTransactionConnection!
+	liquidation(id: UUID!): Liquidation
+	liquidations(after: String, first: Int!, sort: LiquidationsSort = {by: CREATED_AT, direction: DESC}): LiquidationConnection!
 	loanAgreement(id: UUID!): LoanAgreement
-	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
-	reportRuns(first: Int!, after: String, sort: ReportRunsSort = {by: START_TIME, direction: DESC}): ReportRunConnection!
+	me: Me!
+	pendingCreditFacilities(after: String, filter: PendingCreditFacilitiesFilter, first: Int!, sort: PendingCreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): PendingCreditFacilityConnection!
+	pendingCreditFacility(id: UUID!): PendingCreditFacility
+	permissionSets(after: String, first: Int!): PermissionSetConnection!
+	policies(after: String, first: Int!): PolicyConnection!
+	policy(id: UUID!): Policy
+	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
+	prospect(id: UUID!): Prospect
+	prospectByPublicId(id: PublicId!): Prospect
+	prospects(after: String, filter: ProspectsFilter, first: Int!, sort: ProspectsSort = {by: CREATED_AT, direction: DESC}): ProspectConnection!
+	publicIdTarget(id: PublicId!): PublicIdTarget
+	realtimePrice: RealtimePrice!
 	reportRun(id: UUID!): ReportRun
-	availableReportDefinitions: [ReportDefinition!]!
+	reportRuns(after: String, first: Int!, sort: ReportRunsSort = {by: START_TIME, direction: DESC}): ReportRunConnection!
+	role(id: UUID!): Role
+	roles(after: String, first: Int!, sort: RolesSort = {by: CREATED_AT, direction: DESC}): RoleConnection!
+	termsTemplate(id: UUID!): TermsTemplate
+	termsTemplates: [TermsTemplate!]!
+	transactionTemplates(after: String, first: Int!): TransactionTemplateConnection!
+	trialBalance(from: Date!, until: Date!): TrialBalance!
+	user(id: UUID!): User
+	users(after: String, first: Int!, sort: UsersSort = {by: CREATED_AT, direction: DESC}): UserConnection!
+	withdrawal(id: UUID!): Withdrawal
+	withdrawalByPublicId(id: PublicId!): Withdrawal
+	withdrawals(after: String, filter: WithdrawalsFilter, first: Int!, sort: WithdrawalsSort = {by: CREATED_AT, direction: DESC}): WithdrawalConnection!
 }
 
 type RealtimePrice {
@@ -2560,24 +2560,24 @@ type RealtimePrice {
 }
 
 type Report {
-	id: ID!
-	reportId: UUID!
+	createdAt: Timestamp!
 	externalId: String!
+	files: [ReportFile!]!
+	id: ID!
 	name: String!
 	norm: String!
-	createdAt: Timestamp!
-	runId: UUID!
-	files: [ReportFile!]!
+	reportId: UUID!
 	reportRun: ReportRun!
+	runId: UUID!
 }
 
 type ReportDefinition {
-	reportDefinitionId: String!
-	norm: String!
-	id: String!
 	friendlyName: String!
-	sourceTable: String!
+	id: String!
+	norm: String!
 	outputs: [ReportDefinitionOutput!]!
+	reportDefinitionId: String!
+	sourceTable: String!
 	supportsAsOf: Boolean!
 }
 
@@ -2590,8 +2590,8 @@ type ReportFile {
 }
 
 input ReportFileGenerateDownloadLinkInput {
-	reportId: UUID!
 	extension: String!
+	reportId: UUID!
 }
 
 type ReportFileGenerateDownloadLinkPayload {
@@ -2607,19 +2607,15 @@ enum ReportOutputFormat {
 type ReportRun {
 	id: ID!
 	reportRunId: UUID!
-	state: ReportRunState!
+	reports: [Report!]!
+	requestedAsOfDate: Date
+	requestedReport: RequestedReport
 	runType: ReportRunType!
 	startTime: Timestamp
-	requestedReport: RequestedReport
-	requestedAsOfDate: Date
-	reports: [Report!]!
+	state: ReportRunState!
 }
 
 type ReportRunConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -2628,6 +2624,10 @@ type ReportRunConnection {
 	A list of nodes.
 	"""
 	nodes: [ReportRun!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 type ReportRunCreatePayload {
@@ -2639,25 +2639,25 @@ An edge in a connection.
 """
 type ReportRunEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: ReportRun!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: ReportRun!
 }
 
 enum ReportRunState {
+	FAILED
 	QUEUED
 	RUNNING
 	SUCCESS
-	FAILED
 }
 
 enum ReportRunType {
-	SCHEDULED
 	MANUAL
+	SCHEDULED
 }
 
 type ReportRunUpdatedPayload {
@@ -2674,23 +2674,23 @@ enum ReportRunsSortBy {
 }
 
 type RequestedReport {
-	reportDefinitionId: String!
-	norm: String!
 	name: String!
+	norm: String!
+	reportDefinitionId: String!
 }
 
 type Role {
-	id: ID!
-	roleId: UUID!
 	createdAt: Timestamp!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
 	name: String!
 	permissionSets: [PermissionSet!]!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
+	roleId: UUID!
 }
 
 input RoleAddPermissionSetsInput {
-	roleId: UUID!
 	permissionSetIds: [UUID!]!
+	roleId: UUID!
 }
 
 type RoleAddPermissionSetsPayload {
@@ -2699,10 +2699,6 @@ type RoleAddPermissionSetsPayload {
 
 type RoleConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [RoleEdge!]!
@@ -2710,6 +2706,10 @@ type RoleConnection {
 	A list of nodes.
 	"""
 	nodes: [Role!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 input RoleCreateInput {
@@ -2726,18 +2726,18 @@ An edge in a connection.
 """
 type RoleEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: Role!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: Role!
 }
 
 input RoleRemovePermissionSetsInput {
-	roleId: UUID!
 	permissionSetIds: [UUID!]!
+	roleId: UUID!
 }
 
 type RoleRemovePermissionSetsPayload {
@@ -2757,16 +2757,16 @@ enum RolesSortBy {
 scalar Satoshis
 
 input SelfCustodyConfig {
-	name: String!
 	accountXpub: String!
+	name: String!
 	network: SelfCustodyNetwork!
 }
 
 enum SelfCustodyNetwork {
+	MAINNET
+	SIGNET
 	TESTNET3
 	TESTNET4
-	SIGNET
-	MAINNET
 }
 
 scalar SignedSatoshis
@@ -2779,16 +2779,16 @@ enum SortDirection {
 }
 
 type Subscription {
-	prospectKycUpdated(prospectId: UUID!): ProspectKycUpdatedPayload!
+	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
+	creditFacilityProposalConcluded(creditFacilityProposalId: UUID!): CreditFacilityProposalConcludedPayload!
+	disbursalApprovalConcluded(disbursalId: UUID!): DisbursalApprovalConcludedPayload!
+	ledgerAccountCsvExportUploaded(ledgerAccountId: UUID!): LedgerAccountCsvExportUploadedPayload!
 	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
-	creditFacilityProposalConcluded(creditFacilityProposalId: UUID!): CreditFacilityProposalConcludedPayload!
-	withdrawalApprovalConcluded(withdrawalId: UUID!): WithdrawalApprovalConcludedPayload!
-	disbursalApprovalConcluded(disbursalId: UUID!): DisbursalApprovalConcludedPayload!
-	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
-	ledgerAccountCsvExportUploaded(ledgerAccountId: UUID!): LedgerAccountCsvExportUploadedPayload!
+	prospectKycUpdated(prospectId: UUID!): ProspectKycUpdatedPayload!
 	realtimePriceUpdated: RealtimePrice!
 	reportRunUpdated: ReportRunUpdatedPayload!
+	withdrawalApprovalConcluded(withdrawalId: UUID!): WithdrawalApprovalConcludedPayload!
 }
 
 type System {
@@ -2800,57 +2800,57 @@ type SystemApproval {
 }
 
 type TermValues {
-	annualRate: AnnualRatePct!
-	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
-	oneTimeFeeRate: OneTimeFeeRatePct!
-	effectiveAnnualRate: AnnualRatePct!
+	accrualInterval: InterestInterval!
+	annualRate: AnnualRatePct!
 	disbursalPolicy: DisbursalPolicy!
 	duration: Duration!
+	effectiveAnnualRate: AnnualRatePct!
+	initialCvl: CvlPct!
 	liquidationCvl: CvlPct!
 	marginCallCvl: CvlPct!
-	initialCvl: CvlPct!
+	oneTimeFeeRate: OneTimeFeeRatePct!
 }
 
 input TermsInput {
-	annualRate: AnnualRatePct!
-	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
-	oneTimeFeeRate: OneTimeFeeRatePct!
+	accrualInterval: InterestInterval!
+	annualRate: AnnualRatePct!
 	disbursalPolicy: DisbursalPolicy!
 	duration: DurationInput!
-	interestDueDurationFromAccrual: DurationInput!
-	obligationOverdueDurationFromDue: DurationInput!
-	obligationLiquidationDurationFromDue: DurationInput!
-	marginCallCvl: CVLPctValue!
 	initialCvl: CVLPctValue!
+	interestDueDurationFromAccrual: DurationInput!
 	liquidationCvl: CVLPctValue!
+	marginCallCvl: CVLPctValue!
+	obligationLiquidationDurationFromDue: DurationInput!
+	obligationOverdueDurationFromDue: DurationInput!
+	oneTimeFeeRate: OneTimeFeeRatePct!
 }
 
 type TermsTemplate {
-	id: ID!
-	termsTemplateId: UUID!
-	values: TermValues!
 	createdAt: Timestamp!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
 	name: String!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
+	termsTemplateId: UUID!
 	userCanUpdateTermsTemplate: Boolean!
+	values: TermValues!
 }
 
 input TermsTemplateCreateInput {
-	name: String!
-	annualRate: AnnualRatePct!
-	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
-	oneTimeFeeRate: OneTimeFeeRatePct!
+	accrualInterval: InterestInterval!
+	annualRate: AnnualRatePct!
 	disbursalPolicy: DisbursalPolicy!
 	duration: DurationInput!
+	initialCvl: CVLPctValue!
 	interestDueDurationFromAccrual: DurationInput!
-	obligationOverdueDurationFromDue: DurationInput!
-	obligationLiquidationDurationFromDue: DurationInput!
 	liquidationCvl: CVLPctValue!
 	marginCallCvl: CVLPctValue!
-	initialCvl: CVLPctValue!
+	name: String!
+	obligationLiquidationDurationFromDue: DurationInput!
+	obligationOverdueDurationFromDue: DurationInput!
+	oneTimeFeeRate: OneTimeFeeRatePct!
 }
 
 type TermsTemplateCreatePayload {
@@ -2858,19 +2858,19 @@ type TermsTemplateCreatePayload {
 }
 
 input TermsTemplateUpdateInput {
-	termsTemplateId: UUID!
-	annualRate: AnnualRatePct!
-	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
-	oneTimeFeeRate: OneTimeFeeRatePct!
+	accrualInterval: InterestInterval!
+	annualRate: AnnualRatePct!
 	disbursalPolicy: DisbursalPolicy!
-	liquidationCvl: CVLPctValue!
 	duration: DurationInput!
-	interestDueDurationFromAccrual: DurationInput!
-	obligationOverdueDurationFromDue: DurationInput!
-	obligationLiquidationDurationFromDue: DurationInput!
-	marginCallCvl: CVLPctValue!
 	initialCvl: CVLPctValue!
+	interestDueDurationFromAccrual: DurationInput!
+	liquidationCvl: CVLPctValue!
+	marginCallCvl: CVLPctValue!
+	obligationLiquidationDurationFromDue: DurationInput!
+	obligationOverdueDurationFromDue: DurationInput!
+	oneTimeFeeRate: OneTimeFeeRatePct!
+	termsTemplateId: UUID!
 }
 
 type TermsTemplateUpdatePayload {
@@ -2887,16 +2887,12 @@ type Total {
 }
 
 type TransactionTemplate {
+	code: String!
 	id: ID!
 	transactionTemplateId: UUID!
-	code: String!
 }
 
 type TransactionTemplateConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -2905,6 +2901,10 @@ type TransactionTemplateConnection {
 	A list of nodes.
 	"""
 	nodes: [TransactionTemplate!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -2912,37 +2912,37 @@ An edge in a connection.
 """
 type TransactionTemplateEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: TransactionTemplate!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: TransactionTemplate!
 }
 
 type TrialBalance {
+	accounts: [LedgerAccount!]!
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
-	accounts: [LedgerAccount!]!
 }
 
 input TriggerReportRunInput {
-	reportDefinitionId: String!
 	asOfDate: Date
+	reportDefinitionId: String!
 }
 
 scalar UUID
 
 type UnfreezeEntry {
-	txId: UUID!
-	recordedAt: Timestamp!
 	amount: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
 }
 
 type UnknownEntry {
-	txId: UUID!
 	recordedAt: Timestamp!
+	txId: UUID!
 }
 
 """
@@ -2955,40 +2955,36 @@ type UsdAmount {
 }
 
 type UsdBalanceDetails {
-	debit: UsdCents!
 	credit: UsdCents!
+	debit: UsdCents!
 	net: SignedUsdCents!
 }
 
 scalar UsdCents
 
 type UsdLedgerAccountBalance {
-	settled: UsdBalanceDetails!
-	pending: UsdBalanceDetails!
 	encumbrance: UsdBalanceDetails!
+	pending: UsdBalanceDetails!
+	settled: UsdBalanceDetails!
 }
 
 type UsdLedgerAccountBalanceRange {
+	close: UsdLedgerAccountBalance!
 	open: UsdLedgerAccountBalance!
 	periodActivity: UsdLedgerAccountBalance!
-	close: UsdLedgerAccountBalance!
 }
 
 type User {
-	id: ID!
-	userId: UUID!
 	createdAt: Timestamp!
-	role: Role!
 	email: String!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
+	role: Role!
 	userCanUpdateRoleOfUser: Boolean!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
+	userId: UUID!
 }
 
 type UserConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -2997,6 +2993,10 @@ type UserConnection {
 	A list of nodes.
 	"""
 	nodes: [User!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 input UserCreateInput {
@@ -3013,18 +3013,18 @@ An edge in a connection.
 """
 type UserEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: User!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: User!
 }
 
 input UserUpdateRoleInput {
-	userId: UUID!
 	roleId: UUID!
+	userId: UUID!
 }
 
 type UserUpdateRolePayload {
@@ -3042,46 +3042,46 @@ enum UsersSortBy {
 }
 
 type VisibleNavigationItems {
-	term: Boolean!
-	user: Boolean!
+	audit: Boolean!
+	creditFacilities: Boolean!
 	customer: Boolean!
 	deposit: Boolean!
-	withdraw: Boolean!
-	audit: Boolean!
 	financials: Boolean!
 	governance: GovernanceNavigationItems!
-	creditFacilities: Boolean!
+	term: Boolean!
+	user: Boolean!
+	withdraw: Boolean!
 }
 
 type Wallet {
-	id: ID!
-	walletId: UUID!
 	address: String!
-	network: WalletNetwork!
 	custodian: Custodian!
+	id: ID!
+	network: WalletNetwork!
+	walletId: UUID!
 }
 
 enum WalletNetwork {
+	MAINNET
+	SIGNET
 	TESTNET3
 	TESTNET4
-	SIGNET
-	MAINNET
 }
 
 type Withdrawal {
-	id: ID!
-	withdrawalId: UUID!
+	account: DepositAccount!
 	accountId: UUID!
-	approvalProcessId: UUID!
 	amount: UsdCents!
-	status: WithdrawalStatus!
+	approvalProcess: ApprovalProcess!
+	approvalProcessId: UUID!
 	createdAt: Timestamp!
+	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
+	id: ID!
+	ledgerTransactions: [LedgerTransaction!]!
 	publicId: PublicId!
 	reference: String!
-	approvalProcess: ApprovalProcess!
-	account: DepositAccount!
-	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
-	ledgerTransactions: [LedgerTransaction!]!
+	status: WithdrawalStatus!
+	withdrawalId: UUID!
 }
 
 type WithdrawalApprovalConcludedPayload {
@@ -3107,10 +3107,6 @@ type WithdrawalConfirmPayload {
 
 type WithdrawalConnection {
 	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
 	A list of edges.
 	"""
 	edges: [WithdrawalEdge!]!
@@ -3118,6 +3114,10 @@ type WithdrawalConnection {
 	A list of nodes.
 	"""
 	nodes: [Withdrawal!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -3125,13 +3125,13 @@ An edge in a connection.
 """
 type WithdrawalEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: Withdrawal!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: Withdrawal!
 }
 
 type WithdrawalEntry {
@@ -3140,8 +3140,8 @@ type WithdrawalEntry {
 }
 
 input WithdrawalInitiateInput {
-	depositAccountId: UUID!
 	amount: UsdCents!
+	depositAccountId: UUID!
 	reference: String
 }
 
@@ -3158,11 +3158,11 @@ type WithdrawalRevertPayload {
 }
 
 enum WithdrawalStatus {
-	PENDING_APPROVAL
-	PENDING_CONFIRMATION
+	CANCELLED
 	CONFIRMED
 	DENIED
-	CANCELLED
+	PENDING_APPROVAL
+	PENDING_CONFIRMATION
 	REVERTED
 }
 
@@ -3176,8 +3176,8 @@ input WithdrawalsSort {
 }
 
 enum WithdrawalsSortBy {
-	CREATED_AT
 	AMOUNT
+	CREATED_AT
 	PUBLIC_ID
 }
 

@@ -18,81 +18,81 @@ enum CollateralDirection {
 
 enum CollateralizationState {
 	FULLY_COLLATERALIZED
-	UNDER_MARGIN_CALL_THRESHOLD
-	UNDER_LIQUIDATION_THRESHOLD
 	NO_COLLATERAL
 	NO_EXPOSURE
+	UNDER_LIQUIDATION_THRESHOLD
+	UNDER_MARGIN_CALL_THRESHOLD
 }
 
 type CreditFacility {
-	id: ID!
-	creditFacilityId: UUID!
-	facilityAmount: UsdCents!
-	collateralizationState: CollateralizationState!
-	status: CreditFacilityStatus!
 	activatedAt: Timestamp!
-	maturesAt: Timestamp!
-	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
+	collateralizationState: CollateralizationState!
+	creditFacilityId: UUID!
+	creditFacilityTerms: TermValues!
 	currentCvl: CVLPct!
-	history: [CreditFacilityHistoryEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
+	facilityAmount: UsdCents!
+	history: [CreditFacilityHistoryEntry!]!
+	id: ID!
+	maturesAt: Timestamp!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	status: CreditFacilityStatus!
 }
 
 type CreditFacilityApproved {
 	cents: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
+	recordedAt: Timestamp!
 	txId: UUID!
 }
 
 type CreditFacilityBalance {
-	facilityRemaining: FacilityRemaining!
+	collateral: Collateral!
 	disbursed: Disbursed!
+	dueOutstanding: Outstanding!
+	facilityRemaining: FacilityRemaining!
 	interest: Interest!
 	outstanding: Outstanding!
-	dueOutstanding: Outstanding!
-	collateral: Collateral!
 }
 
 type CreditFacilityCollateralSentOut {
 	amount: Satoshis!
-	recordedAt: Timestamp!
 	effective: Date!
+	recordedAt: Timestamp!
 	txId: UUID!
 }
 
 type CreditFacilityCollateralUpdated {
-	satoshis: Satoshis!
-	recordedAt: Timestamp!
-	effective: Date!
 	direction: CollateralDirection!
+	effective: Date!
+	recordedAt: Timestamp!
+	satoshis: Satoshis!
 	txId: UUID!
 }
 
 type CreditFacilityCollateralizationUpdated {
-	state: CollateralizationState!
 	collateral: Satoshis!
-	outstandingInterest: UsdCents!
-	outstandingDisbursal: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
+	outstandingDisbursal: UsdCents!
+	outstandingInterest: UsdCents!
 	price: UsdCents!
+	recordedAt: Timestamp!
+	state: CollateralizationState!
 }
 
 type CreditFacilityDisbursal {
-	id: ID!
-	creditFacilityDisbursalId: UUID!
 	amount: UsdCents!
-	status: DisbursalStatus!
 	createdAt: Timestamp!
+	creditFacilityDisbursalId: UUID!
+	id: ID!
+	status: DisbursalStatus!
 }
 
 type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
+	recordedAt: Timestamp!
 	txId: UUID!
 }
 
@@ -100,50 +100,50 @@ union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFaci
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
+	recordedAt: Timestamp!
 	txId: UUID!
 }
 
 type CreditFacilityInterestAccrued {
 	cents: UsdCents!
-	recordedAt: Timestamp!
-	effective: Date!
-	txId: UUID!
 	days: Int!
+	effective: Date!
+	recordedAt: Timestamp!
+	txId: UUID!
 }
 
 type CreditFacilityPaymentAllocation {
-	id: ID!
-	creditFacilityPaymentAllocationId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
+	creditFacilityPaymentAllocationId: UUID!
+	id: ID!
 }
 
 type CreditFacilityRepaymentAmountReceived {
 	cents: UsdCents!
-	recordedAt: Timestamp!
 	effective: Date!
+	recordedAt: Timestamp!
 	txId: UUID!
 }
 
 type CreditFacilityRepaymentPlanEntry {
-	repaymentType: CreditFacilityRepaymentType!
-	status: CreditFacilityRepaymentStatus!
-	initial: UsdCents!
-	outstanding: UsdCents!
 	accrualAt: Timestamp!
 	dueAt: Date!
+	initial: UsdCents!
+	outstanding: UsdCents!
+	repaymentType: CreditFacilityRepaymentType!
+	status: CreditFacilityRepaymentStatus!
 }
 
 enum CreditFacilityRepaymentStatus {
-	UPCOMING
-	NOT_YET_DUE
-	DUE
-	OVERDUE
 	DEFAULTED
+	DUE
+	NOT_YET_DUE
+	OVERDUE
 	PAID
+	UPCOMING
 }
 
 enum CreditFacilityRepaymentType {
@@ -153,38 +153,38 @@ enum CreditFacilityRepaymentType {
 
 enum CreditFacilityStatus {
 	ACTIVE
-	MATURED
 	CLOSED
+	MATURED
 }
 
 type Customer {
-	id: ID!
-	customerId: UUID!
-	status: CustomerStatus!
-	level: KycLevel!
 	createdAt: Timestamp!
-	email: String!
-	telegramHandle: String!
-	customerType: CustomerType!
-	personalInfo: PersonalInfo
-	depositAccount: DepositAccount!
 	creditFacilities: [CreditFacility!]!
+	customerId: UUID!
+	customerType: CustomerType!
+	depositAccount: DepositAccount!
+	email: String!
+	id: ID!
+	level: KycLevel!
+	personalInfo: PersonalInfo
+	status: CustomerStatus!
+	telegramHandle: String!
 }
 
 enum CustomerStatus {
 	ACTIVE
-	FROZEN
 	CLOSED
+	FROZEN
 }
 
 enum CustomerType {
-	INDIVIDUAL
-	GOVERNMENT_ENTITY
-	PRIVATE_COMPANY
 	BANK
 	FINANCIAL_INSTITUTION
 	FOREIGN_AGENCY_OR_SUBSIDIARY
+	GOVERNMENT_ENTITY
+	INDIVIDUAL
 	NON_DOMICILED_COMPANY
+	PRIVATE_COMPANY
 }
 
 """
@@ -193,38 +193,34 @@ An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represent
 scalar Date
 
 type Deposit {
-	id: ID!
-	depositId: UUID!
 	accountId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	depositId: UUID!
+	id: ID!
 	reference: String!
 	status: DepositStatus!
 }
 
 type DepositAccount {
-	id: ID!
-	depositAccountId: UUID!
-	customerId: UUID!
-	createdAt: Timestamp!
 	balance: DepositAccountBalance!
+	createdAt: Timestamp!
+	customerId: UUID!
+	depositAccountId: UUID!
 	deposits: [Deposit!]!
+	history(after: String, first: Int!): DepositAccountHistoryEntryConnection!
+	id: ID!
 	withdrawals: [Withdrawal!]!
-	history(first: Int!, after: String): DepositAccountHistoryEntryConnection!
 }
 
 type DepositAccountBalance {
-	settled: UsdCents!
 	pending: UsdCents!
+	settled: UsdCents!
 }
 
 union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | FreezeEntry | UnfreezeEntry | UnknownEntry
 
 type DepositAccountHistoryEntryConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
@@ -233,6 +229,10 @@ type DepositAccountHistoryEntryConnection {
 	A list of nodes.
 	"""
 	nodes: [DepositAccountHistoryEntry!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
 }
 
 """
@@ -240,18 +240,18 @@ An edge in a connection.
 """
 type DepositAccountHistoryEntryEdge {
 	"""
-	The item at the end of the edge
-	"""
-	node: DepositAccountHistoryEntry!
-	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: DepositAccountHistoryEntry!
 }
 
 type DepositEntry {
-	recordedAt: Timestamp!
 	deposit: Deposit!
+	recordedAt: Timestamp!
 }
 
 enum DepositStatus {
@@ -260,21 +260,21 @@ enum DepositStatus {
 }
 
 type DisbursalEntry {
-	recordedAt: Timestamp!
 	disbursal: CreditFacilityDisbursal!
+	recordedAt: Timestamp!
 }
 
 enum DisbursalStatus {
-	NEW
 	APPROVED
-	DENIED
 	CONFIRMED
+	DENIED
+	NEW
 }
 
 type Disbursed {
-	total: Total!
-	outstanding: Outstanding!
 	dueOutstanding: Outstanding!
+	outstanding: Outstanding!
+	total: Total!
 }
 
 type Duration {
@@ -287,26 +287,26 @@ type FacilityRemaining {
 }
 
 type FreezeEntry {
-	txId: UUID!
-	recordedAt: Timestamp!
 	amount: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
 }
 
 type Interest {
-	total: Total!
-	outstanding: Outstanding!
 	dueOutstanding: Outstanding!
+	outstanding: Outstanding!
+	total: Total!
 }
 
 enum InterestInterval {
-	END_OF_MONTH
 	END_OF_DAY
+	END_OF_MONTH
 }
 
 enum KycLevel {
-	NOT_KYCED
-	BASIC
 	ADVANCED
+	BASIC
+	NOT_KYCED
 }
 
 type Me {
@@ -324,40 +324,40 @@ Information about pagination in a connection
 """
 type PageInfo {
 	"""
-	When paginating backwards, are there more items?
+	When paginating forwards, the cursor to continue.
 	"""
-	hasPreviousPage: Boolean!
+	endCursor: String
 	"""
 	When paginating forwards, are there more items?
 	"""
 	hasNextPage: Boolean!
 	"""
+	When paginating backwards, are there more items?
+	"""
+	hasPreviousPage: Boolean!
+	"""
 	When paginating backwards, the cursor to continue.
 	"""
 	startCursor: String
-	"""
-	When paginating forwards, the cursor to continue.
-	"""
-	endCursor: String
 }
 
 type PaymentEntry {
-	recordedAt: Timestamp!
 	payment: CreditFacilityPaymentAllocation!
+	recordedAt: Timestamp!
 }
 
 enum PendingCreditFacilityCollateralizationState {
 	FULLY_COLLATERALIZED
-	UNDER_COLLATERALIZED
 	NOT_YET_COLLATERALIZED
+	UNDER_COLLATERALIZED
 }
 
 type PendingCreditFacilityCollateralizationUpdated {
-	state: PendingCreditFacilityCollateralizationState!
 	collateral: Satoshis!
+	effective: Date!
 	price: UsdCents!
 	recordedAt: Timestamp!
-	effective: Date!
+	state: PendingCreditFacilityCollateralizationState!
 }
 
 enum Period {
@@ -365,17 +365,17 @@ enum Period {
 }
 
 type PersonalInfo {
-	firstName: String!
-	lastName: String!
-	dateOfBirth: String
-	nationality: String
 	address: String
 	companyName: String
+	dateOfBirth: String
+	firstName: String!
+	lastName: String!
+	nationality: String
 }
 
 type Query {
-	me: Me!
 	creditFacility(id: UUID!): CreditFacility
+	me: Me!
 	realtimePrice: RealtimePrice!
 }
 
@@ -386,14 +386,14 @@ type RealtimePrice {
 scalar Satoshis
 
 type TermValues {
-	annualRate: AnnualRatePct!
-	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
-	oneTimeFeeRate: OneTimeFeeRatePct!
+	accrualInterval: InterestInterval!
+	annualRate: AnnualRatePct!
 	duration: Duration!
+	initialCvl: CVLPct!
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
-	initialCvl: CVLPct!
+	oneTimeFeeRate: OneTimeFeeRatePct!
 }
 
 """
@@ -408,26 +408,26 @@ type Total {
 scalar UUID
 
 type UnfreezeEntry {
-	txId: UUID!
-	recordedAt: Timestamp!
 	amount: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
 }
 
 type UnknownEntry {
-	txId: UUID!
 	recordedAt: Timestamp!
+	txId: UUID!
 }
 
 scalar UsdCents
 
 type Withdrawal {
-	id: ID!
-	withdrawalId: UUID!
 	accountId: UUID!
 	amount: UsdCents!
-	status: WithdrawalStatus!
 	createdAt: Timestamp!
+	id: ID!
 	reference: String!
+	status: WithdrawalStatus!
+	withdrawalId: UUID!
 }
 
 type WithdrawalEntry {
@@ -436,11 +436,11 @@ type WithdrawalEntry {
 }
 
 enum WithdrawalStatus {
-	PENDING_APPROVAL
-	PENDING_CONFIRMATION
+	CANCELLED
 	CONFIRMED
 	DENIED
-	CANCELLED
+	PENDING_APPROVAL
+	PENDING_CONFIRMATION
 	REVERTED
 }
 
