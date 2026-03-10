@@ -1,0 +1,7 @@
+mutation CollateralUpdate($input: CollateralUpdateInput!) {
+  collateralUpdate(input: $input) {
+    collateral {
+      collateralId
+    }
+  }
+}

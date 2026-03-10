@@ -1,0 +1,34 @@
+query FindLiquidation($id: UUID!) {
+  liquidation(id: $id) {
+    liquidationId
+    amountReceived
+    receivedProceeds {
+      amount
+    }
+  }
+}
+
+mutation LiquidationRecordCollateralSent($input: CollateralRecordSentToLiquidationInput!) {
+  collateralRecordSentToLiquidation(input: $input) {
+    collateral {
+      collateralId
+      creditFacility {
+        liquidations {
+          liquidationId
+          sentTotal
+          sentCollateral {
+            amount
+          }
+        }
+      }
+    }
+  }
+}
+
+mutation LiquidationRecordPaymentReceived($input: CollateralRecordProceedsFromLiquidationInput!) {
+  collateralRecordProceedsFromLiquidation(input: $input) {
+    collateral {
+      collateralId
+    }
+  }
+}

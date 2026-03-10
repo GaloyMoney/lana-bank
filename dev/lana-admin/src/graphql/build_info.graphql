@@ -1,0 +1,8 @@
+query BuildInfoGet {
+  buildInfo {
+    version
+    buildProfile
+    buildTarget
+    enabledFeatures
+  }
+}
