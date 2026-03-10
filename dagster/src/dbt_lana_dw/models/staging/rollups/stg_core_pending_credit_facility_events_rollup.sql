@@ -16,7 +16,14 @@ with
             approval_process_id,
             collateral,
             collateral_id,
-            collateralization_ratio,
+            case
+                when json_value(collateralization_ratio, '$') = 'Infinite'
+                then null
+                else
+                    safe_cast(
+                        json_value(collateralization_ratio, '$.Finite') as numeric
+                    )
+            end as collateralization_ratio,
             collateralization_state,
             credit_facility_proposal_id,
             customer_id,
