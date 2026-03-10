@@ -428,12 +428,12 @@
         }
       },
       "eventHistory": {
-        "title": "Events",
-        "description": "Timeline of changes made to this prospect",
-        "emptyMessage": "No events recorded",
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en este prospecto",
+        "emptyMessage": "No hay eventos registrados",
         "columns": {
-          "event": "Event",
-          "details": "Details",
+          "event": "Evento",
+          "details": "Detalles",
           "subject": "Realizado Por",
           "auditEntryId": "Entrada de Auditoría",
           "recordedAt": "Registrado El"
