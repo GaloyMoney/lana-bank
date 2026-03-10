@@ -11,6 +11,9 @@ setup_file() {
   start_server
   login_superadmin
   reset_log_files "$PERSISTED_LOG_FILE" "$RUN_LOG_FILE"
+
+  manual_custodian_id=$(get_or_create_manual_custodian)
+  cache_value 'manual_custodian_id' "$manual_custodian_id"
 }
 
 teardown_file() {
@@ -144,14 +147,17 @@ ymd() {
   deposit_account_id=$(create_deposit_account_for_customer "$customer_id")
 
   facility=100000
+  custodian_id=$(read_value 'manual_custodian_id')
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
     --argjson facility "$facility" \
+    --arg custodianId "$custodian_id" \
     '{
       input: {
         customerId: $customerId,
         facility: $facility,
+        custodianId: $custodianId,
         terms: {
           annualRate: "12",
           accrualCycleInterval: "END_OF_MONTH",
