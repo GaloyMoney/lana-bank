@@ -26,19 +26,27 @@ struct Cli {
         value_name = "FILE"
     )]
     config: PathBuf,
-    #[clap(env = "PG_CON", default_value = "")]
+    #[clap(long, env = "PG_CON", default_value = "")]
     pg_con: String,
-    #[clap(env = "SMTP_USERNAME", default_value = "")]
+    #[clap(long, env = "SMTP_USERNAME", default_value = "")]
     smtp_username: String,
-    #[clap(env = "SMTP_PASSWORD", default_value = "")]
+    #[clap(long, env = "SMTP_PASSWORD", default_value = "")]
     smtp_password: String,
     #[clap(long, env = "ENCRYPTION_KEY")]
     encryption_key: String,
     #[clap(long, env = "DEPRECATED_ENCRYPTION_KEY")]
     deprecated_encryption_key: Option<String>,
-    #[clap(env = "KEYCLOAK_INTERNAL_CLIENT_SECRET", default_value = "secret")]
+    #[clap(
+        long,
+        env = "KEYCLOAK_INTERNAL_CLIENT_SECRET",
+        default_value = "secret"
+    )]
     keycloak_internal_client_secret: String,
-    #[clap(env = "KEYCLOAK_CUSTOMER_CLIENT_SECRET", default_value = "secret")]
+    #[clap(
+        long,
+        env = "KEYCLOAK_CUSTOMER_CLIENT_SECRET",
+        default_value = "secret"
+    )]
     keycloak_customer_client_secret: String,
     #[clap(long, env = "LANA_HOME", default_value = ".lana")]
     lana_home: String,
