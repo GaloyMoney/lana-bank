@@ -45,7 +45,7 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ user }) => {
     },
   ]
 
-  const footer = (
+  const footer = user.userCanUpdateRoleOfUser ? (
     <Button
       variant="outline"
       onClick={handleOpenRoleDialog}
@@ -53,7 +53,7 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ user }) => {
     >
       {t("updateRole")}
     </Button>
-  )
+  ) : null
 
   return (
     <>

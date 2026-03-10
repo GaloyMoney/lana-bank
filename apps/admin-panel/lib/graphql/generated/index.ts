@@ -2111,6 +2111,7 @@ export type ManualTransactionExecutePayload = {
 export type Me = {
   __typename?: 'Me';
   user: User;
+  userCanCreateCustodian: Scalars['Boolean']['output'];
   userCanCreateProspect: Scalars['Boolean']['output'];
   userCanCreateTermsTemplate: Scalars['Boolean']['output'];
   userCanCreateUser: Scalars['Boolean']['output'];
@@ -4123,6 +4124,11 @@ export type DomainConfigUpdateMutationVariables = Exact<{
 
 export type DomainConfigUpdateMutation = { __typename?: 'Mutation', domainConfigUpdate: { __typename?: 'DomainConfigUpdatePayload', domainConfig: { __typename?: 'DomainConfig', id: string, domainConfigId: string, key: string, configType: ConfigType, encrypted: boolean, isSet: boolean, value: any } } };
 
+export type CreatePermissionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CreatePermissionsQuery = { __typename?: 'Query', me: { __typename?: 'Me', userCanCreateUser: boolean, userCanCreateTermsTemplate: boolean, userCanCreateCustodian: boolean } };
+
 export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: string };
 
 export type GetCreditFacilityDisbursalsQueryVariables = Exact<{
@@ -5620,16 +5626,16 @@ export type GetUserDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } | null };
+export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } | null };
 
 export type UserCreateMutationVariables = Exact<{
   input: UserCreateInput;
 }>;
 
 
-export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } } };
+export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } } };
 
-export type UserFieldsFragment = { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } };
+export type UserFieldsFragment = { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } };
 
 export type UsersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5638,14 +5644,14 @@ export type UsersQueryVariables = Exact<{
 }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'UserEdge', cursor: string, node: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } };
+export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'UserEdge', cursor: string, node: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } };
 
 export type UserUpdateRoleMutationVariables = Exact<{
   input: UserUpdateRoleInput;
 }>;
 
 
-export type UserUpdateRoleMutation = { __typename?: 'Mutation', userUpdateRole: { __typename?: 'UserUpdateRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } } };
+export type UserUpdateRoleMutation = { __typename?: 'Mutation', userUpdateRole: { __typename?: 'UserUpdateRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } } };
 
 export type WithdrawalCancelMutationVariables = Exact<{
   input: WithdrawalCancelInput;
@@ -6874,6 +6880,7 @@ export const UserFieldsFragmentDoc = gql`
     ...RoleFields
   }
   createdAt
+  userCanUpdateRoleOfUser
 }
     ${RoleFieldsFragmentDoc}`;
 export const WithdrawDetailsPageFragmentFragmentDoc = gql`
@@ -7885,6 +7892,50 @@ export function useDomainConfigUpdateMutation(baseOptions?: Apollo.MutationHookO
 export type DomainConfigUpdateMutationHookResult = ReturnType<typeof useDomainConfigUpdateMutation>;
 export type DomainConfigUpdateMutationResult = Apollo.MutationResult<DomainConfigUpdateMutation>;
 export type DomainConfigUpdateMutationOptions = Apollo.BaseMutationOptions<DomainConfigUpdateMutation, DomainConfigUpdateMutationVariables>;
+export const CreatePermissionsDocument = gql`
+    query CreatePermissions {
+  me {
+    userCanCreateUser
+    userCanCreateTermsTemplate
+    userCanCreateCustodian
+  }
+}
+    `;
+
+/**
+ * __useCreatePermissionsQuery__
+ *
+ * To run a query within a React component, call `useCreatePermissionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreatePermissionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreatePermissionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCreatePermissionsQuery(baseOptions?: Apollo.QueryHookOptions<CreatePermissionsQuery, CreatePermissionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreatePermissionsQuery, CreatePermissionsQueryVariables>(CreatePermissionsDocument, options);
+      }
+export function useCreatePermissionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreatePermissionsQuery, CreatePermissionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreatePermissionsQuery, CreatePermissionsQueryVariables>(CreatePermissionsDocument, options);
+        }
+// @ts-ignore
+export function useCreatePermissionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CreatePermissionsQuery, CreatePermissionsQueryVariables>): Apollo.UseSuspenseQueryResult<CreatePermissionsQuery, CreatePermissionsQueryVariables>;
+export function useCreatePermissionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreatePermissionsQuery, CreatePermissionsQueryVariables>): Apollo.UseSuspenseQueryResult<CreatePermissionsQuery | undefined, CreatePermissionsQueryVariables>;
+export function useCreatePermissionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreatePermissionsQuery, CreatePermissionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CreatePermissionsQuery, CreatePermissionsQueryVariables>(CreatePermissionsDocument, options);
+        }
+export type CreatePermissionsQueryHookResult = ReturnType<typeof useCreatePermissionsQuery>;
+export type CreatePermissionsLazyQueryHookResult = ReturnType<typeof useCreatePermissionsLazyQuery>;
+export type CreatePermissionsSuspenseQueryHookResult = ReturnType<typeof useCreatePermissionsSuspenseQuery>;
+export type CreatePermissionsQueryResult = Apollo.QueryResult<CreatePermissionsQuery, CreatePermissionsQueryVariables>;
 export const GetCreditFacilityDisbursalsDocument = gql`
     query GetCreditFacilityDisbursals($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {

@@ -52,6 +52,15 @@ impl MeUser {
             .await
             .is_ok())
     }
+
+    async fn user_can_create_custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .custody()
+            .subject_can_create_custodian(sub, false)
+            .await
+            .is_ok())
+    }
 }
 
 impl From<Arc<DomainUser>> for MeUser {

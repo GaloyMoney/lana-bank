@@ -5,6 +5,7 @@ import { useState, useContext, createContext, useMemo } from "react"
 import { HiPlus } from "react-icons/hi"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
+import { gql } from "@apollo/client"
 
 import {
   Tooltip,
@@ -53,7 +54,18 @@ import {
   GetDepositAccountDetailsQuery,
   LedgerAccountDetailsFragment,
   FiscalYear,
+  useCreatePermissionsQuery,
 } from "@/lib/graphql/generated"
+
+gql`
+  query CreatePermissions {
+    me {
+      userCanCreateUser
+      userCanCreateTermsTemplate
+      userCanCreateCustodian
+    }
+  }
+`
 
 export const PATH_CONFIGS = {
   COMMITTEES: "/committees",
@@ -140,6 +152,7 @@ type MenuItem = {
   onClick: () => void
   dataTestId: string
   allowedPaths: (string | RegExp)[]
+  condition?: () => boolean
 }
 
 const CreateButton = () => {
@@ -163,6 +176,8 @@ const CreateButton = () => {
   const [openAddChildAccountDialog, setOpenAddChildAccountDialog] = useState(false)
   const [openOpenNextYearDialog, setOpenOpenNextYearDialog] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+
+  const { data: permissionsData } = useCreatePermissionsQuery()
 
   const {
     customer,
@@ -303,12 +318,14 @@ const CreateButton = () => {
       onClick: () => setOpenCreateUserDialog(true),
       dataTestId: "create-user-button",
       allowedPaths: [PATH_CONFIGS.USERS],
+      condition: () => permissionsData?.me.userCanCreateUser !== false,
     },
     {
       label: t("menuItems.termsTemplate"),
       onClick: () => setOpenCreateTermsTemplateDialog(true),
       dataTestId: "create-terms-template-button",
       allowedPaths: [PATH_CONFIGS.TERMS_TEMPLATES],
+      condition: () => permissionsData?.me.userCanCreateTermsTemplate !== false,
     },
     {
       label: t("menuItems.committee"),
@@ -330,6 +347,7 @@ const CreateButton = () => {
       onClick: () => setOpenCreateCustodianDialog(true),
       dataTestId: "create-custodian-button",
       allowedPaths: [PATH_CONFIGS.CUSTODIANS],
+      condition: () => permissionsData?.me.userCanCreateCustodian !== false,
     },
     {
       label: t("menuItems.executeManualTransaction"),
@@ -356,6 +374,8 @@ const CreateButton = () => {
 
   const getAvailableMenuItems = () => {
     return menuItems.filter((item) => {
+      if (item.condition && !item.condition()) return false
+
       const isPathAllowed = isItemAllowedOnCurrentPath(item.allowedPaths, pathName)
 
       // TODO: add ability to disable options instead of hiding them

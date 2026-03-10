@@ -36,6 +36,7 @@ gql`
       ...RoleFields
     }
     createdAt
+    userCanUpdateRoleOfUser
   }
 
   query Users($first: Int!, $after: String, $sort: UsersSort) {
