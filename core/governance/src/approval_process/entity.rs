@@ -102,30 +102,30 @@ impl ApprovalProcess {
 
     pub(crate) fn check_concluded(
         &mut self,
-        eligible: HashSet<CommitteeMemberId>,
-    ) -> Idempotent<(bool, Option<String>)> {
+        eligible: &HashSet<CommitteeMemberId>,
+    ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),
             already_applied: ApprovalProcessEvent::Concluded { .. },
         );
+        if self.maybe_conclude(eligible) {
+            Idempotent::Executed(())
+        } else {
+            Idempotent::AlreadyApplied
+        }
+    }
+
+    fn maybe_conclude(&mut self, eligible_members: &HashSet<CommitteeMemberId>) -> bool {
         if let Some(approved) =
             self.rules
-                .is_approved_or_denied(&eligible, &self.approvers(), &self.deniers())
+                .is_approved_or_denied(eligible_members, &self.approvers(), &self.deniers())
         {
-            let reason = self
-                .events
-                .iter_all()
-                .filter_map(|event| match event {
-                    ApprovalProcessEvent::Denied { reason, .. } => Some(reason.clone()),
-                    _ => None,
-                })
-                .next();
-
             self.events
                 .push(ApprovalProcessEvent::Concluded { approved });
-            return Idempotent::Executed((approved, reason));
+            true
+        } else {
+            false
         }
-        Idempotent::AlreadyApplied
     }
 
     pub fn status(&self) -> ApprovalProcessStatus {
@@ -161,6 +161,7 @@ impl ApprovalProcess {
 
         self.events
             .push(ApprovalProcessEvent::Approved { approver_id });
+        self.maybe_conclude(eligible_members);
 
         Idempotent::Executed(())
     }
@@ -184,6 +185,7 @@ impl ApprovalProcess {
 
         self.events
             .push(ApprovalProcessEvent::Denied { denier_id, reason });
+        self.maybe_conclude(eligible_members);
 
         Idempotent::Executed(())
     }
@@ -335,10 +337,22 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
-        let _ = process.check_concluded(HashSet::new());
+        let _ = process.check_concluded(&HashSet::new());
         let approver = CommitteeMemberId::new();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
         assert!(process.approve(&eligible, approver).was_already_applied());
+    }
+
+    #[test]
+    fn approve_concludes_when_all_voted() {
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::Committee {
+            committee_id: CommitteeId::new(),
+        }))
+        .expect("Could not build approval process");
+        let approver = CommitteeMemberId::new();
+        let eligible: HashSet<_> = [approver].iter().copied().collect();
+        assert!(process.approve(&eligible, approver).did_execute());
+        assert_eq!(process.status(), ApprovalProcessStatus::Approved);
     }
 
     #[test]
@@ -391,7 +405,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
-        let _ = process.check_concluded(HashSet::new());
+        let _ = process.check_concluded(&HashSet::new());
         let denier = CommitteeMemberId::new();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(
@@ -399,5 +413,21 @@ mod tests {
                 .deny(&eligible, denier, String::new())
                 .was_already_applied()
         );
+    }
+
+    #[test]
+    fn deny_concludes_process() {
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::Committee {
+            committee_id: CommitteeId::new(),
+        }))
+        .expect("Could not build approval process");
+        let denier = CommitteeMemberId::new();
+        let eligible: HashSet<_> = [denier].iter().copied().collect();
+        assert!(
+            process
+                .deny(&eligible, denier, "reason".to_string())
+                .did_execute()
+        );
+        assert_eq!(process.status(), ApprovalProcessStatus::Denied);
     }
 }
