@@ -25,6 +25,7 @@ gql`
     custodianId
     createdAt
     name
+    provider
   }
 
   query Custodians($first: Int!, $after: String, $sort: CustodiansSort) {
@@ -83,6 +84,10 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Custodian>[] => 
     key: "name",
     label: t("headers.name"),
     sortable: true,
+  },
+  {
+    key: "provider",
+    label: t("headers.provider"),
   },
   {
     key: "createdAt",

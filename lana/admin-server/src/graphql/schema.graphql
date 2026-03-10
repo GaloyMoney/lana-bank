@@ -970,6 +970,7 @@ type Custodian {
 	custodianId: UUID!
 	id: ID!
 	name: String!
+	provider: String!
 }
 
 input CustodianConfigInput @oneOf {

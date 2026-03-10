@@ -1830,6 +1830,7 @@
     "table": {
       "headers": {
         "name": "Nombre",
+        "provider": "Proveedor",
         "created": "Creado"
       }
     },
