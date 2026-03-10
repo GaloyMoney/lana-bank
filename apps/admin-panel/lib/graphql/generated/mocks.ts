@@ -1261,6 +1261,7 @@ export const mockCustodian = (overrides?: Partial<Custodian>, _relationshipsToOm
         custodianId: overrides && overrides.hasOwnProperty('custodianId') ? overrides.custodianId! : generateMockValue.uuid(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        provider: overrides && overrides.hasOwnProperty('provider') ? overrides.provider! : faker.lorem.word(),
     };
 };
 

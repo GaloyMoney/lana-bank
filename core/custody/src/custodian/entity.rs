@@ -37,7 +37,7 @@ pub struct Custodian {
     pub id: CustodianId,
     encrypted_custodian_config: Encrypted,
     pub name: String,
-    pub(super) provider: String,
+    pub provider: String,
     #[builder(default)]
     next_receive_index: u32,
     events: EntityEvents<CustodianEvent>,

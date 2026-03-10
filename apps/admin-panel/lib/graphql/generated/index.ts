@@ -1047,6 +1047,7 @@ export type Custodian = {
   custodianId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
 };
 
 export type CustodianConfigInput =
@@ -4535,7 +4536,7 @@ export type CustodianCreateMutationVariables = Exact<{
 
 export type CustodianCreateMutation = { __typename?: 'Mutation', custodianCreate: { __typename?: 'CustodianCreatePayload', custodian: { __typename?: 'Custodian', id: string, custodianId: string, name: string, createdAt: string } } };
 
-export type CustodianFieldsFragment = { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string };
+export type CustodianFieldsFragment = { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string };
 
 export type CustodiansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4544,7 +4545,7 @@ export type CustodiansQueryVariables = Exact<{
 }>;
 
 
-export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CustomerCloseMutationVariables = Exact<{
   input: CustomerCloseInput;
@@ -6258,6 +6259,7 @@ export const CustodianFieldsFragmentDoc = gql`
   custodianId
   createdAt
   name
+  provider
 }
     `;
 export const CustomerDetailsFragmentFragmentDoc = gql`

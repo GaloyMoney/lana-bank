@@ -41,6 +41,10 @@ impl Custodian {
     async fn name(&self) -> &str {
         &self.entity.name
     }
+
+    async fn provider(&self) -> &str {
+        &self.entity.provider
+    }
 }
 
 #[derive(InputObject)]
