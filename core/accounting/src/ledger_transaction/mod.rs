@@ -62,7 +62,19 @@ where
             self.cala.entries().list_for_transaction_id(id)
         );
         let res = match transaction {
-            Ok(tx) => Some(LedgerTransaction::try_from((tx, entries?))?),
+            Ok(tx) => {
+                let template_code = self
+                    .cala
+                    .tx_templates()
+                    .find_all::<cala_ledger::tx_template::TxTemplate>(&[tx.values().tx_template_id])
+                    .await?
+                    .remove(&tx.values().tx_template_id)
+                    .expect("missing transaction template for ledger transaction")
+                    .values()
+                    .code
+                    .clone();
+                Some(LedgerTransaction::try_from((tx, entries?, template_code))?)
+            }
             Err(e) if e.was_not_found() => None,
             Err(e) => return Err(e.into()),
         };
@@ -87,6 +99,12 @@ where
 
         let mut all_entries: HashMap<_, cala_ledger::entry::Entry> =
             self.cala.entries().find_all(&entries).await?;
+        let tx_template_ids: Vec<_> = transactions
+            .values()
+            .map(|tx| tx.values().tx_template_id)
+            .collect();
+        let tx_templates: HashMap<_, cala_ledger::tx_template::TxTemplate> =
+            self.cala.tx_templates().find_all(&tx_template_ids).await?;
 
         let mut res = HashMap::new();
 
@@ -104,8 +122,12 @@ where
                 let b_sequence = b.values().sequence;
                 a_sequence.cmp(&b_sequence)
             });
+            let template_code = tx_templates
+                .get(&tx.values().tx_template_id)
+                .map(|tmpl| tmpl.values().code.clone())
+                .expect("missing transaction template for ledger transaction");
 
-            match LedgerTransaction::try_from((tx, sorted_entries)) {
+            match LedgerTransaction::try_from((tx, sorted_entries, template_code)) {
                 Ok(ledger_tx) => {
                     res.insert(tx_id, T::from(ledger_tx));
                 }
@@ -143,6 +165,7 @@ where
             .await?;
 
         let template = self.cala.tx_templates().find_by_code(template_code).await?;
+        let matched_template_code = template.values().code.clone();
 
         let cala_cursor = es_entity::PaginatedQueryArgs {
             after: args.after.map(TransactionsByCreatedAtCursor::from),
@@ -181,7 +204,7 @@ where
                 a_sequence.cmp(&b_sequence)
             });
 
-            match LedgerTransaction::try_from((tx, sorted_entries)) {
+            match LedgerTransaction::try_from((tx, sorted_entries, matched_template_code.clone())) {
                 Ok(ledger_tx) => {
                     entities.push(ledger_tx);
                 }

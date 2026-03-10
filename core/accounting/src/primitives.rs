@@ -6,6 +6,8 @@ use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 pub const ACCOUNTING_TRIAL_BALANCE: audit::SystemActor =
     audit::SystemActor::new("accounting-trial-balance");
+pub const SYSTEM_ACCOUNTING_TYPE: &str = "SYSTEM";
+pub const MANUAL_AD_HOC_ACCOUNTING_TYPE: &str = "MANUAL_AD_HOC";
 
 // Re-export everything from the primitives crate
 pub use chart_primitives::*;

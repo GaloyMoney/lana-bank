@@ -1952,6 +1952,7 @@ export type LedgerAccountEntity = Collateral | CreditFacility | DepositAccount;
 
 export type LedgerTransaction = {
   __typename?: 'LedgerTransaction';
+  accountingType: Scalars['String']['output'];
   createdAt: Scalars['Timestamp']['output'];
   description?: Maybe<Scalars['String']['output']>;
   effective: Scalars['Date']['output'];

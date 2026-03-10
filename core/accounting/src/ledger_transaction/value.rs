@@ -4,7 +4,9 @@ use chrono::{DateTime, Utc};
 
 use crate::{
     journal::JournalEntry,
-    primitives::{EntityRef, LedgerTransactionId},
+    primitives::{
+        EntityRef, LedgerTransactionId, MANUAL_AD_HOC_ACCOUNTING_TYPE, SYSTEM_ACCOUNTING_TYPE,
+    },
 };
 
 pub struct LedgerTransaction<S> {
@@ -14,6 +16,8 @@ pub struct LedgerTransaction<S> {
     pub description: Option<String>,
     pub effective: chrono::NaiveDate,
     pub entity_ref: Option<EntityRef>,
+    pub template_code: String,
+    pub accounting_type: String,
     pub initiated_by: S,
 }
 
@@ -21,12 +25,14 @@ pub struct LedgerTransaction<S> {
 struct ExtractMetadata {
     entity_ref: Option<EntityRef>,
     initiated_by: String,
+    accounting_type: Option<String>,
 }
 
 impl<S>
     TryFrom<(
         cala_ledger::transaction::Transaction,
         Vec<cala_ledger::entry::Entry>,
+        String,
     )> for LedgerTransaction<S>
 where
     S: FromStr,
@@ -35,9 +41,10 @@ where
     type Error = super::error::LedgerTransactionError;
 
     fn try_from(
-        (tx, entries): (
+        (tx, entries, template_code): (
             cala_ledger::transaction::Transaction,
             Vec<cala_ledger::entry::Entry>,
+            String,
         ),
     ) -> Result<Self, Self::Error> {
         let entries = entries
@@ -48,6 +55,7 @@ where
         let ExtractMetadata {
             entity_ref,
             initiated_by,
+            accounting_type,
         } = tx
             .metadata::<ExtractMetadata>()?
             .expect("Could not extract metadata");
@@ -64,6 +72,14 @@ where
             created_at: tx.created_at(),
             effective: tx.effective(),
             description: tx.into_values().description,
+            template_code: template_code.clone(),
+            accounting_type: accounting_type.unwrap_or_else(|| {
+                if template_code.starts_with("MANUAL_TRANSACTION_") {
+                    MANUAL_AD_HOC_ACCOUNTING_TYPE.to_string()
+                } else {
+                    SYSTEM_ACCOUNTING_TYPE.to_string()
+                }
+            }),
         })
     }
 }
