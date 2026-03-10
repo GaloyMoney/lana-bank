@@ -374,19 +374,19 @@
           "nationality": "Nacionalidad",
           "address": "Dirección",
           "customer": "Customer",
-          "companyName": "Company Name"
+          "companyName": "Nombre de la Empresa"
         },
         "buttons": {
           "closeProspect": "Cerrar prospecto",
           "convertToCustomer": "Convertir en cliente",
-          "viewCustomer": "View Customer"
+          "viewCustomer": "Ver Cliente"
         }
       },
       "personalInfo": {
-        "title": "Personal Information"
+        "title": "Información Personal"
       },
       "companyInfo": {
-        "title": "Company Information"
+        "title": "Información de la Empresa"
       },
       "closeProspect": {
         "title": "Cerrar prospecto",
@@ -526,12 +526,12 @@
           "dateOfBirth": "Fecha de nacimiento",
           "nationality": "Nacionalidad",
           "address": "Dirección",
-          "companyName": "Company Name"
+          "companyName": "Nombre de la Empresa"
         },
         "customerStatus": {
           "active": "Activo",
           "frozen": "Congelado",
-          "closed": "Closed"
+          "closed": "Cerrado"
         },
         "status": {
           "active": "Activo",
@@ -542,40 +542,40 @@
           "editTelegram": "Editar handle de Telegram"
         },
         "buttons": {
-          "close": "Close Customer",
-          "freeze": "Freeze Customer",
-          "unfreeze": "Unfreeze Customer"
+          "close": "Cerrar Cliente",
+          "freeze": "Congelar Cliente",
+          "unfreeze": "Descongelar Cliente"
         }
       },
       "personalInfo": {
-        "title": "Personal Information"
+        "title": "Información Personal"
       },
       "companyInfo": {
-        "title": "Company Information"
+        "title": "Información de la Empresa"
       },
       "closeCustomer": {
-        "title": "Close Customer",
-        "description": "Are you sure you want to close this customer? This action cannot be undone.",
+        "title": "Cerrar Cliente",
+        "description": "¿Estás seguro de que quieres cerrar este cliente? Esta acción no se puede deshacer.",
         "buttons": {
-          "close": "Close"
+          "close": "Cerrar"
         },
-        "success": "Customer closed successfully"
+        "success": "Cliente cerrado exitosamente"
       },
       "freezeCustomer": {
-        "title": "Freeze Customer",
-        "description": "Are you sure you want to freeze this customer?",
+        "title": "Congelar Cliente",
+        "description": "¿Estás seguro de que quieres congelar este cliente?",
         "buttons": {
-          "freeze": "Freeze"
+          "freeze": "Congelar"
         },
-        "success": "Customer frozen successfully"
+        "success": "Cliente congelado exitosamente"
       },
       "unfreezeCustomer": {
-        "title": "Unfreeze Customer",
-        "description": "Are you sure you want to unfreeze this customer?",
+        "title": "Descongelar Cliente",
+        "description": "¿Estás seguro de que quieres descongelar este cliente?",
         "buttons": {
-          "unfreeze": "Unfreeze"
+          "unfreeze": "Descongelar"
         },
-        "success": "Customer unfrozen successfully"
+        "success": "Cliente descongelado exitosamente"
       },
       "kycStatus": {
         "title": "KYC",
