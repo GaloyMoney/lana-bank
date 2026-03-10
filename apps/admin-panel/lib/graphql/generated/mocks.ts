@@ -196,6 +196,7 @@ export const mockApprovalProcessDenyInput = (overrides?: Partial<ApprovalProcess
     relationshipsToOmit.add('ApprovalProcessDenyInput');
     return {
         approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
+        reason: overrides && overrides.hasOwnProperty('reason') ? overrides.reason! : faker.lorem.word(),
     };
 };
 

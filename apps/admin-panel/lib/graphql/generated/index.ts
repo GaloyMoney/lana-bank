@@ -157,6 +157,7 @@ export type ApprovalProcessConnection = {
 
 export type ApprovalProcessDenyInput = {
   approvalProcessId: Scalars['UUID']['input'];
+  reason: Scalars['String']['input'];
 };
 
 export type ApprovalProcessDenyPayload = {
@@ -2197,7 +2198,6 @@ export type MutationApprovalProcessApproveArgs = {
 
 export type MutationApprovalProcessDenyArgs = {
   input: ApprovalProcessDenyInput;
-  reason: Scalars['String']['input'];
 };
 
 
@@ -3985,7 +3985,6 @@ export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approval
 
 export type ApprovalProcessDenyMutationVariables = Exact<{
   input: ApprovalProcessDenyInput;
-  reason: Scalars['String']['input'];
 }>;
 
 
@@ -6994,8 +6993,8 @@ export type ApprovalProcessApproveMutationHookResult = ReturnType<typeof useAppr
 export type ApprovalProcessApproveMutationResult = Apollo.MutationResult<ApprovalProcessApproveMutation>;
 export type ApprovalProcessApproveMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>;
 export const ApprovalProcessDenyDocument = gql`
-    mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!, $reason: String!) {
-  approvalProcessDeny(input: $input, reason: $reason) {
+    mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
+  approvalProcessDeny(input: $input) {
     approvalProcess {
       ...ApprovalProcessFields
     }
@@ -7018,7 +7017,6 @@ export type ApprovalProcessDenyMutationFn = Apollo.MutationFunction<ApprovalProc
  * const [approvalProcessDenyMutation, { data, loading, error }] = useApprovalProcessDenyMutation({
  *   variables: {
  *      input: // value for 'input'
- *      reason: // value for 'reason'
  *   },
  * });
  */

@@ -246,5 +246,6 @@ crate::mutation_payload! { ApprovalProcessApprovePayload, approval_process: Appr
 #[derive(InputObject)]
 pub struct ApprovalProcessDenyInput {
     pub approval_process_id: UUID,
+    pub reason: String,
 }
 crate::mutation_payload! { ApprovalProcessDenyPayload, approval_process: ApprovalProcess }
