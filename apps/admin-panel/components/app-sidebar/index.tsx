@@ -41,23 +41,10 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
   return (
     <Sidebar variant="sidebar" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild tabIndex={-1}>
-              <Link href="/dashboard">
-                <div className="flex aspect-square size-10 items-center justify-center rounded-lg">
-                  <Logo className="size-10" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{t("footer.appName")}</span>
-                  <span className="truncate text-xs">
-                    {t("footer.version", { version: appVersion || "0.0.0-dev" })}
-                  </span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <Link href="/dashboard" className="flex items-center gap-2 px-2 py-1">
+          <Logo width={18} className="shrink-0" />
+          <span className="truncate font-semibold text-lg">{t("footer.appName")}</span>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <NavSection items={navDashboardItems} />
@@ -69,7 +56,13 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
         <NavSection items={navAccountingItems} label={t("labels.accounting")} />
         <NavSection items={navFinanceItems} label={t("labels.financialReports")} />
       </SidebarContent>
-      <SidebarFooter />
+      <SidebarFooter>
+        <div className="px-3 pb-2">
+          <span className="text-[10px] text-muted-foreground">
+            {t("footer.version", { version: appVersion || "0.0.0-dev" })}
+          </span>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   )
 }
