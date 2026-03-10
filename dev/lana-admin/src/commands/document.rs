@@ -9,17 +9,17 @@ use crate::output;
 pub async fn execute(client: &mut GraphQLClient, action: DocumentAction, json: bool) -> Result<()> {
     match action {
         DocumentAction::Attach { customer_id, file } => {
-            let vars = customer_document_attach::Variables {
+            let vars = customer_document_create::Variables {
                 file: file.clone(),
                 customer_id,
             };
             let data = client
-                .execute_multipart::<CustomerDocumentAttach>(
+                .execute_multipart::<CustomerDocumentCreate>(
                     vars,
                     vec![MultipartUpload::new(file, "file")],
                 )
                 .await?;
-            let doc = data.customer_document_attach.document;
+            let doc = data.customer_document_create.document;
             if json {
                 let mut value = serde_json::to_value(&doc)?;
                 add_document_id_alias(&mut value);

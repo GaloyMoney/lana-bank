@@ -570,7 +570,7 @@ pub struct CustodianConfigUpdate;
     query_path = "src/graphql/document.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
-pub struct CustomerDocumentAttach;
+pub struct CustomerDocumentCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(

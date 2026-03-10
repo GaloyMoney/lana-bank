@@ -229,7 +229,7 @@ fn lookup_query(path: &[&str]) -> Option<QuerySpec> {
             q("AccountingCsvDownloadLinkGenerate", CSV_EXPORT_DOC)
         }
 
-        ["document", "attach"] => q("CustomerDocumentAttach", DOCUMENT_DOC),
+        ["document", "attach"] => q("CustomerDocumentCreate", DOCUMENT_DOC),
         ["document", "get"] => q("CustomerDocumentGet", DOCUMENT_DOC),
         ["document", "list"] => q("CustomerDocumentsList", DOCUMENT_DOC),
         ["document", "download-link"] => q("CustomerDocumentDownloadLinkGenerate", DOCUMENT_DOC),
