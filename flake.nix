@@ -100,6 +100,49 @@
           || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path;
       };
 
+      frontendSrc = pkgs.lib.cleanSourceWith {
+        src = ./.;
+        filter = path: type:
+          type
+          == "directory"
+          || pkgs.lib.hasInfix "/apps/" path
+          || pkgs.lib.hasInfix "/docs-site/package.json" path
+          || pkgs.lib.hasSuffix "/package.json" path
+          || pkgs.lib.hasSuffix "/pnpm-lock.yaml" path
+          || pkgs.lib.hasSuffix "/pnpm-workspace.yaml" path
+          || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
+          || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path;
+      };
+
+      pnpmDeps = pkgs.fetchPnpmDeps {
+        pname = "lana-bank-frontend-deps";
+        version = "0.0.0";
+        src = frontendSrc;
+        pnpm = pkgs.pnpm;
+        fetcherVersion = 3;
+        hash = "sha256-uuNPJjbcL4Vzu6CNGA2OgrQIAWwJCRrH45aW3iXHXLI=";
+      };
+
+      mkFrontendCheck = name: buildPhase:
+        pkgs.stdenv.mkDerivation {
+          inherit name pnpmDeps;
+          src = frontendSrc;
+
+          nativeBuildInputs = [
+            pkgs.nodejs
+            pkgs.pnpm
+            pkgs.pnpmConfigHook
+            pkgs.diffutils
+          ];
+
+          inherit buildPhase;
+
+          installPhase = ''
+            mkdir -p $out
+            echo "${name} passed" > $out/result.txt
+          '';
+        };
+
       commonArgs = {
         src = rustSource;
         strictDeps = true;
@@ -928,6 +971,91 @@
               echo "Default config check passed" > $out/result.txt
             '';
           };
+
+          check-pnpm-version = pkgs.stdenv.mkDerivation {
+            name = "check-pnpm-version";
+            src = frontendSrc;
+
+            nativeBuildInputs = [pkgs.pnpm pkgs.jq];
+
+            buildPhase = ''
+              NIX_PNPM="$(pnpm --version)"
+              PKG_PNPM="$(jq -r '.packageManager' package.json | sed 's/pnpm@//')"
+              if [ "$NIX_PNPM" != "$PKG_PNPM" ]; then
+                echo "ERROR: pnpm version mismatch!"
+                echo "  nixpkgs provides: $NIX_PNPM"
+                echo "  package.json wants: $PKG_PNPM"
+                echo "Update packageManager in package.json to pnpm@$NIX_PNPM"
+                exit 1
+              fi
+              echo "pnpm version consistent: $NIX_PNPM ✓"
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "pnpm version check passed" > $out/result.txt
+            '';
+          };
+
+          admin-panel-lint = mkFrontendCheck "admin-panel-lint" ''
+            echo "Running lint for admin-panel..."
+            pnpm --filter admin-panel lint
+            echo "admin-panel lint passed ✓"
+          '';
+
+          admin-panel-tsc = mkFrontendCheck "admin-panel-tsc" ''
+            echo "Running typecheck for admin-panel..."
+            pnpm --filter admin-panel tsc-check
+            echo "admin-panel typecheck passed ✓"
+          '';
+
+          admin-panel-codegen = mkFrontendCheck "admin-panel-codegen" ''
+            cp -r apps/admin-panel/lib/graphql/generated "$TMPDIR/codegen-committed"
+            echo "Running codegen for admin-panel..."
+            pnpm --filter admin-panel codegen
+            if ! diff -ru "$TMPDIR/codegen-committed" apps/admin-panel/lib/graphql/generated/; then
+              echo "ERROR: admin-panel codegen output is stale!"
+              echo "Run 'make sdl-js' to regenerate"
+              exit 1
+            fi
+            echo "admin-panel codegen is up to date ✓"
+          '';
+
+          customer-portal-lint = mkFrontendCheck "customer-portal-lint" ''
+            echo "Running lint for customer-portal..."
+            pnpm --filter customer-portal lint
+            echo "customer-portal lint passed ✓"
+          '';
+
+          customer-portal-tsc = mkFrontendCheck "customer-portal-tsc" ''
+            echo "Running typecheck for customer-portal..."
+            pnpm --filter customer-portal tsc-check
+            echo "customer-portal typecheck passed ✓"
+          '';
+
+          customer-portal-codegen = mkFrontendCheck "customer-portal-codegen" ''
+            cp -r apps/customer-portal/lib/graphql/generated "$TMPDIR/codegen-committed"
+            echo "Running codegen for customer-portal..."
+            pnpm --filter customer-portal codegen
+            if ! diff -ru "$TMPDIR/codegen-committed" apps/customer-portal/lib/graphql/generated/; then
+              echo "ERROR: customer-portal codegen output is stale!"
+              echo "Run 'make sdl-js' to regenerate"
+              exit 1
+            fi
+            echo "customer-portal codegen is up to date ✓"
+          '';
+
+          admin-panel-build = mkFrontendCheck "admin-panel-build" ''
+            echo "Running build for admin-panel..."
+            pnpm --filter admin-panel build
+            echo "admin-panel build passed ✓"
+          '';
+
+          customer-portal-build = mkFrontendCheck "customer-portal-build" ''
+            echo "Running build for customer-portal..."
+            pnpm --filter customer-portal build
+            echo "customer-portal build passed ✓"
+          '';
 
           check-fmt = pkgs.stdenv.mkDerivation {
             name = "check-fmt";

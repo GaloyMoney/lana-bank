@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter_Tight } from "next/font/google"
+import { InterTight } from "@lana/web/fonts"
 
 import "./globals.css"
 import { PublicEnvScript } from "next-runtime-env"
@@ -18,7 +18,6 @@ export const metadata: Metadata = {
 }
 
 export const dynamic = "force-dynamic"
-const inter = Inter_Tight({ subsets: ["latin"], display: "auto" })
 
 export default async function RootLayout({
   children,
@@ -35,7 +34,7 @@ export default async function RootLayout({
           <PublicEnvScript />
         </head>
       )}
-      <body className={`${inter.className} mb-8`}>
+      <body className={`${InterTight.className} mb-8`}>
         <SessionProvider session={session}>
           <ThemeProvider
             attribute="class"

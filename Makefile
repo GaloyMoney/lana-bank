@@ -67,7 +67,7 @@ run-server-with-bootstrap:
 seed-data:
 	cargo run --all-features --bin lana-cli -- --config ./bats/lana-bootstrap.yml --set bootstrap.seed_only=true
 
-check-code: check-code-apps
+check-code:
 	nix flake check
 
 update-schemas:
