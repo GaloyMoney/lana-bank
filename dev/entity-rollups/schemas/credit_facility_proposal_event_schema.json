@@ -217,10 +217,7 @@
         },
         "custodian_id": {
           "format": "uuid",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": "string"
         },
         "customer_id": {
           "format": "uuid",
@@ -253,6 +250,7 @@
         "id",
         "customer_id",
         "customer_type",
+        "custodian_id",
         "disbursal_credit_account_id",
         "terms",
         "amount",
