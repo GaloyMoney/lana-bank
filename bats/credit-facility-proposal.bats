@@ -7,7 +7,7 @@ RUN_LOG_FILE="credit-facility-proposal.run.e2e-logs"
 
 setup_file() {
   export LANA_DOMAIN_CONFIG_ALLOW_MANUAL_CONVERSION=true
-  export LANA_DOMAIN_CONFIG_MANUAL_COLLATERAL=true
+  export LANA_DOMAIN_CONFIG_ENABLE_MANUAL_CUSTODIAN=true
   start_server
   login_superadmin
   reset_log_files "$PERSISTED_LOG_FILE" "$RUN_LOG_FILE"

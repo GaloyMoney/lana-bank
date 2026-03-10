@@ -10,7 +10,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, CoreAccounting};
 use core_credit::*;
 use core_credit::{CreditOmnibusAccountSetSpec, CreditSummaryAccountSetSpec};
-use core_credit_collateral::{CollateralId, ManualCollateral};
+use core_credit_collateral::{CollateralId, EnableManualCustodian};
 use core_custody::CustodyConfig;
 use core_customer::AllowManualConversion;
 use document_storage::DocumentStorage;
@@ -93,7 +93,7 @@ pub async fn init_domain_configs(
         .await;
     // Enable manual collateral updates for tests that need to set collateral directly
     let _ = exposed
-        .update::<ManualCollateral>(&authz::dummy::DummySubject, true)
+        .update::<EnableManualCustodian>(&authz::dummy::DummySubject, true)
         .await;
     Ok((internal, exposed_readonly))
 }

@@ -39,7 +39,7 @@ import {
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
-import { useManualCollateralEnabled } from "@/hooks/use-manual-collateral-enabled"
+import { useManualCustodianEnabled } from "@/hooks/use-manual-custodian-enabled"
 import { Satoshis } from "@/types"
 import { DEFAULT_TERMS, TERMS_FIELD_LIMITS, validateTermsFields } from "@/lib/constants/terms"
 
@@ -108,7 +108,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
   const { data: custodiansData, loading: custodiansLoading } = useCustodiansQuery({
     variables: { first: 50 },
   })
-  const manualCollateralEnabled = useManualCollateralEnabled()
+  const manualCustodianEnabled = useManualCustodianEnabled()
   const [createCreditFacility, { loading, error, reset }] =
     useCreditFacilityProposalCreateMutation()
 
@@ -360,7 +360,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                 {custodiansData?.custodians.edges
                   .filter(
                     ({ node: custodian }) =>
-                      manualCollateralEnabled || !custodian.isManual,
+                      manualCustodianEnabled || !custodian.isManual,
                   )
                   .map(({ node: custodian }) => (
                     <SelectItem key={custodian.id} value={custodian.custodianId}>

@@ -53,7 +53,7 @@ import {
 } from "@/lib/graphql/generated"
 
 import { usePublicIdSearch } from "@/hooks/use-public-id-search"
-import { useManualCollateralEnabled } from "@/hooks/use-manual-collateral-enabled"
+import { useManualCustodianEnabled } from "@/hooks/use-manual-custodian-enabled"
 import { SearchResults } from "@/components/command-menu/search-results"
 import { MenuSections, groups } from "@/components/command-menu/menu-sections"
 
@@ -118,7 +118,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
     action: null,
   })
 
-  const manualCollateralEnabled = useManualCollateralEnabled()
+  const manualCustodianEnabled = useManualCustodianEnabled()
 
   const search = usePublicIdSearch()
   const getActiveEntity = () => {
@@ -212,7 +212,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
       allowedPaths: [PATH_CONFIGS.CREDIT_FACILITY_DETAILS],
       condition: () =>
         facility?.userCanUpdateCollateral &&
-        manualCollateralEnabled &&
+        manualCustodianEnabled &&
         facility?.status !== CreditFacilityStatus.Closed &&
         facility?.status !== CreditFacilityStatus.Matured,
     },
