@@ -12,8 +12,8 @@ use crate::{
 };
 
 use super::{
-    AccountCode, BtcLedgerAccountBalanceRange, LedgerAccountBalanceRange,
-    LedgerAccountBalanceRangeByCurrency, UsdLedgerAccountBalanceRange,
+    AccountCode, BtcLedgerAccountBalanceRange, LedgerAccountBalanceRangeByCurrency,
+    UsdLedgerAccountBalanceRange,
 };
 
 #[derive(Clone, SimpleObject)]
@@ -119,12 +119,21 @@ impl ProfitAndLossAccount {
 
 #[ComplexObject]
 impl ProfitAndLossAccount {
-    async fn balance_range(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
-        if let Some(balance) = self.entity.btc_balance_range.as_ref() {
-            Ok(Some(balance).into())
-        } else {
-            Ok(self.entity.usd_balance_range.as_ref().into())
-        }
+    async fn balance_range(&self) -> async_graphql::Result<LedgerAccountBalanceRangeByCurrency> {
+        Ok(LedgerAccountBalanceRangeByCurrency {
+            usd: self
+                .entity
+                .usd_balance_range
+                .as_ref()
+                .map(UsdLedgerAccountBalanceRange::from)
+                .unwrap_or_default(),
+            btc: self
+                .entity
+                .btc_balance_range
+                .as_ref()
+                .map(BtcLedgerAccountBalanceRange::from)
+                .unwrap_or_default(),
+        })
     }
 
     async fn children(

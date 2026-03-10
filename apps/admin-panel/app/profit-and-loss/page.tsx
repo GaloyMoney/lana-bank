@@ -43,9 +43,12 @@ gql`
         name
         code
         balanceRange {
-          __typename
-          ...UsdLedgerBalanceRangeFragment
-          ...BtcLedgerBalanceRangeFragment
+          usd {
+            ...UsdLedgerBalanceRangeFragment
+          }
+          btc {
+            ...BtcLedgerBalanceRangeFragment
+          }
         }
         children {
           profitAndLossAccountId
@@ -53,9 +56,12 @@ gql`
           name
           code
           balanceRange {
-            __typename
-            ...UsdLedgerBalanceRangeFragment
-            ...BtcLedgerBalanceRangeFragment
+            usd {
+              ...UsdLedgerBalanceRangeFragment
+            }
+            btc {
+              ...BtcLedgerBalanceRangeFragment
+            }
           }
         }
       }
@@ -154,14 +160,7 @@ const ProfitAndLossStatement = ({
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
-  const total = data?.total
-  let netPeriod: number | undefined
-
-  if (currency === "usd" && total?.usd) {
-    netPeriod = total.usd.usdDiff[layer].net
-  } else if (currency === "btc" && total?.btc) {
-    netPeriod = total.btc.btcDiff[layer].net
-  }
+  const netPeriod = getBalanceNet(data?.total, currency, layer)
 
   return (
     <Card>
@@ -185,16 +184,11 @@ const ProfitAndLossStatement = ({
             <Table>
               <TableBody>
                 {data.categories.map((category) => {
-                  let categoryPeriod: number | undefined
-                  if (
-                    category.balanceRange.__typename === "UsdLedgerAccountBalanceRange"
-                  ) {
-                    categoryPeriod = category.balanceRange.usdDiff[layer].net
-                  } else if (
-                    category.balanceRange.__typename === "BtcLedgerAccountBalanceRange"
-                  ) {
-                    categoryPeriod = category.balanceRange.btcDiff[layer].net
-                  }
+                  const categoryPeriod = getBalanceNet(
+                    category.balanceRange,
+                    currency,
+                    layer,
+                  )
                   return (
                     <CategoryRow
                       key={category.profitAndLossAccountId}
@@ -272,4 +266,22 @@ const CategoryRow = ({ category, currency, layer, periodBalance }: CategoryRowPr
       )}
     </>
   )
+}
+
+type CategoryBalanceRange = NonNullable<
+  ProfitAndLossStatementQuery["profitAndLossStatement"]
+>["categories"][0]["balanceRange"]
+
+function getBalanceNet(
+  balanceRange: CategoryBalanceRange | undefined,
+  currency: Currency,
+  layer: ReportLayer,
+): number {
+  if (!balanceRange) return 0
+  switch (currency) {
+    case "usd":
+      return balanceRange.usd.usdDiff[layer].net
+    case "btc":
+      return balanceRange.btc.btcDiff[layer].net
+  }
 }

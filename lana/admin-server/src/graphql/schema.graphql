@@ -2352,7 +2352,7 @@ type PolicyEdge {
 }
 
 type ProfitAndLossAccount {
-	balanceRange: LedgerAccountBalanceRange!
+	balanceRange: LedgerAccountBalanceRangeByCurrency!
 	children: [ProfitAndLossAccount!]!
 	code: AccountCode
 	ledgerAccountId: UUID!

@@ -5,28 +5,38 @@ import { useRouter } from "next/navigation"
 
 import Balance, { Currency } from "@/components/balance/balance"
 import { ProfitAndLossStatementQuery } from "@/lib/graphql/generated"
+import { ReportLayer } from "@/components/report-filters/selectors"
 
 type AccountType = NonNullable<
   ProfitAndLossStatementQuery["profitAndLossStatement"]
 >["categories"][0]["children"][number]
 
+type BalanceRange = AccountType["balanceRange"]
+
+function getBalanceNet(
+  balanceRange: BalanceRange,
+  currency: Currency,
+  layer: ReportLayer,
+): number {
+  switch (currency) {
+    case "usd":
+      return balanceRange.usd.usdDiff[layer].net
+    case "btc":
+      return balanceRange.btc.btcDiff[layer].net
+  }
+}
+
 interface AccountProps {
   account: AccountType
   currency: Currency
   depth?: number
-  layer: PnlLayers
+  layer: ReportLayer
 }
 
 export const Account = ({ account, currency, depth = 0, layer }: AccountProps) => {
   const router = useRouter()
 
-  let accountPeriod: number | undefined
-
-  if (account.balanceRange.__typename === "UsdLedgerAccountBalanceRange") {
-    accountPeriod = account.balanceRange.usdDiff[layer].net
-  } else if (account.balanceRange.__typename === "BtcLedgerAccountBalanceRange") {
-    accountPeriod = account.balanceRange.btcDiff[layer].net
-  }
+  const accountPeriod = getBalanceNet(account.balanceRange, currency, layer)
 
   const handleRowClick = () => {
     router.push(`/ledger-accounts/${account.code || account.ledgerAccountId}`)
