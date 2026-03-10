@@ -433,9 +433,9 @@
         "columns": {
           "event": "Event",
           "details": "Details",
-          "subject": "Performed By",
-          "auditEntryId": "Audit Entry",
-          "recordedAt": "Recorded At"
+          "subject": "Realizado Por",
+          "auditEntryId": "Entrada de Auditoría",
+          "recordedAt": "Registrado El"
         }
       }
     }
@@ -2679,8 +2679,8 @@
     "pickDateRange": "Seleccionar rango de fechas",
     "customRange": "Custom Range...",
     "group": {
-      "current": "Current Period",
-      "previous": "Previous Period"
+      "current": "Período Actual",
+      "previous": "Período Anterior"
     },
     "preset": {
       "thisMonth": "{month} (to date)",
@@ -3053,7 +3053,7 @@
     "create": {
       "title": "Crear rol",
       "description": "Crea un nuevo rol con los permisos seleccionados",
-      "nameLabel": "Role Name",
+      "nameLabel": "Nombre del Rol",
       "namePlaceholder": "Introduce el nombre del rol",
       "selectedPermissions": "Permisos seleccionados: {count}",
       "noPermissionsAvailable": "No hay permisos disponibles",
