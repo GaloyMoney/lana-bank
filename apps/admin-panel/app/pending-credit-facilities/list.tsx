@@ -71,7 +71,7 @@ const PendingCreditFacilities = () => {
 
   return (
     <div>
-      {error && <p className="text-destructive text-sm">{error.message}</p>}
+      {error && <p className="text-destructive text-sm">{t("errors.general")}</p>}
       <PaginatedTable<PendingCreditFacility>
         columns={columns(t)}
         data={data?.pendingCreditFacilities as PaginatedData<PendingCreditFacility>}
