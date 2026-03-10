@@ -497,6 +497,7 @@
     "CustomerDetails": {
       "layout": {
         "tabs": {
+          "overview": "Overview",
           "creditFacilities": "Credit Facilities",
           "pendingCreditFacilities": "Pending Credit Facilities",
           "creditFacilityProposals": "Credit Facility Proposals",
@@ -839,9 +840,11 @@
       }
     },
     "ProposalDetails": {
-      "tabs": {
-        "repaymentPlan": "Repayment Plan",
-        "events": "Events"
+      "layout": {
+        "tabs": {
+          "overview": "Overview",
+          "repaymentPlan": "Repayment Plan"
+        }
       },
       "CollateralCard": {
         "title": "Collateral",
@@ -1111,6 +1114,7 @@
       },
       "Layout": {
         "tabs": {
+          "overview": "Overview",
           "history": "History",
           "disbursals": "Disbursals",
           "liquidations": "Liquidations",
@@ -1229,9 +1233,11 @@
       "not_yet_collateralized": "Not Yet Collateralized"
     },
     "PendingDetails": {
-      "tabs": {
-        "repaymentPlan": "Repayment Plan",
-        "events": "Events"
+      "layout": {
+        "tabs": {
+          "overview": "Overview",
+          "repaymentPlan": "Repayment Plan"
+        }
       },
       "CollateralCard": {
         "title": "Collateral",

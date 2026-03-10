@@ -2,29 +2,24 @@
 
 import { useTranslations } from "next-intl"
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@lana/web/ui/card"
-
 import PendingCreditFacilities from "./list"
+
+import CreateButton from "@/app/create"
+import { PageHeader } from "@/components/page-header"
 
 const PendingCreditFacilitiesPage: React.FC = () => {
   const t = useTranslations("PendingCreditFacilities")
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <PendingCreditFacilities />
-      </CardContent>
-    </Card>
+    <div className="border-l border-r flex-1">
+      <PageHeader
+        title={t("title")}
+        description={t("description")}
+        actions={<CreateButton />}
+        showBreadcrumb={false}
+      />
+      <PendingCreditFacilities />
+    </div>
   )
 }
 

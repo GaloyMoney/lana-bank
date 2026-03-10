@@ -29,11 +29,18 @@ export const CustomerCompanyInfoCard: React.FC<CustomerCompanyInfoCardProps> = (
   ]
 
   return (
-    <DetailsCard
-      title={t("companyInfo.title")}
-      details={details}
-      className="md:w-[75%]"
-      columns={3}
-    />
+    <div>
+      <div className="px-4 py-2 border-b ">
+        <h2 className="text-lg font-semibold">{t("companyInfo.title")}</h2>
+      </div>
+      <div className="p-4">
+        <DetailsCard
+          details={details}
+          className="w-full"
+          columns={3}
+          variant="container"
+        />
+      </div>
+    </div>
   )
 }

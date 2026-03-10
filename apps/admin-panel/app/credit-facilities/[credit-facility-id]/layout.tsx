@@ -1,13 +1,24 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { use, useEffect } from "react"
+import { use, useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
+import { ScrollArea, ScrollBar } from "@lana/web/ui/scroll-area"
+import {
+  LayoutDashboard,
+  History,
+  Banknote,
+  AlertTriangle,
+  CalendarCheck,
+  BookOpen,
+  Activity,
+} from "lucide-react"
 
-import CreditFacilityDetailsCard from "./details"
+import { CreditFacilityHeader, CreditFacilityDetailsContent } from "./details"
 import { CreditFacilityCollateral } from "./collateral-card"
+import { CreditFacilityTermsCard } from "./terms-card"
 import FacilityCard from "./facility-card"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -158,6 +169,8 @@ gql`
   }
 `
 
+const OVERVIEW = "overview"
+
 export default function CreditFacilityLayout({
   children,
   params,
@@ -173,15 +186,27 @@ export default function CreditFacilityLayout({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
   const TABS = [
-    { id: "1", url: "/", tabLabel: t("tabs.history") },
-    { id: "4", url: "/disbursals", tabLabel: t("tabs.disbursals") },
-    { id: "7", url: "/liquidations", tabLabel: t("tabs.liquidations") },
-    { id: "5", url: "/repayment-plan", tabLabel: t("tabs.repaymentPlan") },
-    { id: "6", url: "/ledger-accounts", tabLabel: t("tabs.ledgerAccounts") },
-    { id: "7", url: "/events", tabLabel: t("tabs.events") },
+    { id: "1", url: "/", tabLabel: t("tabs.history"), icon: <History className="h-4 w-4" /> },
+    { id: "4", url: "/disbursals", tabLabel: t("tabs.disbursals"), icon: <Banknote className="h-4 w-4" /> },
+    { id: "7", url: "/liquidations", tabLabel: t("tabs.liquidations"), icon: <AlertTriangle className="h-4 w-4" /> },
+    { id: "5", url: "/repayment-plan", tabLabel: t("tabs.repaymentPlan"), icon: <CalendarCheck className="h-4 w-4" /> },
+    { id: "6", url: "/ledger-accounts", tabLabel: t("tabs.ledgerAccounts"), icon: <BookOpen className="h-4 w-4" /> },
+    { id: "7", url: "/events", tabLabel: t("tabs.events"), icon: <Activity className="h-4 w-4" /> },
   ]
 
-  const { currentTab, handleTabChange } = useTabNavigation(TABS, publicId)
+  const { currentTab, handleTabChange: handleRoutedTabChange } = useTabNavigation(TABS, publicId)
+  const [isOverview, setIsOverview] = useState(true)
+
+  const activeTab = isOverview ? OVERVIEW : currentTab
+
+  const handleTabChange = (value: string) => {
+    if (value === OVERVIEW) {
+      setIsOverview(true)
+    } else {
+      setIsOverview(false)
+      handleRoutedTabChange(value)
+    }
+  }
 
   const { data, loading, error } = useGetCreditFacilityLayoutDetailsQuery({
     variables: { publicId },
@@ -223,28 +248,45 @@ export default function CreditFacilityLayout({
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.creditFacilityByPublicId) return <div>{t("errors.notFound")}</div>
 
+  const facility = data.creditFacilityByPublicId
+
   return (
-    <main className="max-w-7xl m-auto">
-      <CreditFacilityDetailsCard
-        creditFacilityDetails={data.creditFacilityByPublicId}
-      />
-      <div className="flex md:flex-row flex-col gap-2 my-2">
-        <FacilityCard creditFacility={data.creditFacilityByPublicId} />
-        <CreditFacilityCollateral creditFacility={data.creditFacilityByPublicId} />
-      </div>
-      <Tabs
-        defaultValue={TABS[0].url}
-        value={currentTab}
-        onValueChange={handleTabChange}
-        className="mt-2"
-      >
-        <TabsList>
-          {TABS.map((tab) => (
-            <TabsTrigger key={tab.url} value={tab.url}>
-              {tab.tabLabel}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+    <main className="max-w-7xl w-full mx-auto border-l border-r flex-1">
+      <CreditFacilityHeader creditFacilityDetails={facility} />
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="gap-0">
+        <ScrollArea>
+          <TabsList className="bg-transparent rounded-none h-auto w-full justify-start p-0 border-b">
+            {[
+              { value: OVERVIEW, label: t("tabs.overview"), icon: <LayoutDashboard className="h-4 w-4" /> },
+              ...TABS.map((tab) => ({ value: tab.url, label: tab.tabLabel, icon: tab.icon })),
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="flex-initial rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm gap-1.5"
+              >
+                {tab.icon}
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+        <TabsContent value={OVERVIEW}>
+          <CreditFacilityDetailsContent creditFacilityDetails={facility} />
+          <div className="h-1 bg-secondary border-t" />
+          <div className="flex flex-col md:flex-row w-full border-b">
+            <div className="md:w-[50%] md:border-r">
+              <FacilityCard creditFacility={facility} />
+            </div>
+            <div className="hidden md:block w-1 bg-secondary border-r" />
+            <div className="md:flex-1">
+              <CreditFacilityCollateral creditFacility={facility} />
+            </div>
+          </div>
+          <div className="h-1 bg-secondary border-t" />
+          <CreditFacilityTermsCard creditFacility={facility} />
+        </TabsContent>
         {TABS.map((tab) => (
           <TabsContent key={tab.url} value={tab.url}>
             {children}

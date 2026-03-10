@@ -1,11 +1,13 @@
 "use client"
-import { DetailsCard } from "@lana/web/components/details"
 import React from "react"
 import { useTranslations } from "next-intl"
 import BigNumber from "bignumber.js"
 
+import { Landmark } from "lucide-react"
+
 import { GetCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
+import { DetailsCard, DetailItemProps } from "@/components/details"
 import { SignedUsdCents } from "@/types"
 
 function calculateTotalCostInCents(
@@ -36,7 +38,7 @@ function FacilityCard({
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.FacilityCard")
 
   const totalCostUsd = calculateTotalCostInCents(creditFacility)
-  const facilityData = [
+  const facilityData: DetailItemProps[] = [
     {
       label: t("details.facilityAmount"),
       value: <Balance amount={creditFacility.facilityAmount} currency="usd" />,
@@ -108,12 +110,20 @@ function FacilityCard({
   ]
 
   return (
-    <DetailsCard
-      className="w-full"
-      title={t("title")}
-      details={facilityData}
-      columns={2}
-    />
+    <div>
+      <div className="flex items-center gap-2 px-4 py-2 border-b">
+        <Landmark className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-lg font-semibold">{t("title")}</h2>
+      </div>
+      <div className="pt-6 px-4 pb-4">
+        <DetailsCard
+          details={facilityData}
+          className="w-full"
+          columns={2}
+          variant="container"
+        />
+      </div>
+    </div>
   )
 }
 

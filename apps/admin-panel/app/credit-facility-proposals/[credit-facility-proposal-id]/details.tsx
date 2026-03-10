@@ -21,9 +21,8 @@ import {
 } from "@/lib/graphql/generated"
 import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
-import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
-
 import { CustomerLabel } from "@/app/customers/customer-label"
+import { PageHeader } from "@/components/page-header"
 
 type CreditFacilityProposalDetailsCardProps = {
   proposalDetails: NonNullable<
@@ -31,7 +30,7 @@ type CreditFacilityProposalDetailsCardProps = {
   >
 }
 
-const CreditFacilityProposalDetailsCard: React.FC<
+export const CreditFacilityProposalHeader: React.FC<
   CreditFacilityProposalDetailsCardProps
 > = ({ proposalDetails }) => {
   const t = useTranslations("CreditFacilityProposals.ProposalDetails.DetailsCard")
@@ -41,6 +40,103 @@ const CreditFacilityProposalDetailsCard: React.FC<
   const [openCustomerApprovalDialog, setOpenCustomerApprovalDialog] =
     React.useState(false)
   const [openCustomerDenialDialog, setOpenCustomerDenialDialog] = React.useState(false)
+
+  const actionButtons = (
+    <div className="flex items-center gap-2">
+      {proposalDetails.status ===
+        CreditFacilityProposalStatus.PendingCustomerApproval && (
+        <>
+          <Button
+            variant="outline"
+            onClick={() => setOpenCustomerApprovalDialog(true)}
+            data-testid="customer-approval-approve-button"
+          >
+            <Check className="h-4 w-4" />
+            {t("buttons.customerApprove")}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setOpenCustomerDenialDialog(true)}
+            data-testid="customer-approval-deny-button"
+          >
+            <X className="h-4 w-4" />
+            {t("buttons.customerDeny")}
+          </Button>
+        </>
+      )}
+      {proposalDetails?.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
+        proposalDetails.approvalProcess.userCanSubmitDecision && (
+          <>
+            <Button
+              variant="outline"
+              onClick={() => setOpenApprovalDialog(true)}
+              data-testid="approval-process-approve-button"
+            >
+              <Check className="h-4 w-4" />
+              {t("buttons.approve")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setOpenDenialDialog(true)}
+              data-testid="approval-process-deny-button"
+            >
+              <X className="h-4 w-4" />
+              {t("buttons.deny")}
+            </Button>
+          </>
+        )}
+      {proposalDetails.status === CreditFacilityProposalStatus.Approved && (
+        <Button variant="outline" data-testid="view-pending-facility-button" asChild>
+          <Link
+            href={`/pending-credit-facilities/${proposalDetails.creditFacilityProposalId}`}
+          >
+            {t("buttons.viewPendingFacility")}
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Link>
+        </Button>
+      )}
+    </div>
+  )
+
+  return (
+    <>
+      <PageHeader title={t("title")} actions={actionButtons} />
+      <ApprovalDialog
+        approvalProcess={proposalDetails.approvalProcess as ApprovalProcessFieldsFragment}
+        openApprovalDialog={openApprovalDialog}
+        setOpenApprovalDialog={() => setOpenApprovalDialog(false)}
+      />
+      <DenialDialog
+        approvalProcess={proposalDetails.approvalProcess as ApprovalProcessFieldsFragment}
+        openDenialDialog={openDenialDialog}
+        setOpenDenialDialog={() => setOpenDenialDialog(false)}
+      />
+      <CustomerApprovalDialog
+        open={openCustomerApprovalDialog}
+        onOpenChange={setOpenCustomerApprovalDialog}
+        creditFacilityProposalId={proposalDetails.creditFacilityProposalId}
+        approved={true}
+        facilityAmount={proposalDetails.facilityAmount}
+        customerEmail={proposalDetails.customer.email}
+        createdAt={proposalDetails.createdAt}
+      />
+      <CustomerApprovalDialog
+        open={openCustomerDenialDialog}
+        onOpenChange={setOpenCustomerDenialDialog}
+        creditFacilityProposalId={proposalDetails.creditFacilityProposalId}
+        approved={false}
+        facilityAmount={proposalDetails.facilityAmount}
+        customerEmail={proposalDetails.customer.email}
+        createdAt={proposalDetails.createdAt}
+      />
+    </>
+  )
+}
+
+export const CreditFacilityProposalDetailsContent: React.FC<
+  CreditFacilityProposalDetailsCardProps
+> = ({ proposalDetails }) => {
+  const t = useTranslations("CreditFacilityProposals.ProposalDetails.DetailsCard")
 
   const details: DetailItemProps[] = [
     {
@@ -76,106 +172,21 @@ const CreditFacilityProposalDetailsCard: React.FC<
     },
   ].filter(Boolean) as DetailItemProps[]
 
-  const footerContent = (
-    <>
-      {proposalDetails.status ===
-        CreditFacilityProposalStatus.PendingCustomerApproval && (
-        <>
-          <Button
-            variant="outline"
-            onClick={() => setOpenCustomerApprovalDialog(true)}
-            data-testid="customer-approval-approve-button"
-          >
-            <Check className="h-4 w-4 mr-2" />
-            {t("buttons.customerApprove")}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setOpenCustomerDenialDialog(true)}
-            data-testid="customer-approval-deny-button"
-          >
-            <X className="h-4 w-4 mr-2" />
-            {t("buttons.customerDeny")}
-          </Button>
-        </>
-      )}
-      {proposalDetails?.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
-        proposalDetails.approvalProcess.userCanSubmitDecision && (
-          <>
-            <Button
-              variant="outline"
-              onClick={() => setOpenApprovalDialog(true)}
-              data-testid="approval-process-approve-button"
-            >
-              <Check className="h-4 w-4 mr-2" />
-              {t("buttons.approve")}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setOpenDenialDialog(true)}
-              data-testid="approval-process-deny-button"
-            >
-              <X className="h-4 w-4 mr-2" />
-              {t("buttons.deny")}
-            </Button>
-          </>
-        )}
-      {proposalDetails.status === CreditFacilityProposalStatus.Approved && (
-        <Button variant="outline" data-testid="view-pending-facility-button" asChild>
-          <Link
-            href={`/pending-credit-facilities/${proposalDetails.creditFacilityProposalId}`}
-          >
-            {t("buttons.viewPendingFacility")}
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Link>
-        </Button>
-      )}
-    </>
-  )
-
   return (
     <>
-      <DetailsCard
-        title={t("title")}
-        details={details}
-        columns={3}
-        footerContent={footerContent}
-        errorMessage={proposalDetails?.approvalProcess?.deniedReason ?? undefined}
-      />
-
-      {proposalDetails.approvalProcess && (
-        <VotersCard approvalProcess={proposalDetails.approvalProcess} />
-      )}
-      <ApprovalDialog
-        approvalProcess={proposalDetails.approvalProcess as ApprovalProcessFieldsFragment}
-        openApprovalDialog={openApprovalDialog}
-        setOpenApprovalDialog={() => setOpenApprovalDialog(false)}
-      />
-      <DenialDialog
-        approvalProcess={proposalDetails.approvalProcess as ApprovalProcessFieldsFragment}
-        openDenialDialog={openDenialDialog}
-        setOpenDenialDialog={() => setOpenDenialDialog(false)}
-      />
-      <CustomerApprovalDialog
-        open={openCustomerApprovalDialog}
-        onOpenChange={setOpenCustomerApprovalDialog}
-        creditFacilityProposalId={proposalDetails.creditFacilityProposalId}
-        approved={true}
-        facilityAmount={proposalDetails.facilityAmount}
-        customerEmail={proposalDetails.customer.email}
-        createdAt={proposalDetails.createdAt}
-      />
-      <CustomerApprovalDialog
-        open={openCustomerDenialDialog}
-        onOpenChange={setOpenCustomerDenialDialog}
-        creditFacilityProposalId={proposalDetails.creditFacilityProposalId}
-        approved={false}
-        facilityAmount={proposalDetails.facilityAmount}
-        customerEmail={proposalDetails.customer.email}
-        createdAt={proposalDetails.createdAt}
-      />
+      <div className="p-4">
+        <DetailsCard
+          details={details}
+          className="w-full"
+          columns={3}
+          variant="container"
+          errorMessage={proposalDetails?.approvalProcess?.deniedReason ?? undefined}
+        />
+      </div>
     </>
   )
 }
 
+// Keep backward compat export
+const CreditFacilityProposalDetailsCard = CreditFacilityProposalHeader
 export default CreditFacilityProposalDetailsCard

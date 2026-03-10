@@ -9,7 +9,7 @@ import { formatDate } from "@lana/web/utils"
 
 import { toast } from "sonner"
 
-import { ExternalLinkIcon, FileText, Download, RefreshCw } from "lucide-react"
+import { ExternalLinkIcon, Download, RefreshCw } from "lucide-react"
 
 import { Label } from "@lana/web/ui/label"
 
@@ -17,15 +17,15 @@ import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
 import { CollateralizationStateLabel } from "../label"
 
-import { CreditFacilityTermsDialog } from "./terms-dialog"
-
 import {
+  CreditFacilityRepaymentType,
   GetCreditFacilityLayoutDetailsQuery,
   WalletNetwork,
   useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
+import { PageHeader } from "@/components/page-header"
 import { CustomerLabel } from "@/app/customers/customer-label"
 import { useLoanAgreement } from "@/hooks/use-loan-agreement"
 
@@ -35,15 +35,13 @@ type CreditFacilityDetailsProps = {
   >
 }
 
-const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
+export const CreditFacilityHeader: React.FC<CreditFacilityDetailsProps> = ({
   creditFacilityDetails,
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.DetailsCard")
-  const commonT = useTranslations("Common")
 
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
-  const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
 
   const { data: domainConfigsData } = useDomainConfigsQuery({
     variables: { first: 100 },
@@ -58,6 +56,54 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const handleGenerateLoanAgreement = () => {
     generateLoanAgreementPdf(creditFacilityDetails.customer.customerId)
   }
+
+  const actionButtons = (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        onClick={handleGenerateLoanAgreement}
+        loading={isGenerating}
+        data-testid="loan-agreement-button"
+      >
+        <Download className="h-4 w-4" />
+        {t("buttons.loanAgreement")}
+      </Button>
+      {creditFacilityDetails.userCanUpdateCollateral && manualCollateralEnabled && (
+        <Button
+          variant="outline"
+          data-testid="update-collateral-button"
+          onClick={() => setOpenCollateralUpdateDialog(true)}
+        >
+          <RefreshCw className="h-4 w-4" />
+          {t("buttons.updateCollateral")}
+        </Button>
+      )}
+    </div>
+  )
+
+  return (
+    <>
+      <PageHeader title={t("title")} actions={actionButtons} />
+      <CreditFacilityCollateralUpdateDialog
+        collateralId={creditFacilityDetails.collateralId}
+        currentCollateral={creditFacilityDetails.balance.collateral.btcBalance}
+        collateralToMatchInitialCvl={creditFacilityDetails.collateralToMatchInitialCvl}
+        openDialog={openCollateralUpdateDialog}
+        setOpenDialog={setOpenCollateralUpdateDialog}
+      />
+    </>
+  )
+}
+
+export const CreditFacilityDetailsContent: React.FC<CreditFacilityDetailsProps> = ({
+  creditFacilityDetails,
+}) => {
+  const t = useTranslations("CreditFacilities.CreditFacilityDetails.DetailsCard")
+  const commonT = useTranslations("Common")
+
+  const monthlyPaymentAmount = creditFacilityDetails.repaymentPlan.find(
+    (plan) => plan.repaymentType === CreditFacilityRepaymentType.Interest,
+  )?.initial
 
   const details: DetailItemProps[] = [
     {
@@ -133,63 +179,20 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     },
   ].filter(Boolean) as DetailItemProps[]
 
-  const footerContent = (
-    <>
-      <Button
-        variant="outline"
-        onClick={() => setOpenTermsDialog(true)}
-        data-testid="loan-terms-button"
-      >
-        <FileText className="h-4 w-4 mr-2" />
-        {t("buttons.loanTerms")}
-      </Button>
-      <Button
-        variant="outline"
-        onClick={handleGenerateLoanAgreement}
-        loading={isGenerating}
-        data-testid="loan-agreement-button"
-      >
-        <Download className="h-4 w-4 mr-2" />
-        {t("buttons.loanAgreement")}
-      </Button>
-      {creditFacilityDetails.userCanUpdateCollateral && manualCollateralEnabled && (
-        <Button
-          variant="outline"
-          data-testid="update-collateral-button"
-          onClick={() => setOpenCollateralUpdateDialog(true)}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          {t("buttons.updateCollateral")}
-        </Button>
-      )}
-    </>
-  )
-
   return (
-    <>
+    <div className="pt-6 px-4 pb-4 border-t">
       <DetailsCard
-        title={t("title")}
         details={details}
-        columns={3}
-        footerContent={footerContent}
+        className="w-full"
+        columns={4}
+        variant="container"
       />
-
-      <CreditFacilityTermsDialog
-        creditFacility={creditFacilityDetails}
-        openTermsDialog={openTermsDialog}
-        setOpenTermsDialog={setOpenTermsDialog}
-      />
-      <CreditFacilityCollateralUpdateDialog
-        collateralId={creditFacilityDetails.collateralId}
-        currentCollateral={creditFacilityDetails.balance.collateral.btcBalance}
-        collateralToMatchInitialCvl={creditFacilityDetails.collateralToMatchInitialCvl}
-        openDialog={openCollateralUpdateDialog}
-        setOpenDialog={setOpenCollateralUpdateDialog}
-      />
-    </>
+    </div>
   )
 }
 
+// Keep backward compat export
+const CreditFacilityDetailsCard = CreditFacilityHeader
 export default CreditFacilityDetailsCard
 
 const MEMPOOL_BASE = {

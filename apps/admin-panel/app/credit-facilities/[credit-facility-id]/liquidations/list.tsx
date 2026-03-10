@@ -7,7 +7,6 @@ import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import { Badge } from "@lana/web/ui/badge"
 
 import Balance from "@/components/balance/balance"
-import CardWrapper from "@/components/card-wrapper"
 import DataTable, { Column } from "@/components/data-table"
 import { GetCreditFacilityLiquidationsQuery } from "@/lib/graphql/generated"
 
@@ -67,13 +66,11 @@ export const CreditFacilityLiquidations: React.FC<CreditFacilityLiquidationsProp
   ]
 
   return (
-    <CardWrapper title={t("title")} description={t("description")}>
-      <DataTable
-        data={creditFacility.liquidations}
-        columns={columns}
-        emptyMessage={t("messages.emptyTable")}
-        navigateTo={(liquidation) => `/liquidations/${liquidation.liquidationId}`}
-      />
-    </CardWrapper>
+    <DataTable
+      data={creditFacility.liquidations}
+      columns={columns}
+      emptyMessage={t("messages.emptyTable")}
+      navigateTo={(liquidation) => `/liquidations/${liquidation.liquidationId}`}
+    />
   )
 }

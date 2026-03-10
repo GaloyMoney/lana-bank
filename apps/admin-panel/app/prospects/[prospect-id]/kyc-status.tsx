@@ -149,12 +149,19 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
   ]
 
   return (
-    <DetailsCard
-      title={t("title")}
-      badge={<KycStatusBadge status={kycStatus} />}
-      details={details}
-      className="w-full md:w-[25%]"
-      columns={1}
-    />
+    <div>
+      <div className="flex items-center gap-2 px-4 py-2 border-b">
+        <h2 className="text-lg font-semibold">{t("title")}</h2>
+        <KycStatusBadge status={kycStatus} />
+      </div>
+      <div className="p-4">
+      <DetailsCard
+        details={details}
+        className="w-full"
+        columns={1}
+        variant="container"
+      />
+      </div>
+    </div>
   )
 }

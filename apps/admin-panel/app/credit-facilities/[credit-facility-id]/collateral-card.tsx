@@ -1,5 +1,6 @@
 import React from "react"
 import { useTranslations } from "next-intl"
+import { ShieldCheck } from "lucide-react"
 
 import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
@@ -146,12 +147,20 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
   ]
 
   return (
-    <DetailsCard
-      className="w-full"
-      title={t("title")}
-      details={collateralDependentDetails}
-      columns={2}
-    />
+    <div>
+      <div className="flex items-center gap-2 px-4 py-2 border-b">
+        <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-lg font-semibold">{t("title")}</h2>
+      </div>
+      <div className="pt-6 px-4 pb-4">
+        <DetailsCard
+          details={collateralDependentDetails}
+          className="w-full"
+          columns={2}
+          variant="container"
+        />
+      </div>
+    </div>
   )
 }
 

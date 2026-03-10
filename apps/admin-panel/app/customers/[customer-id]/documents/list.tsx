@@ -7,7 +7,6 @@ import { CgSpinner } from "react-icons/cg"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
-import { Card, CardContent } from "@lana/web/ui/card"
 import { Button } from "@lana/web/ui/button"
 
 import DataTable, { Column } from "@/components/data-table"
@@ -19,7 +18,6 @@ import {
   useCustomerDocumentDeleteMutation,
   useCustomerDocumentDownloadLinkGenerateMutation,
 } from "@/lib/graphql/generated"
-import CardWrapper from "@/components/card-wrapper"
 
 type DocumentType = NonNullable<
   GetCustomerDocumentsQuery["customerByPublicId"]
@@ -167,9 +165,9 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
   ]
 
   return (
-    <CardWrapper title={t("title")} description={t("description")}>
+    <div>
       <DataTable data={documents} columns={columns} />
-    </CardWrapper>
+    </div>
   )
 }
 
@@ -249,15 +247,13 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
   return (
     <div {...getRootProps()}>
       <input {...getInputProps()} id="fileInput" disabled={loading} />
-      <Card className="mt-2 cursor-pointer">
-        <CardContent className="p-6 flex justify-center items-center w-full h-20">
-          {loading ? (
-            <CgSpinner className="animate-spin h-5 w-5" />
-          ) : (
-            <span>{t("dropzone.prompt")}</span>
-          )}
-        </CardContent>
-      </Card>
+      <div className="border-t cursor-pointer flex justify-center items-center h-20 text-muted-foreground hover:bg-muted/50 transition-colors">
+        {loading ? (
+          <CgSpinner className="animate-spin h-5 w-5" />
+        ) : (
+          <span>{t("dropzone.prompt")}</span>
+        )}
+      </div>
     </div>
   )
 }

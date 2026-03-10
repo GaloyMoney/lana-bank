@@ -15,7 +15,6 @@ import {
   SidebarMenuButton,
 } from "@lana/web/ui/sidebar"
 
-import { UserBlock } from "./user-block"
 import { NavSection } from "./nav-section"
 import { useNavItems } from "./nav-items"
 
@@ -40,11 +39,14 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
   } = useNavItems()
 
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar variant="sidebar" {...props}>
       <SidebarHeader>
-        <UserBlock />
+        <Link href="/dashboard" className="flex items-center gap-2 px-2 py-1">
+          <Logo width={18} className="shrink-0" />
+          <span className="truncate font-semibold text-lg">{t("footer.appName")}</span>
+        </Link>
       </SidebarHeader>
-      <SidebarContent className="mt-4">
+      <SidebarContent>
         <NavSection items={navDashboardItems} />
         <NavSection items={navCustomerItems} label={t("labels.customers")} />
         <NavSection items={navLoansItems} label={t("labels.loans")} />
@@ -55,23 +57,11 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
         <NavSection items={navFinanceItems} label={t("labels.financialReports")} />
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild tabIndex={-1}>
-              <Link href="/dashboard">
-                <div className="flex aspect-square size-10 items-center justify-center rounded-lg">
-                  <Logo className="size-10" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{t("footer.appName")}</span>
-                  <span className="truncate text-xs">
-                    {t("footer.version", { version: appVersion || "0.0.0-dev" })}
-                  </span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <div className="px-3 pb-2">
+          <span className="text-[10px] text-muted-foreground">
+            {t("footer.version", { version: appVersion || "0.0.0-dev" })}
+          </span>
+        </div>
       </SidebarFooter>
     </Sidebar>
   )

@@ -359,6 +359,7 @@ checksums:
     Customers/create/errorMessage: d11cb6daa6d040d986c442e04c4f67cb
     Customers/create/unexpectedError: dd9aef0a9c3638442bc8f6151feb33d6
     Customers/create/failedToCreate: faff3a0924f0643480e4f0cbf9c50384
+    Customers/CustomerDetails/layout/tabs/overview: 30c54e4dc4ce599b87d94be34a8617f5
     Customers/CustomerDetails/layout/tabs/creditFacilities: 4283868565aa25d5513636fc6e12d49c
     Customers/CustomerDetails/layout/tabs/pendingCreditFacilities: fadf95c8c9c8014ed31214fd803be427
     Customers/CustomerDetails/layout/tabs/creditFacilityProposals: 11a59748c3c3c261a3b99fd7afb4a023
@@ -557,8 +558,8 @@ checksums:
     CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/buttons/confirm: 90930b51154032f119fa75c1bd422d8b
     CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/messages/success: 7b6da80b56fe7a049432cf9507bc6dc0
     CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/units/btc: af1432546a2c9130c9163b2269d5b60d
-    CreditFacilityProposals/ProposalDetails/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
-    CreditFacilityProposals/ProposalDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
+    CreditFacilityProposals/ProposalDetails/layout/tabs/overview: 30c54e4dc4ce599b87d94be34a8617f5
+    CreditFacilityProposals/ProposalDetails/layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
     CreditFacilityProposals/ProposalDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilityProposals/ProposalDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     CreditFacilityProposals/ProposalDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771
@@ -723,6 +724,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
     CreditFacilities/CreditFacilityDetails/DetailsCard/loanAgreement/success: 62cfb0cfd632a91991a1300597f37751
     CreditFacilities/CreditFacilityDetails/DetailsCard/loanAgreement/error: 888ad57aa228cb9a409d22468bb3f9ba
+    CreditFacilities/CreditFacilityDetails/Layout/tabs/overview: 30c54e4dc4ce599b87d94be34a8617f5
     CreditFacilities/CreditFacilityDetails/Layout/tabs/history: b0578d6d225f512e42f823fbca2e3c32
     CreditFacilities/CreditFacilityDetails/Layout/tabs/disbursals: a926d10544d2ae0fd17a6e5f19a97080
     CreditFacilities/CreditFacilityDetails/Layout/tabs/liquidations: d5e225f5b3204b60ff0dea79c7cc89f3
@@ -783,8 +785,8 @@ checksums:
     PendingCreditFacilities/collateralizationState/fully_collateralized: ac0dd4d27277fd887b8a195d815af373
     PendingCreditFacilities/collateralizationState/under_collateralized: 08bc680351a0f5bb35acf0cc4f7859f8
     PendingCreditFacilities/collateralizationState/not_yet_collateralized: a4a3eab71ea3eb3f17dfa5f5e1709c35
-    PendingCreditFacilities/PendingDetails/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
-    PendingCreditFacilities/PendingDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
+    PendingCreditFacilities/PendingDetails/layout/tabs/overview: 30c54e4dc4ce599b87d94be34a8617f5
+    PendingCreditFacilities/PendingDetails/layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
     PendingCreditFacilities/PendingDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     PendingCreditFacilities/PendingDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     PendingCreditFacilities/PendingDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771

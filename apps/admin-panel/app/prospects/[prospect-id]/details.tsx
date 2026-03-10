@@ -19,6 +19,7 @@ import {
   useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 import { CustomerTypeBadge } from "@/app/customers/customer-type-badge"
+import { PageHeader } from "@/components/page-header"
 
 type ProspectDetailsCardProps = {
   prospect: NonNullable<GetProspectBasicDetailsQuery["prospectByPublicId"]>
@@ -101,13 +102,17 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({ prospe
 
   return (
     <>
-      <DetailsCard
-        title={t("title")}
-        details={details}
-        className="w-full"
-        columns={4}
-        footerContent={footerContent}
-      />
+      <div>
+        <PageHeader title={t("title")} actions={footerContent} />
+        <div className="p-4 border-b">
+          <DetailsCard
+            details={details}
+            className="w-full"
+            columns={4}
+            variant="container"
+          />
+        </div>
+      </div>
       <CloseProspectDialog
         prospectId={prospect.prospectId}
         openCloseDialog={openCloseDialog}

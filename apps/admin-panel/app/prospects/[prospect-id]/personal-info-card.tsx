@@ -36,11 +36,18 @@ export const ProspectPersonalInfoCard: React.FC<ProspectPersonalInfoCardProps> =
   ]
 
   return (
-    <DetailsCard
-      title={t("personalInfo.title")}
-      details={details}
-      className="md:w-[75%]"
-      columns={3}
-    />
+    <div>
+      <div className="px-4 py-2 border-b">
+        <h2 className="text-lg font-semibold">{t("personalInfo.title")}</h2>
+      </div>
+      <div className="p-4">
+      <DetailsCard
+        details={details}
+        className="w-full"
+        columns={3}
+        variant="container"
+      />
+      </div>
+    </div>
   )
 }

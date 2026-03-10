@@ -68,11 +68,18 @@ export const PendingCreditFacilityTermsCard: React.FC<
   ]
 
   return (
-    <DetailsCard
-      title={tCard("title")}
-      className="w-[55%]"
-      details={details}
-      columns={3}
-    />
+    <div>
+      <div className="flex items-center gap-2 px-4 py-2 border-b">
+        <h2 className="text-lg font-semibold">{tCard("title")}</h2>
+      </div>
+      <div className="p-4">
+        <DetailsCard
+          details={details}
+          className="w-full"
+          columns={3}
+          variant="container"
+        />
+      </div>
+    </div>
   )
 }
