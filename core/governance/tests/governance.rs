@@ -253,6 +253,143 @@ async fn init_policy_returns_existing_policy_when_require_committee_enabled() ->
     Ok(())
 }
 
+/// `ApprovalProcessConcluded` is published with `Approved` status when a
+/// committee member approves and the approval threshold is met.
+///
+/// This test uses a committee-based policy (not auto-approve) so the process
+/// stays `InProgress` after creation. A single committee member then approves,
+/// meeting the threshold and triggering the `Concluded` event via the
+/// post-persist publisher hook.
+#[cfg(feature = "test-dummy")]
+#[tokio::test]
+async fn approval_process_concluded_on_approve_publishes_event() -> anyhow::Result<()> {
+    let (governance, outbox, pool) = setup().await?;
+
+    let member_id = governance::CommitteeMemberId::new();
+    let committee = governance
+        .create_committee(
+            &authz::dummy::DummySubject,
+            "approve-test-committee".to_string(),
+            [member_id].into(),
+        )
+        .await?;
+
+    let process_type = ApprovalProcessType::new("test-approve-concluded");
+    let policy = governance.init_policy(process_type.clone()).await?;
+    governance
+        .assign_committee_to_policy(&authz::dummy::DummySubject, policy.id, committee.id)
+        .await?;
+
+    let target_ref = format!("approve-target-{}", uuid::Uuid::new_v4());
+    let process_id = ApprovalProcessId::new();
+
+    // Start process — committee-based, so it stays InProgress
+    let mut db = es_entity::DbOp::init(&pool).await?;
+    let process = governance
+        .start_process_in_op(
+            &mut db,
+            process_id,
+            target_ref.clone(),
+            process_type.clone(),
+        )
+        .await?;
+    db.commit().await?;
+    assert_eq!(process.status(), ApprovalProcessStatus::InProgress);
+
+    // Approve — meets threshold, should publish Concluded event
+    let (_process, recorded) = expect_event(
+        &outbox,
+        || async {
+            governance
+                .test_approve_process(member_id, process_id)
+                .await
+                .map_err(anyhow::Error::from)
+        },
+        |_result, event| match event {
+            GovernanceEvent::ApprovalProcessConcluded { entity } if entity.id == process_id => {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.id, process_id);
+    assert_eq!(recorded.process_type, process_type);
+    assert_eq!(recorded.status, ApprovalProcessStatus::Approved);
+    assert_eq!(recorded.target_ref, target_ref);
+
+    Ok(())
+}
+
+/// `ApprovalProcessConcluded` is published with `Denied` status when a
+/// committee member denies a process.
+///
+/// Any single deny immediately concludes the process as denied. The test
+/// verifies the `Concluded` event is published with `Denied` status and the
+/// correct snapshot data.
+#[cfg(feature = "test-dummy")]
+#[tokio::test]
+async fn approval_process_concluded_on_deny_publishes_event() -> anyhow::Result<()> {
+    let (governance, outbox, pool) = setup().await?;
+
+    let member_id = governance::CommitteeMemberId::new();
+    let committee = governance
+        .create_committee(
+            &authz::dummy::DummySubject,
+            "deny-test-committee".to_string(),
+            [member_id].into(),
+        )
+        .await?;
+
+    let process_type = ApprovalProcessType::new("test-deny-concluded");
+    let policy = governance.init_policy(process_type.clone()).await?;
+    governance
+        .assign_committee_to_policy(&authz::dummy::DummySubject, policy.id, committee.id)
+        .await?;
+
+    let target_ref = format!("deny-target-{}", uuid::Uuid::new_v4());
+    let process_id = ApprovalProcessId::new();
+
+    // Start process — committee-based, so it stays InProgress
+    let mut db = es_entity::DbOp::init(&pool).await?;
+    let process = governance
+        .start_process_in_op(
+            &mut db,
+            process_id,
+            target_ref.clone(),
+            process_type.clone(),
+        )
+        .await?;
+    db.commit().await?;
+    assert_eq!(process.status(), ApprovalProcessStatus::InProgress);
+
+    // Deny — immediately concludes as denied, should publish Concluded event
+    let (_process, recorded) = expect_event(
+        &outbox,
+        || async {
+            governance
+                .test_deny_process(member_id, process_id, "test denial reason".to_string())
+                .await
+                .map_err(anyhow::Error::from)
+        },
+        |_result, event| match event {
+            GovernanceEvent::ApprovalProcessConcluded { entity } if entity.id == process_id => {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.id, process_id);
+    assert_eq!(recorded.process_type, process_type);
+    assert_eq!(recorded.status, ApprovalProcessStatus::Denied);
+    assert_eq!(recorded.target_ref, target_ref);
+
+    Ok(())
+}
+
 /// `bootstrap_default_committee` creates a committee with the given member
 /// and is idempotent — calling it twice should not fail.
 #[tokio::test]
