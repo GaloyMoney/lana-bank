@@ -498,6 +498,14 @@ type CreditFacility {
 	wallet: Wallet
 }
 
+input CreditFacilityAgreementGenerateInput {
+	customerId: UUID!
+}
+
+type CreditFacilityAgreementGeneratePayload {
+	loanAgreement: LoanAgreement!
+}
+
 type CreditFacilityApproved {
 	cents: UsdCents!
 	effective: Date!
@@ -2008,14 +2016,6 @@ type LoanAgreementDownloadLinksGeneratePayload {
 	loanAgreementId: UUID!
 }
 
-input LoanAgreementGenerateInput {
-	customerId: UUID!
-}
-
-type LoanAgreementGeneratePayload {
-	loanAgreement: LoanAgreement!
-}
-
 enum LoanAgreementStatus {
 	COMPLETED
 	FAILED
@@ -2067,6 +2067,7 @@ type Mutation {
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
+	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
@@ -2099,7 +2100,6 @@ type Mutation {
 	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
-	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!

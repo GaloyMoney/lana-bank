@@ -2626,11 +2626,11 @@ impl Mutation {
         Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
     }
 
-    pub async fn loan_agreement_generate(
+    pub async fn credit_facility_agreement_generate(
         &self,
         ctx: &Context<'_>,
-        input: LoanAgreementGenerateInput,
-    ) -> async_graphql::Result<LoanAgreementGeneratePayload> {
+        input: CreditFacilityAgreementGenerateInput,
+    ) -> async_graphql::Result<CreditFacilityAgreementGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         // Create async job for loan agreement generation
@@ -2640,7 +2640,7 @@ impl Mutation {
             .await?;
 
         let loan_agreement = LoanAgreement::from(loan_agreement);
-        Ok(LoanAgreementGeneratePayload::from(loan_agreement))
+        Ok(CreditFacilityAgreementGeneratePayload::from(loan_agreement))
     }
 
     async fn loan_agreement_download_link_generate(
