@@ -9,6 +9,8 @@ OATHKEEPER_PROXY="http://localhost:4455"
 GQL_APP_ENDPOINT="http://app.localhost:4455/graphql"
 GQL_ADMIN_ENDPOINT="http://admin.localhost:4455/graphql"
 
+MANUAL_CUSTODIAN_ID="11111111-1111-1111-1111-111111111111"
+
 LANA_HOME="${LANA_HOME:-.lana}"
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
 

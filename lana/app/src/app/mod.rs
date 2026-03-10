@@ -25,7 +25,7 @@ use crate::{
     deposit::Deposits,
     deposit_sync::DepositSync,
     document::DocumentStorage,
-    domain_config::ExposedDomainConfigs,
+    domain_config::{ExposedDomainConfigs, ExposedDomainConfigsReadOnly},
     governance::Governance,
     job::Jobs,
     kyc::CustomerKyc,
@@ -48,6 +48,7 @@ use error::ApplicationError;
 pub struct LanaApp {
     _pool: PgPool,
     exposed_domain_configs: ExposedDomainConfigs<Authorization>,
+    exposed_domain_configs_readonly: ExposedDomainConfigsReadOnly,
     jobs: Jobs,
     audit: Audit,
     authz: Authorization,
@@ -286,6 +287,7 @@ impl LanaApp {
         Ok(Self {
             _pool: pool,
             exposed_domain_configs,
+            exposed_domain_configs_readonly,
             jobs,
             audit,
             authz,
@@ -467,6 +469,19 @@ impl LanaApp {
         terms: core_credit::TermValues,
         custodian_id: impl Into<crate::primitives::CustodianId> + std::fmt::Debug + Copy,
     ) -> Result<crate::credit::CreditFacilityProposal, ApplicationError> {
+        let custodian_id = custodian_id.into();
+
+        if custodian_id.is_manual_custodian() {
+            let manual_collateral_enabled = self
+                .exposed_domain_configs_readonly
+                .get_without_audit::<crate::credit::ManualCollateral>()
+                .await?
+                .value();
+            if !manual_collateral_enabled {
+                return Err(ApplicationError::ManualCollateralNotAllowed);
+            }
+        }
+
         let customer_id = customer_id.into();
         let deposit_account = self
             .deposits()

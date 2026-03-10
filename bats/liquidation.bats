@@ -71,10 +71,12 @@ wait_for_facility_to_be_under_liquidation_threshold() {
     jq -n \
     --arg customerId "$customer_id" \
     --argjson facility "$facility" \
+    --arg manualCustodianId "$MANUAL_CUSTODIAN_ID" \
     '{
       input: {
         customerId: $customerId,
         facility: $facility,
+        custodianId: $manualCustodianId,
         terms: {
           annualRate: "12",
           accrualCycleInterval: "END_OF_MONTH",
