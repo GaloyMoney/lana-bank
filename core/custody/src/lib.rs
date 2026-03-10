@@ -268,6 +268,8 @@ where
             clock,
         };
 
+        custody.ensure_manual_custodian().await?;
+
         let self_custody_balance_sync_job_spawner = jobs.add_initializer(
             self_custody_balance_sync::SelfCustodyBalanceSyncJobInit::new(
                 &custody.authz,
@@ -291,6 +293,36 @@ where
         }
 
         Ok(custody)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "core_custody.ensure_manual_custodian", skip(self))]
+    async fn ensure_manual_custodian(&self) -> Result<(), CoreCustodyError> {
+        if self
+            .custodians
+            .maybe_find_by_id(CustodianId::manual_custodian_id())
+            .await?
+            .is_some()
+        {
+            return Ok(());
+        }
+
+        let new_custodian = NewCustodian::builder()
+            .id(CustodianId::manual_custodian_id())
+            .name("Manual".to_string())
+            .provider(CustodianConfig::Manual.discriminant().to_string())
+            .encrypted_custodian_config(
+                CustodianConfig::Manual,
+                &self.encryption_config.encryption_key,
+            )
+            .build()
+            .expect("should always build a new custodian");
+
+        let mut db = self.custodians.begin_op().await?;
+        self.custodians.create_in_op(&mut db, new_custodian).await?;
+        db.commit().await?;
+
+        Ok(())
     }
 
     #[cfg(feature = "mock-custodian")]

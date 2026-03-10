@@ -11,6 +11,19 @@ es_entity::entity_id! {
     WalletId
 }
 
+const MANUAL_CUSTODIAN_UUID: uuid::Uuid =
+    uuid::Uuid::from_u128(0x11111111_1111_1111_1111_111111111111);
+
+impl CustodianId {
+    pub const fn is_manual_custodian(self) -> bool {
+        self.0.as_u128() == MANUAL_CUSTODIAN_UUID.as_u128()
+    }
+
+    pub const fn manual_custodian_id() -> Self {
+        Self(MANUAL_CUSTODIAN_UUID)
+    }
+}
+
 #[cfg(feature = "mock-custodian")]
 impl CustodianId {
     pub const fn is_mock_custodian(self) -> bool {

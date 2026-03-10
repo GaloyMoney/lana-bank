@@ -68,7 +68,7 @@ pub async fn process_facility_lifecycle(
             customer_id,
             UsdCents::try_from_usd(dec!(10_000_000))?,
             terms,
-            None::<CustodianId>,
+            CustodianId::manual_custodian_id(),
         )
         .await?;
 

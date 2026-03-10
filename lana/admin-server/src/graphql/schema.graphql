@@ -733,7 +733,7 @@ type CreditFacilityProposal {
 	createdAt: Timestamp!
 	facilityAmount: UsdCents!
 	creditFacilityTerms: TermValues!
-	custodian: Custodian
+	custodian: Custodian!
 	customer: Customer!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
@@ -764,7 +764,7 @@ input CreditFacilityProposalCreateInput {
 	customerId: UUID!
 	facility: UsdCents!
 	terms: TermsInput!
-	custodianId: UUID
+	custodianId: UUID!
 }
 
 type CreditFacilityProposalCreatePayload {

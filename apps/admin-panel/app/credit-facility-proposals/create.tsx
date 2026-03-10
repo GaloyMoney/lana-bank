@@ -42,7 +42,7 @@ import { useModalNavigation } from "@/hooks/use-modal-navigation"
 import { Satoshis } from "@/types"
 import { DEFAULT_TERMS, TERMS_FIELD_LIMITS, validateTermsFields } from "@/lib/constants/terms"
 
-const DEFAULT_CUSTODIAN = "manual-custodian"
+const MANUAL_CUSTODIAN_ID = "11111111-1111-1111-1111-111111111111"
 
 gql`
   mutation CreditFacilityProposalCreate($input: CreditFacilityProposalCreateInput!) {
@@ -70,7 +70,7 @@ type CreateCreditFacilityProposalDialogProps = {
 
 const initialFormValues = {
   facility: "0",
-  custodianId: DEFAULT_CUSTODIAN,
+  custodianId: MANUAL_CUSTODIAN_ID,
   annualRate: "",
   liquidationCvl: "",
   marginCallCvl: "",
@@ -217,7 +217,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
           input: {
             customerId,
             facility: currencyConverter.usdToCents(Number(facility)),
-            custodianId: custodianId === DEFAULT_CUSTODIAN ? null : custodianId,
+            custodianId,
             terms: {
               annualRate: parseFloat(annualRate),
               accrualCycleInterval: DEFAULT_TERMS.ACCRUAL_CYCLE_INTERVAL,
@@ -270,7 +270,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       setSelectedTemplateId(latestTemplate.id)
       setFormValues({
         facility: "0",
-        custodianId: DEFAULT_CUSTODIAN,
+        custodianId: MANUAL_CUSTODIAN_ID,
         annualRate: latestTemplate.values.annualRate.toString(),
         liquidationCvl: getCvlValue(latestTemplate.values.liquidationCvl).toString(),
         marginCallCvl: getCvlValue(latestTemplate.values.marginCallCvl).toString(),
@@ -345,7 +345,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
           <div>
             <Label>{t("form.labels.custodian")}</Label>
             <Select
-              defaultValue={DEFAULT_CUSTODIAN}
+              defaultValue={MANUAL_CUSTODIAN_ID}
               value={formValues.custodianId}
               onValueChange={(value) =>
                 setFormValues((prev) => ({ ...prev, custodianId: value }))
@@ -356,7 +356,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                 <SelectValue placeholder={t("form.placeholders.custodian")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem key={DEFAULT_CUSTODIAN} value={DEFAULT_CUSTODIAN}>
+                <SelectItem key={MANUAL_CUSTODIAN_ID} value={MANUAL_CUSTODIAN_ID}>
                   {t("form.labels.manualCustodian")}
                 </SelectItem>
                 {custodiansData?.custodians.edges.map(({ node: custodian }) => (

@@ -36,17 +36,14 @@ pub struct CreditFacilityProposal {
 
 #[ComplexObject]
 impl CreditFacilityProposal {
-    async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Custodian>> {
+    async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Custodian> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        if let Some(custodian_id) = self.entity.custodian_id {
-            let custodian = loader
-                .load_one(custodian_id)
-                .await?
-                .expect("custodian not found");
+        let custodian = loader
+            .load_one(self.entity.custodian_id)
+            .await?
+            .expect("custodian not found");
 
-            return Ok(Some(custodian));
-        }
-        Ok(None)
+        Ok(custodian)
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
@@ -191,7 +188,7 @@ pub struct CreditFacilityProposalCreateInput {
     pub customer_id: UUID,
     pub facility: UsdCents,
     pub terms: TermsInput,
-    pub custodian_id: Option<UUID>,
+    pub custodian_id: UUID,
 }
 crate::mutation_payload! { CreditFacilityProposalCreatePayload, credit_facility_proposal: CreditFacilityProposal }
 

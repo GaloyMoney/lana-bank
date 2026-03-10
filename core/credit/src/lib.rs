@@ -584,7 +584,7 @@ where
         deposit_account_id: impl Into<CalaAccountId> + std::fmt::Debug + Copy,
         amount: UsdCents,
         terms: TermValues,
-        custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
+        custodian_id: impl Into<CustodianId> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacilityProposal, CoreCreditError> {
         self.subject_can_create(sub, true)
             .await?
@@ -607,7 +607,7 @@ where
             .id(proposal_id)
             .customer_id(customer.id)
             .customer_type(customer.customer_type)
-            .custodian_id(custodian_id.map(|id| id.into()))
+            .custodian_id(custodian_id.into())
             .disbursal_credit_account_id(deposit_account_id)
             .terms(terms)
             .amount(amount)

@@ -691,7 +691,7 @@ pub async fn create_pending_facility(
             deposit_account.id,
             amount,
             terms,
-            None::<core_custody::CustodianId>,
+            core_custody::CustodianId::manual_custodian_id(),
         )
         .await?;
 

@@ -35,6 +35,7 @@ pub enum CustodianConfig {
     Komainu(KomainuConfig),
     Bitgo(BitgoConfig),
     SelfCustody(SelfCustodyConfig),
+    Manual,
 
     #[cfg(feature = "mock-custodian")]
     Mock,
@@ -71,6 +72,11 @@ impl CustodianConfig {
                 )
                 .map_err(CustodianClientError::client)?,
             )),
+
+            CustodianConfig::Manual => Err(CustodianClientError::client(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "Manual custodian has no client",
+            ))),
 
             #[cfg(feature = "mock-custodian")]
             CustodianConfig::Mock => Ok(Box::new(super::client::mock::CustodianMock)),

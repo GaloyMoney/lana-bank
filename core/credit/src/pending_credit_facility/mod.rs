@@ -188,7 +188,9 @@ where
                 custodian_id,
                 proposal,
             } => {
-                let wallet_id = if let Some(custodian_id) = custodian_id {
+                let wallet_id = if custodian_id.is_manual_custodian() {
+                    None
+                } else {
                     #[cfg(feature = "mock-custodian")]
                     if custodian_id.is_mock_custodian() {
                         self.custody.ensure_mock_custodian_in_op(db).await?;
@@ -204,8 +206,6 @@ where
                         .await?;
 
                     Some(wallet.id)
-                } else {
-                    None
                 };
 
                 self.collaterals

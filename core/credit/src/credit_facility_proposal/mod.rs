@@ -27,7 +27,7 @@ pub enum ProposalApprovalOutcome {
     Rejected(CreditFacilityProposal),
     Approved {
         new_pending_facility: NewPendingCreditFacility,
-        custodian_id: Option<CustodianId>,
+        custodian_id: CustodianId,
         proposal: CreditFacilityProposal,
     },
     AlreadyApplied,
