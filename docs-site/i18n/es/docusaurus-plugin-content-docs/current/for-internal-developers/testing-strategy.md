@@ -166,11 +166,11 @@ impl TestFixtures {
 cargo run -- seed
 ```
 
-## Integracion con CI
+## Integración CI
 
 Las pruebas se ejecutan en cada PR:
 
 - Pruebas unitarias (cargo nextest)
-- Pruebas de integracion
+- Pruebas de integración
 - Pruebas E2E (BATS)
 - Pruebas de frontend (Cypress)
