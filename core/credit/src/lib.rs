@@ -770,6 +770,8 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
+        credit_facility.assert_payment_allowed()?;
+
         let payment_id = PaymentId::new();
         let effective = self.clock.today();
         let initiated_by = sub;
