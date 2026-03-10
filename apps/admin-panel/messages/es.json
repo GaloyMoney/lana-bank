@@ -435,7 +435,7 @@
           "event": "Evento",
           "details": "Detalles",
           "subject": "Realizado Por",
-          "auditEntryId": "Entrada de Auditoría",
+          "auditEntryId": "ID de auditoría",
           "recordedAt": "Registrado El"
         }
       }
@@ -727,7 +727,7 @@
           "event": "Evento",
           "details": "Detalles",
           "subject": "Realizado por",
-          "auditEntryId": "Auditoría",
+          "auditEntryId": "ID de auditoría",
           "recordedAt": "Registrado el"
         }
       }
@@ -921,7 +921,7 @@
           "event": "Evento",
           "details": "Detalles",
           "subject": "Realizado por",
-          "auditEntryId": "Auditoría",
+          "auditEntryId": "ID de auditoría",
           "recordedAt": "Registrado el"
         }
       }
@@ -1977,7 +1977,7 @@
           "event": "Evento",
           "details": "Detalles",
           "subject": "Realizado por",
-          "auditEntryId": "Auditoría",
+          "auditEntryId": "ID de auditoría",
           "recordedAt": "Registrado el"
         }
       }
@@ -2070,7 +2070,7 @@
           "event": "Evento",
           "details": "Detalles",
           "subject": "Realizado por",
-          "auditEntryId": "Auditoría",
+          "auditEntryId": "ID de auditoría",
           "recordedAt": "Registrado el"
         }
       }
@@ -2191,7 +2191,7 @@
           "event": "Evento",
           "details": "Detalles",
           "subject": "Realizado por",
-          "auditEntryId": "Auditoría",
+          "auditEntryId": "ID de auditoría",
           "recordedAt": "Registrado el"
         }
       }
@@ -2349,7 +2349,7 @@
         "event": "Evento",
         "details": "Detalles",
         "subject": "Realizado por",
-        "auditEntryId": "Auditoría",
+        "auditEntryId": "ID de auditoría",
         "recordedAt": "Registrado el"
       }
     },
@@ -2531,7 +2531,7 @@
         "event": "Evento",
         "details": "Detalles",
         "subject": "Realizado Por",
-        "auditEntryId": "Entrada de Auditoría",
+        "auditEntryId": "ID de auditoría",
         "recordedAt": "Registrado En"
       }
     }
@@ -3089,7 +3089,7 @@
         "event": "Evento",
         "details": "Detalles",
         "subject": "Realizado por",
-        "auditEntryId": "Auditoría",
+        "auditEntryId": "ID de auditoría",
         "recordedAt": "Registrado el"
       }
     }
