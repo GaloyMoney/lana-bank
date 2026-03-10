@@ -26,7 +26,6 @@ with
         select distinct
             credit_facility_key,
             facility_account_id,
-            collateral_account_id,
             fee_income_account_id,
             interest_income_account_id,
             interest_defaulted_account_id,
@@ -48,14 +47,6 @@ with
             credit_facility_key,
             facility_account_id as account_id,
             'facility_account' as account_type
-        from credit_facilities
-
-        union distinct
-
-        select distinct
-            credit_facility_key,
-            collateral_account_id as account_id,
-            'collateral_account' as account_type
         from credit_facilities
 
         union distinct

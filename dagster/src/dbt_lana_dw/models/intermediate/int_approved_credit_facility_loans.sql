@@ -140,7 +140,6 @@ with
 
             customer_id,
             facility_account_id,
-            collateral_account_id,
             fee_income_account_id,
             interest_income_account_id,
             interest_defaulted_account_id,

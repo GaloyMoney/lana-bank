@@ -14,7 +14,18 @@ with
         group by payment_id
     ),
 
-    final as (select * from payments left join payment_allocations using (payment_id))
+    final as (
+        select
+            *,
+            case
+                when 'Interest' in unnest(obligation_type) then amount_usd else 0
+            end as interest_usd,
+            case
+                when 'Disbursal' in unnest(obligation_type) then amount_usd else 0
+            end as disbursal_usd,
+        from payments
+        left join payment_allocations using (payment_id)
+    )
 
 select *
 from final

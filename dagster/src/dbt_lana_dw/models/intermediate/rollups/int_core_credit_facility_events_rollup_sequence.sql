@@ -72,9 +72,21 @@ with
                 json_value(terms, "$.one_time_fee_rate") as numeric
             ) as one_time_fee_rate,
 
-            cast(json_value(terms, "$.initial_cvl") as numeric) as initial_cvl,
-            cast(json_value(terms, "$.liquidation_cvl") as numeric) as liquidation_cvl,
-            cast(json_value(terms, "$.margin_call_cvl") as numeric) as margin_call_cvl,
+            case
+                when json_value(terms, '$.initial_cvl') = 'Infinite'
+                then null
+                else safe_cast(json_value(terms, '$.initial_cvl.Finite') as numeric)
+            end as initial_cvl,
+            case
+                when json_value(terms, '$.liquidation_cvl') = 'Infinite'
+                then null
+                else safe_cast(json_value(terms, '$.liquidation_cvl.Finite') as numeric)
+            end as liquidation_cvl,
+            case
+                when json_value(terms, '$.margin_call_cvl') = 'Infinite'
+                then null
+                else safe_cast(json_value(terms, '$.margin_call_cvl.Finite') as numeric)
+            end as margin_call_cvl,
 
             cast(json_value(terms, "$.duration.value") as integer) as duration_value,
             json_value(terms, "$.duration.type") as duration_type,
@@ -92,7 +104,7 @@ with
             / {{ var("sats_per_bitcoin") }}
             * price
             / {{ var("cents_per_usd") }} as collateral_amount_usd,
-            -- cast(collateralization_ratio as numeric) as collateralization_ratio,
+            collateralization_ratio,
             collateralization_state,
 
             approval_process_id,
@@ -149,7 +161,6 @@ with
             modified_at as credit_facility_modified_at,
 
             json_value(account_ids, "$.facility_account_id") as facility_account_id,
-            json_value(account_ids, "$.collateral_account_id") as collateral_account_id,
             json_value(account_ids, "$.fee_income_account_id") as fee_income_account_id,
             json_value(
                 account_ids, "$.interest_income_account_id"
@@ -190,7 +201,7 @@ with
                 terms,
                 collateral,
                 price,
-                -- collateralization_ratio,
+                collateralization_ratio,
                 collateralization_state,
                 approval_process_id,
                 approved,
