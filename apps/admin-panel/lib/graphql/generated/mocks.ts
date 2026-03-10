@@ -2905,7 +2905,7 @@ export const mockProfitAndLossAccount = (overrides?: Partial<ProfitAndLossAccoun
     relationshipsToOmit.add('ProfitAndLossAccount');
     return {
         __typename: 'ProfitAndLossAccount',
-        balanceRange: overrides && overrides.hasOwnProperty('balanceRange') ? overrides.balanceRange! : relationshipsToOmit.has('BtcLedgerAccountBalanceRange') ? {} as BtcLedgerAccountBalanceRange : mockBtcLedgerAccountBalanceRange({}, relationshipsToOmit),
+        balanceRange: overrides && overrides.hasOwnProperty('balanceRange') ? overrides.balanceRange! : relationshipsToOmit.has('LedgerAccountBalanceRangeByCurrency') ? {} as LedgerAccountBalanceRangeByCurrency : mockLedgerAccountBalanceRangeByCurrency({}, relationshipsToOmit),
         children: overrides && overrides.hasOwnProperty('children') ? overrides.children! : [relationshipsToOmit.has('ProfitAndLossAccount') ? {} as ProfitAndLossAccount : mockProfitAndLossAccount({}, relationshipsToOmit)],
         code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
         ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),

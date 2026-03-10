@@ -20,13 +20,10 @@ interface AccountProps {
 export const Account = ({ account, currency, depth = 0, layer }: AccountProps) => {
   const router = useRouter()
 
-  let accountPeriod: number | undefined
-
-  if (account.balanceRange.__typename === "UsdLedgerAccountBalanceRange") {
-    accountPeriod = account.balanceRange.usdDiff[layer].net
-  } else if (account.balanceRange.__typename === "BtcLedgerAccountBalanceRange") {
-    accountPeriod = account.balanceRange.btcDiff[layer].net
-  }
+  const accountPeriod =
+    currency === "usd"
+      ? account.balanceRange.usd.usdDiff[layer].net
+      : account.balanceRange.btc.btcDiff[layer].net
 
   const handleRowClick = () => {
     router.push(`/ledger-accounts/${account.code || account.ledgerAccountId}`)
