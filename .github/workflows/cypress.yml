@@ -32,17 +32,17 @@ jobs:
           skipPush: true
 
       - uses: ./.github/actions/cache-pnpm
-      - name: Start services for Cypress tests
-        run: nix develop -c make start-cypress-stack
+      - name: Run Cypress tests
+        run: nix run .#cypress
         env:
           ENGINE_DEFAULT: podman
+          KEEP_PODMAN_UP: "1"
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
           LANA_DOMAIN_CONFIG_SUMSUB_API_KEY: ${{ secrets.SUMSUB_KEY }}
           LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
-      - run: nix develop -c make test-cypress-in-ci
       - uses: actions/upload-artifact@v4
         with:
           name: screenshots
@@ -52,13 +52,6 @@ jobs:
         with:
           name: videos
           path: apps/admin-panel/cypress/videos/*
-      - if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-logs
-          path: |
-            cypress-stack.log
-            admin-panel.log
 
       - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
@@ -68,8 +61,7 @@ jobs:
 
       - name: generate pdfs
         if: env.NETLIFY_TOKEN_PRESENT == 'true'
-        run: |
-          cd apps/admin-panel && nix develop -c pnpm run local:pdf
+        run: nix run .#pdf-generator
 
       - name: list manuals
         if: env.NETLIFY_TOKEN_PRESENT == 'true'
@@ -182,8 +174,15 @@ jobs:
         if: >
           github.event_name == 'push'
           && env.NETLIFY_TOKEN_PRESENT == 'true'
-        run: |
-          cd apps/admin-panel && nix develop -c pnpm exec cypress run --env TEST_LANGUAGE=en
+        run: nix run .#cypress -- run --env TEST_LANGUAGE=en
+        env:
+          ENGINE_DEFAULT: podman
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+          SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
+          LANA_DOMAIN_CONFIG_SUMSUB_API_KEY: ${{ secrets.SUMSUB_KEY }}
+          LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET: ${{ secrets.SUMSUB_SECRET }}
+          TF_VAR_name_prefix: "gha"
 
       - name: Organize screenshots for deploy
         if: >
@@ -217,7 +216,7 @@ jobs:
           GITHUB_SHA="${{ github.sha }}"
           SHORT_SHA="${GITHUB_SHA::7}"
           ALIAS="pr-${{ github.event.pull_request.number }}-commit-${SHORT_SHA}"
-          nix develop -c netlify deploy \
+          nix run .#netlify-deploy -- deploy \
             --dir=apps/admin-panel/cypress/manuals/results \
             --filter=admin-panel \
             --site=$NETLIFY_SITE_ID \
@@ -236,7 +235,7 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
         run: |
-          nix develop -c netlify deploy \
+          nix run .#netlify-deploy -- deploy \
             --prod \
             --dir=apps/admin-panel/cypress/manuals/results \
             --filter=admin-panel \
@@ -258,7 +257,7 @@ jobs:
         run: |
           COMMIT_SHORT="${{ github.sha }}"
           COMMIT_SHORT="${COMMIT_SHORT::7}"
-          nix develop -c netlify deploy \
+          nix run .#netlify-deploy -- deploy \
             --no-build \
             --dir=apps/admin-panel/cypress/manuals/results \
             --filter=admin-panel \

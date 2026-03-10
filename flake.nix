@@ -708,6 +708,170 @@
           nextest = pkgs.writeShellScriptBin "nextest" ''
             exec ${self.packages.${system}.nextest-runner}/bin/nextest-runner "$@"
           '';
+
+          # Cypress E2E test runner — self-contained, no 'nix develop' needed
+          cypress-runner = let
+            podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
+          in
+            pkgs.writeShellScriptBin "cypress-runner" ''
+              set -e
+
+              export PATH="${pkgs.lib.makeBinPath ([
+                  podman-runner.podman-compose-runner
+                  pkgs.wait4x
+                  pkgs.sqlx-cli
+                  pkgs.nodejs
+                  pkgs.pnpm
+                  pkgs.coreutils
+                  pkgs.procps
+                  pkgs.curl
+                  pkgs.gnugrep
+                  pkgs.findutils
+                ]
+                ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+                  pkgs.xvfb-run
+                ])}:$PATH"
+
+              # Environment variables
+              export DATABASE_URL="${devEnvVars.DATABASE_URL}"
+              export PG_CON="${devEnvVars.PG_CON}"
+              export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
+              export LANA_DOMAIN_CONFIG_ALLOW_MANUAL_CONVERSION=true
+
+              # PID tracking for cleanup
+              CORE_PID=""
+              ADMIN_PID=""
+
+              cleanup() {
+                echo "Cleaning up cypress stack..."
+                [[ -n "$ADMIN_PID" ]] && kill "$ADMIN_PID" 2>/dev/null || true
+                [[ -n "$CORE_PID" ]] && kill "$CORE_PID" 2>/dev/null || true
+                if [[ -z "''${KEEP_PODMAN_UP:-}" ]]; then
+                  echo "Stopping podman-compose..."
+                  ${podman-runner.podman-compose-runner}/bin/podman-compose-runner down || true
+                fi
+              }
+              trap cleanup EXIT
+
+              # --- Start infrastructure ---
+              echo "Starting dependencies..."
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg keycloak-pg
+
+              echo "Waiting for PostgreSQL..."
+              ${pkgs.wait4x}/bin/wait4x postgresql "$DATABASE_URL" --timeout 120s
+              echo "Waiting for Keycloak PostgreSQL..."
+              ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default?sslmode=disable" --timeout 120s
+
+              echo "Starting all services..."
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d
+
+              echo "Waiting for Keycloak..."
+              for attempt in {1..3}; do
+                echo "Attempt $attempt/3: Checking Keycloak health..."
+                if ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 60s; then
+                  echo "SUCCESS: Keycloak is ready"
+                  break
+                fi
+
+                if [ "$attempt" -eq 3 ]; then
+                  echo "ERROR: Keycloak failed to start after 3 attempts."
+                  ${podman-runner.podman-compose-runner}/bin/podman-compose-runner logs keycloak || true
+                  exit 1
+                fi
+
+                echo "Keycloak not ready, restarting (attempt $attempt/3)..."
+                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner restart keycloak
+                sleep 5
+              done
+
+              # --- Database migrations ---
+              echo "Running database migrations..."
+              ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
+
+              # --- Start backend server ---
+              echo "Starting backend server..."
+              ${lana-cli-debug}/bin/lana-cli --config ./bats/lana.yml --set time.type=realtime &
+              CORE_PID=$!
+
+              echo "Waiting for backend health..."
+              ${pkgs.wait4x}/bin/wait4x http http://localhost:5253/health --timeout 120s
+
+              # --- Build and start admin panel ---
+              echo "Installing frontend dependencies..."
+              pnpm install --frozen-lockfile
+
+              echo "Building admin panel..."
+              export NEXT_PUBLIC_CORE_ADMIN_URL="/graphql"
+              pnpm --filter admin-panel build
+
+              echo "Starting admin panel..."
+              (cd apps/admin-panel && pnpm start --port 3001) &
+              ADMIN_PID=$!
+
+              echo "Waiting for admin panel..."
+              ${pkgs.wait4x}/bin/wait4x http http://localhost:3001/api/health --timeout 200s
+              ${pkgs.wait4x}/bin/wait4x http http://admin.localhost:4455/api/health --timeout 30s
+
+              # --- Run Cypress tests ---
+              echo "Installing Cypress binary..."
+              (cd apps/admin-panel && pnpm exec cypress install)
+
+              echo "Running Cypress tests..."
+              cd apps/admin-panel
+              if [ $# -eq 0 ]; then
+                CI=true pnpm exec cypress run
+              else
+                pnpm exec cypress "$@"
+              fi
+
+              echo "Cypress tests completed!"
+            '';
+
+          # Legacy wrapper for backward compatibility
+          cypress = pkgs.writeShellScriptBin "cypress" ''
+            exec ${self.packages.${system}.cypress-runner}/bin/cypress-runner "$@"
+          '';
+
+          # Lightweight wrapper: pnpm with nodejs (no dev shell needed)
+          pnpm-runner = pkgs.writeShellScriptBin "pnpm-runner" ''
+            export PATH="${pkgs.lib.makeBinPath [
+              pkgs.nodejs
+              pkgs.pnpm
+              pkgs.coreutils
+              pkgs.git
+            ]}:$PATH"
+            exec pnpm "$@"
+          '';
+
+          # PDF generator for Cypress manuals — pandoc + weasyprint
+          pdf-generator = pkgs.writeShellScriptBin "pdf-generator" ''
+            export PATH="${pkgs.lib.makeBinPath [
+              pkgs.nodejs
+              pkgs.pnpm
+              pkgs.pandoc
+              pkgs.python313Packages.weasyprint
+              pkgs.coreutils
+              pkgs.gnused
+              pkgs.gnugrep
+              pkgs.git
+            ]}:$PATH"
+
+            export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
+            export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts
+
+            cd apps/admin-panel
+            exec pnpm run local:pdf
+          '';
+
+          # Netlify deploy wrapper — just netlify-cli + jq
+          netlify-deploy = pkgs.writeShellScriptBin "netlify-deploy" ''
+            export PATH="${pkgs.lib.makeBinPath [
+              pkgs.netlify-cli
+              pkgs.jq
+              pkgs.coreutils
+            ]}:$PATH"
+            exec netlify "$@"
+          '';
         };
 
         checks = {
@@ -1152,6 +1316,11 @@
         apps.nextest = flake-utils.lib.mkApp {
           drv = self.packages.${system}.nextest-runner;
           name = "nextest-runner";
+        };
+
+        apps.cypress = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.cypress-runner;
+          name = "cypress-runner";
         };
 
         devShells.default = mkShell (devEnvVars
