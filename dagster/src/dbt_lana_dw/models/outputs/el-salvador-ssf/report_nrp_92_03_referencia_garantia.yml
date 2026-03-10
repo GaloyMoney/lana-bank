@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: report_nrp_92_03_referencia_garantia
+    description: >
+      Association between credit references and guarantees for NRP-92 (Anexo A, Archivo 3:
+      referencia_garantia.xml). Uses tipo_garantia 'PC' (Prenda sobre Criptomonedas) for
+      Bitcoin-backed loans.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - num_referencia
+            - cod_cartera
+            - cod_activo
+            - identificacion_garantia
+            - tipo_garantia
+    columns:
+      - name: num_referencia
+        description: >
+          Credit reference number (Archivo 3 field 3.1). Truncated to 20 characters.
+        tests:
+          - not_null
+      - name: cod_cartera
+        description: >
+          Portfolio type code (Archivo 3 field 3.2, Tabla 1). '01' = cartera propia.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['01', '99']
+      - name: cod_activo
+        description: >
+          Risk asset type code (Archivo 3 field 3.3, Tabla 2). 'PD' = préstamos.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PD', 'CP', 'CC', 'FA', 'PR', 'SN']
+      - name: identificacion_garantia
+        description: >
+          Unique guarantee identifier (Archivo 3 field 3.4). Links to the garantia_criptomonedas
+          file for tipo_garantia 'PC'.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('report_nrp_92_16_garantia_criptomonedas')
+              field: identificacion_garantia
+              where: "tipo_garantia = 'PC'"
+      - name: tipo_garantia
+        description: >
+          Guarantee type code (Archivo 3 field 3.5, Tabla 7). 'PC' = Prenda sobre Criptomonedas.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['HA', 'HC', 'FI', 'PR', 'PI', 'FG', 'FB', 'CC', 'AV', 'BP', 'PD', 'PV', 'PC', 'ST', 'AF']
+      - name: valor_garantia_proporcional
+        description: >
+          Proportional value of the guarantee covering the reference (Archivo 3 field 3.6).
+          Formatted to two decimal places.
+        tests:
+          - not_null

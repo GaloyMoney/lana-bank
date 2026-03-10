@@ -171,6 +171,62 @@ report_jobs:
 
   #--- NRP-92 Reports ---
   - norm: nrp_92
+    id: "03_referencia_garantia"
+    friendly_name: "referencia_garantia"
+    source_table: report_nrp_92_03_referencia_garantia
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "04_garantia_hipotecaria"
+    friendly_name: "garantia_hipotecaria"
+    source_table: report_nrp_92_04_garantia_hipotecaria
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "05_garantia_fiduciaria"
+    friendly_name: "garantia_fiduciaria"
+    source_table: report_nrp_92_05_garantia_fiduciaria
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "06_garantia_aval"
+    friendly_name: "garantia_aval"
+    source_table: report_nrp_92_06_garantia_aval
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "07_garantia_pignorada"
+    friendly_name: "garantia_pignorada"
+    source_table: report_nrp_92_07_garantia_pignorada
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "08_garantia_prenda"
+    friendly_name: "garantia_prenda"
+    source_table: report_nrp_92_08_garantia_prenda
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "09_garantia_bono"
+    friendly_name: "garantia_bono"
+    source_table: report_nrp_92_09_garantia_bono
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "10_garantia_fondo"
+    friendly_name: "garantia_fondo"
+    source_table: report_nrp_92_10_garantia_fondo
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
     id: "16_garantia_criptomonedas"
     friendly_name: "garantia_criptomonedas"
     source_table: report_nrp_92_16_garantia_criptomonedas
