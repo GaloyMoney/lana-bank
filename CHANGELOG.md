@@ -1,3 +1,38 @@
+## [0.48.0] - 2026-03-10
+
+### 🚀 Features
+
+- *(admin-panel)* Show custodian provider type in list page (#4283)
+- *(admin-panel)* Add createdAt column to customers and prospects (#4289)
+
+### 🐛 Bug Fixes
+
+- *(collateral)* Default manual collateral update config to false (#4279)
+- Data pipeline out of date fields (#4288)
+- *(admin-panel)* Translate customer page strings to Spanish (#4294)
+- *(admin-panel)* Translate configurations page strings to Spanish (#4295)
+- *(admin-panel)* Translate miscellaneous admin panel strings to Spanish (#4296)
+- *(profit-and-loss)* Compute NET client-side and use currency-aware balance access (#4284)
+- *(admin-panel)* Fix Spanish text truncation in audit filter and tables (#4298)
+- *(bats)* Move flaky accruals test to integration layer (#4257)
+- *(ci)* Cap outbox-dependent test parallelism to fix flaky test-integration (#4299)
+
+### 🚜 Refactor
+
+- *(governance)* Extract publisher for approval process conclusion (#4290)
+
+### 🧪 Testing
+
+- Create manual custodian only once in cypress (#4300)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.47.0 [ci skip] (#4281)
+- Turn manual custodian into regular custodian (#4268)
+
+### ◀️ Revert
+
+- "fix(ci): cap outbox-dependent test parallelism to fix flaky test-integration" (#4299) (#4303)
 ## [0.47.0] - 2026-03-10
 
 ### 🚀 Features
