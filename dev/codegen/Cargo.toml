@@ -24,6 +24,7 @@ admin-server = { workspace = true }
 customer-server = { workspace = true }
 permission-sets-macro = { workspace = true }
 
+async-graphql = { workspace = true }
 heck = { workspace = true }
 serde_json = { workspace = true }
 walkdir = { workspace = true }
