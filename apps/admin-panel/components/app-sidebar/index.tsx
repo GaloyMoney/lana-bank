@@ -15,7 +15,6 @@ import {
   SidebarMenuButton,
 } from "@lana/web/ui/sidebar"
 
-import { UserBlock } from "./user-block"
 import { NavSection } from "./nav-section"
 import { useNavItems } from "./nav-items"
 
@@ -40,21 +39,8 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
   } = useNavItems()
 
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar variant="sidebar" {...props}>
       <SidebarHeader>
-        <UserBlock />
-      </SidebarHeader>
-      <SidebarContent className="mt-4">
-        <NavSection items={navDashboardItems} />
-        <NavSection items={navCustomerItems} label={t("labels.customers")} />
-        <NavSection items={navLoansItems} label={t("labels.loans")} />
-        <NavSection items={navTransactionItems} label={t("labels.transactions")} />
-        <NavSection items={navAdminItems} label={t("labels.administration")} />
-        <NavSection items={navGovernanceItems} label={t("labels.governance")} />
-        <NavSection items={navAccountingItems} label={t("labels.accounting")} />
-        <NavSection items={navFinanceItems} label={t("labels.financialReports")} />
-      </SidebarContent>
-      <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild tabIndex={-1}>
@@ -72,7 +58,18 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+      </SidebarHeader>
+      <SidebarContent>
+        <NavSection items={navDashboardItems} />
+        <NavSection items={navCustomerItems} label={t("labels.customers")} />
+        <NavSection items={navLoansItems} label={t("labels.loans")} />
+        <NavSection items={navTransactionItems} label={t("labels.transactions")} />
+        <NavSection items={navAdminItems} label={t("labels.administration")} />
+        <NavSection items={navGovernanceItems} label={t("labels.governance")} />
+        <NavSection items={navAccountingItems} label={t("labels.accounting")} />
+        <NavSection items={navFinanceItems} label={t("labels.financialReports")} />
+      </SidebarContent>
+      <SidebarFooter />
     </Sidebar>
   )
 }

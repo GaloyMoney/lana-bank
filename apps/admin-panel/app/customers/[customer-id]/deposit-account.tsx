@@ -60,18 +60,22 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
   ]
 
   return (
-    <DetailsCard
-      title={t("title")}
-      details={details}
-      columns={4}
-      className="w-full"
-      publicId={publicId}
-      footerContent={
-        <Button variant="outline" onClick={handleViewDetails}>
+    <div>
+      <div className="flex items-center justify-between px-4 py-2 border-b ">
+        <h2 className="text-lg font-semibold">{t("title")}</h2>
+        <Button variant="outline" size="sm" onClick={handleViewDetails}>
           {t("buttons.viewDetails")}
           <ArrowRight />
         </Button>
-      }
-    />
+      </div>
+      <div className="p-4 border-b">
+        <DetailsCard
+          details={details}
+          columns={4}
+          className="w-full"
+          variant="container"
+        />
+      </div>
+    </div>
   )
 }

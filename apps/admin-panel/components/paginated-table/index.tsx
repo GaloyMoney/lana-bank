@@ -310,7 +310,7 @@ const PaginatedTable = <T,>({
       </div>
     ) : (
       <div
-        className={`overflow-x-auto rounded-md ${style === "comfortable" ? "border" : ""}`}
+        className={`overflow-x-auto ${style === "comfortable" ? "border" : ""}`}
       >
         <Table className="table-fixed w-full">
           <TableHeader
@@ -553,7 +553,7 @@ const PaginatedTable = <T,>({
       <ActiveFilterChips />
       <div
         ref={tableRef}
-        className={`overflow-x-auto rounded-md focus:outline-none ${style === "comfortable" ? "border" : ""}`}
+        className={`overflow-x-auto focus:outline-none ${style === "comfortable" ? "border" : ""}`}
         tabIndex={0}
         role="grid"
         onFocus={() => setIsTableFocused(true)}
@@ -577,8 +577,9 @@ const PaginatedTable = <T,>({
                     key={`${col.key as string}-${colIdx}`}
                     className={col.labelClassName}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between">
                       <span>{col.label}</span>
+                      <div className="flex items-center">
                       {col.sortable && (
                         <Button
                           variant="ghost"
@@ -628,6 +629,7 @@ const PaginatedTable = <T,>({
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
+                      </div>
                     </div>
                   </TableHead>
                 ))}

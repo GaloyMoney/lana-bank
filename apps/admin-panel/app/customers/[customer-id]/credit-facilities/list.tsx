@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl"
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
-import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import { GetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
 
@@ -60,12 +59,12 @@ export const CustomerCreditFacilitiesTable: React.FC<
   ]
 
   return (
-    <CardWrapper title={t("title")} description={t("description")}>
+    <div>
       <DataTable
         data={creditFacilities}
         columns={columns}
         navigateTo={(facility) => `/credit-facilities/${facility.publicId}`}
       />
-    </CardWrapper>
+    </div>
   )
 }

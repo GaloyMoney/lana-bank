@@ -7,7 +7,6 @@ import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import { CollateralizationStateLabel } from "@/app/credit-facilities/label"
 import { PendingFacilityCollateralizationStateLabel } from "@/app/pending-credit-facilities/label"
-import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import { GetCreditFacilityHistoryQuery, CollateralDirection } from "@/lib/graphql/generated"
 import { cn } from "@/lib/utils"
@@ -129,15 +128,13 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
   ]
 
   return (
-    <CardWrapper title={t("title")} description={t("description")}>
-      <DataTable
-        data={creditFacility.history}
-        columns={columns}
-        emptyMessage={t("messages.emptyTable")}
-        navigateTo={(entry) =>
-          "txId" in entry ? `/ledger-transactions/${entry.txId}` : null
-        }
-      />
-    </CardWrapper>
+    <DataTable
+      data={creditFacility.history}
+      columns={columns}
+      emptyMessage={t("messages.emptyTable")}
+      navigateTo={(entry) =>
+        "txId" in entry ? `/ledger-transactions/${entry.txId}` : null
+      }
+    />
   )
 }

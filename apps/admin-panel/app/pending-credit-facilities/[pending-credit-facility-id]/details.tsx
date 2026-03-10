@@ -22,9 +22,9 @@ import {
   PendingCreditFacilityStatus,
   useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
-import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 import { CustomerLabel } from "@/app/customers/customer-label"
+import { PageHeader } from "@/components/page-header"
 import { mempoolAddressUrl } from "@/app/credit-facilities/[credit-facility-id]/details"
 import { usePublicIdForCreditFacility } from "@/hooks/use-public-id"
 
@@ -34,7 +34,7 @@ type PendingCreditFacilityDetailsCardProps = {
   >
 }
 
-const PendingCreditFacilityDetailsCard: React.FC<
+export const PendingCreditFacilityHeader: React.FC<
   PendingCreditFacilityDetailsCardProps
 > = ({ pendingDetails }) => {
   const t = useTranslations("PendingCreditFacilities.PendingDetails.DetailsCard")
@@ -56,6 +56,51 @@ const PendingCreditFacilityDetailsCard: React.FC<
       ? pendingDetails.creditFacilityId
       : undefined,
   )
+
+  const actionButtons = (
+    <div className="flex items-center gap-2">
+      {pendingDetails.status !== PendingCreditFacilityStatus.Completed &&
+        manualCollateralEnabled && (
+          <Button
+            variant="outline"
+            onClick={() => setOpenCollateralUpdateDialog(true)}
+            data-testid="update-collateral-button"
+          >
+            <RefreshCw className="h-4 w-4" />
+            {t("buttons.updateCollateral")}
+          </Button>
+        )}
+      {pendingDetails.status === PendingCreditFacilityStatus.Completed &&
+        facilityPublicId && (
+          <Button variant="outline" data-testid="view-facility-button" asChild>
+            <Link href={`/credit-facilities/${facilityPublicId}`}>
+              {t("buttons.viewFacility")}
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Link>
+          </Button>
+        )}
+    </div>
+  )
+
+  return (
+    <>
+      <PageHeader title={t("title")} actions={actionButtons} />
+      <PendingCreditFacilityCollateralUpdateDialog
+        openDialog={openCollateralUpdateDialog}
+        setOpenDialog={setOpenCollateralUpdateDialog}
+        collateralId={pendingDetails.collateralId}
+        currentCollateral={pendingDetails.collateral.btcBalance}
+        collateralToMatchInitialCvl={pendingDetails.collateralToMatchInitialCvl}
+      />
+    </>
+  )
+}
+
+export const PendingCreditFacilityDetailsContent: React.FC<
+  PendingCreditFacilityDetailsCardProps
+> = ({ pendingDetails }) => {
+  const t = useTranslations("PendingCreditFacilities.PendingDetails.DetailsCard")
+  const commonT = useTranslations("Common")
 
   const details: DetailItemProps[] = [
     {
@@ -125,54 +170,19 @@ const PendingCreditFacilityDetailsCard: React.FC<
     },
   ].filter(Boolean) as DetailItemProps[]
 
-  const footerContent = (
-    <>
-      {pendingDetails.status !== PendingCreditFacilityStatus.Completed &&
-        manualCollateralEnabled && (
-          <Button
-            variant="outline"
-            onClick={() => setOpenCollateralUpdateDialog(true)}
-            data-testid="update-collateral-button"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            {t("buttons.updateCollateral")}
-          </Button>
-        )}
-      {pendingDetails.status === PendingCreditFacilityStatus.Completed &&
-        facilityPublicId && (
-          <Button variant="outline" data-testid="view-facility-button" asChild>
-            <Link href={`/credit-facilities/${facilityPublicId}`}>
-              {t("buttons.viewFacility")}
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Link>
-          </Button>
-        )}
-    </>
-  )
-
   return (
-    <>
+    <div className="p-4">
       <DetailsCard
-        title={t("title")}
         details={details}
+        className="w-full"
         columns={3}
-        footerContent={footerContent}
+        variant="container"
         errorMessage={pendingDetails.approvalProcess.deniedReason ?? undefined}
       />
-
-      <PendingCreditFacilityCollateralUpdateDialog
-        openDialog={openCollateralUpdateDialog}
-        setOpenDialog={setOpenCollateralUpdateDialog}
-        collateralId={pendingDetails.collateralId}
-        currentCollateral={pendingDetails.collateral.btcBalance}
-        collateralToMatchInitialCvl={pendingDetails.collateralToMatchInitialCvl}
-      />
-
-      {pendingDetails.approvalProcess && (
-        <VotersCard approvalProcess={pendingDetails.approvalProcess} />
-      )}
-    </>
+    </div>
   )
 }
 
+// Keep backward compat export
+const PendingCreditFacilityDetailsCard = PendingCreditFacilityHeader
 export default PendingCreditFacilityDetailsCard

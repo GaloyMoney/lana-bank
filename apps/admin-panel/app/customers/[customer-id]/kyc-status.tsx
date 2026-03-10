@@ -44,12 +44,19 @@ export const KycStatus: React.FC<KycStatusProps> = ({
   ]
 
   return (
-    <DetailsCard
-      title={t("title")}
-      badge={<KycStatusBadge level={level} />}
-      details={details}
-      className="w-full md:w-[25%]"
-      columns={1}
-    />
+    <div>
+      <div className="flex items-center gap-2 px-4 py-2 border-b ">
+        <h2 className="text-lg font-semibold">{t("title")}</h2>
+        <KycStatusBadge level={level} />
+      </div>
+      <div className="p-4">
+        <DetailsCard
+          details={details}
+          className="w-full"
+          columns={1}
+          variant="container"
+        />
+      </div>
+    </div>
   )
 }

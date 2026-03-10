@@ -1,29 +1,26 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@lana/web/ui/card"
+
+import CreateButton from "../create"
 
 import ProspectsList from "./list"
+
+import { PageHeader } from "@/components/page-header"
 
 const Prospects: React.FC = () => {
   const t = useTranslations("Prospects")
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ProspectsList />
-      </CardContent>
-    </Card>
+    <div className="border-l border-r flex-1">
+      <PageHeader
+        title={t("title")}
+        description={t("description")}
+        actions={<CreateButton />}
+        showBreadcrumb={false}
+      />
+      <ProspectsList />
+    </div>
   )
 }
 

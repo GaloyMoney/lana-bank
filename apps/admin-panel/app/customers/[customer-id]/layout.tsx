@@ -1,13 +1,21 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { use, useEffect } from "react"
+import { use, useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 import { ScrollArea, ScrollBar } from "@lana/web/ui/scroll-area"
+import {
+  LayoutDashboard,
+  CreditCard,
+  Clock,
+  FileText,
+  Files,
+  Activity,
+} from "lucide-react"
 
-import { CustomerDetailsCard } from "./details"
+import { CustomerHeader, CustomerDetailsContent } from "./details"
 import { CustomerPersonalInfoCard } from "./personal-info-card"
 import { CustomerCompanyInfoCard } from "./company-info-card"
 import { KycStatus } from "./kyc-status"
@@ -80,23 +88,39 @@ export default function CustomerLayout({
   const tDepositAccount = useTranslations("Customers.CustomerDetails.depositAccount")
 
   const TABS = [
-    { id: "1", url: "/", tabLabel: t("tabs.creditFacilities") },
+    { id: "1", url: "/", tabLabel: t("tabs.creditFacilities"), icon: <CreditCard className="h-4 w-4" /> },
     {
       id: "2",
       url: "/pending-credit-facilities",
       tabLabel: t("tabs.pendingCreditFacilities"),
+      icon: <Clock className="h-4 w-4" />,
     },
     {
       id: "3",
       url: "/credit-facility-proposals",
       tabLabel: t("tabs.creditFacilityProposals"),
+      icon: <FileText className="h-4 w-4" />,
     },
-    { id: "4", url: "/documents", tabLabel: t("tabs.documents") },
-    { id: "5", url: "/events", tabLabel: t("tabs.events") },
+    { id: "4", url: "/documents", tabLabel: t("tabs.documents"), icon: <Files className="h-4 w-4" /> },
+    { id: "5", url: "/events", tabLabel: t("tabs.events"), icon: <Activity className="h-4 w-4" /> },
   ]
 
+  const OVERVIEW = "overview"
+
   const { "customer-id": customerId } = use(params)
-  const { currentTab, handleTabChange } = useTabNavigation(TABS, customerId)
+  const { currentTab, handleTabChange: handleRoutedTabChange } = useTabNavigation(TABS, customerId)
+  const [isOverview, setIsOverview] = useState(true)
+
+  const activeTab = isOverview ? OVERVIEW : currentTab
+
+  const handleTabChange = (value: string) => {
+    if (value === OVERVIEW) {
+      setIsOverview(true)
+    } else {
+      setIsOverview(false)
+      handleRoutedTabChange(value)
+    }
+  }
 
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
@@ -135,49 +159,60 @@ export default function CustomerLayout({
   if (!data || !data.customerByPublicId) return null
 
   return (
-    <main className="max-w-7xl m-auto">
-      <CustomerDetailsCard customer={data.customerByPublicId} />
-      <div className="flex flex-col md:flex-row w-full gap-2 my-2">
-        <KycStatus
-          level={data.customerByPublicId.level}
-          applicantId={data.customerByPublicId.applicantId}
-        />
-        {data.customerByPublicId.customerType === CustomerTypeEnum.Individual ? (
-          <CustomerPersonalInfoCard customer={data.customerByPublicId} />
-        ) : (
-          <CustomerCompanyInfoCard customer={data.customerByPublicId} />
-        )}
-      </div>
-      {data.customerByPublicId.depositAccount ? (
-        <DepositAccount
-          balance={data.customerByPublicId.depositAccount.balance}
-          publicId={data.customerByPublicId.depositAccount.publicId}
-          status={data.customerByPublicId.depositAccount.status}
-          activity={data.customerByPublicId.depositAccount.activity}
-        />
-      ) : (
-        <span className="rounded-md bg-muted px-2 py-2 text-sm font-medium text-muted-foreground md:w-full w-1/4 text-center flex items-center justify-center">
-          {tDepositAccount("noAccount")}
-        </span>
-      )}
-      <Tabs
-        defaultValue={TABS[0].url}
-        value={currentTab}
-        onValueChange={handleTabChange}
-        className="mt-2"
-      >
+    <main className="max-w-7xl w-full mx-auto border-l border-r flex-1">
+      <CustomerHeader customer={data.customerByPublicId} />
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="gap-0">
         <ScrollArea>
-          <div className="relative h-10">
-            <TabsList className="flex absolute h-10">
-              {TABS.map((tab) => (
-                <TabsTrigger key={tab.id} value={tab.url} id={`tab-${tab.id}`}>
-                  {tab.tabLabel}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
+          <TabsList className="bg-transparent rounded-none h-auto w-full justify-start p-0 border-b">
+            {[
+              { value: OVERVIEW, label: t("tabs.overview"), icon: <LayoutDashboard className="h-4 w-4" /> },
+              ...TABS.map((tab) => ({ value: tab.url, label: tab.tabLabel, icon: tab.icon })),
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="flex-initial rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm gap-1.5"
+              >
+                {tab.icon}
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
+        <TabsContent value={OVERVIEW}>
+          <CustomerDetailsContent customer={data.customerByPublicId} />
+          <div className="h-1 bg-secondary border-b" />
+          <div className="flex flex-col md:flex-row w-full border-b">
+            <div className="md:w-[33%] md:border-r">
+              <KycStatus
+                level={data.customerByPublicId.level}
+                applicantId={data.customerByPublicId.applicantId}
+              />
+            </div>
+            <div className="hidden md:block w-1 bg-secondary border-r" />
+            <div className="md:flex-1">
+              {data.customerByPublicId.customerType === CustomerTypeEnum.Individual ? (
+                <CustomerPersonalInfoCard customer={data.customerByPublicId} />
+              ) : (
+                <CustomerCompanyInfoCard customer={data.customerByPublicId} />
+              )}
+            </div>
+          </div>
+          <div className="h-1 bg-secondary border-b" />
+          {data.customerByPublicId.depositAccount ? (
+            <DepositAccount
+              balance={data.customerByPublicId.depositAccount.balance}
+              publicId={data.customerByPublicId.depositAccount.publicId}
+              status={data.customerByPublicId.depositAccount.status}
+              activity={data.customerByPublicId.depositAccount.activity}
+            />
+          ) : (
+            <div className="p-4 border-b text-sm font-medium text-muted-foreground text-center">
+              {tDepositAccount("noAccount")}
+            </div>
+          )}
+        </TabsContent>
         {TABS.map((tab) => (
           <TabsContent key={tab.id} value={tab.url}>
             {children}

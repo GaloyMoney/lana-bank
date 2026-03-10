@@ -110,22 +110,28 @@ export default function ProspectLayout({
   const prospect = data.prospectByPublicId
 
   return (
-    <main className="max-w-7xl m-auto">
+    <main className="max-w-7xl mx-auto border-l border-r flex-1">
       <ProspectDetailsCard prospect={prospect} />
-      <div className="flex flex-col md:flex-row w-full gap-2 my-2">
-        <ProspectKycStatus
-          prospectId={prospect.prospectId}
-          kycStatus={prospect.kycStatus}
-          level={prospect.level}
-          applicantId={prospect.applicantId}
-          verificationLink={prospect.verificationLink}
-          verificationLinkCreatedAt={prospect.verificationLinkCreatedAt}
-        />
-        {prospect.customerType === CustomerType.Individual ? (
-          <ProspectPersonalInfoCard prospect={prospect} />
-        ) : (
-          <ProspectCompanyInfoCard prospect={prospect} />
-        )}
+      <div className="h-1 bg-secondary border-b" />
+      <div className="flex flex-col md:flex-row w-full border-b">
+        <div className="md:w-[25%] md:border-r">
+          <ProspectKycStatus
+            prospectId={prospect.prospectId}
+            kycStatus={prospect.kycStatus}
+            level={prospect.level}
+            applicantId={prospect.applicantId}
+            verificationLink={prospect.verificationLink}
+            verificationLinkCreatedAt={prospect.verificationLinkCreatedAt}
+          />
+        </div>
+        <div className="hidden md:block w-1 bg-secondary border-r" />
+        <div className="md:flex-1">
+          {prospect.customerType === CustomerType.Individual ? (
+            <ProspectPersonalInfoCard prospect={prospect} />
+          ) : (
+            <ProspectCompanyInfoCard prospect={prospect} />
+          )}
+        </div>
       </div>
       {children}
     </main>

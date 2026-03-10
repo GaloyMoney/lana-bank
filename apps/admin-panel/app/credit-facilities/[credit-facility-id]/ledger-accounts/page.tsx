@@ -4,14 +4,6 @@ import { gql } from "@apollo/client"
 import { use } from "react"
 import { useTranslations } from "next-intl"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@lana/web/ui/card"
-
 import DataTable, { Column } from "@/components/data-table"
 import Balance from "@/components/balance/balance"
 import {
@@ -171,19 +163,11 @@ export default function CreditFacilityLedgerAccountsPage({
   ]
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <DataTable
-          data={ledgerAccountsData}
-          columns={columns}
-          loading={loading}
-          navigateTo={(account) => `/ledger-accounts/${account.ledgerAccountId}`}
-        />
-      </CardContent>
-    </Card>
+    <DataTable
+      data={ledgerAccountsData}
+      columns={columns}
+      loading={loading}
+      navigateTo={(account) => `/ledger-accounts/${account.ledgerAccountId}`}
+    />
   )
 }

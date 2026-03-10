@@ -18,7 +18,6 @@ import {
 } from "@/lib/graphql/generated"
 
 import Balance from "@/components/balance/balance"
-import CardWrapper from "@/components/card-wrapper"
 
 type RepaymentPlan = NonNullable<
   NonNullable<
@@ -85,13 +84,11 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
   const repaymentPlanData = creditFacility?.repaymentPlan ?? []
 
   return (
-    <CardWrapper title={t("title")} description={t("description")}>
-      <DataTable
-        data={repaymentPlanData}
-        columns={columns}
-        emptyMessage={t("messages.emptyTable")}
-      />
-    </CardWrapper>
+    <DataTable
+      data={repaymentPlanData}
+      columns={columns}
+      emptyMessage={t("messages.emptyTable")}
+    />
   )
 }
 

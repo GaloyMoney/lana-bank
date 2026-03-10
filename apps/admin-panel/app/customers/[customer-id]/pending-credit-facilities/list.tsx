@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl"
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
-import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import { GetCustomerPendingCreditFacilitiesQuery } from "@/lib/graphql/generated"
 
@@ -58,7 +57,7 @@ export const CustomerPendingCreditFacilitiesTable: React.FC<
   ]
 
   return (
-    <CardWrapper title={t("title")} description={t("description")}>
+    <div>
       <DataTable
         data={pendingCreditFacilities}
         columns={columns}
@@ -66,6 +65,6 @@ export const CustomerPendingCreditFacilitiesTable: React.FC<
           `/pending-credit-facilities/${pending.pendingCreditFacilityId}`
         }
       />
-    </CardWrapper>
+    </div>
   )
 }

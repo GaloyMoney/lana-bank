@@ -497,6 +497,7 @@
     "CustomerDetails": {
       "layout": {
         "tabs": {
+          "overview": "Resumen",
           "creditFacilities": "Líneas de Crédito",
           "pendingCreditFacilities": "Líneas de Crédito Pendientes",
           "creditFacilityProposals": "Propuestas de Línea de Crédito",
@@ -839,9 +840,11 @@
       }
     },
     "ProposalDetails": {
-      "tabs": {
-        "repaymentPlan": "Plan de reembolso",
-        "events": "Eventos"
+      "layout": {
+        "tabs": {
+          "overview": "Resumen",
+          "repaymentPlan": "Plan de Pago"
+        }
       },
       "CollateralCard": {
         "title": "Garantía",
@@ -1111,6 +1114,7 @@
       },
       "Layout": {
         "tabs": {
+          "overview": "Resumen",
           "history": "Historial",
           "disbursals": "Desembolsos",
           "liquidations": "Liquidaciones",
@@ -1229,9 +1233,11 @@
       "not_yet_collateralized": "Aún no colateralizado"
     },
     "PendingDetails": {
-      "tabs": {
-        "repaymentPlan": "Plan de Pago",
-        "events": "Eventos"
+      "layout": {
+        "tabs": {
+          "overview": "Resumen",
+          "repaymentPlan": "Plan de Pago"
+        }
       },
       "CollateralCard": {
         "title": "Garantía",
