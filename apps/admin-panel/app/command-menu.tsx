@@ -50,10 +50,10 @@ import {
   ApprovalProcessStatus,
   CreditFacilityStatus,
   WithdrawalStatus,
-  useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 
 import { usePublicIdSearch } from "@/hooks/use-public-id-search"
+import { useManualCollateralEnabled } from "@/hooks/use-manual-collateral-enabled"
 import { SearchResults } from "@/components/command-menu/search-results"
 import { MenuSections, groups } from "@/components/command-menu/menu-sections"
 
@@ -118,13 +118,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
     action: null,
   })
 
-  const { data: domainConfigsData } = useDomainConfigsQuery({
-    variables: { first: 100 },
-  })
-  const manualCollateralEnabled =
-    domainConfigsData?.domainConfigs.nodes.find(
-      (c) => c.key === "manual-collateral",
-    )?.value !== false
+  const manualCollateralEnabled = useManualCollateralEnabled()
 
   const search = usePublicIdSearch()
   const getActiveEntity = () => {

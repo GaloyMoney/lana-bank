@@ -29,7 +29,6 @@ import {
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
   useCustodiansQuery,
-  useDomainConfigsQuery,
   DisbursalPolicy,
 } from "@/lib/graphql/generated"
 import {
@@ -40,6 +39,7 @@ import {
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
+import { useManualCollateralEnabled } from "@/hooks/use-manual-collateral-enabled"
 import { Satoshis } from "@/types"
 import { DEFAULT_TERMS, TERMS_FIELD_LIMITS, validateTermsFields } from "@/lib/constants/terms"
 
@@ -108,13 +108,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
   const { data: custodiansData, loading: custodiansLoading } = useCustodiansQuery({
     variables: { first: 50 },
   })
-  const { data: domainConfigsData } = useDomainConfigsQuery({
-    variables: { first: 100 },
-  })
-  const manualCollateralEnabled =
-    domainConfigsData?.domainConfigs.nodes.find(
-      (c) => c.key === "manual-collateral",
-    )?.value !== false
+  const manualCollateralEnabled = useManualCollateralEnabled()
   const [createCreditFacility, { loading, error, reset }] =
     useCreditFacilityProposalCreateMutation()
 
