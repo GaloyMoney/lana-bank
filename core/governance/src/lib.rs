@@ -8,6 +8,7 @@ pub mod error;
 mod policy;
 mod primitives;
 pub mod public;
+mod publisher;
 
 use es_entity::clock::ClockHandle;
 use tracing::instrument;
@@ -19,6 +20,8 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use domain_config::ExposedDomainConfigsReadOnly;
 use obix::out::{Outbox, OutboxEventMarker};
+
+use publisher::GovernancePublisher;
 
 pub use approval_process::{error as approval_process_error, *};
 pub use committee::{error as committee_error, *};
@@ -39,20 +42,19 @@ pub mod event_schema {
 pub struct Governance<Perms, E>
 where
     Perms: PermissionCheck,
-    E: serde::de::DeserializeOwned + serde::Serialize + Send + Sync + 'static + Unpin,
+    E: OutboxEventMarker<GovernanceEvent>,
 {
     committee_repo: CommitteeRepo,
     policy_repo: PolicyRepo,
-    process_repo: ApprovalProcessRepo,
+    process_repo: ApprovalProcessRepo<E>,
     authz: Perms,
-    outbox: Outbox<E>,
     domain_configs: Option<ExposedDomainConfigsReadOnly>,
 }
 
 impl<Perms, E> Clone for Governance<Perms, E>
 where
     Perms: PermissionCheck,
-    E: serde::de::DeserializeOwned + serde::Serialize + Send + Sync + 'static + Unpin,
+    E: OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -60,7 +62,6 @@ where
             policy_repo: self.policy_repo.clone(),
             process_repo: self.process_repo.clone(),
             authz: self.authz.clone(),
-            outbox: self.outbox.clone(),
             domain_configs: self.domain_configs.clone(),
         }
     }
@@ -82,14 +83,14 @@ where
     ) -> Self {
         let committee_repo = CommitteeRepo::new(pool, clock.clone());
         let policy_repo = PolicyRepo::new(pool, clock.clone());
-        let process_repo = ApprovalProcessRepo::new(pool, clock);
+        let publisher = GovernancePublisher::new(outbox);
+        let process_repo = ApprovalProcessRepo::new(pool, &publisher, clock);
 
         Self {
             committee_repo,
             policy_repo,
             process_repo,
             authz: authz.clone(),
-            outbox: outbox.clone(),
             domain_configs: domain_configs.cloned(),
         }
     }
@@ -368,14 +369,7 @@ where
             )
             .await?;
         let new_process = policy.spawn_process(id.into(), target_ref);
-        let mut process = self.process_repo.create_in_op(db, new_process).await?;
-        let eligible = self.eligible_voters_for_process_in_op(db, &process).await?;
-        if self
-            .maybe_fire_concluded_event_in_op(db, eligible, &mut process)
-            .await?
-        {
-            self.process_repo.update_in_op(db, &mut process).await?;
-        }
+        let process = self.process_repo.create_in_op(db, new_process).await?;
         Ok(process)
     }
 
@@ -409,8 +403,6 @@ where
         let eligible = self.eligible_voters_for_process(&process).await?;
 
         if process.approve(&eligible, member_id).did_execute() {
-            self.maybe_fire_concluded_event_in_op(&mut db, eligible, &mut process)
-                .await?;
             self.process_repo
                 .update_in_op(&mut db, &mut process)
                 .await?;
@@ -457,8 +449,6 @@ where
             HashSet::new()
         };
         if process.deny(&eligible, member_id, reason).did_execute() {
-            self.maybe_fire_concluded_event_in_op(&mut db, eligible, &mut process)
-                .await?;
             self.process_repo
                 .update_in_op(&mut db, &mut process)
                 .await?;
@@ -497,34 +487,6 @@ where
             .await?;
         db.commit().await?;
         Ok(committee)
-    }
-
-    async fn maybe_fire_concluded_event_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        eligible: HashSet<CommitteeMemberId>,
-        process: &mut ApprovalProcess,
-    ) -> Result<bool, GovernanceError> {
-        self.authz
-            .audit()
-            .record_system_entry_in_op(
-                op,
-                crate::primitives::GOVERNANCE,
-                GovernanceObject::approval_process(process.id),
-                GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
-            )
-            .await?;
-
-        if let es_entity::Idempotent::Executed(_) = process.check_concluded(eligible) {
-            let entity = PublicApprovalProcess::from(&*process);
-            self.outbox
-                .publish_all_persisted(op, [GovernanceEvent::ApprovalProcessConcluded { entity }])
-                .await?;
-
-            return Ok(true);
-        }
-
-        Ok(false)
     }
 
     #[record_error_severity]
@@ -749,22 +711,6 @@ where
         let res = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
                 .find_by_id(committee_id)
-                .await?
-                .members()
-        } else {
-            HashSet::new()
-        };
-        Ok(res)
-    }
-
-    async fn eligible_voters_for_process_in_op(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        process: &ApprovalProcess,
-    ) -> Result<HashSet<CommitteeMemberId>, GovernanceError> {
-        let res = if let Some(committee_id) = process.committee_id() {
-            self.committee_repo
-                .find_by_id_in_op(db, committee_id)
                 .await?
                 .members()
         } else {
