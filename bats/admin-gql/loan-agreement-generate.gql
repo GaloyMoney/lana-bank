@@ -1,5 +1,5 @@
-mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
-  loanAgreementGenerate(input: $input) {
+mutation CreditFacilityAgreementGenerate($input: CreditFacilityAgreementGenerateInput!) {
+  creditFacilityAgreementGenerate(input: $input) {
     loanAgreement {
       id
       loanAgreementId
@@ -7,4 +7,4 @@ mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
       createdAt
     }
   }
-} 
+}
