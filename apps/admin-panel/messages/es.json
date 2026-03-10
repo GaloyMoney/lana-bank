@@ -948,8 +948,8 @@
     "collateralizationState": {
       "fullyCollateralized": "Totalmente garantizado",
       "noCollateral": "Sin garantía",
-      "underLiquidationThreshold": "Por debajo del umbral de liquidación",
-      "underMarginCallThreshold": "Por debajo del umbral de llamada de margen",
+      "underLiquidationThreshold": "Bajo umbral de liquidación",
+      "underMarginCallThreshold": "Bajo umbral de margin call",
       "noExposure": "Sin exposición"
     },
     "pendingCollateralizationState": {
@@ -1222,12 +1222,12 @@
       }
     },
     "status": {
-      "pending_collateralization": "Colateralización de Línea de Crédito Pendiente",
+      "pending_collateralization": "Colateralización Pendiente",
       "completed": "Completado"
     },
     "collateralizationState": {
       "fully_collateralized": "Totalmente Garantizado",
-      "under_collateralized": "Insuficientemente Garantizado",
+      "under_collateralized": "Sub-colateralizado",
       "not_yet_collateralized": "Aún no colateralizado"
     },
     "PendingDetails": {

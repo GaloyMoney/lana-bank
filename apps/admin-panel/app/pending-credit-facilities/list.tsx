@@ -104,7 +104,7 @@ const columns = (
   {
     key: "status",
     label: t("table.headers.status"),
-    labelClassName: "w-[25%]",
+    labelClassName: "w-[20%]",
     render: (status) => <PendingCreditFacilityStatusBadge status={status} />,
     filterValues: Object.values(PendingCreditFacilityStatus),
     filterLabel: (status) => (
@@ -127,7 +127,7 @@ const columns = (
   {
     key: "collateralizationState",
     label: t("table.headers.collateralizationState"),
-    labelClassName: "w-[17%]",
+    labelClassName: "w-[20%]",
     render: (state) => <PendingFacilityCollateralizationStateLabel state={state} />,
     filterValues: Object.values(PendingCreditFacilityCollateralizationState),
     filterLabel: (state) => (
