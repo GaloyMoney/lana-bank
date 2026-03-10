@@ -9,6 +9,7 @@ use cala_ledger::{
 };
 
 use super::error::*;
+use crate::primitives::MANUAL_AD_HOC_ACCOUNTING_TYPE;
 
 #[derive(Debug)]
 pub struct EntryParams {
@@ -108,6 +109,7 @@ impl<S: std::fmt::Display> From<ManualTransactionParams<S>> for Params {
             "meta",
             serde_json::json!({
                 "initiated_by": input_params.initiated_by.to_string(),
+                "accounting_type": MANUAL_AD_HOC_ACCOUNTING_TYPE,
             }),
         );
 

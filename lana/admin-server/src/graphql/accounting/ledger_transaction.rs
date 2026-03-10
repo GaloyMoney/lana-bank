@@ -49,6 +49,10 @@ impl LedgerTransaction {
         &self.entity.description
     }
 
+    async fn accounting_type(&self) -> &str {
+        &self.entity.accounting_type
+    }
+
     async fn entity(
         &self,
         ctx: &Context<'_>,

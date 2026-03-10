@@ -2154,6 +2154,7 @@ export const mockLedgerTransaction = (overrides?: Partial<LedgerTransaction>, _r
     relationshipsToOmit.add('LedgerTransaction');
     return {
         __typename: 'LedgerTransaction',
+        accountingType: overrides && overrides.hasOwnProperty('accountingType') ? overrides.accountingType! : faker.lorem.word(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         description: overrides && overrides.hasOwnProperty('description') ? overrides.description! : generateMockValue.description(),
         effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),

@@ -1690,6 +1690,7 @@ type LedgerTransaction {
 	createdAt: Timestamp!
 	effective: Date!
 	description: String
+	accountingType: String!
 	entity: LedgerTransactionEntity
 	initiatedBy: LedgerTransactionInitiator!
 	entries: [JournalEntry!]!
