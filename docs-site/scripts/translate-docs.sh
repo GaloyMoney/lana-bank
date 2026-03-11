@@ -35,25 +35,9 @@ done
 
 ES_WALKTHROUGH_SNAPSHOT=""
 
-# Lingo.dev currently fails this large file with a reference-payload limit, so
-# keep the checked-in Spanish copy and allow that specific failure to pass.
+# No allowed failures — oversized files are excluded in i18n.json instead.
 is_allowed_lingo_failure() {
-  local log_file="$1"
-  local file="$2"
-
-  case "$file" in
-    es/for-platform-engineers/functional-architecture.md)
-      awk -v file="$file" '
-        $0 ~ ("❌ " file " ") { seen=1; next }
-        seen && /Reference payload too large/ { found=1; exit }
-        seen && /❌ / { exit }
-        END { exit found ? 0 : 1 }
-      ' "$log_file"
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+  return 1
 }
 
 cleanup() {
