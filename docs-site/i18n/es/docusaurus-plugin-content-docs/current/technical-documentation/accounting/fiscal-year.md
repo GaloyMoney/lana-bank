@@ -92,11 +92,11 @@ El nuevo año fiscal comienza el día después de la fecha de cierre del año an
 
 ```mermaid
 flowchart LR
-    A[Initialize first fiscal year] --> B[Operate during year]
-    B --> C[Close months 1-12 sequentially]
-    C --> D[Close fiscal year]
-    D --> E[Open next fiscal year]
+    A[Inicializar primer ejercicio fiscal] --> B[Operar durante el año]
+    B --> C[Cerrar meses 1-12 secuencialmente]
+    C --> D[Cerrar ejercicio fiscal]
+    D --> E[Abrir siguiente ejercicio fiscal]
     E --> B
 ```
 
-Este ciclo se repite anualmente. Cada año fiscal proporciona un límite claro para los informes financieros y garantiza que los libros del banco se cierren y transfieran adecuadamente a intervalos regulares.
+Este ciclo se repite anualmente. Cada ejercicio fiscal proporciona un límite claro para la presentación de informes financieros y garantiza que los libros del banco se cierren y trasladen adecuadamente a intervalos regulares.

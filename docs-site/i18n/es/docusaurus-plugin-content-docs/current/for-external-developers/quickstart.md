@@ -42,8 +42,8 @@ curl -X POST \
 
 Utiliza la introspección de GraphQL o navega por las referencias de la API para descubrir las operaciones disponibles:
 
-- [Referencia de la API de Administración](../apis/admin-api/api-reference.mdx) — Operaciones administrativas completas
-- [Referencia de la API de Cliente](../apis/customer-api/api-reference.mdx) — Operaciones de cara al cliente
+- [Referencia de la API de Administración](../apis/admin-api) — Operaciones administrativas completas
+- [Referencia de la API de Cliente](../apis/customer-api) — Operaciones de cara al cliente
 
 ## Próximos Pasos
 

@@ -75,41 +75,41 @@ Un desembolso confirmado crea una obligación principal. Esa obligación luego p
 
 Para los operadores, esto significa que la confirmación del desembolso es el punto de partida del seguimiento de pagos y riesgos a largo plazo, no el final del flujo de trabajo.
 
-## Tutorial del Panel de Administración: Crear y Aprobar un Desembolso
+## Recorrido en Panel de Administración: Crear y aprobar un desembolso
 
-Este flujo continúa desde una línea de crédito ya activa y muestra cómo los operadores crean y aprueban un desembolso.
+Este flujo continúa desde una facilidad de crédito activa y muestra cómo crear y aprobar un desembolso.
 
-**Paso 23.** Desde la página de la línea activa, haz clic en **Crear** y luego en **Desembolso**.
+**Paso 23.** Desde la página de la facilidad activa, haz clic en **Crear** y luego en **Desembolso**.
 
-![Iniciar desembolso](/img/screenshots/current/en/credit-facilities.cy.ts/23_click_initiate_disbursal_button.png)
+![Iniciar desembolso](/img/screenshots/current/es/credit-facilities.cy.ts/23_click_initiate_disbursal_button.png)
 
 **Paso 24.** Ingresa el monto del desembolso.
 
-![Ingresar monto del desembolso](/img/screenshots/current/en/credit-facilities.cy.ts/24_enter_disbursal_amount.png)
+![Ingresar monto de desembolso](/img/screenshots/current/es/credit-facilities.cy.ts/24_enter_disbursal_amount.png)
 
 **Paso 25.** Envía la solicitud de desembolso.
 
-![Enviar desembolso](/img/screenshots/current/en/credit-facilities.cy.ts/25_submit_disbursal_request.png)
+![Enviar desembolso](/img/screenshots/current/es/credit-facilities.cy.ts/25_submit_disbursal_request.png)
 
-**Paso 26.** Confirma que eres redirigido a la página de detalles del desembolso.
+**Paso 26.** Confirma que eres redirigido a la página de detalle del desembolso.
 
-![Página de desembolso](/img/screenshots/current/en/credit-facilities.cy.ts/26_disbursal_page.png)
+![Página de desembolso](/img/screenshots/current/es/credit-facilities.cy.ts/26_disbursal_page.png)
 
 **Paso 27.** Haz clic en **Aprobar** para ejecutar la aprobación de gobernanza.
 
-![Aprobar desembolso](/img/screenshots/current/en/credit-facilities.cy.ts/27_approve.png)
+![Aprobar desembolso](/img/screenshots/current/es/credit-facilities.cy.ts/27_approve.png)
 
 **Paso 28.** Verifica que el estado cambie a **Confirmado**.
 
-![Desembolso confirmado](/img/screenshots/current/en/credit-facilities.cy.ts/28_verify_disbursal_status_confirmed.png)
+![Desembolso confirmado](/img/screenshots/current/es/credit-facilities.cy.ts/28_verify_disbursal_status_confirmed.png)
 
 **Paso 29.** Confirma que el desembolso aparece en la lista de desembolsos.
 
-![Desembolso en lista](/img/screenshots/current/en/credit-facilities.cy.ts/29_disbursal_in_list.png)
+![Desembolso en lista](/img/screenshots/current/es/credit-facilities.cy.ts/29_disbursal_in_list.png)
 
 ## Qué Verificar Después del Paso 29
 
-- El estado del desembolso es `Confirmado`.
-- El desembolso es visible bajo la línea y el cliente esperados.
-- El historial de la línea refleja la actividad de ejecución/liquidación.
-- Las vistas de pago muestran el impacto de la obligación para el nuevo principal.
+- El estado del desembolso es `Confirmed`.
+- El desembolso es visible bajo la facilidad y cliente esperados.
+- El historial de la facilidad refleja la actividad de ejecución/liquidación.
+- Las vistas de repago muestran el impacto de la obligación para el nuevo principal.

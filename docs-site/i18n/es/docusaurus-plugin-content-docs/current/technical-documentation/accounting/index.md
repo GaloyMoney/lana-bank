@@ -139,28 +139,28 @@ Además de los asientos contables automatizados generados por las operaciones co
 
 Las transacciones manuales siguen las mismas reglas de partida doble que las automatizadas y están completamente auditadas.
 
-## Tutorial del Panel de Administración: Configuración de Módulos
+## Recorrido en Panel de Administración: Configuración de Módulos
 
-La configuración de módulos vincula los flujos operacionales (depósitos y crédito) a los códigos padre del plan de cuentas. Estas vinculaciones son críticas porque determinan dónde se registran las transacciones.
+La configuración de módulos mapea flujos operativos (depósitos y crédito) a códigos padre del plan de cuentas. Estos mapeos son críticos porque determinan dónde se contabilizan las transacciones.
 
-**Paso 1.** Abrir configuración de módulos.
+**Paso 1.** Abre la configuración de módulos.
 
-![Configuración de módulos](/img/screenshots/current/en/modules.cy.ts/1_modules_configuration.png)
+![Configuración módulos](/img/screenshots/current/es/modules.cy.ts/1_modules_configuration.png)
 
-**Paso 2.** Configurar las vinculaciones contables de depósitos.
+**Paso 2.** Configura los mapeos contables de depósitos.
 
-![Configuración de depósitos](/img/screenshots/current/en/modules.cy.ts/2_deposit_configuration.png)
+![Configuración depósitos](/img/screenshots/current/es/modules.cy.ts/2_deposit_configuration.png)
 
-**Paso 3.** Configurar las vinculaciones contables de crédito.
+**Paso 3.** Configura los mapeos contables de crédito.
 
-![Configuración de crédito](/img/screenshots/current/en/modules.cy.ts/3_credit_configuration.png)
+![Configuración crédito](/img/screenshots/current/es/modules.cy.ts/3_credit_configuration.png)
 
-## Tutorial del Panel de Administración: Plan de Cuentas
+## Recorrido en Panel de Administración: Plan de Cuentas
 
-**Paso 1.** Abrir el plan de cuentas y verificar la vista jerárquica.
+**Paso 1.** Abre el plan de cuentas y valida la vista jerárquica.
 
-![Vista del plan de cuentas](/img/screenshots/current/en/chart-of-accounts.cy.ts/2_chart_of_account_view.png)
+![Vista plan de cuentas](/img/screenshots/current/es/chart-of-accounts.cy.ts/2_chart_of_account_view.png)
 
-**Paso 2.** Abrir el detalle de una cuenta de mayor para inspeccionar los registros.
+**Paso 2.** Abre el detalle de una cuenta de mayor para revisar movimientos.
 
-![Detalles de cuenta de mayor](/img/screenshots/current/en/chart-of-accounts.cy.ts/3_ledger_account_details.png)
+![Detalle cuenta de mayor](/img/screenshots/current/es/chart-of-accounts.cy.ts/3_ledger_account_details.png)

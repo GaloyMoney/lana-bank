@@ -108,23 +108,24 @@ De manera similar, cuando un cliente realiza un pago en una facilidad de crédit
 - [Operaciones de depósito](operations) - Depósitos y retiros
 - [Libro mayor](ledger) - Descripción general de conjuntos de cuentas y plantillas de transacciones
 
-## Tutorial del panel de administración: Configuración de cuenta de depósito
+## Recorrido en Panel de Administración: Alta de Cuenta de Depósito
 
-Se requieren cuentas de depósito antes de que puedan iniciarse las operaciones de transacciones. En los flujos de incorporación, el operador puede necesitar crear una desde el perfil del cliente cuando aún no existe ninguna.
+Las cuentas de depósito son prerequisito para operar transacciones. En onboarding, el operador puede
+necesitar crearlas desde el perfil del cliente cuando no existen.
 
-**Paso 1.** Detectar cuenta de depósito faltante desde el banner de detalle del cliente.
+**Paso 1.** Detecta ausencia de cuenta en el banner del detalle del cliente.
 
-![Banner sin cuenta de depósito](/img/screenshots/current/en/customers.cy.ts/customer_no_deposit_account_banner.png)
+![Banner sin cuenta de depósito](/img/screenshots/current/es/customers.cy.ts/customer_no_deposit_account_banner.png)
 
-**Paso 2.** Abrir el diálogo de creación de cuenta de depósito.
+**Paso 2.** Abre el diálogo para crear la cuenta.
 
-![Diálogo de creación de cuenta de depósito](/img/screenshots/current/en/customers.cy.ts/customer_create_deposit_account_dialog.png)
+![Diálogo crear cuenta de depósito](/img/screenshots/current/es/customers.cy.ts/customer_create_deposit_account_dialog.png)
 
-**Paso 3.** Confirmar que la creación de la cuenta de depósito se realizó correctamente.
+**Paso 3.** Confirma creación exitosa.
 
-![Cuenta de depósito creada](/img/screenshots/current/en/customers.cy.ts/customer_deposit_account_created.png)
+![Cuenta de depósito creada](/img/screenshots/current/es/customers.cy.ts/customer_deposit_account_created.png)
 
-Verificaciones operativas después de la creación:
-- el estado de la cuenta es `ACTIVE`,
-- la asociación cliente-cuenta es correcta,
-- la cuenta está disponible para iniciar depósitos/retiros.
+Verificaciones operativas posteriores:
+- estado de cuenta en `ACTIVE`,
+- relación cliente-cuenta correcta,
+- cuenta disponible para iniciar depósitos y retiros.

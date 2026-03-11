@@ -109,47 +109,47 @@ Todas las acciones de gobernanza se registran en el log de auditoría, incluyend
 - [Configuración de Comités](committees) - Gestión de comités de aprobación
 - [Políticas de Aprobación](policies) - Configuración de políticas
 
-## Tutorial del Panel de Administración: Gestión de Usuarios y Roles
+## Recorrido en Panel de Administración: Gestión de Usuarios y Roles
 
-Las operaciones de gobernanza dependen de asignaciones correctas de roles de usuario. Lana utiliza control de acceso basado en roles
-donde los roles se asignan a conjuntos de permisos, y los permisos efectivos son la unión de todos los roles asignados.
+Las operaciones de gobernanza dependen de asignaciones correctas de rol. Lana usa RBAC, donde los
+roles agrupan permission sets y los permisos efectivos se componen por unión.
 
-**Paso 1.** Abra la lista de usuarios.
+**Paso 1.** Abre la lista de usuarios.
 
-![Lista de usuarios](/img/screenshots/current/en/user.cy.ts/1_users_list.png)
+![Lista de usuarios](/img/screenshots/current/es/user.cy.ts/1_users_list.png)
 
-**Paso 2.** Haga clic en **Crear**.
+**Paso 2.** Haz clic en **Crear**.
 
-![Botón crear usuario](/img/screenshots/current/en/user.cy.ts/2_click_create_button.png)
+![Botón crear usuario](/img/screenshots/current/es/user.cy.ts/2_click_create_button.png)
 
-**Paso 3.** Ingrese el correo electrónico del usuario.
+**Paso 3.** Ingresa correo del usuario.
 
-![Ingresar correo electrónico del usuario](/img/screenshots/current/en/user.cy.ts/3_enter_email.png)
+![Ingresar correo usuario](/img/screenshots/current/es/user.cy.ts/3_enter_email.png)
 
-**Paso 4.** Seleccionar rol inicial (ejemplo: asignación de rol de administrador).
+**Paso 4.** Selecciona rol inicial (ejemplo: admin).
 
-![Asignar rol de administrador](/img/screenshots/current/en/user.cy.ts/4_assign_admin_role.png)
+![Asignar rol admin](/img/screenshots/current/es/user.cy.ts/4_assign_admin_role.png)
 
-**Paso 5.** Enviar creación de usuario.
+**Paso 5.** Envía creación de usuario.
 
-![Enviar creación de usuario](/img/screenshots/current/en/user.cy.ts/5_submit_creation.png)
+![Enviar creación usuario](/img/screenshots/current/es/user.cy.ts/5_submit_creation.png)
 
-**Paso 6.** Verificar el éxito de la creación.
+**Paso 6.** Verifica creación exitosa.
 
-![Verificar usuario creado](/img/screenshots/current/en/user.cy.ts/6_verify_creation.png)
+![Verificar usuario creado](/img/screenshots/current/es/user.cy.ts/6_verify_creation.png)
 
-**Paso 7.** Confirmar que el usuario aparece en la lista.
+**Paso 7.** Confirma que aparece en la lista.
 
-![Usuario en la lista](/img/screenshots/current/en/user.cy.ts/7_view_in_list.png)
+![Usuario en lista](/img/screenshots/current/es/user.cy.ts/7_view_in_list.png)
 
-**Paso 8.** Abrir gestión de roles para el usuario.
+**Paso 8.** Abre gestión de roles del usuario.
 
-![Gestionar roles de usuario](/img/screenshots/current/en/user.cy.ts/8_manage_roles.png)
+![Gestionar roles](/img/screenshots/current/es/user.cy.ts/8_manage_roles.png)
 
-**Paso 9.** Actualizar conjunto de roles/permisos.
+**Paso 9.** Actualiza el set de roles/permisos.
 
-![Actualizar roles de usuario](/img/screenshots/current/en/user.cy.ts/9_update_roles.png)
+![Actualizar roles](/img/screenshots/current/es/user.cy.ts/9_update_roles.png)
 
-**Paso 10.** Verificar el éxito de la actualización de roles.
+**Paso 10.** Verifica éxito de actualización.
 
-![Verificar actualización de roles](/img/screenshots/current/en/user.cy.ts/10_verify_update.png)
+![Verificar actualización de roles](/img/screenshots/current/es/user.cy.ts/10_verify_update.png)

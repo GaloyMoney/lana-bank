@@ -176,6 +176,6 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 
 ## Referencias de la API
 
-- [Referencia de la API de Administración](../apis/admin-api/api-reference.mdx) — Operaciones y tipos administrativos completos
-- [Referencia de la API de Cliente](../apis/customer-api/api-reference.mdx) — Operaciones orientadas al cliente
+- [Referencia de la API de Administración](../apis/admin-api) — Operaciones y tipos administrativos completos
+- [Referencia de la API de Cliente](../apis/customer-api) — Operaciones orientadas al cliente
 - [Eventos de Dominio](../apis/events/events.md) — Catálogo de eventos

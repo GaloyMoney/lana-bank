@@ -7,14 +7,6 @@
     "message": "Primeros Pasos",
     "description": "The label of footer link with label=Getting Started linking to /getting-started"
   },
-  "link.item.label.For Developers": {
-    "message": "Para Desarrolladores",
-    "description": "The label of footer link with label=For Developers linking to /for-developers"
-  },
-  "link.item.label.For Operators": {
-    "message": "Para Operadores",
-    "description": "The label of footer link with label=For Operators linking to /for-operators"
-  },
   "link.item.label.For Platform Engineers": {
     "message": "Para Ingenieros de Plataforma",
     "description": "The label of footer link with label=For Platform Engineers linking to /for-platform-engineers"
@@ -38,5 +30,17 @@
   "link.item.label.Domain Events": {
     "message": "Eventos de Dominio",
     "description": "The label of footer link with label=Domain Events linking to /apis/events"
+  },
+  "link.item.label.Technical Documentation": {
+    "message": "Documentación Técnica",
+    "description": "The label of footer link with label=Technical Documentation linking to /technical-documentation"
+  },
+  "link.item.label.For Internal Developers": {
+    "message": "Para Desarrolladores Internos",
+    "description": "The label of footer link with label=For Internal Developers linking to /for-internal-developers"
+  },
+  "link.item.label.For External Developers": {
+    "message": "Para Desarrolladores Externos",
+    "description": "The label of footer link with label=For External Developers linking to /for-external-developers"
   }
 }

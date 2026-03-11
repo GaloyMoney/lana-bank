@@ -14,7 +14,7 @@ Bienvenido a la documentación técnica de Lana. Esta sección cubre procesos co
 
 El panel de administración es el punto de entrada operativo para los flujos de trabajo diarios. Los operadores deben utilizarlo para confirmar rápidamente la postura de la cartera antes de pasar a acciones detalladas (clientes, depósitos, crédito, gobernanza, contabilidad e informes).
 
-![Descripción general del panel de administración](/img/screenshots/current/en/dashboard.cy.ts/dashboard.png)
+![Descripción general del panel de administración](/img/screenshots/current/es/dashboard.cy.ts/dashboard.png)
 
 Los tutoriales con capturas de pantalla en esta documentación ahora cubren:
 - Panel de control

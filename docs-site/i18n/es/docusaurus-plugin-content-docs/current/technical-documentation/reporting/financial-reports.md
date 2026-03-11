@@ -105,40 +105,40 @@ El historial de transacciones de cuentas contables individuales puede exportarse
 | Description | Descripción de la transacción |
 | Entry Type | Tipo de asiento contable |
 
-## Recorrido del panel de administración: Balance de comprobación
+## Recorrido en Panel de Administración: Balanza de Comprobación
 
-**Paso 1.** Abre el informe de balance de comprobación.
+**Paso 1.** Abre el reporte de balanza de comprobación.
 
-![Informe de balance de comprobación](/img/screenshots/current/en/trial-balance.cy.ts/trial-balance.png)
+![Balanza de comprobación](/img/screenshots/current/es/trial-balance.cy.ts/trial-balance.png)
 
-**Paso 2.** Cambia la vista de moneda (ejemplo: BTC).
+**Paso 2.** Cambia la moneda de visualización (ejemplo: BTC).
 
-![Balance de comprobación en moneda BTC](/img/screenshots/current/en/trial-balance.cy.ts/trial-balance-btc-currency.png)
+![Balanza BTC](/img/screenshots/current/es/trial-balance.cy.ts/trial-balance-btc-currency.png)
 
-## Recorrido del panel de administración: Balance general
+## Recorrido en Panel de Administración: Balance General
 
-**Paso 1.** Abre el informe de balance general.
+**Paso 1.** Abre el reporte de balance general.
 
-![Informe de balance general](/img/screenshots/current/en/balance-sheet.cy.ts/balance-sheet.png)
+![Balance general](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet.png)
 
-**Paso 2.** Cambia la moneda (USD/BTC).
+**Paso 2.** Cambia moneda (USD/BTC).
 
-![Balance general en moneda BTC](/img/screenshots/current/en/balance-sheet.cy.ts/balance-sheet-btc-currency.png)
+![Balance general BTC](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet-btc-currency.png)
 
-**Paso 3.** Filtra por capa de saldo (ejemplo: pendiente).
+**Paso 3.** Filtra por capa de balance (ejemplo: pendiente).
 
-![Capa pendiente del balance general](/img/screenshots/current/en/balance-sheet.cy.ts/balance-sheet-pending.png)
+![Balance general capa pendiente](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet-pending.png)
 
-## Recorrido del panel de administración: Pérdidas y ganancias
+## Recorrido en Panel de Administración: Estado de Resultados
 
-**Paso 1.** Abrir el informe de pérdidas y ganancias.
+**Paso 1.** Abre el reporte de estado de resultados.
 
-![Informe de pérdidas y ganancias](/img/screenshots/current/en/profit-and-loss.cy.ts/profit-and-loss.png)
+![Estado de resultados](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss.png)
 
-**Paso 2.** Cambiar la vista de moneda.
+**Paso 2.** Cambia moneda de visualización.
 
-![Pérdidas y ganancias moneda BTC](/img/screenshots/current/en/profit-and-loss.cy.ts/profit-and-loss-btc-currency.png)
+![Estado de resultados BTC](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss-btc-currency.png)
 
-**Paso 3.** Filtrar por capa (ejemplo: pendiente).
+**Paso 3.** Filtra por capa (ejemplo: pendiente).
 
-![Pérdidas y ganancias capa pendiente](/img/screenshots/current/en/profit-and-loss.cy.ts/profit-and-loss-pending.png)
+![Estado de resultados capa pendiente](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss-pending.png)

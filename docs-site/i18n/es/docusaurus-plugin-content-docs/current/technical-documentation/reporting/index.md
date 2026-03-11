@@ -102,17 +102,17 @@ Después de una ejecución exitosa del informe:
 
 - [Informes Financieros](financial-reports) - Detalles de balance de comprobación, balance general y P&L
 
-## Guía del Panel de Administración: Informes Regulatorios
+## Recorrido en Panel de Administración: Reportes Regulatorios
 
-Los informes regulatorios se generan de forma asíncrona. Después de iniciar una ejecución, los operadores deben monitorear
-las transiciones de estado (`queued` -> `running` -> `success`/`failed`) y solo generar enlaces de descarga
-después de la finalización exitosa.
+Los reportes regulatorios se generan de forma asíncrona. Después de iniciar una corrida, el
+operador debe monitorear transiciones de estado (`queued` -> `running` -> `success`/`failed`) y
+solo generar enlaces de descarga cuando el resultado sea exitoso.
 
-**Paso 1.** Abre informes regulatorios y haz clic en **Generar Informe**.
+**Paso 1.** Abre reportes regulatorios y haz clic en **Generar Informe**.
 
-![Botón generar informe](/img/screenshots/current/en/reporting.cy.ts/1_generate_report_button.png)
+![Botón generar informe](/img/screenshots/current/es/reporting.cy.ts/1_generate_report_button.png)
 
-Lista de verificación:
-- la ejecución del informe aparece en la lista,
-- las actualizaciones de estado se reflejan en la interfaz,
-- los enlaces de descarga se generan solo cuando el estado de ejecución es exitoso.
+Checklist de verificación:
+- la corrida aparece en el listado,
+- el estado se actualiza en UI,
+- los enlaces de descarga se generan solo cuando la corrida finaliza con éxito.

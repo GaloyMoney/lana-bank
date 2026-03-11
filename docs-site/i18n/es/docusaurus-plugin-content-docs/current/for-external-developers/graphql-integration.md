@@ -147,5 +147,5 @@ Content-Type: application/json
 
 ## Referencias de la API
 
-- [Referencia de la API de Administración](../apis/admin-api/api-reference.mdx) — Operaciones y tipos de administración completos
-- [Referencia de la API de Cliente](../apis/customer-api/api-reference.mdx) — Operaciones de cliente completas
+- [Referencia de la API de Administración](../apis/admin-api) — Operaciones y tipos de administración completos
+- [Referencia de la API de Cliente](../apis/customer-api) — Operaciones de cliente completas

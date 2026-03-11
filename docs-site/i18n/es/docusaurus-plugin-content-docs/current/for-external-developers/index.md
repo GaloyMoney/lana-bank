@@ -20,6 +20,6 @@ Bienvenido a la documentación para desarrolladores externos de Lana. Esta secci
 
 ## Referencia de la API
 
-- [Referencia de la API de administración](../apis/admin-api/api-reference.mdx) — Operaciones y tipos administrativos completos
-- [Referencia de la API de cliente](../apis/customer-api/api-reference.mdx) — Operaciones orientadas al cliente
+- [Referencia de la API de administración](../apis/admin-api) — Operaciones y tipos administrativos completos
+- [Referencia de la API de cliente](../apis/customer-api) — Operaciones orientadas al cliente
 - [Eventos de dominio](../apis/events/events.md) — Catálogo completo de eventos

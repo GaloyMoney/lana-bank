@@ -109,80 +109,80 @@ Desde una perspectiva operativa, las plantillas de términos son la configuraci�
 
 La calidad de las plantillas impacta directamente el comportamiento de aprobación, los requisitos de activación, los patrones de devengo de intereses y el monitoreo de colateral subsiguiente. Umbrales o intervalos incorrectos en las plantillas de términos producen un comportamiento de ciclo de vida incorrecto para cada línea de crédito creada a partir de ellas.
 
-## Tutorial del Panel de Administración: Crear y Actualizar Plantilla de Términos
+## Recorrido en Panel de Administración: Crear y Actualizar Plantilla de Términos
 
 ### A) Crear plantilla
 
-**Paso 1.** Abrir la página de plantillas de términos.
+**Paso 1.** Abre la página de plantillas de términos.
 
-![Visitar la página de plantillas de términos](/img/screenshots/current/en/terms-templates.cy.ts/1_visit_terms_templates_page.png)
+![Visitar plantillas de términos](/img/screenshots/current/es/terms-templates.cy.ts/1_visit_terms_templates_page.png)
 
-**Paso 2.** Hacer clic en **Crear**.
+**Paso 2.** Haz clic en **Crear**.
 
-![Hacer clic en crear plantilla](/img/screenshots/current/en/terms-templates.cy.ts/2_click_create_button.png)
+![Clic crear plantilla](/img/screenshots/current/es/terms-templates.cy.ts/2_click_create_button.png)
 
-**Paso 3.** Introducir un nombre de plantilla único.
+**Paso 3.** Ingresa nombre único.
 
-![Introducir nombre de plantilla](/img/screenshots/current/en/terms-templates.cy.ts/3_enter_template_name.png)
+![Ingresar nombre plantilla](/img/screenshots/current/es/terms-templates.cy.ts/3_enter_template_name.png)
 
-**Paso 4.** Introducir la tasa anual.
+**Paso 4.** Ingresa tasa anual.
 
-![Introducir tasa anual](/img/screenshots/current/en/terms-templates.cy.ts/4_enter_annual_rate.png)
+![Ingresar tasa anual](/img/screenshots/current/es/terms-templates.cy.ts/4_enter_annual_rate.png)
 
-**Paso 5.** Introducir las unidades de duración.
+**Paso 5.** Ingresa unidades de duración.
 
-![Introducir unidades de duración](/img/screenshots/current/en/terms-templates.cy.ts/5_enter_duration_units.png)
+![Ingresar duración](/img/screenshots/current/es/terms-templates.cy.ts/5_enter_duration_units.png)
 
-**Paso 6.** Introducir `initial_cvl`.
+**Paso 6.** Ingresa `cvl_inicial`.
 
-![Introducir CVL inicial](/img/screenshots/current/en/terms-templates.cy.ts/6_enter_initial_cvl.png)
+![Ingresar cvl inicial](/img/screenshots/current/es/terms-templates.cy.ts/6_enter_initial_cvl.png)
 
-**Paso 7.** Introducir `margin_call_cvl`.
+**Paso 7.** Ingresa `cvl_llamada_margen`.
 
-![Introducir CVL de llamada de margen](/img/screenshots/current/en/terms-templates.cy.ts/7_enter_margin_call_cvl.png)
+![Ingresar cvl llamada margen](/img/screenshots/current/es/terms-templates.cy.ts/7_enter_margin_call_cvl.png)
 
-**Paso 8.** Introducir `liquidation_cvl`.
+**Paso 8.** Ingresa `cvl_liquidación`.
 
-![Introducir CVL de liquidación](/img/screenshots/current/en/terms-templates.cy.ts/8_enter_liquidation_cvl.png)
+![Ingresar cvl liquidación](/img/screenshots/current/es/terms-templates.cy.ts/8_enter_liquidation_cvl.png)
 
-**Paso 9.** Introducir la tasa de comisión única.
+**Paso 9.** Ingresa tasa de comisión única.
 
-![Introducir tasa de comisión](/img/screenshots/current/en/terms-templates.cy.ts/9_enter_fee_rate.png)
+![Ingresar tasa comisión](/img/screenshots/current/es/terms-templates.cy.ts/9_enter_fee_rate.png)
 
-**Paso 10.** Seleccionar la política de desembolso.
+**Paso 10.** Selecciona política de desembolso.
 
-![Seleccionar política de desembolso](/img/screenshots/current/en/terms-templates.cy.ts/10_select_disbursal_policy.png)
+![Seleccionar política desembolso](/img/screenshots/current/es/terms-templates.cy.ts/10_select_disbursal_policy.png)
 
-**Paso 11.** Enviar la plantilla.
+**Paso 11.** Envía plantilla.
 
-![Enviar plantilla de términos](/img/screenshots/current/en/terms-templates.cy.ts/11_submit_terms_template.png)
+![Enviar plantilla términos](/img/screenshots/current/es/terms-templates.cy.ts/11_submit_terms_template.png)
 
-**Paso 12.** Verificar el detalle de la plantilla y la URL.
+**Paso 12.** Verifica detalle y URL.
 
-![Verificar la creación de la plantilla de términos](/img/screenshots/current/en/terms-templates.cy.ts/12_verify_terms_template_creation.png)
+![Verificar creación plantilla](/img/screenshots/current/es/terms-templates.cy.ts/12_verify_terms_template_creation.png)
 
-**Paso 13.** Verificar que la plantilla esté listada.
+**Paso 13.** Verifica presencia en lista.
 
-![Plantilla en la lista](/img/screenshots/current/en/terms-templates.cy.ts/13_terms_template_in_list.png)
+![Plantilla en lista](/img/screenshots/current/es/terms-templates.cy.ts/13_terms_template_in_list.png)
 
 ### B) Actualizar plantilla
 
-**Paso 14.** Abrir los detalles de la plantilla.
+**Paso 14.** Abre detalle de plantilla.
 
-![Detalles de la plantilla](/img/screenshots/current/en/terms-templates.cy.ts/14_terms_template_details.png)
+![Detalle plantilla](/img/screenshots/current/es/terms-templates.cy.ts/14_terms_template_details.png)
 
-**Paso 15.** Hacer clic en **Actualizar**.
+**Paso 15.** Haz clic en **Actualizar**.
 
-![Hacer clic en actualizar plantilla](/img/screenshots/current/en/terms-templates.cy.ts/15_click_update_button.png)
+![Clic actualizar plantilla](/img/screenshots/current/es/terms-templates.cy.ts/15_click_update_button.png)
 
-**Paso 16.** Modificar el/los campo(s) seleccionado(s) (ejemplo: tasa anual).
+**Paso 16.** Modifica campo(s) necesarios (ejemplo: tasa anual).
 
-![Actualizar tasa anual](/img/screenshots/current/en/terms-templates.cy.ts/16_update_annual_rate.png)
+![Actualizar tasa anual](/img/screenshots/current/es/terms-templates.cy.ts/16_update_annual_rate.png)
 
-**Paso 17.** Enviar los cambios.
+**Paso 17.** Envía cambios.
 
-![Enviar actualización de la plantilla](/img/screenshots/current/en/terms-templates.cy.ts/17_submit_update.png)
+![Enviar actualización plantilla](/img/screenshots/current/es/terms-templates.cy.ts/17_submit_update.png)
 
-**Paso 18.** Verificar el mensaje de éxito de la actualización.
+**Paso 18.** Verifica mensaje de éxito.
 
-![Actualización de plantilla exitosa](/img/screenshots/current/en/terms-templates.cy.ts/18_update_success.png)
+![Éxito actualización plantilla](/img/screenshots/current/es/terms-templates.cy.ts/18_update_success.png)

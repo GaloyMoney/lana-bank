@@ -96,58 +96,58 @@ Puedes asignar diferentes comités a diferentes políticas. Por ejemplo:
 
 Esto le da al banco flexibilidad para dirigir diferentes tipos de operaciones a los tomadores de decisiones apropiados.
 
-## Recorrido del Panel de Administración: Asignar Comité y Resolver Acciones
+## Recorrido en Panel de Administración: Asignar Comité y Resolver Acciones
 
-### 1) Asignar comité a la política
+### 1) Asignar comité a política
 
 **Paso 12.** Abre la página de políticas.
 
-![Visitar página de políticas](/img/screenshots/current/en/governance.cy.ts/12_step-visit-policies-page.png)
+![Visitar página de políticas](/img/screenshots/current/es/governance.cy.ts/12_step-visit-policies-page.png)
 
 **Paso 13.** Selecciona una política.
 
-![Seleccionar política](/img/screenshots/current/en/governance.cy.ts/13_step-select-policy.png)
+![Seleccionar política](/img/screenshots/current/es/governance.cy.ts/13_step-select-policy.png)
 
-**Paso 14.** Asigna el comité y el umbral.
+**Paso 14.** Asigna comité y umbral.
 
-![Asignar comité a política](/img/screenshots/current/en/governance.cy.ts/14_step-assign-committee-to-policy.png)
+![Asignar comité a política](/img/screenshots/current/es/governance.cy.ts/14_step-assign-committee-to-policy.png)
 
-**Paso 15.** Verificar el éxito de la asignación.
+**Paso 15.** Verifica éxito de asignación.
 
-![Verificar comité asignado](/img/screenshots/current/en/governance.cy.ts/15_step-verify-committee-assigned.png)
+![Verificar comité asignado](/img/screenshots/current/es/governance.cy.ts/15_step-verify-committee-assigned.png)
 
 ### 2) Revisar acciones pendientes
 
-**Paso 16.** Abrir cola de acciones.
+**Paso 16.** Abre la cola de acciones.
 
-![Página de acciones](/img/screenshots/current/en/governance.cy.ts/16_step-view-actions-page.png)
+![Página de acciones](/img/screenshots/current/es/governance.cy.ts/16_step-view-actions-page.png)
 
-**Paso 17.** Confirmar que aparece la solicitud pendiente.
+**Paso 17.** Confirma que la solicitud pendiente aparece.
 
-![Retiro pendiente visible](/img/screenshots/current/en/governance.cy.ts/17_step-verify-pending-withdrawal.png)
+![Retiro pendiente visible](/img/screenshots/current/es/governance.cy.ts/17_step-verify-pending-withdrawal.png)
 
-### 3) Aprobar o denegar proceso
+### 3) Aprobar o rechazar proceso
 
-**Paso 18.** Abrir detalles de la solicitud para tomar una decisión.
+**Paso 18.** Abre el detalle de la solicitud.
 
-![Detalles del retiro para aprobación](/img/screenshots/current/en/governance.cy.ts/18_step-visit-withdrawal-details.png)
+![Detalle retiro para aprobación](/img/screenshots/current/es/governance.cy.ts/18_step-visit-withdrawal-details.png)
 
-**Paso 19.** Hacer clic en **Aprobar**.
+**Paso 19.** Haz clic en **Aprobar**.
 
-![Hacer clic en aprobar](/img/screenshots/current/en/governance.cy.ts/19_step-click-approve-button.png)
+![Clic en aprobar](/img/screenshots/current/es/governance.cy.ts/19_step-click-approve-button.png)
 
-**Paso 20.** Verificar el éxito de la aprobación y la transición de estado.
+**Paso 20.** Verifica éxito y transición de estado.
 
-![Aprobación exitosa](/img/screenshots/current/en/governance.cy.ts/20_step-verify-approval-success.png)
+![Éxito de aprobación](/img/screenshots/current/es/governance.cy.ts/20_step-verify-approval-success.png)
 
-**Paso 21.** Abrir solicitud para flujo de denegación.
+**Paso 21.** Abre solicitud para flujo de rechazo.
 
-![Visitar retiro para denegación](/img/screenshots/current/en/governance.cy.ts/21_step-visit-withdrawal-for-denial.png)
+![Visitar retiro para rechazo](/img/screenshots/current/es/governance.cy.ts/21_step-visit-withdrawal-for-denial.png)
 
-**Paso 22.** Hacer clic en **Denegar** y proporcionar motivo.
+**Paso 22.** Haz clic en **Rechazar** e ingresa motivo.
 
-![Hacer clic en denegar](/img/screenshots/current/en/governance.cy.ts/22_step-click-deny-button.png)
+![Clic en rechazar](/img/screenshots/current/es/governance.cy.ts/22_step-click-deny-button.png)
 
-**Paso 23.** Verificar el éxito de la denegación y el estado terminal.
+**Paso 23.** Verifica éxito del rechazo y estado terminal.
 
-![Denegación exitosa](/img/screenshots/current/en/governance.cy.ts/23_step-verify-denial-success.png)
+![Éxito de rechazo](/img/screenshots/current/es/governance.cy.ts/23_step-verify-denial-success.png)

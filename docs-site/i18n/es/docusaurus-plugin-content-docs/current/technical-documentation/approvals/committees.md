@@ -62,52 +62,52 @@ La verificación de aprobación funciona de la siguiente manera:
 - **El umbral no debe exceder el número de miembros**: Al asignar un comité a una política, el umbral se valida contra el número actual de miembros. Un umbral de 3 es rechazado si el comité tiene solo 2 miembros.
 - **Tamaño del comité y disponibilidad**: En la práctica, los comités deben tener más miembros que el umbral requerido para tener en cuenta la no disponibilidad de los miembros. Un umbral de 2 con exactamente 2 miembros significa que ambos deben aprobar; un umbral de 2 con 4 miembros proporciona redundancia.
 
-## Tutorial del Panel de Administración: Crear Comité y Agregar Miembros
+## Recorrido en Panel de Administración: Crear Comité y Agregar Miembros
 
 ### 1) Crear comité
 
-**Paso 1.** Visitar la página de comités.
+**Paso 1.** Visita la página de comités.
 
-![Visitar la página de comités](/img/screenshots/current/en/governance.cy.ts/1_step-visit-committees.png)
+![Visitar comités](/img/screenshots/current/es/governance.cy.ts/1_step-visit-committees.png)
 
-**Paso 2.** Hacer clic en **Crear Comité**.
+**Paso 2.** Haz clic en **Crear Comité**.
 
-![Hacer clic en crear comité](/img/screenshots/current/en/governance.cy.ts/2_step-click-create-committee-button.png)
+![Crear comité](/img/screenshots/current/es/governance.cy.ts/2_step-click-create-committee-button.png)
 
-**Paso 3.** Ingresar el nombre del comité.
+**Paso 3.** Completa nombre del comité.
 
-![Completar nombre del comité](/img/screenshots/current/en/governance.cy.ts/3_step-fill-committee-name.png)
+![Completar nombre comité](/img/screenshots/current/es/governance.cy.ts/3_step-fill-committee-name.png)
 
-**Paso 4.** Enviar la creación del comité.
+**Paso 4.** Envía creación.
 
-![Enviar creación del comité](/img/screenshots/current/en/governance.cy.ts/4_step-submit-committee-creation.png)
+![Enviar creación comité](/img/screenshots/current/es/governance.cy.ts/4_step-submit-committee-creation.png)
 
-**Paso 5.** Verificar el éxito.
+**Paso 5.** Verifica mensaje de éxito.
 
-![Comité creado exitosamente](/img/screenshots/current/en/governance.cy.ts/5_step-committee-created-successfully.png)
+![Comité creado exitosamente](/img/screenshots/current/es/governance.cy.ts/5_step-committee-created-successfully.png)
 
-**Paso 6.** Confirmar que el comité aparece en la lista.
+**Paso 6.** Verifica presencia en lista.
 
-![Lista de comités](/img/screenshots/current/en/governance.cy.ts/6_step-view-committees-list.png)
+![Lista de comités](/img/screenshots/current/es/governance.cy.ts/6_step-view-committees-list.png)
 
 ### 2) Agregar miembro
 
-**Paso 7.** Abrir los detalles del comité.
+**Paso 7.** Abre detalle del comité.
 
-![Detalles del comité](/img/screenshots/current/en/governance.cy.ts/7_step-visit-committee-details.png)
+![Detalle del comité](/img/screenshots/current/es/governance.cy.ts/7_step-visit-committee-details.png)
 
-**Paso 8.** Hacer clic en **Agregar Miembro**.
+**Paso 8.** Haz clic en **Agregar Miembro**.
 
-![Botón agregar miembro](/img/screenshots/current/en/governance.cy.ts/8_step-click-add-member-button.png)
+![Botón agregar miembro](/img/screenshots/current/es/governance.cy.ts/8_step-click-add-member-button.png)
 
-**Paso 9.** Seleccionar la asignación de rol/miembro.
+**Paso 9.** Selecciona rol/miembro.
 
-![Seleccionar rol de administrador](/img/screenshots/current/en/governance.cy.ts/9_step-select-admin-role.png)
+![Seleccionar rol admin](/img/screenshots/current/es/governance.cy.ts/9_step-select-admin-role.png)
 
-**Paso 10.** Enviar la adición del miembro.
+**Paso 10.** Envía alta de miembro.
 
-![Enviar agregar miembro](/img/screenshots/current/en/governance.cy.ts/10_step-submit-add-member.png)
+![Enviar agregar miembro](/img/screenshots/current/es/governance.cy.ts/10_step-submit-add-member.png)
 
-**Paso 11.** Verificar que el miembro se haya agregado exitosamente.
+**Paso 11.** Verifica éxito de alta.
 
-![Verificar miembro agregado](/img/screenshots/current/en/governance.cy.ts/11_step-verify-member-added.png)
+![Verificar miembro agregado](/img/screenshots/current/es/governance.cy.ts/11_step-verify-member-added.png)

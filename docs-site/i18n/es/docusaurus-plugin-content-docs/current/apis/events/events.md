@@ -1,21 +1,21 @@
 ---
 sidebar_position: 2
 title: Eventos de Dominio
-description: Eventos de dominio públicos publicados por Lana Bank
+description: Eventos de dominio publicos publicados por Lana Bank
 slug: /apis/events
 ---
 
 # Eventos de Dominio
 
-Lana Bank publica eventos de dominio mediante el patrón transactional outbox. Estos eventos pueden ser consumidos por sistemas externos para integración, análisis y fines de auditoría.
+Lana Bank publica eventos de dominio a traves del patron de outbox transaccional. Estos eventos pueden ser consumidos por sistemas externos para integracion, analitica y auditoria.
 
-Todos los eventos se serializan como JSON e incluyen metadatos para rastreo y ordenamiento.
+Todos los eventos se serializan como JSON e incluyen metadatos para trazabilidad y ordenamiento.
 
 ---
 
 ## Estructura del Evento
 
-Cada evento se envuelve en un sobre con la siguiente estructura:
+Cada evento esta envuelto en un sobre con la siguiente estructura:
 
 ```json
 {
@@ -29,158 +29,158 @@ Cada evento se envuelve en un sobre con la siguiente estructura:
 
 ---
 
-## Eventos de Acceso
+## Access Events
 
-Eventos relacionados con la gestión de usuarios y roles.
+Eventos relacionados con la gestion de usuarios y roles.
 
-| Evento | Descripción | Campos del Payload |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `UserCreated` | Se creó un nuevo usuario | `entity.email`, `entity.id`, `entity.role_id` |
-| `RoleCreated` | Se creó un nuevo rol | `entity.id`, `entity.name` |
+| `UserCreated` | Se creo un nuevo usuario | `entity.email`, `entity.id`, `entity.role_id` |
+| `RoleCreated` | Se creo un nuevo rol | `entity.id`, `entity.name` |
 
 ---
 
-## Eventos de Crédito
+## Credit Events
 
-Eventos relacionados con el ciclo de vida y operaciones de las líneas de crédito.
+Eventos relacionados con el ciclo de vida y operaciones de facilidades de credito.
 
-| Evento | Descripción | Campos del Payload |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `FacilityProposalCreated` | Se creó una propuesta de línea de crédito | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
-| `FacilityProposalConcluded` | Se concluyó una propuesta de línea de crédito | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
-| `PendingCreditFacilityCollateralizationChanged` | Cambió el estado de colateralización de la línea pendiente | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
-| `PendingCreditFacilityCompleted` | Se completó una línea de crédito pendiente | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
-| `FacilityActivated` | Se activó una línea de crédito | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
-| `FacilityCompleted` | Una línea de crédito fue completamente reembolsada y cerrada | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
-| `FacilityCollateralizationChanged` | Cambió el estado de colateralización de la línea activa | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
-| `DisbursalSettled` | Se liquidó un desembolso | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
-| `DisbursalApprovalConcluded` | Se concluyó un proceso de aprobación de desembolso | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
-| `AccrualPosted` | Se registró el devengo de intereses | `entity.credit_facility_id`, `entity.due_at`, `entity.id`, `entity.period`, `entity.posting` |
-| `FacilityMatured` | No hay descripción disponible | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
-| `PartialLiquidationInitiated` | Se inició una liquidación parcial | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
+| `FacilityProposalCreated` | Se creo una propuesta de facilidad de credito | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `FacilityProposalConcluded` | FacilityProposalConcluded | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `PendingCreditFacilityCollateralizationChanged` | Cambio el estado de colateralizacion para facilidad pendiente | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `PendingCreditFacilityCompleted` | PendingCreditFacilityCompleted | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `FacilityActivated` | Se activo una facilidad de credito | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
+| `FacilityCompleted` | Una facilidad de credito fue totalmente pagada y cerrada | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
+| `FacilityCollateralizationChanged` | Cambio el estado de colateralizacion para facilidad activa | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
+| `DisbursalSettled` | Se liquido un desembolso | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
+| `DisbursalApprovalConcluded` | DisbursalApprovalConcluded | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
+| `AccrualPosted` | Se registro el devengamiento de intereses | `entity.credit_facility_id`, `entity.due_at`, `entity.id`, `entity.period`, `entity.posting` |
+| `FacilityMatured` | No description available | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
+| `PartialLiquidationInitiated` | Se inicio una liquidacion parcial | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 
 ---
 
-## Eventos de CreditCollateral
+## CreditCollateral Events
 
-Eventos relacionados con la gestión y liquidación de garantías de líneas de crédito.
+CoreCreditCollateralEvent module_description
 
-| Evento | Descripción | Campos de Datos |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `CollateralUpdated` | Se actualizó el monto de la garantía | `entity.adjustment`, `entity.amount`, `entity.id`, `entity.secured_loan_id` |
-| `LiquidationCollateralSentOut` | Se envió la garantía para liquidación | `amount`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at`, `secured_loan_id` |
-| `LiquidationProceedsReceived` | Se recibieron los fondos de la liquidación | `amount`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at`, `secured_loan_id` |
-| `LiquidationCompleted` | Se completó la liquidación | `liquidation_id`, `secured_loan_id` |
+| `CollateralUpdated` | CollateralUpdated | `entity.adjustment`, `entity.amount`, `entity.id`, `entity.secured_loan_id` |
+| `LiquidationCollateralSentOut` | LiquidationCollateralSentOut | `amount`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at`, `secured_loan_id` |
+| `LiquidationProceedsReceived` | LiquidationProceedsReceived | `amount`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at`, `secured_loan_id` |
+| `LiquidationCompleted` | LiquidationCompleted | `liquidation_id`, `secured_loan_id` |
 
 ---
 
-## Eventos de CreditCollection
+## CreditCollection Events
 
-Eventos relacionados con obligaciones de líneas de crédito y cobro de pagos.
+CoreCreditCollectionEvent module_description
 
-| Evento | Descripción | Campos de Datos |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `PaymentCreated` | Se creó un pago | `entity.amount`, `entity.beneficiary_id`, `entity.effective`, `entity.id`, `entity.recorded_at` |
-| `PaymentAllocationCreated` | Se creó una asignación de pago | `entity.amount`, `entity.beneficiary_id`, `entity.effective`, `entity.id`, `entity.obligation_id`, `entity.obligation_type`, `entity.recorded_at` |
-| `ObligationCreated` | Se creó una nueva obligación | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
-| `ObligationDue` | Una obligación venció | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
-| `ObligationOverdue` | Una obligación quedó vencida | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
-| `ObligationDefaulted` | Una obligación entró en incumplimiento | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
-| `ObligationCompleted` | Se pagó completamente una obligación | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
+| `PaymentCreated` | PaymentCreated | `entity.amount`, `entity.beneficiary_id`, `entity.effective`, `entity.id`, `entity.recorded_at` |
+| `PaymentAllocationCreated` | PaymentAllocationCreated | `entity.amount`, `entity.beneficiary_id`, `entity.effective`, `entity.id`, `entity.obligation_id`, `entity.obligation_type`, `entity.recorded_at` |
+| `ObligationCreated` | Se creo una nueva obligacion | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
+| `ObligationDue` | Una obligacion vencio | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
+| `ObligationOverdue` | Una obligacion entro en mora | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
+| `ObligationDefaulted` | Una obligacion entro en incumplimiento | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
+| `ObligationCompleted` | Una obligacion fue completamente pagada | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
 
 ---
 
-## Eventos de Custody
+## Custody Events
 
-Eventos relacionados con la custodia de Bitcoin y la gestión de billeteras.
+Eventos relacionados con custodia de Bitcoin y gestion de billeteras.
 
-| Evento | Descripción | Campos de Datos |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `WalletBalanceUpdated` | No hay descripción disponible | `entity.address`, `entity.balance`, `entity.id`, `entity.network` |
+| `WalletBalanceUpdated` | No description available | `entity.address`, `entity.balance`, `entity.id`, `entity.network` |
 
 ---
 
-## Eventos de Cliente
+## Customer Events
 
 Eventos relacionados con el ciclo de vida del cliente y KYC.
 
-| Evento | Descripción | Campos de Datos |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `CustomerCreated` | Se creó un nuevo cliente | `entity.id`, `entity.party_id`, `entity.status` |
-| `CustomerFrozen` | Se congeló una cuenta de cliente, bloqueando las operaciones financieras | `entity.id`, `entity.party_id`, `entity.status` |
-| `CustomerUnfrozen` | Se descongeló una cuenta de cliente previamente congelada, restaurando las operaciones normales | `entity.id`, `entity.party_id`, `entity.status` |
-| `CustomerClosed` | Se cerró la cuenta del cliente | `entity.id`, `entity.party_id`, `entity.status` |
-| `PartyCreated` | No hay descripción disponible | `entity.customer_type`, `entity.email`, `entity.id` |
-| `PartyEmailUpdated` | No hay descripción disponible | `entity.customer_type`, `entity.email`, `entity.id` |
+| `CustomerCreated` | Se creo un nuevo cliente | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerFrozen` | Se congelo una cuenta de cliente, bloqueando operaciones financieras | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerUnfrozen` | Se descongelo una cuenta de cliente previamente congelada, restaurando operaciones normales | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerClosed` | La cuenta del cliente fue cerrada | `entity.id`, `entity.party_id`, `entity.status` |
+| `PartyCreated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
+| `PartyEmailUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
 | `ProspectCreated` | Se creó un nuevo prospecto para la incorporación | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
 | `ProspectKycStarted` | Un prospecto inició la verificación KYC | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
 | `ProspectKycPending` | La verificación KYC de un prospecto está pendiente de revisión | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
-| `ProspectKycDeclined` | Se rechazó la verificación KYC de un prospecto | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
-| `ProspectConverted` | Un prospecto se convirtió en cliente | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
-| `ProspectClosed` | Se cerró un prospecto sin conversión | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycDeclined` | La verificación KYC de un prospecto fue rechazada | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectConverted` | Un prospecto fue convertido en cliente | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectClosed` | Un prospecto fue cerrado sin conversión | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
 
 ---
 
-## Eventos de Depósito
+## Deposit Events
 
-Eventos relacionados con cuentas de depósito y transacciones.
+Eventos relacionados con cuentas de deposito y transacciones.
 
-| Evento | Descripción | Campos de Datos |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `DepositAccountCreated` | Se creó una cuenta de depósito | `entity.account_holder_id`, `entity.id` |
-| `DepositInitialized` | Se inicializó un depósito | `entity.amount`, `entity.deposit_account_id`, `entity.id` |
-| `WithdrawalConfirmed` | Se confirmó un retiro | `entity.amount`, `entity.deposit_account_id`, `entity.id`, `entity.status` |
-| `WithdrawalApprovalConcluded` | No hay descripción disponible | `entity.amount`, `entity.deposit_account_id`, `entity.id`, `entity.status` |
-| `DepositReverted` | Se revirtió un depósito | `entity.amount`, `entity.deposit_account_id`, `entity.id` |
+| `DepositAccountCreated` | Se creo una cuenta de deposito | `entity.account_holder_id`, `entity.id` |
+| `DepositInitialized` | Se inicializo un deposito | `entity.amount`, `entity.deposit_account_id`, `entity.id` |
+| `WithdrawalConfirmed` | Se confirmo un retiro | `entity.amount`, `entity.deposit_account_id`, `entity.id`, `entity.status` |
+| `WithdrawalApprovalConcluded` | No description available | `entity.amount`, `entity.deposit_account_id`, `entity.id`, `entity.status` |
+| `DepositReverted` | Se revirtio un deposito | `entity.amount`, `entity.deposit_account_id`, `entity.id` |
 
 ---
 
-## Eventos de Precio
+## Price Events
 
 Eventos relacionados con actualizaciones de precio BTC/USD.
 
-| Evento | Descripción | Campos de Carga Útil |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `PriceUpdated` | El precio BTC/USD fue actualizado | `price`, `timestamp` |
+| `PriceUpdated` | Se actualizo el precio BTC/USD | `price`, `timestamp` |
 
 ---
 
-## Eventos de Reportes
+## Report Events
 
-Eventos relacionados con la generación de reportes.
+Eventos relacionados con generacion de reportes.
 
-| Evento | Descripción | Campos de Carga Útil |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `ReportRunCreated` | Se inició una ejecución de reporte | `entity` |
-| `ReportRunStateUpdated` | El estado de una ejecución de reporte cambió | `entity` |
+| `ReportRunCreated` | Se inicio una ejecucion de reporte | `entity` |
+| `ReportRunStateUpdated` | Cambio el estado de ejecucion de reporte | `entity` |
 
 ---
 
-## Eventos de Gobernanza
+## Governance Events
 
-Eventos relacionados con flujos de trabajo de aprobación.
+Eventos relacionados con flujos de aprobacion.
 
-| Evento | Descripción | Campos de Carga Útil |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `ApprovalProcessConcluded` | Un proceso de aprobación fue concluido | `entity.id`, `entity.process_type`, `entity.status`, `entity.target_ref` |
+| `ApprovalProcessConcluded` | Se concluyo un proceso de aprobacion | `entity.id`, `entity.process_type`, `entity.status`, `entity.target_ref` |
 
 ---
 
-## Eventos de Tiempo
+## Time Events
 
-Eventos relacionados con el procesamiento de fin de día.
+CoreTimeEvent module_description
 
-| Evento | Descripción | Campos de Carga Útil |
+| Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `EndOfDay` | Se alcanzó el fin de día para la zona horaria configurada | `closing_time`, `day`, `timezone` |
+| `EndOfDay` | EndOfDay | `closing_time`, `day`, `timezone` |
 
 ---
 
 ## Referencia de Tipos de Eventos
 
-Todos los tipos de eventos siguen la convención de nomenclatura: `core.<módulo>.<nombre-evento>`
+Todos los tipos de eventos siguen la convencion de nombres: `core.<module>.<event-name>`
 
-| Módulo | Prefijo de Tipo de Evento |
+| Modulo | Prefijo de Tipo de Evento |
 |--------|-------------------|
 | Access | `core.access.*` |
 | Credit | `core.credit.*` |
@@ -196,12 +196,12 @@ Todos los tipos de eventos siguen la convención de nomenclatura: `core.<módulo
 
 ---
 
-## Consumo de Eventos
+## Consumiendo Eventos
 
-Los eventos se publican a través del outbox transaccional y pueden consumirse mediante:
+Los eventos se publican a traves del outbox transaccional y se pueden consumir mediante:
 
-1. **Sondeo directo de base de datos** - Consultar la tabla outbox
-2. **Transmisión de eventos** - Integración con colas de mensajes (dependiente de la implementación)
-3. **Canalizaciones ETL** - Mediante extracción Meltano
+1. **Consulta directa a la base de datos** - Consultar la tabla de outbox
+2. **Streaming de eventos** - Integracion con colas de mensajes (dependiente de la implementacion)
+3. **Pipelines ETL** - Via extraccion de Meltano
 
-Para detalles de integración, contacte al equipo de plataforma.
+Para detalles de integracion, contacte al equipo de plataforma.

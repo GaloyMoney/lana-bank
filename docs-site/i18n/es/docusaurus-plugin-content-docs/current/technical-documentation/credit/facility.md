@@ -126,116 +126,111 @@ Estas verificaciones no son solo informativas en la interfaz de usuario; son par
 - **La calidad de la plantilla es crítica**. Umbrales o intervalos incorrectos en los términos producen un comportamiento incorrecto del ciclo de vida más adelante.
 - **Los desembolsos reducen el margen de colateral**. Cada desembolso aumenta la exposición del préstamo y por lo tanto reduce el CVL, incluso si las cantidades de colateral permanecen constantes. Los operadores deben verificar el CVL posterior al desembolso antes de aprobar retiros grandes.
 
-## Recorrido del panel de administración: de propuesta a facilidad activa
+## Recorrido en Panel de Administración: De propuesta a facilidad activa
 
-La siguiente secuencia refleja cómo los operadores crean, aprueban y activan una facilidad en el panel de administración.
+La siguiente secuencia sigue el flujo real para crear, aprobar y activar una facilidad en el panel de administración.
 
 ### 1) Crear la propuesta
 
-En esta etapa, está estableciendo el marco legal y de riesgo. La plantilla de términos es especialmente importante porque sus valores se copian en la facilidad e impulsan el comportamiento posterior (cadencia de acumulación de intereses, ventanas de vencimiento, umbrales de liquidación y tarifas).
+**Paso 1.** Desde la página del cliente, haz clic en **Crear**.
 
-**Paso 1.** Desde la página del cliente, haga clic en **Crear**.
+![Hacer clic en Crear](/img/screenshots/current/es/credit-facilities.cy.ts/01_click_create_proposal_button.png)
 
-![Haga clic en el botón Crear](/img/screenshots/current/en/credit-facilities.cy.ts/01_click_create_proposal_button.png)
+**Paso 2.** Selecciona **Facilidad de Crédito** para abrir el formulario de propuesta.
 
-**Paso 2.** Seleccione **Línea de Crédito** para abrir el formulario de propuesta.
+![Abrir formulario de propuesta](/img/screenshots/current/es/credit-facilities.cy.ts/02_open_proposal_form.png)
 
-![Abrir formulario de propuesta](/img/screenshots/current/en/credit-facilities.cy.ts/02_open_proposal_form.png)
+**Paso 3.** Ingresa el monto de la facilidad y selecciona la plantilla de términos.
 
-**Paso 3.** Ingrese el monto de la línea y seleccione la plantilla de términos.
+![Ingresar monto de facilidad](/img/screenshots/current/es/credit-facilities.cy.ts/03_enter_facility_amount.png)
 
-![Ingresar monto de la línea](/img/screenshots/current/en/credit-facilities.cy.ts/03_enter_facility_amount.png)
+**Paso 4.** Envía la propuesta.
 
-**Paso 4.** Envíe la propuesta.
+![Enviar formulario de propuesta](/img/screenshots/current/es/credit-facilities.cy.ts/04_submit_proposal_form.png)
 
-![Enviar formulario de propuesta](/img/screenshots/current/en/credit-facilities.cy.ts/04_submit_proposal_form.png)
+**Paso 5.** Confirma que la página de detalle muestra estado **Pendiente de Aprobación del Cliente**.
 
-**Paso 5.** Confirme que la página de detalles de la propuesta muestra el estado **Pendiente de Aprobación del Cliente**.
+![Propuesta creada exitosamente](/img/screenshots/current/es/credit-facilities.cy.ts/05_proposal_created_success.png)
 
-![Propuesta creada exitosamente](/img/screenshots/current/en/credit-facilities.cy.ts/05_proposal_created_success.png)
+**Paso 6.** Verifica que la propuesta aparece en la lista de propuestas.
 
-**Paso 6.** Verifique que la propuesta aparezca en la lista de propuestas.
-
-![Propuesta en la lista](/img/screenshots/current/en/credit-facilities.cy.ts/06_proposal_in_list.png)
+![Propuesta en lista](/img/screenshots/current/es/credit-facilities.cy.ts/06_proposal_in_list.png)
 
 ### 2) Aceptación del cliente y aprobación de gobernanza
 
-Esta etapa separa el consentimiento del cliente de la autorización interna. Incluso si un usuario del banco crea
-la propuesta, ninguna línea debe avanzar hasta que el cliente acepte y se cumplan las reglas de gobernanza.
+Esta etapa separa el consentimiento del cliente de la autorización interna. Aunque un operador
+cree la propuesta, no debe avanzar hasta cumplir ambas condiciones.
 
-Operativamente, una conclusión exitosa en esta etapa debe producir una línea pendiente que pueda
-pasar a las verificaciones de garantías. Si se rechaza la aprobación, la propuesta no avanza hacia un
-camino prestable.
+Operativamente, un cierre exitoso aquí debe producir una facilidad pendiente lista para validaciones
+de colateral. Si la aprobación falla, la propuesta no continúa al flujo de otorgamiento.
 
-**Paso 7.** Abra la página de detalles de la propuesta.
+**Paso 7.** Abre la página de detalle de la propuesta.
 
-![Visitar página de propuesta](/img/screenshots/current/en/credit-facilities.cy.ts/07_visit_proposal_page.png)
+![Visitar página de propuesta](/img/screenshots/current/es/credit-facilities.cy.ts/07_visit_proposal_page.png)
 
-**Paso 8.** Haga clic en **El Cliente Acepta**.
+**Paso 8.** Haz clic en **El Cliente Acepta**.
 
-![Botón de aprobación del cliente](/img/screenshots/current/en/credit-facilities.cy.ts/08_customer_approval_button.png)
+![Botón de aprobación del cliente](/img/screenshots/current/es/credit-facilities.cy.ts/08_customer_approval_button.png)
 
-**Paso 9.** Confirme la acción de aceptación del cliente.
+**Paso 9.** Confirma la acción de aceptación del cliente.
 
-![Diálogo de aprobación del cliente](/img/screenshots/current/en/credit-facilities.cy.ts/09_customer_approval_dialog.png)
+![Diálogo de aprobación del cliente](/img/screenshots/current/es/credit-facilities.cy.ts/09_customer_approval_dialog.png)
 
-**Paso 10.** Verifique que el estado cambie a **Pendiente de Aprobación**.
+**Paso 10.** Verifica que el estado cambia a **Pendiente de Aprobación**.
 
-![Propuesta pendiente de aprobación](/img/screenshots/current/en/credit-facilities.cy.ts/10_proposal_pending_approval_status.png)
+![Propuesta pendiente de aprobación](/img/screenshots/current/es/credit-facilities.cy.ts/10_proposal_pending_approval_status.png)
 
-**Paso 11.** Inicie la aprobación de gobernanza haciendo clic en **Aprobar**.
+**Paso 11.** Inicia aprobación interna haciendo clic en **Aprobar**.
 
-![Botón aprobar propuesta](/img/screenshots/current/en/credit-facilities.cy.ts/11_approve_proposal_button.png)
+![Botón de aprobar propuesta](/img/screenshots/current/es/credit-facilities.cy.ts/11_approve_proposal_button.png)
 
-**Paso 12.** Confirme la aprobación en el diálogo.
+**Paso 12.** Confirma la aprobación en el diálogo.
 
-![Diálogo aprobar propuesta](/img/screenshots/current/en/credit-facilities.cy.ts/12_approve_proposal_dialog.png)
+![Diálogo de aprobar propuesta](/img/screenshots/current/es/credit-facilities.cy.ts/12_approve_proposal_dialog.png)
 
-**Paso 13.** Verifique que el estado de la propuesta sea **Aprobada**.
+**Paso 13.** Verifica que el estado de la propuesta sea **Aprobado**.
 
-![Propuesta aprobada](/img/screenshots/current/en/credit-facilities.cy.ts/13_proposal_approved_status.png)
+![Propuesta aprobada](/img/screenshots/current/es/credit-facilities.cy.ts/13_proposal_approved_status.png)
 
-**Paso 14.** Haga clic en **Ver Facilidad Pendiente**.
+**Paso 14.** Haz clic en **Ver Facilidad Pendiente**.
 
-![Botón ver facilidad pendiente](/img/screenshots/current/en/credit-facilities.cy.ts/14_view_pending_facility_button.png)
+![Botón ver facilidad pendiente](/img/screenshots/current/es/credit-facilities.cy.ts/14_view_pending_facility_button.png)
 
 ### 3) Colateralización y activación
 
-Después de la aprobación, la facilidad aún no está operativa hasta que se cumplan los requisitos de colateral.
-La activación es el momento en que puede comenzar el préstamo y el procesamiento de intereses comienza para saldos futuros.
+Después de aprobar, la facilidad sigue no operativa hasta cumplir requisitos de garantía. La
+activación es el punto exacto en que puede comenzar el crédito y el devengo de intereses.
 
-Cuando la activación tiene éxito, trate esto como el punto de transferencia a las operaciones de desembolso. Cualquier retraso en
-la activación generalmente indica colateral insuficiente en relación con los términos o transiciones de estado
-previas faltantes.
+Cuando la activación es exitosa, úsalo como punto de handoff al flujo de desembolsos.
 
-**Paso 15.** En la página de facilidad pendiente, confirme el estado **Pendiente de Colateralización**.
+**Paso 15.** En la página de facilidad pendiente, confirma estado **Pendiente de Colateralización**.
 
-![Estado inicial de facilidad pendiente](/img/screenshots/current/en/credit-facilities.cy.ts/15_pending_facility_initial_state.png)
+![Estado inicial de facilidad pendiente](/img/screenshots/current/es/credit-facilities.cy.ts/15_pending_facility_initial_state.png)
 
-**Paso 16.** Haga clic en **Actualizar Colateral**.
+**Paso 16.** Haz clic en **Actualizar Garantía**.
 
-![Hacer clic en actualizar colateral](/img/screenshots/current/en/credit-facilities.cy.ts/16_click_update_collateral_button.png)
+![Hacer clic en actualizar garantía](/img/screenshots/current/es/credit-facilities.cy.ts/16_click_update_collateral_button.png)
 
-**Paso 17.** Ingrese el nuevo monto de colateral.
+**Paso 17.** Ingresa el nuevo monto de garantía.
 
-![Ingresar valor de colateral](/img/screenshots/current/en/credit-facilities.cy.ts/17_enter_new_collateral_value.png)
+![Ingresar valor de garantía](/img/screenshots/current/es/credit-facilities.cy.ts/17_enter_new_collateral_value.png)
 
-**Paso 18.** Confirme que la actualización del colateral se realizó correctamente.
+**Paso 18.** Confirma que la actualización de garantía se complete correctamente.
 
-![Colateral actualizado](/img/screenshots/current/en/credit-facilities.cy.ts/18_collateral_updated.png)
+![Garantía actualizada](/img/screenshots/current/es/credit-facilities.cy.ts/18_collateral_updated.png)
 
-**Paso 19.** Verifique que el estado de la facilidad pendiente cambie a **Completado**.
+**Paso 19.** Verifica que el estado de la facilidad pendiente cambie a **Completado**.
 
-![Facilidad pendiente completada](/img/screenshots/current/en/credit-facilities.cy.ts/19_pending_facility_completed.png)
+![Facilidad pendiente completada](/img/screenshots/current/es/credit-facilities.cy.ts/19_pending_facility_completed.png)
 
-**Paso 20.** Haga clic en **Ver Facilidad**.
+**Paso 20.** Haz clic en **Ver Facilidad**.
 
-![Botón ver facilidad](/img/screenshots/current/en/credit-facilities.cy.ts/20_view_facility_button.png)
+![Botón ver facilidad](/img/screenshots/current/es/credit-facilities.cy.ts/20_view_facility_button.png)
 
-**Paso 21.** Confirme que el estado de la facilidad de crédito es **Activo**.
+**Paso 21.** Confirma que el estado de la facilidad de crédito sea **Activo**.
 
-![Verificar estado activo](/img/screenshots/current/en/credit-facilities.cy.ts/21_verify_active_status.png)
+![Verificar estado activo](/img/screenshots/current/es/credit-facilities.cy.ts/21_verify_active_status.png)
 
-**Paso 22.** Verifique que la facilidad activa aparezca en la lista de facilidades.
+**Paso 22.** Verifica que la facilidad activa aparece en la lista de facilidades.
 
-![Facilidad de crédito en la lista](/img/screenshots/current/en/credit-facilities.cy.ts/22_credit_facility_in_list.png)
+![Facilidad de crédito en lista](/img/screenshots/current/es/credit-facilities.cy.ts/22_credit_facility_in_list.png)
