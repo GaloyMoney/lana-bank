@@ -30,6 +30,7 @@ es_entity::entity_id! {
     ChartId,
     ChartNodeId,
     ManualTransactionId,
+    AccountingTemplateId,
     LedgerAccountId,
     AccountingCsvId,
     FiscalYearId;
@@ -633,6 +634,7 @@ pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
 pub type LedgerTransactionAllOrOne = AllOrOne<CalaTxId>;
 pub type TransactionTemplateAllOrOne = AllOrOne<TransactionTemplateId>;
 pub type ManualTransactionAllOrOne = AllOrOne<ManualTransactionId>;
+pub type AccountingTemplateAllOrOne = AllOrOne<AccountingTemplateId>;
 pub type ProfitAndLossAllOrOne = AllOrOne<LedgerAccountId>;
 pub type ProfitAndLossConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 pub type BalanceSheetAllOrOne = AllOrOne<LedgerAccountId>;
@@ -656,6 +658,7 @@ pub enum CoreAccountingAction {
     LedgerAccount(LedgerAccountAction),
     LedgerTransaction(LedgerTransactionAction),
     TransactionTemplate(TransactionTemplateAction),
+    AccountingTemplate(AccountingTemplateAction),
     ManualTransaction(ManualTransactionAction),
     ProfitAndLoss(ProfitAndLossAction),
     ProfitAndLossConfiguration(ProfitAndLossConfigurationAction),
@@ -684,6 +687,9 @@ impl CoreAccountingAction {
                 }
                 TransactionTemplate => {
                     map_action!(accounting, TransactionTemplate, TransactionTemplateAction)
+                }
+                AccountingTemplate => {
+                    map_action!(accounting, AccountingTemplate, AccountingTemplateAction)
                 }
                 ManualTransaction => {
                     map_action!(accounting, ManualTransaction, ManualTransactionAction)
@@ -727,6 +733,7 @@ pub enum CoreAccountingObject {
     LedgerAccount(LedgerAccountAllOrOne),
     LedgerTransaction(LedgerTransactionAllOrOne),
     TransactionTemplate(TransactionTemplateAllOrOne),
+    AccountingTemplate(AccountingTemplateAllOrOne),
     ManualTransaction(ManualTransactionAllOrOne),
     ProfitAndLoss(ProfitAndLossAllOrOne),
     ProfitAndLossConfiguration(ProfitAndLossConfigurationAllOrOne),
@@ -768,6 +775,14 @@ impl CoreAccountingObject {
 
     pub fn all_transaction_templates() -> Self {
         CoreAccountingObject::TransactionTemplate(AllOrOne::All)
+    }
+
+    pub fn accounting_template(id: AccountingTemplateId) -> Self {
+        CoreAccountingObject::AccountingTemplate(AllOrOne::ById(id))
+    }
+
+    pub fn all_accounting_templates() -> Self {
+        CoreAccountingObject::AccountingTemplate(AllOrOne::All)
     }
 
     pub fn ledger_transaction(id: LedgerTransactionId) -> Self {
@@ -835,6 +850,7 @@ impl Display for CoreAccountingObject {
             LedgerAccount(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             LedgerTransaction(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             TransactionTemplate(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            AccountingTemplate(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             ManualTransaction(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             ProfitAndLoss(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             ProfitAndLossConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
@@ -877,6 +893,12 @@ impl FromStr for CoreAccountingObject {
                     .parse()
                     .map_err(|_| "could not parse TransactionTemplate")?;
                 CoreAccountingObject::TransactionTemplate(obj_ref)
+            }
+            AccountingTemplate => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse AccountingTemplate")?;
+                CoreAccountingObject::AccountingTemplate(obj_ref)
             }
             ManualTransaction => {
                 let obj_ref = id
@@ -947,6 +969,15 @@ impl CoreAccountingAction {
     pub const TRANSACTION_TEMPLATE_LIST: Self =
         CoreAccountingAction::TransactionTemplate(TransactionTemplateAction::List);
 
+    pub const ACCOUNTING_TEMPLATE_CREATE: Self =
+        CoreAccountingAction::AccountingTemplate(AccountingTemplateAction::Create);
+    pub const ACCOUNTING_TEMPLATE_READ: Self =
+        CoreAccountingAction::AccountingTemplate(AccountingTemplateAction::Read);
+    pub const ACCOUNTING_TEMPLATE_UPDATE: Self =
+        CoreAccountingAction::AccountingTemplate(AccountingTemplateAction::Update);
+    pub const ACCOUNTING_TEMPLATE_LIST: Self =
+        CoreAccountingAction::AccountingTemplate(AccountingTemplateAction::List);
+
     pub const MANUAL_TRANSACTION_READ: Self =
         CoreAccountingAction::ManualTransaction(ManualTransactionAction::Read);
     pub const MANUAL_TRANSACTION_CREATE: Self =
@@ -1008,6 +1039,7 @@ impl Display for CoreAccountingAction {
             LedgerAccount(action) => action.fmt(f),
             LedgerTransaction(action) => action.fmt(f),
             TransactionTemplate(action) => action.fmt(f),
+            AccountingTemplate(action) => action.fmt(f),
             ManualTransaction(action) => action.fmt(f),
             ProfitAndLoss(action) => action.fmt(f),
             ProfitAndLossConfiguration(action) => action.fmt(f),
@@ -1040,6 +1072,9 @@ impl FromStr for CoreAccountingAction {
             }
             CoreAccountingActionDiscriminants::TransactionTemplate => {
                 CoreAccountingAction::from(action.parse::<TransactionTemplateAction>()?)
+            }
+            CoreAccountingActionDiscriminants::AccountingTemplate => {
+                CoreAccountingAction::from(action.parse::<AccountingTemplateAction>()?)
             }
             CoreAccountingActionDiscriminants::ManualTransaction => {
                 CoreAccountingAction::from(action.parse::<ManualTransactionAction>()?)
@@ -1181,6 +1216,30 @@ impl ActionPermission for TransactionTemplateAction {
 impl From<TransactionTemplateAction> for CoreAccountingAction {
     fn from(action: TransactionTemplateAction) -> Self {
         CoreAccountingAction::TransactionTemplate(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum AccountingTemplateAction {
+    Create,
+    Read,
+    Update,
+    List,
+}
+
+impl ActionPermission for AccountingTemplateAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Create | Self::Update => PERMISSION_SET_ACCOUNTING_WRITER,
+        }
+    }
+}
+
+impl From<AccountingTemplateAction> for CoreAccountingAction {
+    fn from(action: AccountingTemplateAction) -> Self {
+        CoreAccountingAction::AccountingTemplate(action)
     }
 }
 
