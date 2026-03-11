@@ -104,8 +104,9 @@ replace_trailing_section() {
   local file="$1" heading="$2"
   local start_line tmp
 
+  [ -f "$file" ] || return 0
   start_line=$(grep -n -m1 -F "$heading" "$file" | cut -d: -f1)
-  [ -n "$start_line" ] || return 1
+  [ -n "$start_line" ] || return 0
 
   tmp=$(mktemp)
   head -n "$((start_line - 1))" "$file" > "$tmp"
