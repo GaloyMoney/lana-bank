@@ -8,3 +8,4 @@ pub mod end_of_day;
 pub mod liquidation_payment;
 pub mod process_accrual_cycle;
 pub mod process_facility_maturities;
+pub mod record_liquidation_started;

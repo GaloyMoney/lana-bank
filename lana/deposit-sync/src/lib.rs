@@ -78,19 +78,27 @@ where
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
     ) -> Result<Self, DepositSyncError> {
+        let execute_update_spawner = jobs.add_initializer(
+            UpdateDepositAccountActivityStatusJobInitializer::new(deposits),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(UPDATE_DEPOSIT_ACCOUNT_ACTIVITY_STATUS),
-                UpdateDepositAccountActivityStatusHandler::new(deposits),
+                UpdateDepositAccountActivityStatusHandler::new(execute_update_spawner),
             )
             .await?;
+
+        let export_sumsub_transaction_spawner = jobs.add_initializer(
+            ExportSumsubTransactionJobInitializer::new(sumsub_client, deposits, customers),
+        );
 
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(SUMSUB_EXPORT_JOB),
-                SumsubExportHandler::new(sumsub_client, deposits, customers),
+                SumsubExportHandler::new(export_sumsub_transaction_spawner),
             )
             .await?;
 

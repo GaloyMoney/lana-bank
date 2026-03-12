@@ -1,82 +1,42 @@
-use std::sync::Arc;
-
 use tracing::{Span, instrument};
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_credit_collateral;
-use core_custody::CoreCustodyEvent;
-use es_entity::DbOp;
-use governance::GovernanceEvent;
+use core_credit_collateral::CalaAccountId;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::JobType;
+use job::{JobId, JobSpawner, JobType};
 
-use super::liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner};
-use crate::{
-    CoreCreditCollectionEvent, CoreCreditEvent,
-    primitives::{CoreCreditAction, CoreCreditObject},
-};
-use core_credit_collateral::{Collaterals, SecuredLoanId, public::CoreCreditCollateralEvent};
+use crate::CoreCreditEvent;
+
+use super::record_liquidation_started::RecordLiquidationStartedConfig;
 
 pub const CREDIT_FACILITY_LIQUIDATIONS_JOB: JobType =
     JobType::new("outbox.credit-facility-liquidations");
 
-pub struct CreditFacilityLiquidationsHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
-{
-    collaterals: Arc<Collaterals<Perms, E>>,
-    liquidation_proceeds_omnibus_account_id: crate::CalaAccountId,
-    liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
+pub struct CreditFacilityLiquidationsHandler {
+    record_liquidation_started: JobSpawner<RecordLiquidationStartedConfig>,
+    liquidation_proceeds_omnibus_account_id: CalaAccountId,
 }
 
-impl<Perms, E> CreditFacilityLiquidationsHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
-{
+impl CreditFacilityLiquidationsHandler {
     pub fn new(
-        collaterals: Arc<Collaterals<Perms, E>>,
-        liquidation_proceeds_omnibus_account_id: crate::CalaAccountId,
-        liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
+        record_liquidation_started: JobSpawner<RecordLiquidationStartedConfig>,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
     ) -> Self {
         Self {
-            collaterals,
+            record_liquidation_started,
             liquidation_proceeds_omnibus_account_id,
-            liquidation_payment_job_spawner,
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for CreditFacilityLiquidationsHandler<Perms, E>
+impl<E> OutboxEventHandler<E> for CreditFacilityLiquidationsHandler
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<core_credit_collection::CoreCreditCollectionAction>
-        + From<core_credit_collateral::primitives::CoreCreditCollateralAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<core_credit_collection::CoreCreditCollectionObject>
-        + From<core_credit_collateral::primitives::CoreCreditCollateralObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    #[instrument(name = "outbox.core_credit.collateral_liquidations.process_message_in_op", parent = None, skip(self, op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "outbox.core_credit.collateral_liquidations.process_message_in_op", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        op: &mut DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(e @ CoreCreditEvent::PartialLiquidationInitiated { entity }) = event.as_event()
@@ -89,33 +49,22 @@ where
                 .as_ref()
                 .expect("liquidation_trigger must be set for PartialLiquidationInitiated");
 
-            let result: Option<SecuredLoanId> = self
-                .collaterals
-                .record_liquidation_started_in_op(
+            self.record_liquidation_started
+                .spawn_with_queue_id_in_op(
                     op,
-                    entity.collateral_id,
-                    trigger.liquidation_id,
-                    trigger.trigger_price,
-                    trigger.initially_expected_to_receive,
-                    trigger.initially_estimated_to_liquidate,
-                    self.liquidation_proceeds_omnibus_account_id,
+                    JobId::new(),
+                    RecordLiquidationStartedConfig {
+                        collateral_id: entity.collateral_id,
+                        liquidation_id: trigger.liquidation_id,
+                        trigger_price: trigger.trigger_price,
+                        initially_expected_to_receive: trigger.initially_expected_to_receive,
+                        initially_estimated_to_liquidate: trigger.initially_estimated_to_liquidate,
+                        liquidation_proceeds_omnibus_account_id: self
+                            .liquidation_proceeds_omnibus_account_id,
+                    },
+                    entity.collateral_id.to_string(),
                 )
                 .await?;
-
-            if let Some(secured_loan_id) = result {
-                self.liquidation_payment_job_spawner
-                    .spawn_in_op(
-                        op,
-                        job::JobId::new(),
-                        LiquidationPaymentJobConfig::<E> {
-                            liquidation_id: trigger.liquidation_id,
-                            collateral_id: entity.collateral_id,
-                            credit_facility_id: secured_loan_id.into(),
-                            _phantom: std::marker::PhantomData,
-                        },
-                    )
-                    .await?;
-            }
         }
         Ok(())
     }

@@ -212,16 +212,22 @@ where
                 repo.clone(),
             ));
 
+        let record_liquidation_started_spawner = jobs.add_initializer(
+            jobs::record_liquidation_started::RecordLiquidationStartedJobInitializer::new(
+                collaterals.clone(),
+                liquidation_payment_job_spawner,
+            ),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(
                     jobs::collateral_liquidations::CREDIT_FACILITY_LIQUIDATIONS_JOB,
                 ),
-                jobs::collateral_liquidations::CreditFacilityLiquidationsHandler::<Perms, E>::new(
-                    collaterals.clone(),
+                jobs::collateral_liquidations::CreditFacilityLiquidationsHandler::new(
+                    record_liquidation_started_spawner,
                     ledger.liquidation_proceeds_omnibus_account_ids().account_id,
-                    liquidation_payment_job_spawner,
                 ),
             )
             .await?;
