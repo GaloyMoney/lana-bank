@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod accounting_templates;
 pub mod balance_sheet;
 pub mod chart_of_accounts;
 pub mod csv;
@@ -16,8 +17,9 @@ pub mod profit_and_loss;
 pub mod transaction_templates;
 pub mod trial_balance;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
+use accounting_templates::AccountingTemplates;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
@@ -28,6 +30,9 @@ use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+pub use accounting_templates::{
+    AccountingTemplate, AccountingTemplateEntry, AccountingTemplateValues,
+};
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
 pub use csv::AccountingCsvExports;
@@ -48,6 +53,7 @@ pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
+    pub use crate::accounting_templates::AccountingTemplateEvent;
     pub use crate::chart_of_accounts::ChartEvent;
     pub use crate::chart_of_accounts::chart_node::ChartNodeEvent;
     pub use crate::fiscal_year::FiscalYearEvent;
@@ -66,6 +72,7 @@ where
     ledger_accounts: LedgerAccounts<Perms>,
     ledger_transactions: LedgerTransactions<Perms>,
     manual_transactions: ManualTransactions<Perms>,
+    accounting_templates: AccountingTemplates<Perms>,
     profit_and_loss: ProfitAndLossStatements<Perms>,
     transaction_templates: TransactionTemplates<Perms>,
     balance_sheets: BalanceSheets<Perms>,
@@ -88,6 +95,7 @@ where
             ledger_accounts: self.ledger_accounts.clone(),
             manual_transactions: self.manual_transactions.clone(),
             ledger_transactions: self.ledger_transactions.clone(),
+            accounting_templates: self.accounting_templates.clone(),
             profit_and_loss: self.profit_and_loss.clone(),
             transaction_templates: self.transaction_templates.clone(),
             balance_sheets: self.balance_sheets.clone(),
@@ -127,6 +135,8 @@ where
             journal_id,
             clock.clone(),
         );
+        let accounting_templates =
+            AccountingTemplates::new(pool, Arc::new(authz.clone()), clock.clone());
         let ledger_transactions = LedgerTransactions::new(authz, cala);
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
@@ -142,6 +152,7 @@ where
             ledger_accounts,
             ledger_transactions,
             manual_transactions,
+            accounting_templates,
             profit_and_loss,
             transaction_templates,
             balance_sheets,
@@ -169,6 +180,10 @@ where
 
     pub fn manual_transactions(&self) -> &ManualTransactions<Perms> {
         &self.manual_transactions
+    }
+
+    pub fn accounting_templates(&self) -> &AccountingTemplates<Perms> {
+        &self.accounting_templates
     }
 
     pub fn profit_and_loss(&self) -> &ProfitAndLossStatements<Perms> {
