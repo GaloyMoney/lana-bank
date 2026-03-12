@@ -885,6 +885,52 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.list_prospects_by_party_email", skip(self))]
+    pub async fn list_prospects_by_party_email(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        filter: prospect::ProspectsFilters,
+        direction: es_entity::ListDirection,
+        after_id: Option<ProspectId>,
+        first: usize,
+    ) -> Result<(Vec<Prospect>, bool), CustomerError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_prospects(),
+                CoreCustomerAction::PROSPECT_LIST,
+            )
+            .await?;
+        Ok(self
+            .prospect_repo
+            .list_by_party_email(&filter, direction, after_id, first)
+            .await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.list_prospects_by_party_telegram", skip(self))]
+    pub async fn list_prospects_by_party_telegram(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        filter: prospect::ProspectsFilters,
+        direction: es_entity::ListDirection,
+        after_id: Option<ProspectId>,
+        first: usize,
+    ) -> Result<(Vec<Prospect>, bool), CustomerError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_prospects(),
+                CoreCustomerAction::PROSPECT_LIST,
+            )
+            .await?;
+        Ok(self
+            .prospect_repo
+            .list_by_party_telegram(&filter, direction, after_id, first)
+            .await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.find_all", skip(self))]
     pub async fn find_all<T: From<Customer>>(
         &self,

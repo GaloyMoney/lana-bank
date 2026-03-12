@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT p.id AS \"id: ProspectId\"\n                       FROM core_prospects p\n                       JOIN core_parties pa ON pa.id = p.party_id\n                       WHERE ($1::text IS NULL OR p.stage = $1)\n                         AND ($2::text IS NULL OR p.customer_type = $2)\n                         AND (\n                           $3::uuid IS NULL\n                           OR (pa.email, p.id) < (\n                             (SELECT pa2.email FROM core_prospects p2 JOIN core_parties pa2 ON pa2.id = p2.party_id WHERE p2.id = $3),\n                             $3\n                           )\n                         )\n                       ORDER BY pa.email DESC, p.id DESC\n                       LIMIT $4",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: ProspectId",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e7917bb06cf9f6ed5c1aa5cf8588e156acd3407eb8b00ad766a4d99b6e327bab"
+}
