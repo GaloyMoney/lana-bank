@@ -84,7 +84,7 @@ async fn approval_process_concluded_publishes_event() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// When `RequireCommitteeApproval` is enabled and a default committee exists,
+/// When `AllowSystemAutoApproval` is disabled and a default committee exists,
 /// `init_policy` should create the policy with the default committee's rules
 /// instead of `SystemAutoApprove`.
 #[tokio::test]
@@ -102,10 +102,10 @@ async fn init_policy_uses_default_committee_when_require_committee_enabled() -> 
     )
     .await?;
 
-    // Initialize domain configs with RequireCommitteeApproval=true
+    // Initialize domain configs with AllowSystemAutoApproval=false (committee approval required)
     let startup_configs = vec![(
-        "require-committee-approval".to_string(),
-        serde_json::Value::Bool(true),
+        "allow-system-auto-approval".to_string(),
+        serde_json::Value::Bool(false),
     )];
     let (_, _, exposed_readonly) = domain_config::init(
         &pool,
@@ -134,13 +134,13 @@ async fn init_policy_uses_default_committee_when_require_committee_enabled() -> 
         governance::ApprovalRules::Committee {
             committee_id: committee.id
         },
-        "Policy should use default committee when RequireCommitteeApproval is enabled"
+        "Policy should use default committee when AllowSystemAutoApproval is disabled"
     );
 
     Ok(())
 }
 
-/// When `RequireCommitteeApproval` is enabled but no default committee has been
+/// When `AllowSystemAutoApproval` is disabled but no default committee has been
 /// bootstrapped, `init_policy` should fail with `DefaultCommitteeNotFound`.
 #[tokio::test]
 #[serial_test::file_serial(governance_domain_config)]
@@ -159,8 +159,8 @@ async fn init_policy_fails_without_default_committee_when_require_committee_enab
     .await?;
 
     let startup_configs = vec![(
-        "require-committee-approval".to_string(),
-        serde_json::Value::Bool(true),
+        "allow-system-auto-approval".to_string(),
+        serde_json::Value::Bool(false),
     )];
     let (_, _, exposed_readonly) = domain_config::init(
         &pool,
@@ -199,8 +199,8 @@ async fn init_policy_fails_without_default_committee_when_require_committee_enab
     Ok(())
 }
 
-/// When `RequireCommitteeApproval` is enabled but a policy already exists
-/// (created before the config was enabled), `init_policy` should return
+/// When `AllowSystemAutoApproval` is disabled but a policy already exists
+/// (created before the config was disabled), `init_policy` should return
 /// the existing policy without error.
 #[tokio::test]
 #[serial_test::file_serial(governance_domain_config)]
@@ -217,17 +217,17 @@ async fn init_policy_returns_existing_policy_when_require_committee_enabled() ->
     )
     .await?;
 
-    // Step 1: Create policy WITHOUT RequireCommitteeApproval (config disabled)
+    // Step 1: Create policy with AllowSystemAutoApproval=true (default, auto-approval permitted)
     let governance_no_config = Governance::new(&pool, &authz, &outbox, clock.clone(), None);
     let process_type = ApprovalProcessType::new("test-existing-policy-before-config");
     let policy = governance_no_config
         .init_policy(process_type.clone())
         .await?;
 
-    // Step 2: Enable RequireCommitteeApproval and recreate governance
+    // Step 2: Disable AllowSystemAutoApproval and recreate governance
     let startup_configs = vec![(
-        "require-committee-approval".to_string(),
-        serde_json::Value::Bool(true),
+        "allow-system-auto-approval".to_string(),
+        serde_json::Value::Bool(false),
     )];
     let (_, _, exposed_readonly) = domain_config::init(
         &pool,

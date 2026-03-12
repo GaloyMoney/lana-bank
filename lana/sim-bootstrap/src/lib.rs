@@ -13,7 +13,7 @@ use rust_decimal_macros::dec;
 use tracing::{Instrument, Span, info, instrument};
 
 use lana_app::{
-    app::LanaApp, credit::EnableManualCustodian, customer::AllowManualConversion, primitives::*,
+    app::LanaApp, credit::AllowManualCustodian, customer::AllowManualConversion, primitives::*,
 };
 
 pub use config::*;
@@ -38,7 +38,7 @@ pub async fn run(
         .await?;
     // Enable manual collateral updates for simulation
     app.exposed_domain_configs()
-        .update::<EnableManualCustodian>(&sub, true)
+        .update::<AllowManualCustodian>(&sub, true)
         .await?;
 
     match create_term_templates(&sub, app).await {
