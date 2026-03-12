@@ -215,7 +215,6 @@ where
         let record_liquidation_started_spawner = jobs.add_initializer(
             jobs::record_liquidation_started::RecordLiquidationStartedJobInitializer::new(
                 collaterals.clone(),
-                liquidation_payment_job_spawner,
                 ledger.liquidation_proceeds_omnibus_account_ids().account_id,
             ),
         );
@@ -228,6 +227,18 @@ where
                 ),
                 jobs::collateral_liquidations::CreditFacilityLiquidationsHandler::new(
                     record_liquidation_started_spawner,
+                ),
+            )
+            .await?;
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(
+                    jobs::spawn_liquidation_payment::SPAWN_LIQUIDATION_PAYMENT_JOB,
+                ),
+                jobs::spawn_liquidation_payment::SpawnLiquidationPaymentHandler::new(
+                    liquidation_payment_job_spawner,
                 ),
             )
             .await?;

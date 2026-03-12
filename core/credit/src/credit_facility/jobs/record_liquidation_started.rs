@@ -15,12 +15,11 @@ use crate::PriceOfOneBTC;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use super::liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner};
 use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent,
     primitives::{CoreCreditAction, CoreCreditObject},
 };
-use core_credit_collateral::{SecuredLoanId, public::CoreCreditCollateralEvent};
+use core_credit_collateral::public::CoreCreditCollateralEvent;
 
 pub const RECORD_LIQUIDATION_STARTED_COMMAND: JobType =
     JobType::new("command.credit.record-liquidation-started");
@@ -45,7 +44,6 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     collaterals: Arc<Collaterals<Perms, E>>,
-    liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
     liquidation_proceeds_omnibus_account_id: CalaAccountId,
 }
 
@@ -60,12 +58,10 @@ where
 {
     pub fn new(
         collaterals: Arc<Collaterals<Perms, E>>,
-        liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
         liquidation_proceeds_omnibus_account_id: CalaAccountId,
     ) -> Self {
         Self {
             collaterals,
-            liquidation_payment_job_spawner,
             liquidation_proceeds_omnibus_account_id,
         }
     }
@@ -100,7 +96,6 @@ where
         Ok(Box::new(RecordLiquidationStartedJobRunner {
             config: job.config()?,
             collaterals: self.collaterals.clone(),
-            liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
             liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
         }))
     }
@@ -117,7 +112,6 @@ where
 {
     config: RecordLiquidationStartedConfig,
     collaterals: Arc<Collaterals<Perms, E>>,
-    liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
     liquidation_proceeds_omnibus_account_id: CalaAccountId,
 }
 
@@ -145,8 +139,7 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut op = current_job.begin_op().await?;
 
-        let result: Option<SecuredLoanId> = self
-            .collaterals
+        self.collaterals
             .record_liquidation_started_in_op(
                 &mut op,
                 self.config.collateral_id,
@@ -157,21 +150,6 @@ where
                 self.liquidation_proceeds_omnibus_account_id,
             )
             .await?;
-
-        if let Some(secured_loan_id) = result {
-            self.liquidation_payment_job_spawner
-                .spawn_in_op(
-                    &mut op,
-                    job::JobId::new(),
-                    LiquidationPaymentJobConfig::<E> {
-                        liquidation_id: self.config.liquidation_id,
-                        collateral_id: self.config.collateral_id,
-                        credit_facility_id: secured_loan_id.into(),
-                        _phantom: std::marker::PhantomData,
-                    },
-                )
-                .await?;
-        }
 
         Ok(JobCompletion::CompleteWithOp(op))
     }

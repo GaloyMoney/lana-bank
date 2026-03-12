@@ -1,10 +1,8 @@
-mod execute_update_deposit_account_activity_status;
 mod export_sumsub_deposit;
 mod export_sumsub_withdrawal;
 mod sumsub_export;
 mod update_deposit_account_activity_status;
 
-pub use execute_update_deposit_account_activity_status::*;
 pub use export_sumsub_deposit::*;
 pub use export_sumsub_withdrawal::*;
 pub use sumsub_export::*;

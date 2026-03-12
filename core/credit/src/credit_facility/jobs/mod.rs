@@ -9,3 +9,4 @@ pub mod liquidation_payment;
 pub mod process_accrual_cycle;
 pub mod process_facility_maturities;
 pub mod record_liquidation_started;
+pub mod spawn_liquidation_payment;

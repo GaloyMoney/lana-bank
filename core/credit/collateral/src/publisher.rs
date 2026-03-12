@@ -93,6 +93,13 @@ where
                         secured_loan_id: entity.secured_loan_id,
                     }]
                 }
+                LiquidationStarted { liquidation_id } => {
+                    vec![CoreCreditCollateralEvent::LiquidationStarted {
+                        liquidation_id: *liquidation_id,
+                        collateral_id: entity.id,
+                        secured_loan_id: entity.secured_loan_id,
+                    }]
+                }
                 _ => vec![],
             })
             .collect::<Vec<_>>();

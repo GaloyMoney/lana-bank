@@ -5,7 +5,7 @@ use cala_ledger::TransactionId as LedgerTxId;
 use core_credit_collection::PaymentId;
 use money::{Satoshis, UsdCents};
 
-use crate::{LiquidationId, SecuredLoanId};
+use crate::{CollateralId, LiquidationId, SecuredLoanId};
 
 use super::PublicCollateral;
 
@@ -15,6 +15,11 @@ use super::PublicCollateral;
 pub enum CoreCreditCollateralEvent {
     CollateralUpdated {
         entity: PublicCollateral,
+    },
+    LiquidationStarted {
+        liquidation_id: LiquidationId,
+        collateral_id: CollateralId,
+        secured_loan_id: SecuredLoanId,
     },
     LiquidationCollateralSentOut {
         liquidation_id: LiquidationId,

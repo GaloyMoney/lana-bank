@@ -24,7 +24,6 @@ authz = { workspace = true }
 lana-events = { workspace = true }
 
 async-trait = { workspace = true }
-chrono = { workspace = true }
 serde = { workspace = true }
 
 tracing = { workspace = true }

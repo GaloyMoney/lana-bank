@@ -330,5 +330,3 @@ where
         }
     }
 }
-
-pub type LiquidationPaymentJobSpawner<E> = JobSpawner<LiquidationPaymentJobConfig<E>>;
