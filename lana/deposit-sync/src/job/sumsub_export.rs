@@ -4,7 +4,7 @@ use core_deposit::CoreDepositEvent;
 use job::{JobId, JobSpawner, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use super::ExportSumsubTransactionConfig;
+use super::{ExportSumsubTransactionConfig, SumsubTransactionDirection, SumsubTransactionType};
 
 pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("outbox.sumsub-export");
 
@@ -41,8 +41,8 @@ where
                         op,
                         JobId::new(),
                         ExportSumsubTransactionConfig {
-                            transaction_type: "Deposit".to_string(),
-                            direction: "in".to_string(),
+                            transaction_type: SumsubTransactionType::Deposit,
+                            direction: SumsubTransactionDirection::In,
                             transaction_id: entity.id.to_string(),
                             deposit_account_id: entity.deposit_account_id,
                             amount: entity.amount,
@@ -61,8 +61,8 @@ where
                         op,
                         JobId::new(),
                         ExportSumsubTransactionConfig {
-                            transaction_type: "Withdrawal".to_string(),
-                            direction: "out".to_string(),
+                            transaction_type: SumsubTransactionType::Withdrawal,
+                            direction: SumsubTransactionDirection::Out,
                             transaction_id: entity.id.to_string(),
                             deposit_account_id: entity.deposit_account_id,
                             amount: entity.amount,

@@ -20,9 +20,41 @@ pub const EXPORT_SUMSUB_TRANSACTION_COMMAND: JobType =
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
+pub enum SumsubTransactionType {
+    Deposit,
+    Withdrawal,
+}
+
+impl SumsubTransactionType {
+    pub fn as_str(&self) -> &str {
+        match self {
+            SumsubTransactionType::Deposit => "Deposit",
+            SumsubTransactionType::Withdrawal => "Withdrawal",
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum SumsubTransactionDirection {
+    In,
+    Out,
+}
+
+impl SumsubTransactionDirection {
+    pub fn as_str(&self) -> &str {
+        match self {
+            SumsubTransactionDirection::In => "in",
+            SumsubTransactionDirection::Out => "out",
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ExportSumsubTransactionConfig {
-    pub transaction_type: String,
-    pub direction: String,
+    pub transaction_type: SumsubTransactionType,
+    pub direction: SumsubTransactionDirection,
     pub transaction_id: String,
     pub deposit_account_id: DepositAccountId,
     pub amount: UsdCents,
@@ -153,8 +185,8 @@ where
                 .submit_finance_transaction(
                     account.account_holder_id,
                     self.config.transaction_id.clone(),
-                    &self.config.transaction_type,
-                    &self.config.direction,
+                    self.config.transaction_type.as_str(),
+                    self.config.direction.as_str(),
                     amount_usd,
                     "USD",
                 )
