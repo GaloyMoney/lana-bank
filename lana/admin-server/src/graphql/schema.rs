@@ -1,4 +1,6 @@
-use async_graphql::{Context, Error, Object, Subscription, types::connection::*};
+use async_graphql::{
+    Context, Error, Object, Subscription, connection::CursorType, types::connection::*,
+};
 
 use std::io::Read;
 
@@ -218,26 +220,96 @@ impl Query {
         after: Option<String>,
         #[graphql(default_with = "Some(ProspectsSort::default())")] sort: Option<ProspectsSort>,
         filter: Option<ProspectsFilter>,
-    ) -> async_graphql::Result<Connection<ProspectsCursor, Prospect, EmptyFields, EmptyFields>>
-    {
+    ) -> async_graphql::Result<Connection<String, Prospect, EmptyFields, EmptyFields>> {
+        let sort = sort.unwrap_or_default();
         let filter = DomainProspectsFilters {
             stage: filter.as_ref().and_then(|f| f.stage),
             customer_type: filter.as_ref().and_then(|f| f.customer_type),
         };
-        let sort = Sort {
-            by: DomainProspectsSortBy::from(sort.unwrap_or_default()),
-            direction: ListDirection::Descending,
-        };
+        let direction: es_entity::ListDirection = sort.direction.into();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_combo_cursor!(
-            ProspectsCursor,
-            Prospect,
-            sort.by,
-            ctx,
-            after,
-            first,
-            |query| app.customers().list_prospects(sub, query, filter, sort)
-        )
+
+        match sort.by {
+            ProspectsSortBy::CreatedAt => {
+                let domain_sort = es_entity::Sort {
+                    by: DomainProspectsSortBy::CreatedAt,
+                    direction,
+                };
+                let res = list_with_combo_cursor!(
+                    ProspectsCursor,
+                    Prospect,
+                    domain_sort.by,
+                    ctx,
+                    after,
+                    first,
+                    |query| app
+                        .customers()
+                        .list_prospects(sub, query, filter, domain_sort)
+                );
+                let connection: Connection<ProspectsCursor, Prospect, EmptyFields, EmptyFields> =
+                    res?;
+                let mut string_connection =
+                    Connection::new(connection.has_previous_page, connection.has_next_page);
+                string_connection.edges.extend(
+                    connection
+                        .edges
+                        .into_iter()
+                        .map(|edge| Edge::new(edge.cursor.encode_cursor(), edge.node)),
+                );
+                Ok(string_connection)
+            }
+            ProspectsSortBy::Email | ProspectsSortBy::TelegramHandle => {
+                let first_usize = first as usize;
+                let after_id = after
+                    .as_deref()
+                    .map(|s| s.parse::<ProspectId>())
+                    .transpose()?;
+
+                let (prospects, has_next_page) = match sort.by {
+                    ProspectsSortBy::Email => {
+                        app.customers()
+                            .list_prospects_by_party_email(
+                                sub,
+                                filter,
+                                direction,
+                                after_id,
+                                first_usize,
+                            )
+                            .await?
+                    }
+                    ProspectsSortBy::TelegramHandle => {
+                        app.customers()
+                            .list_prospects_by_party_telegram(
+                                sub,
+                                filter,
+                                direction,
+                                after_id,
+                                first_usize,
+                            )
+                            .await?
+                    }
+                    _ => unreachable!(),
+                };
+
+                let loader = ctx.data_unchecked::<LanaDataLoader>();
+                let mut connection = Connection::new(false, has_next_page);
+                connection.edges.extend(prospects.into_iter().map(|entity| {
+                    let cursor = entity.id.to_string();
+                    let prospect = Prospect::from(entity);
+                    Edge::new(cursor, prospect)
+                }));
+                loader
+                    .feed_many(
+                        connection
+                            .edges
+                            .iter()
+                            .map(|e| (e.node.entity.id, e.node.clone())),
+                    )
+                    .await;
+
+                Ok(connection)
+            }
+        }
     }
 
     async fn withdrawal(

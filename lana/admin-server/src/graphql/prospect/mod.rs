@@ -12,7 +12,7 @@ use super::{loader::LanaDataLoader, primitives::SortDirection};
 use lana_app::customer::{CustomerType, KycLevel, KycStatus, PersonalInfo, ProspectStage};
 pub use lana_app::customer::{
     Prospect as DomainProspect, ProspectsFilters as DomainProspectsFilters,
-    ProspectsSortBy as DomainProspectsSortBy, Sort,
+    ProspectsSortBy as DomainProspectsSortBy,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -173,14 +173,8 @@ crate::mutation_payload! { ProspectConvertPayload, customer: super::customer::Cu
 pub enum ProspectsSortBy {
     #[default]
     CreatedAt,
-}
-
-impl From<ProspectsSortBy> for DomainProspectsSortBy {
-    fn from(by: ProspectsSortBy) -> Self {
-        match by {
-            ProspectsSortBy::CreatedAt => DomainProspectsSortBy::CreatedAt,
-        }
-    }
+    Email,
+    TelegramHandle,
 }
 
 #[derive(InputObject, Default, Clone, Copy)]
@@ -189,21 +183,6 @@ pub struct ProspectsSort {
     pub by: ProspectsSortBy,
     #[graphql(default)]
     pub direction: SortDirection,
-}
-
-impl From<ProspectsSort> for DomainProspectsSortBy {
-    fn from(sort: ProspectsSort) -> Self {
-        sort.by.into()
-    }
-}
-
-impl From<ProspectsSort> for Sort<DomainProspectsSortBy> {
-    fn from(sort: ProspectsSort) -> Self {
-        Self {
-            by: sort.by.into(),
-            direction: sort.direction.into(),
-        }
-    }
 }
 
 #[derive(InputObject)]

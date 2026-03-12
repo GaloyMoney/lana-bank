@@ -2481,6 +2481,8 @@ input ProspectsSort {
 
 enum ProspectsSortBy {
 	CREATED_AT
+	EMAIL
+	TELEGRAM_HANDLE
 }
 
 scalar PublicId
