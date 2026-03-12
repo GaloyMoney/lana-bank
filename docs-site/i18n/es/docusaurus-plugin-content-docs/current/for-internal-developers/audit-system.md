@@ -6,441 +6,245 @@ sidebar_position: 12
 
 # Sistema de Auditoría y Registro
 
-Este documento describe el sistema de auditoría y registro implementado en Lana Bank para cumplimiento normativo y trazabilidad de operaciones.
+Este documento describe el sistema de registro de auditoría para cumplimiento y seguridad.
 
-## Visión General del Sistema
+## Descripción General
 
 El sistema de auditoría proporciona:
 
-- **Registro inmutable**: Todas las acciones de negocio se registran permanentemente
-- **Trazabilidad completa**: Correlación entre operaciones mediante trace IDs
-- **Cumplimiento normativo**: Soporte para requisitos regulatorios bancarios
-- **Consulta y análisis**: API GraphQL para consulta de registros
+- Historial completo de operaciones
+- Informes de cumplimiento
+- Monitoreo de seguridad
+- Análisis forense
 
-## Arquitectura de la Traza de Auditoría
+## Arquitectura
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Servicios de Dominio                         │
-│  ┌─────────────────┐  ┌─────────────────┐                      │
-│  │   core-credit   │  │   core-deposit  │                      │
-│  └────────┬────────┘  └────────┬────────┘                      │
-│           │                    │                               │
-│           └────────────────────┘                               │
-│                       │                                        │
-│                       ▼                                        │
-│           ┌───────────────────────┐                            │
-│           │    AuditService       │                            │
-│           │    record()           │                            │
-│           └───────────┬───────────┘                            │
-└───────────────────────┼────────────────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     PostgreSQL                                  │
-│           ┌───────────────────────┐                            │
-│           │    audit_entries      │                            │
-│           └───────────────────────┘                            │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    APP["Application Layer<br/>(GraphQL Resolvers, Domain Services)"] --> SVC["Audit Service<br/>(Intercepts and logs operations)"]
+    SVC --> REPO["Audit Repository<br/>(Persistent storage)"]
+    REPO --> PG["PostgreSQL<br/>(audit_entries table)"]
 ```
 
-## Estructura de la Entrada de Auditoría
+## Estructura de Entrada de Auditoría
 
 ```rust
 pub struct AuditEntry {
     pub id: AuditEntryId,
-    pub subject_id: String,
+    pub timestamp: DateTime<Utc>,
+    pub subject: SubjectId,
     pub subject_type: SubjectType,
     pub action: String,
-    pub object_type: String,
+    pub object: String,
     pub object_id: Option<String>,
-    pub outcome: Outcome,
+    pub outcome: AuditOutcome,
+    pub ip_address: Option<IpAddr>,
+    pub user_agent: Option<String>,
+    pub correlation_id: Option<Uuid>,
     pub metadata: serde_json::Value,
-    pub trace_id: Option<String>,
-    pub span_id: Option<String>,
-    pub created_at: DateTime<Utc>,
 }
 
 pub enum SubjectType {
     User,
     System,
-    ApiKey,
+    ApiClient,
 }
 
-pub enum Outcome {
+pub enum AuditOutcome {
     Success,
     Failure,
-    PermissionDenied,
+    Denied,
 }
 ```
 
-### Esquema de Base de Datos
+## Categorías de Auditoría
 
-```sql
-CREATE TABLE audit_entries (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    subject_id VARCHAR(255) NOT NULL,
-    subject_type VARCHAR(50) NOT NULL,
-    action VARCHAR(100) NOT NULL,
-    object_type VARCHAR(100) NOT NULL,
-    object_id VARCHAR(255),
-    outcome VARCHAR(50) NOT NULL,
-    metadata JSONB DEFAULT '{}',
-    trace_id VARCHAR(32),
-    span_id VARCHAR(16),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+| Categoría | Descripción | Ejemplos |
+|----------|-------------|----------|
+| Autenticación | Eventos de inicio/cierre de sesión | Inicio de sesión de usuario, expiración de sesión |
+| Autorización | Decisiones de permisos | Acceso denegado, verificación de rol |
+| Acceso a Datos | Operaciones de lectura | Ver cliente, exportar informe |
+| Modificación de Datos | Operaciones de escritura | Crear instalación, actualizar términos |
+| Eventos del Sistema | Procesos en segundo plano | Ejecución de trabajo, sincronización completada |
 
-CREATE INDEX idx_audit_entries_subject ON audit_entries(subject_id);
-CREATE INDEX idx_audit_entries_object ON audit_entries(object_type, object_id);
-CREATE INDEX idx_audit_entries_created_at ON audit_entries(created_at DESC);
-CREATE INDEX idx_audit_entries_trace_id ON audit_entries(trace_id);
-```
+## Puntos de Integración
 
-## Marco de Registro Estructurado
-
-### Integración con Tracing
+### Middleware de GraphQL
 
 ```rust
-use tracing::{info, instrument, Span};
+pub struct AuditMiddleware {
+    audit_service: Arc<AuditService>,
+}
 
-impl AuditService {
-    #[instrument(skip(self, subject, metadata), fields(
-        audit.subject_id = %subject.id(),
-        audit.action = %action,
-        audit.object_type = %object.object_type()
-    ))]
-    pub async fn record(
-        &self,
-        subject: &Subject,
-        action: Action,
-        object: Object,
-        outcome: Outcome,
-        metadata: Option<serde_json::Value>,
-    ) -> Result<AuditEntry, AuditError> {
-        // Obtener IDs de traza del span actual
-        let trace_id = Span::current()
-            .context()
-            .span()
-            .span_context()
-            .trace_id()
-            .to_string();
+impl Extension for AuditMiddleware {
+    async fn execute(&self, ctx: &ExtensionContext<'_>, operation_name: Option<&str>, next: NextExecute<'_>) -> Response {
+        let start = Instant::now();
+        let subject = ctx.data::<SubjectId>().cloned();
 
-        let span_id = Span::current()
-            .context()
-            .span()
-            .span_context()
-            .span_id()
-            .to_string();
+        let response = next.run(ctx, operation_name).await;
 
-        let entry = AuditEntry {
-            id: AuditEntryId::new(),
-            subject_id: subject.id().to_string(),
-            subject_type: subject.subject_type(),
-            action: action.to_string(),
-            object_type: object.object_type(),
-            object_id: object.id().map(|id| id.to_string()),
-            outcome,
-            metadata: metadata.unwrap_or(serde_json::Value::Null),
-            trace_id: Some(trace_id),
-            span_id: Some(span_id),
-            created_at: Utc::now(),
-        };
+        // Log the operation
+        if let Some(subject) = subject {
+            self.audit_service.log(AuditEntry {
+                subject,
+                action: operation_name.unwrap_or("unknown").to_string(),
+                outcome: if response.is_ok() { AuditOutcome::Success } else { AuditOutcome::Failure },
+                ..Default::default()
+            }).await.ok();
+        }
 
-        // Log estructurado
-        info!(
-            subject_id = %entry.subject_id,
-            action = %entry.action,
-            object_type = %entry.object_type,
-            outcome = ?entry.outcome,
-            "Audit entry recorded"
-        );
-
-        self.persist(&entry).await?;
-        Ok(entry)
+        response
     }
 }
 ```
 
-### Infraestructura de Registro para Pruebas
+### Auditoría de Servicios de Dominio
 
 ```rust
-#[cfg(test)]
-pub fn init_test_logging() {
-    use tracing_subscriber::{fmt, EnvFilter};
+impl CreditService {
+    pub async fn create_facility(
+        &self,
+        subject: &SubjectId,
+        input: CreateFacilityInput,
+    ) -> Result<CreditFacility> {
+        let facility = self.do_create_facility(input).await?;
 
-    let _ = fmt()
-        .with_env_filter(EnvFilter::from_default_env())
-        .with_test_writer()
-        .try_init();
+        // Audit the operation
+        self.audit.log(AuditEntry {
+            subject: subject.clone(),
+            action: "create_facility".to_string(),
+            object: "credit_facility".to_string(),
+            object_id: Some(facility.id.to_string()),
+            outcome: AuditOutcome::Success,
+            metadata: json!({
+                "amount": facility.amount,
+                "customer_id": facility.customer_id,
+            }),
+            ..Default::default()
+        }).await?;
+
+        Ok(facility)
+    }
 }
 ```
 
-## API de Auditoría GraphQL
+## API de Consultas
 
-### Estructura de la Consulta
+### Consulta GraphQL
 
 ```graphql
-type Query {
-    auditEntries(
-        first: Int
-        after: String
-        filter: AuditEntryFilter
-    ): AuditEntryConnection!
-
-    auditEntry(id: ID!): AuditEntry
-}
-
-input AuditEntryFilter {
-    subjectId: String
-    objectType: String
-    objectId: String
-    action: String
-    outcome: Outcome
-    fromDate: DateTime
-    toDate: DateTime
-    traceId: String
-}
-
-type AuditEntry {
-    id: ID!
-    subjectId: String!
-    subjectType: SubjectType!
-    action: String!
-    objectType: String!
-    objectId: String
-    outcome: Outcome!
-    metadata: JSON
-    traceId: String
-    createdAt: DateTime!
-}
-
-type AuditEntryConnection {
-    edges: [AuditEntryEdge!]!
-    pageInfo: PageInfo!
+query GetAuditLogs($filter: AuditFilter!, $first: Int, $after: String) {
+  auditEntries(filter: $filter, first: $first, after: $after) {
+    edges {
+      node {
+        id
+        timestamp
+        subject
+        action
+        object
+        objectId
+        outcome
+        metadata
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
 }
 ```
 
-### Implementación del Resolver
+### Opciones de Filtro
+
+```graphql
+input AuditFilter {
+  subjectId: ID
+  action: String
+  object: String
+  outcome: AuditOutcome
+  startDate: DateTime
+  endDate: DateTime
+}
+```
+
+## Política de Retención
+
+| Tipo de Datos | Período de Retención |
+|-----------|------------------|
+| Registros de autenticación | 2 años |
+| Registros de autorización | 2 años |
+| Registros de transacciones | 7 años |
+| Registros del sistema | 1 año |
+
+## Informes de Cumplimiento
+
+### Informe de Actividad del Usuario
+
+```graphql
+query UserActivityReport($userId: ID!, $period: DateRange!) {
+  userActivityReport(userId: $userId, period: $period) {
+    totalActions
+    actionsByType {
+      action
+      count
+    }
+    timeline {
+      date
+      actions
+    }
+  }
+}
+```
+
+### Informe de Acceso
+
+```graphql
+query AccessReport($objectType: String!, $period: DateRange!) {
+  accessReport(objectType: $objectType, period: $period) {
+    totalAccesses
+    uniqueUsers
+    byAction {
+      action
+      count
+    }
+  }
+}
+```
+
+## Monitoreo de Seguridad
+
+### Detección de Anomalías
+
+Monitorear patrones inusuales:
+
+- Múltiples intentos fallidos de inicio de sesión
+- Acceso fuera del horario habitual
+- Exportaciones masivas de datos
+- Intentos de escalada de privilegios
+
+### Alertas
 
 ```rust
-#[Object]
-impl AuditQuery {
-    async fn audit_entries(
-        &self,
-        ctx: &Context<'_>,
-        first: Option<i32>,
-        after: Option<String>,
-        filter: Option<AuditEntryFilter>,
-    ) -> Result<Connection<String, AuditEntry>> {
-        // Verificar permisos de auditoría
-        let auth = ctx.data::<AuthContext>()?;
-        auth.enforce(Object::AuditEntry, Action::Read).await?;
+pub struct AuditAlertService {
+    audit_repo: AuditRepo,
+    notification_service: NotificationService,
+}
 
-        let audit_service = ctx.data::<AuditService>()?;
-        let entries = audit_service.list(filter, first, after).await?;
+impl AuditAlertService {
+    pub async fn check_for_anomalies(&self) -> Result<()> {
+        // Check for suspicious patterns
+        let failed_logins = self.audit_repo
+            .count_failed_logins_last_hour()
+            .await?;
 
-        Ok(entries.into())
+        if failed_logins > 10 {
+            self.notification_service
+                .send_security_alert("High number of failed logins detected")
+                .await?;
+        }
+
+        Ok(())
     }
 }
 ```
-
-## Interfaz Administrativa
-
-### Componentes de la UI de Registros de Auditoría
-
-```tsx
-// apps/admin-panel/app/audit/page.tsx
-export default function AuditLogsPage() {
-    const { data, loading, fetchMore } = useAuditEntriesQuery({
-        variables: { first: 50 }
-    });
-
-    return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Registros de Auditoría</h1>
-
-            <AuditFilters onFilter={handleFilter} />
-
-            <AuditTable
-                entries={data?.auditEntries.edges}
-                loading={loading}
-            />
-
-            <Pagination
-                pageInfo={data?.auditEntries.pageInfo}
-                onLoadMore={() => fetchMore({ /* ... */ })}
-            />
-        </div>
-    );
-}
-```
-
-### Componente de Tabla
-
-```tsx
-function AuditTable({ entries, loading }) {
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Usuario</TableHead>
-                    <TableHead>Acción</TableHead>
-                    <TableHead>Recurso</TableHead>
-                    <TableHead>Resultado</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {entries?.map((edge) => (
-                    <TableRow key={edge.node.id}>
-                        <TableCell>
-                            <DateWithTooltip date={edge.node.createdAt} />
-                        </TableCell>
-                        <TableCell>{edge.node.subjectId}</TableCell>
-                        <TableCell>{edge.node.action}</TableCell>
-                        <TableCell>
-                            {edge.node.objectType}
-                            {edge.node.objectId && `: ${edge.node.objectId}`}
-                        </TableCell>
-                        <TableCell>
-                            <OutcomeBadge outcome={edge.node.outcome} />
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    );
-}
-```
-
-## Cumplimiento y Pruebas
-
-### Patrones de Verificación de Pruebas
-
-```rust
-#[tokio::test]
-async fn test_audit_entry_created_on_facility_creation() {
-    let app = test_app().await;
-
-    // Crear facilidad
-    let facility = app.credit_facilities
-        .create(test_subject(), test_input())
-        .await
-        .unwrap();
-
-    // Verificar entrada de auditoría
-    let entries = app.audit
-        .list_by_object("CreditFacility", &facility.id.to_string())
-        .await
-        .unwrap();
-
-    assert_eq!(entries.len(), 1);
-    assert_eq!(entries[0].action, "Create");
-    assert_eq!(entries[0].outcome, Outcome::Success);
-}
-
-#[tokio::test]
-async fn test_audit_entry_on_permission_denied() {
-    let app = test_app().await;
-    let unauthorized_subject = Subject::user("unauthorized-user");
-
-    // Intentar operación sin permisos
-    let result = app.credit_facilities
-        .create(unauthorized_subject, test_input())
-        .await;
-
-    assert!(result.is_err());
-
-    // Verificar entrada de auditoría de fallo
-    let entries = app.audit
-        .list_by_subject("unauthorized-user")
-        .await
-        .unwrap();
-
-    assert_eq!(entries.len(), 1);
-    assert_eq!(entries[0].outcome, Outcome::PermissionDenied);
-}
-```
-
-## Análisis de Registros y Monitoreo
-
-### Coincidencia de Patrones en Registros
-
-```rust
-pub struct AuditAnalytics {
-    pool: PgPool,
-}
-
-impl AuditAnalytics {
-    /// Obtener conteo de acciones por tipo en un período
-    pub async fn actions_by_type(
-        &self,
-        from: DateTime<Utc>,
-        to: DateTime<Utc>,
-    ) -> Result<Vec<ActionCount>, Error> {
-        sqlx::query_as!(
-            ActionCount,
-            r#"
-            SELECT action, COUNT(*) as count
-            FROM audit_entries
-            WHERE created_at BETWEEN $1 AND $2
-            GROUP BY action
-            ORDER BY count DESC
-            "#,
-            from,
-            to
-        )
-        .fetch_all(&self.pool)
-        .await
-    }
-
-    /// Obtener usuarios más activos
-    pub async fn most_active_users(
-        &self,
-        from: DateTime<Utc>,
-        to: DateTime<Utc>,
-        limit: i32,
-    ) -> Result<Vec<UserActivity>, Error> {
-        sqlx::query_as!(
-            UserActivity,
-            r#"
-            SELECT subject_id, COUNT(*) as action_count
-            FROM audit_entries
-            WHERE created_at BETWEEN $1 AND $2
-              AND subject_type = 'User'
-            GROUP BY subject_id
-            ORDER BY action_count DESC
-            LIMIT $3
-            "#,
-            from,
-            to,
-            limit
-        )
-        .fetch_all(&self.pool)
-        .await
-    }
-
-    /// Detectar patrones anómalos
-    pub async fn detect_anomalies(
-        &self,
-        threshold: i64,
-    ) -> Result<Vec<AnomalyReport>, Error> {
-        sqlx::query_as!(
-            AnomalyReport,
-            r#"
-            SELECT subject_id, action, COUNT(*) as count
-            FROM audit_entries
-            WHERE created_at > NOW() - INTERVAL '1 hour'
-            GROUP BY subject_id, action
-            HAVING COUNT(*) > $1
-            "#,
-            threshold
-        )
-        .fetch_all(&self.pool)
-        .await
-    }
-}
-```
-
-## Retención y Archivado

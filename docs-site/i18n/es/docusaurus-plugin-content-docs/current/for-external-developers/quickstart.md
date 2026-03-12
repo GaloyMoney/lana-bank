@@ -1,22 +1,22 @@
 ---
 id: quickstart
-title: Quickstart
+title: Inicio Rápido
 sidebar_position: 2
 ---
 
-# Developer Quickstart
+# Inicio Rápido para Desarrolladores
 
-Get started with the Lana APIs in minutes.
+Comienza a usar las APIs de Lana en minutos.
 
-## Prerequisites
+## Requisitos Previos
 
-- API credentials provided by your Lana administrator
-- A GraphQL client (curl, Postman, or a language-specific client library)
-- Your Lana instance URL (e.g., `https://admin.your-instance.com`)
+- Credenciales de API proporcionadas por tu administrador de Lana
+- Un cliente GraphQL (curl, Postman o una biblioteca cliente específica del lenguaje)
+- La URL de tu instancia de Lana (por ejemplo, `https://admin.your-instance.com`)
 
-## Step 1: Obtain an Authentication Token
+## Paso 1: Obtener un Token de Autenticación
 
-Lana uses OAuth 2.0 / OpenID Connect for authentication. Request a token from the identity provider:
+Lana utiliza OAuth 2.0 / OpenID Connect para la autenticación. Solicita un token del proveedor de identidad:
 
 ```bash
 curl -X POST \
@@ -26,9 +26,9 @@ curl -X POST \
   https://auth.your-instance.com/realms/admin/protocol/openid-connect/token
 ```
 
-Extract the `access_token` from the JSON response.
+Extrae el `access_token` de la respuesta JSON.
 
-## Step 2: Make Your First Query
+## Paso 2: Realiza tu Primera Consulta
 
 ```bash
 curl -X POST \
@@ -38,16 +38,16 @@ curl -X POST \
   https://admin.your-instance.com/graphql
 ```
 
-## Step 3: Explore the Schema
+## Paso 3: Explora el Esquema
 
-Use GraphQL introspection or browse the API references to discover available operations:
+Utiliza la introspección de GraphQL o navega por las referencias de la API para descubrir las operaciones disponibles:
 
-- [Admin API Reference](../apis/admin-api) — Full administrative operations
-- [Customer API Reference](../apis/customer-api) — Customer-facing operations
+- [Referencia de la API de Administración](../apis/admin-api) — Operaciones administrativas completas
+- [Referencia de la API de Cliente](../apis/customer-api) — Operaciones de cara al cliente
 
-## Next Steps
+## Próximos Pasos
 
-- [Authentication](authentication) — Token management and refresh flows
-- [GraphQL Integration](graphql-integration) — Client library setup and common patterns
+- [Autenticación](authentication) — Gestión de tokens y flujos de actualización
+- [Integración con GraphQL](graphql-integration) — Configuración de bibliotecas cliente y patrones comunes
 - [Suscripciones en Tiempo Real](realtime-subscriptions) — Suscríbete a notificaciones de eventos en tiempo real
-- [Domain Events](../apis/events) — Event catalog
+- [Eventos de Dominio](../apis/events/events.md) — Catálogo de eventos

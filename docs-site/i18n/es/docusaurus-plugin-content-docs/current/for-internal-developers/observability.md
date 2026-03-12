@@ -1,29 +1,29 @@
 ---
 id: observability
-title: Trazabilidad y Observabilidad
+title: Observabilidad
 sidebar_position: 11
 ---
 
 # Trazabilidad y Observabilidad
 
-Este documento describe la infraestructura de trazabilidad distribuida y observabilidad del sistema Lana Bank. Cubre la integración con OpenTelemetry, la propagación del contexto de traza a través de límites de servicio y trabajos asíncronos, patrones de instrumentación y funcionalidades de observabilidad.
+Este documento describe la infraestructura de observabilidad de Lana, incluyendo el rastreo distribuido con OpenTelemetry.
 
 ```mermaid
 graph TD
-    subgraph EntryPoints["Puntos de Entrada"]
+    subgraph EntryPoints["Entry Points"]
         CLI["lana-cli"]
         AS["admin-server"]
         CS["customer-server"]
     end
 
-    subgraph AppLayer["Capa de Aplicación"]
+    subgraph AppLayer["Application Layer"]
         LA["lana-app"]
-        EVENTS["lana-events<br/>Definiciones de Eventos"]
-        RBAC["Role Types<br/>Definiciones RBAC"]
-        IDS["lana-ids<br/>Tipos de ID"]
+        EVENTS["lana-events<br/>Event Definitions"]
+        RBAC["Role Types<br/>RBAC Definitions"]
+        IDS["lana-ids<br/>Entity ID Types"]
     end
 
-    subgraph DomainLayer["Capa de Dominio"]
+    subgraph DomainLayer["Domain Layer"]
         CC["core-credit"]
         CD["core-deposit"]
         CCU["core-customer"]
@@ -48,363 +48,222 @@ graph TD
     LA --> GOV
 ```
 
-## Arquitectura de Observabilidad
+## Descripción General
 
-El sistema implementa trazabilidad distribuida usando OpenTelemetry (OTEL) para proporcionar observabilidad de extremo a extremo.
+Lana implementa observabilidad integral mediante:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Servicios de Aplicación                     │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │  admin-server   │  │ customer-server │  │  Background     │ │
-│  │                 │  │                 │  │     Jobs        │ │
-│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘ │
-│           │                    │                    │          │
-│           └────────────────────┼────────────────────┘          │
-│                                │                               │
-│                    ┌───────────▼───────────┐                   │
-│                    │    tracing-utils      │                   │
-│                    │   (Librería central)  │                   │
-│                    └───────────┬───────────┘                   │
-└────────────────────────────────┼───────────────────────────────┘
-                                 │
-                    ┌────────────▼────────────┐
-                    │    OTEL Collector       │
-                    │   (otel-agent:4317)     │
-                    └────────────┬────────────┘
-                                 │
-           ┌─────────────────────┼─────────────────────┐
-           │                     │                     │
-           ▼                     ▼                     ▼
-    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-    │    Jaeger    │    │  Prometheus  │    │   Grafana    │
-    │   (Trazas)   │    │  (Métricas)  │    │  (Dashboards)│
-    └──────────────┘    └──────────────┘    └──────────────┘
+- **Rastreo Distribuido**: Integración con OpenTelemetry
+- **Registro Estructurado**: Entradas de registro contextuales
+- **Métricas**: Métricas de rendimiento y negocio
+- **Correlación**: Rastreo de solicitudes entre servicios
+
+## Arquitectura
+
+```mermaid
+graph TD
+    TRACES["Application<br/>(Traces)"] --> OTEL
+    LOGS["Application<br/>(Logs)"] --> OTEL
+    METRICS["Application<br/>(Metrics)"] --> OTEL
+    OTEL["OpenTelemetry SDK<br/>(Unified Telemetry Collection)"] --> BACKEND["Telemetry Backend<br/>(Jaeger / Prometheus / Loki)"]
 ```
 
 ## Integración con OpenTelemetry
 
-### Inicialización del Tracer
-
-La librería `tracing-utils` proporciona la función `init_tracer()` que configura la canalización completa de trazas:
+### Configuración
 
 ```rust
-// lib/tracing-utils/src/lib.rs
-pub fn init_tracer(config: TracingConfig) -> Result<(), TracingError> {
-    // Configurar propagador W3C
-    opentelemetry::global::set_text_map_propagator(
-        TraceContextPropagator::new()
-    );
+use opentelemetry::global;
+use opentelemetry_otlp::WithExportConfig;
+use tracing_subscriber::prelude::*;
 
-    // Configurar exportador OTLP
-    let exporter = opentelemetry_otlp::new_exporter()
-        .tonic()
-        .with_endpoint(&config.otlp_endpoint)
-        .build_span_exporter()?;
+pub fn init_telemetry() -> Result<()> {
+    let tracer = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(
+            opentelemetry_otlp::new_exporter()
+                .tonic()
+                .with_endpoint("http://localhost:4317")
+        )
+        .install_batch(opentelemetry::runtime::Tokio)?;
 
-    // Configurar proveedor de trazas
-    let provider = TracerProvider::builder()
-        .with_batch_exporter(exporter, runtime::Tokio)
-        .with_sampler(Sampler::AlwaysOn)
-        .with_resource(Resource::new(vec![
-            KeyValue::new("service.name", config.service_name),
-            KeyValue::new("service.version", config.service_version),
-        ]))
-        .build();
-
-    opentelemetry::global::set_tracer_provider(provider);
-
-    // Configurar subscriber de tracing
     let telemetry = tracing_opentelemetry::layer()
-        .with_tracer(opentelemetry::global::tracer("lana"));
+        .with_tracer(tracer);
 
-    let subscriber = Registry::default()
-        .with(EnvFilter::from_default_env())
+    tracing_subscriber::registry()
         .with(telemetry)
-        .with(fmt::layer());
-
-    tracing::subscriber::set_global_default(subscriber)?;
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 
     Ok(())
 }
 ```
 
-### Componentes Clave
-
-| Componente | Propósito | Configuración |
-|------------|-----------|---------------|
-| TraceContextPropagator | Propagación de contexto W3C | Propagador global |
-| SpanExporter | Exportador OTLP sobre gRPC | Variable `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| TracerProvider | Proveedor de trazas | Exportador por lotes, Sampler AlwaysOn |
-| tracing-opentelemetry | Puente al ecosistema tracing | Capa de telemetría |
-| EnvFilter | Filtrado de nivel de logs | Variable `RUST_LOG` |
-
-### Configuración del Servicio
+### Instrumentación
 
 ```rust
-pub struct TracingConfig {
-    pub service_name: String,
-    pub service_version: String,
-    pub otlp_endpoint: String,
-}
+use tracing::{instrument, info, span, Level};
 
-impl TracingConfig {
-    pub fn from_env() -> Self {
-        Self {
-            service_name: std::env::var("OTEL_SERVICE_NAME")
-                .unwrap_or_else(|_| "lana".to_string()),
-            service_version: std::env::var("OTEL_SERVICE_VERSION")
-                .unwrap_or_else(|_| "0.0.0".to_string()),
-            otlp_endpoint: std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT")
-                .unwrap_or_else(|_| "http://localhost:4317".to_string()),
-        }
-    }
-}
-```
-
-## Propagación del Contexto de Traza
-
-### Propagación HTTP
-
-#### Extracción de Solicitudes Entrantes
-
-```rust
-pub fn extract_trace_context(headers: &HeaderMap) -> Context {
-    let extractor = HeaderExtractor(headers);
-    opentelemetry::global::get_text_map_propagator(|propagator| {
-        propagator.extract(&extractor)
-    })
-}
-
-// Uso en handler GraphQL
-async fn graphql_handler(headers: HeaderMap, req: Request) -> Response {
-    let parent_context = extract_trace_context(&headers);
-
-    let span = tracing::info_span!("graphql.request");
-    span.set_parent(parent_context);
-
-    span.in_scope(|| {
-        // Procesar solicitud
-    }).await
-}
-```
-
-#### Inyección en Solicitudes Salientes
-
-```rust
-pub fn inject_trace_context(headers: &mut HeaderMap) {
-    let mut injector = HeaderInjector(headers);
-    opentelemetry::global::get_text_map_propagator(|propagator| {
-        propagator.inject_context(&Span::current().context(), &mut injector)
-    });
-}
-
-// Uso en cliente HTTP
-async fn call_external_service(&self, url: &str) -> Result<Response, Error> {
-    let mut headers = HeaderMap::new();
-    inject_trace_context(&mut headers);
-
-    self.client
-        .get(url)
-        .headers(headers)
-        .send()
-        .await
-}
-```
-
-### Propagación Basada en Persistencia
-
-Para trabajos asíncronos, el contexto se serializa y almacena:
-
-```rust
-#[derive(Serialize, Deserialize)]
-pub struct SerializedTraceContext {
-    pub traceparent: String,
-    pub tracestate: Option<String>,
-}
-
-impl SerializedTraceContext {
-    pub fn from_current() -> Self {
-        let span = Span::current();
-        let context = span.context();
-
-        Self {
-            traceparent: extract_traceparent(&context),
-            tracestate: extract_tracestate(&context),
-        }
-    }
-
-    pub fn restore(&self) -> Context {
-        let mut carrier = HashMap::new();
-        carrier.insert("traceparent".to_string(), self.traceparent.clone());
-        if let Some(state) = &self.tracestate {
-            carrier.insert("tracestate".to_string(), state.clone());
-        }
-
-        opentelemetry::global::get_text_map_propagator(|propagator| {
-            propagator.extract(&carrier)
-        })
-    }
-}
-```
-
-## Patrones de Instrumentación
-
-### La Macro #[instrument]
-
-```rust
-use tracing::instrument;
-
-#[instrument(
-    name = "credit_facility.create",
-    skip(self, input),
-    fields(customer_id = %input.customer_id)
-)]
-pub async fn create_facility(
+#[instrument(skip(self), fields(facility_id = %facility_id))]
+pub async fn process_disbursal(
     &self,
-    input: CreateFacilityInput,
-) -> Result<CreditFacility, Error> {
-    // Lógica de negocio...
+    facility_id: CreditFacilityId,
+) -> Result<Disbursal> {
+    info!("Processing disbursal");
+
+    let facility = self.repo.find_by_id(facility_id).await?;
+
+    // Nested span for ledger operation
+    let ledger_span = span!(Level::INFO, "ledger_transfer");
+    let _guard = ledger_span.enter();
+
+    self.ledger.transfer(facility.amount).await?;
+
+    info!("Disbursal completed");
+    Ok(disbursal)
 }
 ```
 
-### Creación Manual de Spans
+## Propagación de Contexto
 
-```rust
-use tracing::{info_span, Instrument};
+### Cabeceras HTTP
 
-pub async fn process_payment(&self, payment_id: PaymentId) -> Result<(), Error> {
-    let span = info_span!(
-        "payment.process",
-        payment.id = %payment_id,
-        payment.status = tracing::field::Empty
-    );
+El contexto de rastreo se propaga a través de cabeceras HTTP:
 
-    async {
-        let payment = self.load_payment(payment_id).await?;
-
-        // Registrar campo dinámico
-        Span::current().record("payment.status", &payment.status.to_string());
-
-        self.execute_payment(&payment).await
-    }
-    .instrument(span)
-    .await
-}
+```
+traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01
+tracestate: lana=value
 ```
 
-### Registro de Campos Adicionales
+### Contexto de GraphQL
 
 ```rust
-use tracing::Span;
-
-pub async fn disburse(&self, facility_id: CreditFacilityId, amount: Money) {
-    // Registrar información adicional en el span actual
-    Span::current().record("facility.id", &facility_id.to_string());
-    Span::current().record("amount", &amount.to_string());
-
-    // También se pueden registrar eventos
-    tracing::info!(
-        facility_id = %facility_id,
-        amount = %amount,
-        "Disbursal initiated"
-    );
+pub struct GraphQLContext {
+    trace_id: TraceId,
+    span_id: SpanId,
+    subject: SubjectId,
 }
-```
 
-## Funcionalidades de Observabilidad
-
-### Hook de Captura de Pánicos
-
-```rust
-pub fn setup_panic_hook() {
-    std::panic::set_hook(Box::new(|panic_info| {
-        let span = Span::current();
-
-        // Registrar información del pánico en el span
-        span.record("panic", &true);
-        span.record("panic.message", &panic_info.to_string());
-
-        if let Some(location) = panic_info.location() {
-            span.record("panic.file", location.file());
-            span.record("panic.line", &location.line());
+impl GraphQLContext {
+    pub fn from_request(req: &Request) -> Self {
+        let trace_context = extract_trace_context(req);
+        Self {
+            trace_id: trace_context.trace_id,
+            span_id: trace_context.span_id,
+            subject: extract_subject(req),
         }
-
-        tracing::error!(
-            panic = true,
-            message = %panic_info,
-            "Application panic"
-        );
-    }));
+    }
 }
 ```
 
-### Registro de Campos de Error
+## Registro Estructurado
+
+### Formato de Registro
 
 ```rust
-pub fn record_error(error: &impl std::error::Error) {
-    Span::current().record("error", &true);
-    Span::current().record("error.message", &error.to_string());
+use tracing::{info, warn, error};
 
-    if let Some(source) = error.source() {
-        Span::current().record("error.source", &source.to_string());
+// Structured log with context
+info!(
+    customer_id = %customer.id,
+    email = %customer.email,
+    "Customer created"
+);
+
+// Error with context
+error!(
+    error = %e,
+    facility_id = %facility_id,
+    "Failed to process disbursal"
+);
+```
+
+### Niveles de Registro
+
+| Nivel | Uso |
+|-------|-------|
+| ERROR | Fallos del sistema, requiere atención |
+| WARN | Condiciones inesperadas pero recuperables |
+| INFO | Operaciones de negocio, eventos de auditoría |
+| DEBUG | Información detallada de depuración |
+| TRACE | Rastreo muy detallado |
+
+## Métricas
+
+### Métricas de Negocio
+
+```rust
+use metrics::{counter, gauge, histogram};
+
+// Count operations
+counter!("disbursals_processed_total").increment(1);
+
+// Track current values
+gauge!("active_facilities").set(count as f64);
+
+// Measure durations
+histogram!("disbursal_processing_seconds").record(duration);
+```
+
+### Métricas del Sistema
+
+- Latencia de solicitudes
+- Tasas de error
+- Pool de conexiones a la base de datos
+- Uso de memoria
+
+## IDs de Correlación
+
+Todas las solicitudes llevan contexto de correlación:
+
+```rust
+#[derive(Debug, Clone)]
+pub struct CorrelationContext {
+    pub trace_id: String,
+    pub span_id: String,
+    pub request_id: Uuid,
+    pub subject_id: Option<SubjectId>,
+}
+
+impl CorrelationContext {
+    pub fn new() -> Self {
+        Self {
+            trace_id: Span::current().context().trace_id().to_string(),
+            span_id: Span::current().context().span_id().to_string(),
+            request_id: Uuid::new_v4(),
+            subject_id: None,
+        }
     }
-
-    tracing::error!(
-        error = %error,
-        "Operation failed"
-    );
 }
 ```
 
-## Configuración
+## Paneles
 
-### Variables de Entorno
+### Panel de Operaciones
 
-| Variable | Propósito | Valor por defecto |
-|----------|-----------|-------------------|
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | Endpoint del colector OTEL | `http://localhost:4317` |
-| `OTEL_SERVICE_NAME` | Nombre del servicio | `lana` |
-| `OTEL_SERVICE_VERSION` | Versión del servicio | `0.0.0` |
-| `RUST_LOG` | Nivel de logging | `info` |
+- Volumen y latencia de solicitudes
+- Tasas de error por endpoint
+- Usuarios activos
+- Estado del sistema
 
-### Configuración del Colector OTEL
+### Panel de Negocio
 
-```yaml
+- Creaciones de instalaciones por día
+- Volumen de desembolsos
+- Procesamiento de pagos
+- Incorporación de clientes
 
-# dev/otel-agent-config.yaml
+## Alertas
 
-receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-      http:
-        endpoint: 0.0.0.0:4318
+### Alertas Críticas
 
-processors:
-  batch:
-    timeout: 1s
-    send_batch_size: 1024
+- Servicio no disponible
+- Tasa de error alta (>5%)
+- Fallas de conexión a la base de datos
+- Tiempos de espera agotados en servicios externos
 
-exporters:
-  jaeger:
-    endpoint: jaeger:14250
-    tls:
-      insecure: true
+### Alertas de Advertencia
 
-  prometheus:
-    endpoint: 0.0.0.0:8889
-
-service:
-  pipelines:
-    traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [jaeger]
-
-    metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus]
-```
+- Latencia elevada
+- Profundidad de cola alta
+- Presión de memoria
+- Espacio en disco bajo

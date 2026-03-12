@@ -6,218 +6,230 @@ sidebar_position: 10
 
 # Servicios de Infraestructura
 
-Este documento describe los servicios de infraestructura compartidos que soportan los servicios de dominio en Lana Bank. Estos servicios proporcionan capacidades transversales como auditoría, autorización, publicación de eventos y trazabilidad.
+Este documento describe los servicios de infraestructura transversales utilizados en toda la plataforma Lana.
 
-## Visión General de la Arquitectura
+## Descripción General
 
+Los servicios de infraestructura proporcionan:
+
+- Registro de auditoría
+- Autorización
+- Publicación de eventos (Outbox)
+- Procesamiento de trabajos en segundo plano
+
+## Arquitectura de Servicios
+
+```mermaid
+graph TD
+    subgraph INFRA["Infrastructure Services"]
+        AUDIT["Audit Service"]
+        AUTHZ["Authorization Service"]
+        OUTBOX["Outbox Service"]
+    end
+
+    AUDIT --> PG["PostgreSQL<br/>(Audit Logs, Casbin Policies, Outbox Events)"]
+    AUTHZ --> PG
+    OUTBOX --> PG
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Servicios de Dominio                         │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐               │
-│  │core-credit  │ │core-deposit │ │core-customer│               │
-│  └─────────────┘ └─────────────┘ └─────────────┘               │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                Servicios de Infraestructura (lib/*)             │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐            │
-│  │  audit  │  │  authz  │  │  outbox │  │   job   │            │
-│  └─────────┘  └─────────┘  └─────────┘  └─────────┘            │
-│  ┌─────────────────┐  ┌─────────────────────────────┐          │
-│  │  tracing-utils  │  │     cloud-storage           │          │
-│  └─────────────────┘  └─────────────────────────────┘          │
-└─────────────────────────────────────────────────────────────────┘
-```
 
-## Componentes Principales
+## Servicio de Auditoría
 
-### Sistema de Auditoría (audit)
-
-Proporciona registro inmutable de acciones para cumplimiento normativo y trazabilidad.
+Registra todas las operaciones del sistema para cumplimiento normativo:
 
 ```rust
-// lib/audit/src/lib.rs
 pub struct AuditService {
-    pool: PgPool,
-    tracer: Tracer,
+    repo: AuditRepo,
 }
 
 impl AuditService {
-    pub async fn record(
-        &self,
-        subject: &Subject,
-        action: Action,
-        object: Object,
-        outcome: Outcome,
-    ) -> Result<AuditEntry, AuditError> {
-        let entry = AuditEntry {
-            id: AuditEntryId::new(),
-            subject_id: subject.id().to_string(),
-            subject_type: subject.subject_type(),
-            action: action.to_string(),
-            object_type: object.object_type(),
-            object_id: object.id().map(|id| id.to_string()),
-            outcome: outcome.to_string(),
-            metadata: serde_json::Value::Null,
-            trace_id: self.current_trace_id(),
-            created_at: Utc::now(),
-        };
-
-        self.persist(&entry).await?;
-        Ok(entry)
+    pub async fn log(&self, entry: AuditEntry) -> Result<()> {
+        self.repo.insert(entry).await
     }
+}
+
+pub struct AuditEntry {
+    pub timestamp: DateTime<Utc>,
+    pub subject: SubjectId,
+    pub action: String,
+    pub object: String,
+    pub object_id: Option<String>,
+    pub outcome: AuditOutcome,
+    pub metadata: serde_json::Value,
 }
 ```
 
-#### Estructura de Entrada de Auditoría
+### Tipos de Entradas de Auditoría
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | UUID | Identificador único |
-| subject_id | String | ID del actor (usuario/sistema) |
-| subject_type | String | Tipo de actor |
-| action | String | Acción realizada |
-| object_type | String | Tipo de recurso afectado |
-| object_id | String | ID del recurso |
-| outcome | String | Resultado (success/failure) |
-| trace_id | String | ID de traza para correlación |
-| created_at | Timestamp | Fecha y hora |
+| Tipo | Descripción |
+|------|-------------|
+| Autenticación | Eventos de inicio/cierre de sesión |
+| Autorización | Verificaciones de permisos |
+| AccesoDatos | Operaciones de lectura |
+| ModificaciónDatos | Operaciones de escritura |
+| EventoSistema | Procesos en segundo plano |
 
-### Sistema de Autorización (authz)
+## Servicio de Autorización
 
-Implementa Control de Acceso Basado en Roles (RBAC) usando Casbin.
+Implementa RBAC utilizando Casbin:
 
 ```rust
-// lib/authz/src/lib.rs
-pub struct AuthzService {
+pub struct AuthorizationService {
     enforcer: Arc<RwLock<Enforcer>>,
+    audit: AuditService,
 }
 
-impl AuthzService {
-    pub async fn enforce(
+impl AuthorizationService {
+    pub async fn check(
         &self,
-        subject: &Subject,
-        object: Object,
-        action: Action,
-    ) -> Result<(), AuthzError> {
+        subject: &SubjectId,
+        object: &str,
+        action: &str,
+    ) -> Result<bool> {
         let enforcer = self.enforcer.read().await;
+        let result = enforcer.enforce((subject.as_str(), object, action))?;
 
-        let allowed = enforcer.enforce((
-            subject.id().to_string(),
-            object.to_string(),
-            action.to_string(),
-        ))?;
+        // Log authorization decision
+        self.audit.log(AuditEntry {
+            subject: subject.clone(),
+            action: action.to_string(),
+            object: object.to_string(),
+            outcome: if result { AuditOutcome::Allowed } else { AuditOutcome::Denied },
+            ..Default::default()
+        }).await?;
 
-        if !allowed {
-            return Err(AuthzError::PermissionDenied {
-                subject: subject.id().to_string(),
-                object: object.to_string(),
-                action: action.to_string(),
-            });
-        }
-
-        Ok(())
-    }
-
-    pub async fn add_role_for_user(
-        &self,
-        user_id: &str,
-        role: &str,
-    ) -> Result<(), AuthzError> {
-        let mut enforcer = self.enforcer.write().await;
-        enforcer.add_role_for_user(user_id, role, None).await?;
-        Ok(())
+        Ok(result)
     }
 }
 ```
 
-#### Modelo Casbin
+## Servicio Outbox
 
-```conf
-
-# model.conf
-
-[request_definition]
-r = sub, obj, act
-
-[policy_definition]
-p = sub, obj, act
-
-[role_definition]
-g = _, _
-
-[policy_effect]
-e = some(where (p.eft == allow))
-
-[matchers]
-m = g(r.sub, p.sub) && r.obj == p.obj && r.act == p.act
-```
-
-### Publicación de Eventos (outbox)
-
-Implementa el patrón outbox para entrega confiable de eventos.
+Publicación confiable de eventos:
 
 ```rust
-// lib/outbox/src/lib.rs
-pub struct OutboxPublisher {
+pub struct OutboxService {
     pool: PgPool,
 }
 
-impl OutboxPublisher {
-    pub async fn publish<E: Serialize>(
+impl OutboxService {
+    pub async fn publish(
         &self,
-        event: &E,
-        db_op: &mut DbOp<'_>,
-    ) -> Result<i64, OutboxError> {
-        let payload = serde_json::to_value(event)?;
-        let trace_context = TraceContext::from_current_span();
+        tx: &mut Transaction<'_, Postgres>,
+        event: impl Event,
+    ) -> Result<OutboxEventId> {
+        let entry = OutboxEntry {
+            id: Uuid::new_v4(),
+            aggregate_type: event.aggregate_type(),
+            aggregate_id: event.aggregate_id(),
+            event_type: event.event_type(),
+            payload: serde_json::to_value(&event)?,
+            created_at: Utc::now(),
+        };
 
-        let sequence = sqlx::query_scalar!(
-            r#"
-            INSERT INTO outbox_events (event_type, payload, trace_context)
-            VALUES ($1, $2, $3)
-            RETURNING sequence
-            "#,
-            std::any::type_name::<E>(),
-            payload,
-            serde_json::to_value(&trace_context)?,
-        )
-        .fetch_one(db_op.as_mut())
-        .await?;
+        sqlx::query(/* insert */)
+            .bind(&entry)
+            .execute(&mut **tx)
+            .await?;
 
-        Ok(sequence)
+        Ok(entry.id)
     }
 }
 ```
 
-### Sistema de Trabajos (job)
+## Servicio de Trabajos
 
-Proporciona infraestructura para procesamiento de tareas en segundo plano.
+Gestión de tareas en segundo plano:
 
 ```rust
-// lib/job/src/lib.rs
-pub trait Job: Send + Sync + 'static {
-    const NAME: &'static str;
-
-    async fn run(&self, current_job: CurrentJob) -> Result<JobCompletion, JobError>;
+pub struct JobService {
+    pool: PgPool,
+    executors: HashMap<JobType, Box<dyn JobExecutor>>,
 }
 
-pub enum JobCompletion {
-    Complete,
-    RescheduleAt(DateTime<Utc>),
-    RescheduleIn(Duration),
-}
+impl JobService {
+    pub async fn enqueue(&self, job: NewJob) -> Result<JobId> {
+        // Insert job into queue
+    }
 
-pub struct JobRegistry {
-    jobs: HashMap<String, Arc<dyn Job>>,
-}
+    pub async fn process_pending(&self) -> Result<u32> {
+        let jobs = self.fetch_ready_jobs().await?;
+        let mut processed = 0;
 
-impl JobRegistry {
-    pub fn register<J: Job>(&mut self, job: J) {
-        self.jobs.insert(J::NAME.to_string(), Arc::new(job));
+        for job in jobs {
+            if let Some(executor) = self.executors.get(&job.job_type) {
+                match executor.execute(job.payload).await {
+                    Ok(_) => self.mark_completed(job.id).await?,
+                    Err(e) => self.mark_failed(job.id, e).await?,
+                }
+                processed += 1;
+            }
+        }
+
+        Ok(processed)
     }
 }
 ```
 
-### Trazado y Observabilidad (tracing-utils)
+## Servicio de Configuración
+
+Gestiona la configuración de la aplicación:
+
+```rust
+pub struct ConfigService {
+    repo: ConfigRepo,
+    cache: Cache<String, ConfigValue>,
+}
+
+impl ConfigService {
+    pub async fn get<T: DeserializeOwned>(&self, key: &str) -> Result<T> {
+        if let Some(cached) = self.cache.get(key) {
+            return Ok(serde_json::from_value(cached)?);
+        }
+
+        let value = self.repo.get(key).await?;
+        self.cache.insert(key.to_string(), value.clone());
+        Ok(serde_json::from_value(value)?)
+    }
+
+    pub async fn set<T: Serialize>(&self, key: &str, value: T) -> Result<()> {
+        let json = serde_json::to_value(&value)?;
+        self.repo.set(key, json.clone()).await?;
+        self.cache.insert(key.to_string(), json);
+        Ok(())
+    }
+}
+```
+
+## Comprobaciones de Estado
+
+Monitoreo del estado del sistema:
+
+```rust
+pub struct HealthService {
+    checks: Vec<Box<dyn HealthCheck>>,
+}
+
+impl HealthService {
+    pub async fn check(&self) -> HealthStatus {
+        let mut results = Vec::new();
+
+        for check in &self.checks {
+            let result = check.run().await;
+            results.push(result);
+        }
+
+        HealthStatus::aggregate(results)
+    }
+}
+
+pub struct HealthStatus {
+    pub status: Status,
+    pub components: Vec<ComponentHealth>,
+}
+
+pub enum Status {
+    Healthy,
+    Degraded,
+    Unhealthy,
+}
+```

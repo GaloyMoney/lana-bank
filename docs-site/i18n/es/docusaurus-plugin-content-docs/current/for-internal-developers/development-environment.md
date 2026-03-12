@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Entorno de Desarrollo
 
-Este documento describe como configurar y utilizar el entorno de desarrollo local.
+Este documento describe cómo configurar y utilizar el entorno de desarrollo local.
 
 ## Requisitos Previos
 
@@ -14,9 +14,9 @@ Este documento describe como configurar y utilizar el entorno de desarrollo loca
 - Docker y Docker Compose
 - Git
 
-## Configuracion
+## Configuración
 
-### 1. Entrar al Shell de Nix
+### 1. Ingresar al Shell de Nix
 
 ```bash
 cd lana-bank
@@ -40,7 +40,7 @@ Esto inicia:
 cargo sqlx migrate run
 ```
 
-### 4. Iniciar la Aplicacion
+### 4. Iniciar Aplicación
 
 ```bash
 
@@ -56,16 +56,16 @@ make dev-up
 ## URLs de Servicios
 
 | Servicio | URL |
-|----------|-----|
-| Admin Panel | http://admin.localhost:4455 |
-| Customer Portal | http://app.localhost:4455 |
+|---------|-----|
+| Panel de Administración | http://admin.localhost:4455 |
+| Portal del Cliente | http://app.localhost:4455 |
 | Admin GraphQL | http://admin.localhost:4455/graphql |
 | Customer GraphQL | http://app.localhost:4455/graphql |
 | Keycloak | http://localhost:8081 |
 
 ## Desarrollo con Tilt
 
-Desarrollo interactivo con recompilacion automatica:
+Desarrollo interactivo con reconstrucciones automáticas:
 
 ```bash
 
@@ -73,7 +73,7 @@ Desarrollo interactivo con recompilacion automatica:
 
 make dev-up
 
-# Abrir la interfaz de Tilt
+# Abrir UI de Tilt
 
 # http://localhost:10350
 
@@ -90,22 +90,22 @@ make dev-down
 
 psql -h localhost -p 5433 -U lana -d lana
 
-# Reiniciar la base de datos
+# Restablecer base de datos
 
 make reset-deps
 ```
 
-## Desarrollo Frontend
+## Desarrollo del Frontend
 
 ```bash
 
-# Admin Panel
+# Panel de Administración
 
 cd apps/admin-panel
 pnpm install
 pnpm dev
 
-# Customer Portal
+# Portal del Cliente
 
 cd apps/customer-portal
 pnpm install
@@ -125,42 +125,42 @@ OATHKEEPER_URL=http://localhost:4455
 
 ## Credenciales de Keycloak
 
-| Realm | Usuario | Contrasena |
+| Reino | Usuario | Contraseña |
 |-------|---------|------------|
 | admin | admin | admin |
 | customer | test@test.com | test |
 
 ## Problemas Comunes
 
-### Conflictos de Puerto
+### Conflictos de Puertos
 
 ```bash
 
-# Verificar que esta usando un puerto
+# Verificar qué está usando un puerto
 
 lsof -i :5433
 
-# Terminar el proceso
+# Terminar proceso
 
 kill -9 <PID>
 ```
 
-### Reiniciar la Base de Datos
+### Reinicio de Base de Datos
 
 ```bash
 make reset-deps
 cargo sqlx migrate run
 ```
 
-### Problemas de Cache
+### Problemas de Caché
 
 ```bash
 
-# Limpiar cache de Rust
+# Limpiar caché de Rust
 
 cargo clean
 
-# Limpiar cache de pnpm
+# Limpiar caché de pnpm
 
 pnpm store prune
 ```

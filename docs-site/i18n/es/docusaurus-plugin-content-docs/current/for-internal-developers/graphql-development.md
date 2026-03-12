@@ -1,35 +1,35 @@
 ---
 id: graphql-development
-title: GraphQL Development
+title: Desarrollo con GraphQL
 sidebar_position: 5
 ---
 
-# GraphQL Development
+# Desarrollo con GraphQL
 
-This guide covers working with Lana's GraphQL APIs during local development.
+Esta guía cubre el trabajo con las APIs GraphQL de Lana durante el desarrollo local.
 
-## API Endpoints
+## Endpoints de la API
 
-| API | Local URL | Direct Port |
-|-----|-----------|-------------|
-| Admin API | http://admin.localhost:4455/graphql | 5253 |
-| Customer API | http://app.localhost:4455/graphql | 5254 |
+| API | URL Local | Puerto Directo |
+|-----|-----------|----------------|
+| API de Administración | http://admin.localhost:4455/graphql | 5253 |
+| API de Cliente | http://app.localhost:4455/graphql | 5254 |
 
 :::warning
-Always use the Oathkeeper URLs (port 4455) for development. Direct ports lack authentication context.
+Usa siempre las URLs de Oathkeeper (puerto 4455) para desarrollo. Los puertos directos carecen de contexto de autenticación.
 :::
 
-## Apollo Client Setup
+## Configuración de Apollo Client
 
-Both frontend apps use Apollo Client for GraphQL communication.
+Ambas aplicaciones frontend utilizan Apollo Client para la comunicación GraphQL.
 
-### Installation
+### Instalación
 
 ```bash
 npm install @apollo/client graphql
 ```
 
-### Configuration
+### Configuración
 
 ```typescript
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
@@ -55,19 +55,19 @@ const client = new ApolloClient({
 });
 ```
 
-## Code Generation
+## Generación de Código
 
-After modifying GraphQL schemas in Rust, regenerate the SDL and client types:
+Después de modificar los esquemas GraphQL en Rust, regenera el SDL y los tipos del cliente:
 
-### 1. Regenerate GraphQL SDL
+### 1. Regenerar el SDL de GraphQL
 
 ```bash
 make sdl
 ```
 
-This must be run after any changes to `async-graphql` resolvers in Rust.
+Esto debe ejecutarse después de cualquier cambio en los resolvers de `async-graphql` en Rust.
 
-### 2. Generate TypeScript Types
+### 2. Generar Tipos de TypeScript
 
 ```yaml
 
@@ -93,11 +93,11 @@ generates:
 pnpm codegen
 ```
 
-## Common Patterns
+## Patrones Comunes
 
-### Queries with Cursor Pagination
+### Consultas con Paginación por Cursor
 
-Lana APIs use Relay-style cursor-based pagination:
+Las APIs de Lana utilizan paginación basada en cursores al estilo Relay:
 
 ```graphql
 query GetCustomers($first: Int!, $after: String) {
@@ -118,7 +118,7 @@ query GetCustomers($first: Int!, $after: String) {
 }
 ```
 
-### Mutations
+### Mutaciones
 
 ```graphql
 mutation CreateCustomer($input: CustomerCreateInput!) {
@@ -132,7 +132,7 @@ mutation CreateCustomer($input: CustomerCreateInput!) {
 }
 ```
 
-### React Hooks Usage
+### Uso de React Hooks
 
 ```typescript
 import { useGetCustomersQuery, useCreateCustomerMutation } from './generated/graphql';
@@ -157,7 +157,7 @@ function CustomerList() {
 }
 ```
 
-## Error Handling
+## Manejo de Errores
 
 ```typescript
 import { onError } from '@apollo/client/link/error';
@@ -174,8 +174,8 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 });
 ```
 
-## API References
+## Referencias de la API
 
-- [Admin API Reference](../apis/admin-api) — Complete admin operations and types
-- [Customer API Reference](../apis/customer-api) — Customer-facing operations
-- [Domain Events](../apis/events) — Event catalog
+- [Referencia de la API de Administración](../apis/admin-api) — Operaciones y tipos administrativos completos
+- [Referencia de la API de Cliente](../apis/customer-api) — Operaciones orientadas al cliente
+- [Eventos de Dominio](../apis/events/events.md) — Catálogo de eventos

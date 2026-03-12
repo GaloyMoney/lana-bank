@@ -1,31 +1,31 @@
 ---
 id: custody-portfolio
-title: Custodia y Gestión de Carteras
+title: Custodia y Gestión de Cartera
 sidebar_position: 14
 ---
 
-# Custodia y Gestión de Carteras
+# Custodia y Gestión de Portafolio
 
-El módulo `core-custody` gestiona operaciones de custodia de Bitcoin mediante integración con proveedores de custodia externos (BitGo y Komainu).
+Este documento describe la integración con proveedores de custodia y sistemas de gestión de portafolio.
 
 ```mermaid
 graph TD
-    subgraph Foundation["Capa Base"]
+    subgraph Foundation["Foundation Layer"]
         ENTITY["es-entity"]
         OUTBOX["outbox"]
         AUDIT["audit"]
         AUTHZ["authz"]
         JOB["job"]
-        INFRA["Libs de Infraestructura"]
+        INFRA["Infrastructure Libs"]
         CALA["cala-ledger"]
     end
 
-    subgraph Deep["Capa de Dominio Profundo"]
+    subgraph Deep["Deep Domain Layer"]
         PUBEV["public-events"]
         STORAGE["document-storage"]
     end
 
-    subgraph Primary["Capa de Dominio Principal"]
+    subgraph Primary["Primary Domain Layer"]
         CCUST["core-customer"]
         CACCT["core-accounting"]
         CCREDIT["core-credit"]
@@ -34,7 +34,7 @@ graph TD
         GOV["governance"]
     end
 
-    subgraph App["Capa de Aplicación"]
+    subgraph App["Application Layer"]
         LA["lana-app"]
         AS["admin-server"]
         CS["customer-server"]
@@ -61,240 +61,167 @@ graph TD
     LA --> CALA
 ```
 
-## Propósito y Alcance
+## Descripción General
 
 Lana se integra con proveedores de custodia de criptomonedas:
 
 - **BitGo**: Proveedor principal de custodia
 - **Komainu**: Proveedor alternativo de custodia
-- **Custodia propia**: Derivación de direcciones basada en xpub con sondeo de saldo a través de esplora
+- **Autocustodia**: Derivación de direcciones basada en xpub con sondeo de saldo mediante esplora
 
-## Arquitectura del Sistema
+## Arquitectura
 
 ```mermaid
 graph TD
-    CORE["Lana Core<br/>(Módulo de Colateral de Crédito)"] --> ADAPTER["Adaptador de Custodia<br/>(Interfaz independiente del proveedor)"]
-    ADAPTER --> BITGO["BitGo<br/>(Proveedor)"]
-    ADAPTER --> KOMAINU["Komainu<br/>(Proveedor)"]
-    ADAPTER --> SELF["Autocustodia<br/>(xpub + esplora)"]
+    CORE["Lana Core<br/>(Credit Collateral Module)"] --> ADAPTER["Custody Adapter<br/>(Provider-agnostic interface)"]
+    ADAPTER --> BITGO["BitGo<br/>(Provider)"]
+    ADAPTER --> KOMAINU["Komainu<br/>(Provider)"]
+    ADAPTER --> SELF["Self-Custody<br/>(xpub + esplora)"]
 ```
 
-La autocustodia se diferencia de los custodios alojados en un aspecto clave: el backend solo almacena una cuenta `xpub`. Los operadores generan localmente la `xpriv` correspondiente con `lana-cli genxpriv` y la mantienen fuera del backend. El endpoint de esplora se carga al inicio desde `app.custody.custody_providers.self_custody_directory` en `lana.yml`, con una URL separada para cada red compatible. Este flujo soporta claves de cuenta para mainnet, testnet3, testnet4 y signet. Para cada nuevo préstamo, Lana deriva una dirección de recepción nueva a partir del `xpub` almacenado y luego consulta esplora para detectar cambios confirmados en el saldo, en lugar de depender de webhooks.
+La autocustodia difiere de los custodios alojados en un aspecto importante: el backend almacena únicamente un `xpub` de cuenta. Los operadores generan la `xpriv` de cuenta correspondiente localmente con `lana-cli genxpriv` y la mantienen fuera del backend. El endpoint de esplora se carga al inicio desde `app.custody.custody_providers.self_custody_directory` en `lana.yml`, con una URL separada por red compatible. Este flujo admite claves de cuenta para mainnet, testnet3, testnet4 y signet. Para cada nuevo préstamo, Lana deriva una nueva dirección de recepción del `xpub` almacenado, luego sondea esplora en busca de cambios de saldo confirmados en lugar de depender de webhooks.
 
-Para una guía práctica local sobre Signet, incluyendo la configuración de la cartera, la inspección de descriptores y la financiación de una facilidad pendiente desde `bitcoin-cli`, consulta [Pruebas de Autocustodia en Signet](self-custody-signet).
+Para un tutorial local de Signet, incluyendo configuración de billetera, inspección de descriptores y financiamiento de una facilidad pendiente desde `bitcoin-cli`, consulte [Prueba de Autocustodia en Signet](self-custody-signet).
 
-## Tipos de Datos Principales
-
-### Entidades de Dominio
-
-| Entidad | Propósito | Campos Clave |
-|---------|-----------|--------------|
-| Custodian | Configuración del proveedor de custodia | id, name, provider_type, config |
-| Wallet | Cartera de Bitcoin en un custodio | id, custodian_id, external_id, name |
-| WalletAddress | Dirección de depósito de Bitcoin | id, wallet_id, address, created_at |
-| WalletBalance | Saldo actual de la cartera | wallet_id, balance, last_synced_at |
-
-### Alias de Tipos Clave
-
-```rust
-pub type CustodianId = EntityId<Custodian>;
-pub type WalletId = EntityId<Wallet>;
-pub type WalletAddressId = EntityId<WalletAddress>;
-```
-
-## Integración con Proveedores de Custodia
-
-### Arquitectura del Proveedor
+## Interfaz del Proveedor de Custodia
 
 ```rust
 #[async_trait]
-pub trait CustodyProvider: Send + Sync {
-    async fn create_wallet(&self, name: &str) -> Result<ExternalWallet, CustodyError>;
-    async fn generate_address(&self, wallet_id: &str) -> Result<String, CustodyError>;
-    async fn get_balance(&self, wallet_id: &str) -> Result<Satoshis, CustodyError>;
+pub trait CustodyProvider {
+    async fn create_wallet(&self, params: WalletParams) -> Result<Wallet>;
+    async fn get_address(&self, wallet_id: WalletId) -> Result<Address>;
+    async fn get_balance(&self, wallet_id: WalletId) -> Result<Balance>;
+    async fn initiate_transfer(&self, transfer: TransferRequest) -> Result<TransferId>;
+    async fn get_transfer_status(&self, transfer_id: TransferId) -> Result<TransferStatus>;
 }
 ```
 
-### Integración con BitGo
+## Gestión de Billeteras
 
-```rust
-pub struct BitGoProvider {
-    client: BitGoClient,
-    enterprise_id: String,
-    coin: String, // "tbtc" para testnet, "btc" para mainnet
-}
+### Tipos de Billeteras
 
-impl BitGoProvider {
-    pub fn new(config: BitGoConfig) -> Self {
-        let client = BitGoClient::new(&config.api_url, &config.access_token);
-        Self {
-            client,
-            enterprise_id: config.enterprise_id,
-            coin: config.coin,
-        }
-    }
-}
+| Tipo | Propósito |
+|------|---------|
+| Billetera Activa | Liquidez operativa |
+| Billetera Fría | Almacenamiento a largo plazo |
+| Billetera de Garantía | Garantía del cliente |
+
+### Ciclo de Vida de la Billetera
+
+```mermaid
+graph LR
+    REQ["Solicitar Billetera"] --> CREATE["Crear Billetera"] --> ACTIVE["Billetera Activa"] --> ARCHIVE["Archivar Billetera"]
 ```
 
-### Integración con Komainu
+## Gestión de Garantías
+
+### Depositar Garantía
 
 ```rust
-pub struct KomainuProvider {
-    client: KomainuClient,
-    vault_id: String,
-}
-
-impl KomainuProvider {
-    pub fn new(config: KomainuConfig) -> Self {
-        let client = KomainuClient::new(
-            &config.api_url,
-            &config.api_key,
-            &config.api_secret,
-        );
-        Self {
-            client,
-            vault_id: config.vault_id,
-        }
-    }
-}
-```
-
-### Custodio Simulado (Mock)
-
-Para pruebas, se proporciona un custodio simulado:
-
-```rust
-#[cfg(feature = "mock-custodian")]
-pub struct MockCustodyProvider {
-    wallets: Arc<RwLock<HashMap<String, MockWallet>>>,
-}
-
-impl MockCustodyProvider {
-    pub fn new() -> Self {
-        Self {
-            wallets: Arc::new(RwLock::new(HashMap::new())),
-        }
-    }
-
-    pub fn set_balance(&self, wallet_id: &str, balance: Satoshis) {
-        let mut wallets = self.wallets.write().unwrap();
-        if let Some(wallet) = wallets.get_mut(wallet_id) {
-            wallet.balance = balance;
-        }
-    }
-}
-```
-
-## Ciclo de Vida de la Cartera
-
-### Creación de Cartera
-
-```rust
-impl CoreCustody {
-    pub async fn create_wallet_in_op(
-        &self,
-        custodian_id: CustodianId,
-        name: String,
-        db_op: &mut DbOp<'_>,
-    ) -> Result<Wallet, CustodyError> {
-        // 1. Cargar custodio
-        let custodian = self.custodians.find(&custodian_id, db_op).await?;
-
-        // 2. Crear cartera en el proveedor externo
-        let provider = self.get_provider(&custodian)?;
-        let external_wallet = provider.create_wallet(&name).await?;
-
-        // 3. Persistir cartera localmente
-        let wallet = Wallet::new(custodian_id, external_wallet.id, name);
-        self.wallets.create_in_op(&wallet, db_op).await?;
-
-        Ok(wallet)
-    }
-}
-```
-
-### Generación de Direcciones
-
-```rust
-pub async fn generate_wallet_address_in_op(
+pub async fn post_collateral(
     &self,
-    wallet_id: WalletId,
-    db_op: &mut DbOp<'_>,
-) -> Result<WalletAddress, CustodyError> {
-    // 1. Cargar cartera y custodio
-    let wallet = self.wallets.find(&wallet_id, db_op).await?;
-    let custodian = self.custodians.find(&wallet.custodian_id, db_op).await?;
+    facility_id: CreditFacilityId,
+    amount: Satoshis,
+) -> Result<CollateralRecord> {
+    // Generate deposit address
+    let address = self.custody.get_address(collateral_wallet).await?;
 
-    // 2. Generar dirección en el proveedor
-    let provider = self.get_provider(&custodian)?;
-    let address = provider.generate_address(&wallet.external_id).await?;
+    // Create pending collateral record
+    let record = CollateralRecord::pending(facility_id, amount, address);
 
-    // 3. Persistir dirección
-    let wallet_address = WalletAddress::new(wallet_id, address);
-    self.wallet_addresses.create_in_op(&wallet_address, db_op).await?;
-
-    // 4. Publicar evento
-    self.publisher.publish(
-        WalletEvent::AddressGenerated { wallet_id, address: wallet_address.address.clone() },
-        db_op
-    ).await?;
-
-    Ok(wallet_address)
+    self.repo.save(record).await
 }
 ```
 
-### Sincronización de Saldos
+### Monitoreo de Depósitos
+
+Un trabajo en segundo plano monitorea los depósitos entrantes:
 
 ```rust
-pub async fn sync_balance(&self, wallet_id: WalletId) -> Result<WalletBalance, CustodyError> {
-    let wallet = self.wallets.find(&wallet_id).await?;
-    let custodian = self.custodians.find(&wallet.custodian_id).await?;
+pub async fn check_deposits(&self) -> Result<()> {
+    let pending = self.repo.get_pending_collateral().await?;
 
-    let provider = self.get_provider(&custodian)?;
-    let balance = provider.get_balance(&wallet.external_id).await?;
+    for record in pending {
+        let balance = self.custody.get_balance(record.wallet_id).await?;
 
-    let wallet_balance = WalletBalance {
-        wallet_id,
-        balance,
-        last_synced_at: Utc::now(),
-    };
+        if balance >= record.expected_amount {
+            self.confirm_collateral(record.id).await?;
+        }
+    }
 
-    self.wallet_balances.upsert(&wallet_balance).await?;
-
-    // Publicar evento para actualizar colateral
-    self.publisher.publish(
-        WalletEvent::BalanceUpdated { wallet_id, balance }
-    ).await?;
-
-    Ok(wallet_balance)
+    Ok(())
 }
 ```
 
-## Sincronización de Colateral
+## Valoración de Cartera
 
-### Arquitectura de Sincronización
+### Fuentes de Precios
 
-El sistema sincroniza automáticamente los saldos de carteras y actualiza los valores de colateral:
+```rust
+pub struct PriceOracle {
+    providers: Vec<Box<dyn PriceProvider>>,
+}
 
+impl PriceOracle {
+    pub async fn get_btc_usd_price(&self) -> Result<Decimal> {
+        // Aggregate from multiple providers
+        let prices: Vec<Decimal> = futures::future::join_all(
+            self.providers.iter().map(|p| p.get_price("BTC", "USD"))
+        ).await.into_iter().filter_map(Result::ok).collect();
+
+        // Return median price
+        Ok(median(&prices))
+    }
+}
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ CollateralSync  │───▶│   CoreCustody   │───▶│ CustodyProvider │
-│      Job        │    │   sync_balance  │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │
-         ▼
-┌─────────────────┐    ┌─────────────────┐
-│  PriceService   │───▶│   Collaterals   │
-│ get_btc_price() │    │ update_value()  │
-└─────────────────┘    └─────────────────┘
+
+### Cálculo de LTV
+
+```rust
+pub async fn calculate_ltv(&self, facility_id: CreditFacilityId) -> Result<Decimal> {
+    let facility = self.facility_repo.find_by_id(facility_id).await?;
+    let collateral = self.collateral_repo.get_for_facility(facility_id).await?;
+
+    let btc_price = self.oracle.get_btc_usd_price().await?;
+    let collateral_value = collateral.amount * btc_price;
+
+    let ltv = facility.outstanding / collateral_value;
+    Ok(ltv)
+}
 ```
 
-### Tipos de Eventos de Colateral
+## Llamadas de Margen
 
-| Evento | Propósito |
-|--------|-----------|
-| WalletBalanceUpdated | Saldo de cartera actualizado |
-| CollateralValueUpdated | Valor en USD del colateral recalculado |
-| CollateralRatioChanged | Ratio de colateralización cambió |
+### Umbrales de LTV
 
-## Integración con Facilidades de Crédito
+| Umbral | Acción |
+|-----------|--------|
+| 60% | Requisito de margen inicial |
+| 70% | Notificación de advertencia |
+| 80% | Llamada de margen emitida |
+| 90% | Liquidación iniciada |
+
+### Proceso de Llamada de Margen
+
+```mermaid
+graph TD
+    DETECT["LTV > 70%<br/>Detectado"] --> NOTIFY["Notificar al Cliente"]
+    NOTIFY --> ADD["Cliente Añade<br/>Garantía"]
+    ADD --> RESOLVE["LTV Restaurado"]
+    ADD --> NOACT["LTV > 90%<br/>Sin Acción"]
+    NOACT --> LIQ["Liquidar Garantía"]
+```
+
+## Seguridad
+
+### Gestión de Claves
+
+- Billeteras multifirma
+- Módulos de seguridad de hardware (HSM)
+- Procedimientos de ceremonia de claves
+
+### Controles de Acceso
+
+- Permisos basados en roles
+- Autorización dual para transferencias grandes
+- Registro de auditoría

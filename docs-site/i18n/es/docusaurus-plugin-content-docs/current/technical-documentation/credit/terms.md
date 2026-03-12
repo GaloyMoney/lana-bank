@@ -6,40 +6,108 @@ sidebar_position: 6
 
 # Términos
 
-Términos es un **objeto de valor** que captura los parámetros bajo los cuales opera una facilidad de crédito.
-Se copia en una facilidad cuando la facilidad es creada y no cambia después.
+Términos es un objeto de valor que captura el conjunto completo de parámetros bajo los cuales opera una línea de crédito. Cuando se crea una línea a partir de una propuesta, los términos se copian de una plantilla y se convierten en el contrato permanente que rige el comportamiento de la línea. No pueden modificarse después de la creación de la línea.
 
 ## Campos
 
-La estructura `ValoresDeTérminos` contiene los siguientes campos:
+### Tasa de Interés
 
-- `tasa_anual` – tasa de interés cobrada sobre el principal pendiente.
-- `duración` – longitud total de la facilidad.
-- `duración_vencimiento_intereses_desde_devengo` – tiempo desde el devengo de intereses hasta cuando ese interés vence.
-- `duración_obligación_vencida_desde_vencimiento` – período de gracia opcional antes de que una obligación vencida se considere en mora.
-- `duración_liquidación_obligación_desde_vencimiento` – buffer opcional antes de que una obligación en mora sea elegible para liquidación.
-- `intervalo_ciclo_devengo` – cadencia con la que se generan nuevas obligaciones de interés.
-- `intervalo_devengo` – frecuencia utilizada para calcular el interés devengado dentro de un ciclo.
-- `tasa_comisión_única` – porcentaje de comisión tomado en el desembolso.
-- `cvl_liquidación` – límite de valor del colateral que activa la liquidación.
-- `cvl_llamada_margen` – límite de valor del colateral que activa una llamada de margen.
-- `cvl_inicial` – límite de valor del colateral requerido en la creación de la facilidad.
+**`annual_rate`** — La tasa de interés anualizada que se cobra sobre el principal pendiente, expresada como porcentaje.
+
+El sistema utiliza esta tasa para calcular el interés diario: `principal * días * tasa / 365`, redondeado a centavos completos de USD. Este cálculo se ejecuta en cada período de acumulación (típicamente diario), y los resultados se acumulan a lo largo de cada ciclo de acumulación (típicamente mensual) antes de registrarse como una obligación de interés.
+
+### Duración y Vencimiento
+
+**`duration`** — La vida útil total de la línea de crédito, especificada en meses.
+
+La fecha de vencimiento se calcula sumando esta cantidad de meses a la fecha de activación de la línea. La duración también determina la clasificación contable: las líneas con una duración de 12 meses o menos se clasifican como "corto plazo" y las líneas de más de 12 meses como "largo plazo". Esta clasificación determina qué conjunto de cuentas del libro mayor (cuentas por cobrar a corto plazo vs. largo plazo) se utiliza para los asientos contables de la línea.
+
+Después del vencimiento:
+- No se permiten nuevos desembolsos.
+- No se inician nuevos ciclos de acumulación de intereses.
+- Cualquier interés acumulado pero aún no registrado se consolida inmediatamente en una obligación final.
+- La línea permanece abierta hasta que todas las obligaciones pendientes estén completamente pagadas.
+
+### Calendario de Intereses
+
+**`accrual_interval`** — La frecuencia con la que se calcula el interés dentro de cada ciclo. Típicamente se establece en `EndOfDay`, lo que significa que el interés se calcula diariamente sobre el saldo pendiente.
+
+**`accrual_cycle_interval`** — La cadencia con la que el interés acumulado se convierte en una obligación. Típicamente se establece en `EndOfMonth`, lo que significa que los cálculos de interés diarios se suman y se registran como una obligación de interés pagadero al final de cada mes.
+
+Estos dos intervalos crean un sistema de calendario de dos niveles. El `accrual_interval` controla la granularidad del cálculo de interés (diario es más preciso), mientras que el `accrual_cycle_interval` controla con qué frecuencia el cliente recibe una factura de interés. Esta separación permite al banco calcular el interés con granularidad fina mientras factura en intervalos prácticos.
+
+### Cronología de las Obligaciones
+
+**`interest_due_duration_from_accrual`** — El tiempo entre el momento en que se devenga el interés (fin del ciclo) y el momento en que la obligación resultante vence. Con un valor de `Days(0)`, la obligación de interés vence inmediatamente cuando termina el ciclo.
+
+**`obligation_overdue_duration_from_due`** — Período de gracia opcional después de la fecha de vencimiento antes de que una obligación pase al estado "vencida". Cuando está configurado, las obligaciones pasan de `Due` a `Overdue` después de esta cantidad de días desde la fecha de vencimiento. Cuando no está configurado, las obligaciones nunca entran al estado vencido.
+
+**`obligation_liquidation_duration_from_due`** — Período opcional después de la fecha de vencimiento en el cual una obligación impaga entra al estado "en mora" y se vuelve elegible para el proceso de cobranza/liquidación. Cuando no está configurado, las obligaciones nunca entran al estado en mora solo por el paso del tiempo.
+
+Estos tres campos juntos crean la ruta de escalamiento gradual para las obligaciones impagas:
+
+```
+Devengado → Vencida → (período de gracia) → Vencida → (período de mora) → En Mora
+```
+
+### Comisión
+
+**`one_time_fee_rate`** — Una comisión de estructuración/originación expresada como porcentaje del monto de la línea de crédito, cobrada al momento del desembolso. Si es cero, no se aplica ninguna comisión.
+
+La comisión se calcula como `facility_amount * (rate / 100)`. Para líneas de crédito con un solo desembolso, la comisión se cobra como parte del desembolso inicial. Para líneas de crédito con múltiples desembolsos, se crea automáticamente un desembolso inicial que cubre únicamente el monto de la comisión al momento de la activación.
+
+### Umbrales de Garantía
+
+Tres umbrales porcentuales de garantía-a-valor (CVL) crean un sistema de seguridad gradual para gestionar la volatilidad de la garantía en Bitcoin:
+
+**`initial_cvl`** — El nivel de garantía requerido para activar una línea de crédito y el nivel objetivo para la recuperación post-liquidación. Un valor más alto significa que el banco requiere un mayor margen de garantía antes de otorgar crédito.
+
+**`margin_call_cvl`** — El umbral por debajo del cual la línea de crédito entra en estado de llamada de margen. También se usa como barrera para nuevos desembolsos: no se permite ningún desembolso si este llevaría el CVL por debajo de este nivel.
+
+**`liquidation_cvl`** — El umbral más bajo. Cuando el CVL cae por debajo de este nivel, se inicia automáticamente una liquidación parcial para vender suficiente garantía y restaurar el CVL por encima del nivel inicial.
+
+**Validación**: Los tres umbrales deben estar estrictamente ordenados: `initial_cvl > margin_call_cvl > liquidation_cvl`. La igualdad en cualquier límite se rechaza al momento de creación de la plantilla.
+
+Los cuatro estados de garantía y sus implicaciones operativas:
+
+| Posición CVL | Estado | Efecto |
+|-------------|-------|--------|
+| Por encima de `initial_cvl` | Totalmente Garantizado | Operaciones normales, desembolsos permitidos |
+| Entre `margin_call_cvl` e `initial_cvl` | Totalmente Garantizado | Operaciones normales, pero desembolsos bloqueados si llevarían el CVL por debajo de la llamada de margen |
+| Entre `liquidation_cvl` y `margin_call_cvl` | Bajo Llamada de Margen | Se notifica al prestatario para que deposite garantía adicional |
+| Por debajo de `liquidation_cvl` | Bajo Liquidación | Liquidación parcial iniciada automáticamente |
+
+Un búfer de histéresis previene la oscilación rápida entre estados cuando el CVL fluctúa cerca del límite de un umbral.
+
+### Política de Desembolso
+
+**`disbursal_policy`** — Controla si el monto de la línea de crédito se retira en su totalidad de una vez o de forma incremental.
+
+- **Desembolso Único**: El monto total de la línea de crédito se desembolsa automáticamente al momento de la activación como un desembolso preaprobado. No son posibles desembolsos adicionales.
+- **Desembolso Múltiple**: Al momento de la activación, solo se desembolsa la comisión de estructuración (si aplica). El cliente puede solicitar desembolsos adicionales a lo largo del tiempo, cada uno requiriendo su propia aprobación de gobernanza. Esto es útil para líneas de capital de trabajo donde las necesidades de efectivo del prestatario varían.
 
 ## Plantillas de Términos
 
-`PlantillaDeTérminos` es una entidad utilizada para persistir un conjunto reutilizable de valores de términos.
-Las facilidades de crédito **no** están vinculadas a plantillas; en su lugar, los valores de una plantilla son
-copiados en la facilidad en el momento de la creación.
+Una `TermsTemplate` es una colección reutilizable y nombrada de valores de términos. Las plantillas sirven como definiciones de productos: el banco crea plantillas para diferentes productos de préstamo (por ejemplo, "Préstamo Garantizado Estándar a 12 Meses", "Línea de Capital de Trabajo") y los operadores seleccionan una plantilla al crear una propuesta.
+
+Características principales:
+
+- **Copiadas, no vinculadas**: Cuando se crea una propuesta a partir de una plantilla, los valores de los términos se copian en la propuesta. Actualizar una plantilla posteriormente no cambia las líneas de crédito existentes.
+- **Nombres únicos**: Cada plantilla debe tener un nombre único.
+- **Actualizables**: Los valores de las plantillas pueden modificarse en cualquier momento. Solo las propuestas futuras que utilicen la plantilla se verán afectadas.
+- **Controles de riesgo**: Las plantillas son efectivamente controles de riesgo, no solo configuración. Los umbrales de CVL, las tasas de interés y las tasas de comisiones definidas en una plantilla determinan directamente los límites de seguridad y la economía de cada línea de crédito creada a partir de ella.
 
 ## Importancia Operativa
 
-Desde operación, las plantillas de términos funcionan como controles de riesgo:
-- `tasa_anual` y duración definen costo y horizonte de obligaciones.
-- `cvl_inicial`, `cvl_llamada_margen` y `cvl_liquidación` definen bordes de seguridad del colateral.
-- `tasa_comisión_única` controla el cargo al desembolsar.
-- política de desembolso define si el crédito es único o múltiple.
+Desde una perspectiva operativa, las plantillas de términos son la configuración más impactante del sistema:
 
-La calidad de la plantilla impacta aprobación, activación y monitoreo de riesgo posterior.
+- **`annual_rate`** y **`duration`** configuran el costo del préstamo y el cronograma de la obligación.
+- **`initial_cvl`**, **`margin_call_cvl`** y **`liquidation_cvl`** definen los límites de seguridad del colateral que protegen al banco contra la volatilidad del precio de BTC.
+- **`one_time_fee_rate`** controla los ingresos por comisiones iniciales.
+- **`accrual_cycle_interval`** determina la frecuencia de facturación (la facturación mensual es estándar).
+- **`disbursal_policy`** controla si el préstamo es de desembolso único o incremental.
+
+La calidad de las plantillas impacta directamente el comportamiento de aprobación, los requisitos de activación, los patrones de devengo de intereses y el monitoreo de colateral subsiguiente. Umbrales o intervalos incorrectos en las plantillas de términos producen un comportamiento de ciclo de vida incorrecto para cada línea de crédito creada a partir de ellas.
 
 ## Recorrido en Panel de Administración: Crear y Actualizar Plantilla de Términos
 

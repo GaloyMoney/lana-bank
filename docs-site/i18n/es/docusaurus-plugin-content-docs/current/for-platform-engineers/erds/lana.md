@@ -1,10 +1,10 @@
 ---
 id: lana
-title: ERD de Lana Core
+title: Lana Core ERD
 sidebar_position: 3
 ---
 
-# ERD de Lana Core
+# Lana Core ERD
 
 ```mermaid
 erDiagram

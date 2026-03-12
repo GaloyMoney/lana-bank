@@ -4,271 +4,97 @@ title: Políticas de Aprobación
 sidebar_position: 3
 ---
 
-# Configuración de Políticas de Aprobación
+# Políticas de Aprobación
 
-Este documento describe cómo configurar las políticas que rigen los procesos de aprobación en el sistema de gobernanza.
+Una política define las reglas de aprobación para un tipo específico de operación. Cada tipo de operación (propuestas de líneas de crédito, desembolsos, retiros) tiene exactamente una política. Las políticas controlan si las operaciones se aprueban automáticamente o requieren revisión del comité y, en ese caso, cuántas aprobaciones se necesitan.
 
-## Concepto de Política
+## Estructura de la Política
 
-Una política define las reglas y condiciones bajo las cuales se puede aprobar una operación:
+Cada política contiene:
 
-- **Tipo de proceso**: Categoría de operación
-- **Umbrales**: Límites para diferentes niveles de aprobación
-- **Reglas de escalamiento**: Cuándo escalar a comités superiores
+- **Tipo de Proceso**: La categoría de operación que esta política gobierna. Existe una restricción de unicidad: solo puede existir una política por tipo de proceso.
+- **Reglas de Aprobación**: Ya sea `SystemAutoApprove` (las operaciones se aprueban instantáneamente) o `CommitteeThreshold` (las operaciones requieren votos del comité). Consulte los detalles a continuación.
 
-## Arquitectura de Políticas
+## Tipos de Proceso
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    SISTEMA DE POLÍTICAS                         │
-│                                                                  │
-│  ┌─────────────────┐                                            │
-│  │ ApprovalPolicy  │                                            │
-│  │ ┌─────────────┐ │                                            │
-│  │ │ ProcessType │ │                                            │
-│  │ └─────────────┘ │                                            │
-│  │ ┌─────────────┐ │                                            │
-│  │ │ Thresholds  │ │                                            │
-│  │ │  - Low      │ │                                            │
-│  │ │  - Medium   │ │                                            │
-│  │ │  - High     │ │                                            │
-│  │ └─────────────┘ │                                            │
-│  │ ┌─────────────┐ │                                            │
-│  │ │ Committees  │ │                                            │
-│  │ └─────────────┘ │                                            │
-│  └─────────────────┘                                            │
-└─────────────────────────────────────────────────────────────────┘
-```
+Tres tipos de proceso se registran al inicio del sistema:
 
-## Tipos de Políticas
+| Tipo de Proceso | Identificador | Utilizado Por |
+|-------------|-----------|---------|
+| **Propuesta de Línea de Crédito** | `credit-facility-proposal` | Módulo de crédito: cuando un cliente acepta una propuesta |
+| **Desembolso** | `disbursal` | Módulo de crédito: cuando un operador crea un desembolso |
+| **Retiro** | `withdraw` | Módulo de depósitos: cuando un operador inicia un retiro |
 
-### Política de Líneas de Crédito
+La inicialización de políticas es idempotente: si la política para un tipo de proceso ya existe, la política existente se devuelve sin cambios. Esto permite que los módulos registren sus políticas de forma segura en cada inicio sin crear duplicados.
 
-Define reglas para aprobar propuestas de crédito:
+## Reglas de Aprobación
 
-| Nivel | Monto | Aprobación Requerida |
-|-------|-------|----------------------|
-| Bajo | < $10,000 | 1 aprobador |
-| Medio | $10,000 - $100,000 | 2 aprobadores |
-| Alto | > $100,000 | Comité completo |
+### Aprobación Automática del Sistema (Predeterminada)
 
-### Política de Desembolsos
+Cada política se crea con reglas `SystemAutoApprove` de forma predeterminada. Bajo este modo, cualquier proceso de aprobación iniciado contra esta política concluye inmediatamente con un resultado aprobado. No se requiere revisión humana.
 
-Define reglas para aprobar desembolsos:
+Esta es la configuración apropiada cuando:
+- El tipo de operación es de bajo riesgo y no requiere supervisión.
+- El banco está en configuración inicial y aún no ha configurado comités.
+- Entornos de prueba o desarrollo donde la fricción de aprobación es indeseable.
 
-| Nivel | Monto | Aprobación Requerida |
-|-------|-------|----------------------|
-| Bajo | < $5,000 | Automático |
-| Medio | $5,000 - $50,000 | 1 aprobador |
-| Alto | > $50,000 | 2 aprobadores |
+### Umbral del Comité
 
-### Política de Retiros
+Cuando un administrador asigna un comité y un umbral a una política, las reglas cambian de `SystemAutoApprove` a `CommitteeThreshold`. Bajo este modo:
 
-Define reglas para aprobar retiros:
+- Cada nuevo proceso de aprobación requiere votos del comité asignado.
+- El umbral especifica el número mínimo de votos de aprobación necesarios de los miembros elegibles.
+- Un solo voto de rechazo de cualquier miembro elegible rechaza inmediatamente el proceso.
 
-| Nivel | Monto | Aprobación Requerida |
-|-------|-------|----------------------|
-| Bajo | < $1,000 | Automático |
-| Medio | $1,000 - $10,000 | 1 aprobador |
-| Alto | > $10,000 | Comité de operaciones |
+**Reglas de validación para la asignación del umbral:**
+- El umbral debe ser al menos 1 (no se permite cero).
+- El umbral no debe exceder el número actual de miembros del comité.
+- Si el comité tiene 0 miembros, no se puede asignar un umbral.
+
+Cambiar las reglas de la política solo afecta a los futuros procesos de aprobación. Cualquier proceso ya en curso continúa bajo las reglas con las que fue creado (las reglas se capturan en cada proceso en el momento de su creación).
 
 ## Configuración de Políticas
 
-### Crear una Política
+### Estado Inicial
 
-#### Via API GraphQL
+Después del despliegue, las tres políticas existen con reglas `SystemAutoApprove`. Todas las operaciones se aprueban automáticamente.
 
-```graphql
-mutation CreateApprovalPolicy($input: ApprovalPolicyCreateInput!) {
-  approvalPolicyCreate(input: $input) {
-    policy {
-      id
-      processType
-      thresholds {
-        level
-        amount
-        requiredApprovals
-      }
-    }
-  }
-}
-```
+### Asignación de un Comité
 
-### Definir Umbrales
+Para requerir aprobación manual para un tipo de operación:
 
-```graphql
-mutation UpdatePolicyThresholds($input: PolicyThresholdUpdateInput!) {
-  policyThresholdUpdate(input: $input) {
-    policy {
-      id
-      thresholds {
-        level
-        amount
-        requiredApprovals
-        committeeId
-      }
-    }
-  }
-}
-```
+1. Cree un comité (consulte [Configuración de Comités](committees)).
+2. Añada al menos un miembro al comité.
+3. Navegue a la política para el tipo de operación deseado.
+4. Asigne el comité y especifique un umbral (el número de aprobaciones requeridas).
 
-## Reglas de Escalamiento
+Después de la asignación, todas las nuevas operaciones de ese tipo requerirán aprobación del comité. Los procesos existentes en curso no se ven afectados.
 
-### Flujo de Escalamiento
+### Cambio de las Reglas
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Nivel 1    │───▶│   Nivel 2    │───▶│   Nivel 3    │
-│   (Auto)     │    │ (Aprobador)  │    │  (Comité)    │
-└──────────────┘    └──────────────┘    └──────────────┘
-```
+Puede reasignar un comité diferente o cambiar el umbral en cualquier momento. Se aplican las mismas reglas de validación: el umbral debe estar entre 1 y el número de miembros del nuevo comité. También puede revertir una política a aprobación automática actualizando las reglas (aunque el panel de administración normalmente hace esto asignando una configuración diferente).
 
-### Condiciones de Escalamiento
+## Cómo se Aplican las Reglas a los Procesos
 
-| Condición | Acción |
-|-----------|--------|
-| Monto excede umbral | Escalar al siguiente nivel |
-| Tiempo excedido | Notificar y escalar |
-| Rechazado en nivel inferior | Escalar para revisión |
+Cuando se inicia un nuevo proceso de aprobación, las reglas actuales de la política se **copian** (se crea una instantánea) en el proceso. Esto significa:
 
-## Validaciones de Política
+- Si modificas las reglas de una política mientras un proceso está activo, el proceso activo continúa con sus reglas originales.
+- La instantánea de las reglas incluye el ID del comité y el umbral, no la lista de miembros. La lista de miembros se obtiene actualizada en cada votación, por lo que los cambios de membresía sí afectan a los procesos activos (consulta [Configuración de Comités](committees) para más detalles sobre cómo funciona esto).
 
-### Pre-condiciones
+## Ejemplos Prácticos
 
-Antes de iniciar un proceso de aprobación:
+**Escenario: Retiros de bajo valor auto-aprobados, de alto valor aprobados manualmente**
 
-1. **Verificar elegibilidad**: El cliente cumple requisitos
-2. **Validar límites**: La operación está dentro de límites permitidos
-3. **Confirmar documentación**: Documentos requeridos están disponibles
+Lana no admite enrutamiento basado en montos dentro de una sola política. Todos los retiros usan la misma política. Si necesitas aprobación diferenciada según el monto, la solución operativa es usar auto-aprobación y confiar en auditorías posteriores para valores bajos, o requerir aprobación del comité para todos los retiros y confiar en tiempos de respuesta rápidos del comité.
 
-### Durante el Proceso
+**Escenario: Diferentes comités para diferentes operaciones**
 
-1. **Verificar quórum**: Suficientes aprobadores disponibles
-2. **Validar votos**: Los votos son de miembros autorizados
-3. **Controlar tiempo**: El proceso no ha expirado
+Puedes asignar diferentes comités a diferentes políticas. Por ejemplo:
+- Propuestas de líneas de crédito: asignadas a un "Comité de Riesgo Crediticio" con umbral 2
+- Desembolsos: asignados al mismo comité u otro diferente con umbral 1
+- Retiros: asignados a un "Comité de Operaciones" con umbral 1
 
-## Integración con Dominio
-
-### Líneas de Crédito
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                 INTEGRACIÓN CON CRÉDITO                         │
-│                                                                  │
-│  CreditFacility.propose() ───▶ GovernanceSystem.startProcess() │
-│                                        │                        │
-│                                        ▼                        │
-│                              ApprovalPolicy.evaluate()          │
-│                                        │                        │
-│                                        ▼                        │
-│                              Committee.requestVotes()           │
-│                                        │                        │
-│                                        ▼                        │
-│  CreditFacility.approve() ◀─── GovernanceSystem.complete()     │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Depósitos y Retiros
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                 INTEGRACIÓN CON DEPÓSITOS                       │
-│                                                                  │
-│  Withdrawal.initiate() ───▶ GovernanceSystem.startProcess()    │
-│                                        │                        │
-│                                        ▼                        │
-│                              ApprovalPolicy.evaluate()          │
-│                                        │                        │
-│                                        ▼                        │
-│                              Committee.requestVotes()           │
-│                                        │                        │
-│                                        ▼                        │
-│  Withdrawal.approve() ◀─── GovernanceSystem.complete()         │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Ejecución Basada en Jobs
-
-El sistema de gobernanza utiliza jobs para ejecutar las decisiones:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    JOBS DE GOBERNANZA                           │
-│                                                                  │
-│  ┌─────────────────┐    ┌─────────────────┐                    │
-│  │ Process         │    │ Execute         │                    │
-│  │ Approval Job    │───▶│ Decision Job    │                    │
-│  └─────────────────┘    └─────────────────┘                    │
-│                                │                                │
-│                                ▼                                │
-│                         ┌─────────────────┐                    │
-│                         │ Notify          │                    │
-│                         │ Stakeholders    │                    │
-│                         └─────────────────┘                    │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Consultas de Políticas
-
-### Listar Políticas
-
-```graphql
-query ListApprovalPolicies {
-  approvalPolicies {
-    edges {
-      node {
-        id
-        processType
-        isActive
-        thresholds {
-          level
-          amount
-        }
-      }
-    }
-  }
-}
-```
-
-### Detalle de Política
-
-```graphql
-query GetApprovalPolicy($id: ID!) {
-  approvalPolicy(id: $id) {
-    id
-    processType
-    thresholds {
-      level
-      amount
-      requiredApprovals
-      committee {
-        id
-        name
-      }
-    }
-    createdAt
-    updatedAt
-  }
-}
-```
-
-## Permisos Requeridos
-
-| Operación | Permiso |
-|-----------|---------|
-| Crear política | POLICY_CREATE |
-| Ver políticas | POLICY_READ |
-| Modificar política | POLICY_UPDATE |
-| Eliminar política | POLICY_DELETE |
-
-## Auditoría de Políticas
-
-Todas las modificaciones a políticas se registran en el sistema de auditoría:
-
-- Quién realizó el cambio
-- Qué se modificó
-- Cuándo se realizó
-- Valores anteriores y nuevos
+Esto le da al banco flexibilidad para dirigir diferentes tipos de operaciones a los tomadores de decisiones apropiados.
 
 ## Recorrido en Panel de Administración: Asignar Comité y Resolver Acciones
 

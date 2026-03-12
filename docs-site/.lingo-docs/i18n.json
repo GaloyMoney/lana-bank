@@ -10,6 +10,9 @@
         "[locale]/*.md",
         "[locale]/*/*.md",
         "[locale]/*/*/*.md"
+      ],
+      "exclude": [
+        "[locale]/for-platform-engineers/functional-architecture.md"
       ]
     },
     "json": {

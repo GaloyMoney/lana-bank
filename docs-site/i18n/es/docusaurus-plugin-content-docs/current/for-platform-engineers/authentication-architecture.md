@@ -1,12 +1,12 @@
 ---
 id: authentication-architecture
-title: Arquitectura de Autenticación
+title: Autenticación y autorización
 sidebar_position: 4
 ---
 
-# Autenticación y Autorización
+# Arquitectura de Autenticación y Autorización
 
-Este documento describe la infraestructura de autenticación y autorización en el sistema Lana Bank. Cubre la configuración del proveedor de identidad (Keycloak), la autenticación en el gateway de API (Oathkeeper), la validación de tokens en los servicios backend y el modelo de control de acceso basado en roles (RBAC).
+Este documento describe el sistema de autenticación y autorización de Lana, incluyendo la integración con Keycloak, flujos OAuth 2.0 e implementación de RBAC.
 
 ```mermaid
 graph TD
@@ -23,261 +23,234 @@ graph TD
     ROOT --> R10["health checks"]
 ```
 
-## Arquitectura de Autenticación
+## Resumen
 
-El sistema implementa una arquitectura de autenticación por capas con gestión de identidad separada para usuarios administrativos y clientes.
+La arquitectura de seguridad de Lana consta de:
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                      Aplicaciones Frontend                          │
-│  ┌─────────────────────┐    ┌─────────────────────┐                │
-│  │   admin-panel       │    │   customer-portal   │                │
-│  │  (Next.js + OIDC)   │    │ (Next.js + NextAuth)│                │
-│  │   Puerto 3001       │    │   Puerto 3002       │                │
-│  └─────────────────────┘    └─────────────────────┘                │
-└─────────────────────────────────────────────────────────────────────┘
-            │                            │
-            │  Authorization: Bearer     │
-            ▼                            ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    Gateway de API                                   │
-│              ┌─────────────────────────┐                           │
-│              │      Oathkeeper         │                           │
-│              │     Puerto 4455         │                           │
-│              │  (Validación JWT)       │                           │
-│              └─────────────────────────┘                           │
-│                          │                                         │
-│                          ▼                                         │
-│              ┌─────────────────────────┐                           │
-│              │       Keycloak          │                           │
-│              │     Puerto 8081         │                           │
-│              │  (Proveedor OIDC)       │                           │
-│              └─────────────────────────┘                           │
-└─────────────────────────────────────────────────────────────────────┘
-            │
-            ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    Servicios Backend                                │
-│  ┌─────────────────────┐    ┌─────────────────────┐                │
-│  │   admin-server      │    │   customer-server   │                │
-│  │   Puerto 5253       │    │   Puerto 5254       │                │
-│  └─────────────────────┘    └─────────────────────┘                │
-│                          │                                         │
-│                          ▼                                         │
-│              ┌─────────────────────────┐                           │
-│              │     authz service       │                           │
-│              │   (Motor RBAC)          │                           │
-│              └─────────────────────────┘                           │
-└─────────────────────────────────────────────────────────────────────┘
+- **Keycloak**: Proveedor de identidad y emisor de tokens
+- **Oathkeeper**: Puerta de enlace API para validación de JWT
+- **Casbin**: Motor de control de acceso basado en roles
+- **Sistema de Auditoría**: Registro de decisiones de autorización
+
+## Arquitectura
+
+```mermaid
+graph TD
+    CLIENT["Client<br/>(Browser/App)"] --> LOGIN["Login Form"]
+    LOGIN --> KC["Keycloak<br/>(Auth Server)"]
+    KC -->|"JWT Token"| OAT["Oathkeeper<br/>(Gateway)"]
+    OAT -->|"Validated Request"| GQL["GraphQL Server"]
+    GQL --> CASBIN["Casbin<br/>(RBAC Check)"]
 ```
 
-## Flujo de Autenticación
+## Configuración de Keycloak
 
-1. Los usuarios se autentican con Keycloak a través de sus respectivas aplicaciones frontend
-2. Keycloak devuelve un token JWT firmado que contiene la identidad del usuario e información del realm
-3. Las aplicaciones frontend incluyen el JWT en todas las solicitudes a la API mediante el header `Authorization`
-4. Oathkeeper valida la firma del JWT y extrae la información del usuario
-5. Oathkeeper reenvía las solicitudes autenticadas a los servidores GraphQL backend
-6. Los servicios backend realizan verificaciones de autorización mediante el servicio `authz`
+### Realms
 
-## Proveedor de Identidad Keycloak
+| Realm | Propósito | Usuarios |
+|-------|---------|-------|
+| admin | Acceso administrativo | Empleados del banco |
+| customer | Acceso de clientes | Clientes del banco |
 
-Keycloak actúa como el proveedor de identidad centralizado, gestionando la autenticación de usuarios, las sesiones y la emisión de tokens.
+### Clientes
 
-### Configuración de Doble Realm
+Cada realm tiene clientes configurados:
 
-El sistema utiliza dos realms de Keycloak separados para mantener límites de seguridad:
+- **admin-panel**: Aplicación web para administradores
+- **customer-portal**: Aplicación web para clientes
+- **api-client**: Para acceso programático a la API
 
-| Realm | Propósito | Usuarios | Aplicación Cliente |
-|-------|-----------|----------|-------------------|
-| internal | Operaciones administrativas | Empleados del banco, administradores | admin-panel |
-| customer | Operaciones de clientes | Clientes finales, prestatarios | customer-portal |
+### Configuración de Tokens
 
-### Configuración de Keycloak
+Los tokens JWT incluyen:
+- ID de usuario (`sub`)
+- Roles del realm
+- Roles del cliente
+- Expiración del token
 
-```yaml
+## Puerta de Enlace Oathkeeper
 
-# docker-compose.yml
-
-keycloak:
-  environment:
-    KC_DB: postgres
-    KC_HOSTNAME: localhost
-    KC_HOSTNAME_PORT: 8081
-    KC_HTTP_ENABLED: "true"
-    KC_TRACING_ENABLED: "true"
-    KC_TRACING_ENDPOINT: http://otel-agent:4317
-```
-
-### Endpoints de Keycloak
-
-| Endpoint | URL | Propósito |
-|----------|-----|-----------|
-| Realm Admin | `http://localhost:8081/admin/internal/console` | Consola de administración |
-| Realm Customer | `http://localhost:8081/admin/customer/console` | Consola de clientes |
-| JWKS (Admin) | `http://localhost:8081/realms/internal/protocol/openid-connect/certs` | Claves públicas |
-| JWKS (Customer) | `http://localhost:8081/realms/customer/protocol/openid-connect/certs` | Claves públicas |
-
-## Gateway de API Oathkeeper
-
-Oathkeeper actúa como proxy inverso que valida tokens JWT antes de reenviar solicitudes.
+Oathkeeper valida las solicitudes entrantes en el puerto 4455:
 
 ### Configuración de Reglas
 
 ```yaml
 
-# oathkeeper-rules.yaml
+# Admin API rule
 
-- id: admin-graphql
+- id: admin-api
+  upstream:
+    url: http://admin-server:5253
   match:
     url: http://admin.localhost:4455/graphql
-    methods: ["POST", "GET"]
+    methods: [POST]
   authenticators:
     - handler: jwt
       config:
         jwks_urls:
-          - http://keycloak:8080/realms/internal/protocol/openid-connect/certs
+          - http://keycloak:8081/realms/admin/protocol/openid-connect/certs
   authorizer:
     handler: allow
-  mutators:
-    - handler: header
-      config:
-        headers:
-          X-User-Id: "{{ print .Subject }}"
-
-- id: customer-graphql
-  match:
-    url: http://app.localhost:4455/graphql
-    methods: ["POST", "GET"]
-  authenticators:
-    - handler: jwt
-      config:
-        jwks_urls:
-          - http://keycloak:8080/realms/customer/protocol/openid-connect/certs
 ```
 
-### Endpoints del Gateway
+### Mutación de Solicitudes
 
-| Endpoint | Destino | Autenticación |
-|----------|---------|---------------|
-| `admin.localhost:4455/graphql` | admin-server:5253 | Realm internal |
-| `app.localhost:4455/graphql` | customer-server:5254 | Realm customer |
+```mermaid
+sequenceDiagram
+    participant Client as Admin Panel<br/>(Browser)
+    participant OAT as Oathkeeper<br/>(Port 4455)
+    participant KC as Keycloak<br/>(OIDC)
+    participant AS as admin-server<br/>(Port 5253)
+    participant LA as lana-app<br/>(Business Logic)
+    participant CASBIN as Casbin<br/>(RBAC)
+    participant PG as PostgreSQL
+    participant OUT as Outbox<br/>(Event Publishing)
 
-## Autenticación en el Panel de Administración
-
-El panel de administración usa Keycloak JS para autenticación directa.
-
-### Integración con Keycloak JS
-
-```typescript
-// apps/admin-panel/lib/auth.ts
-import Keycloak from 'keycloak-js';
-
-const keycloak = new Keycloak({
-  url: process.env.NEXT_PUBLIC_KEYCLOAK_URL,
-  realm: 'internal',
-  clientId: 'admin-panel',
-});
-
-export const initKeycloak = () => {
-  return keycloak.init({
-    onLoad: 'login-required',
-    checkLoginIframe: false,
-  });
-};
+    Client->>OAT: POST /admin/graphql<br/>Authorization: Bearer JWT
+    OAT->>KC: Validate JWT via JWKS
+    KC-->>OAT: Token valid
+    OAT->>AS: Forward request<br/>X-User-Id, X-User-Email headers
+    AS->>LA: Extract context, execute resolver
+    LA->>CASBIN: Check permission
+    CASBIN->>PG: Query roles & permissions
+    PG-->>CASBIN: Role data
+    CASBIN-->>LA: Permission granted
+    LA->>PG: Execute business operation
+    PG-->>LA: Result
+    LA->>OUT: Publish domain events
+    OUT-->>LA: Events queued
+    LA-->>AS: GraphQL response
+    AS-->>OAT: Response
+    OAT-->>Client: JSON response
 ```
 
-### Flujo de Autenticación Admin
+Las solicitudes validadas incluyen:
+- `X-Auth-Subject`: ID de usuario
+- `X-Auth-Roles`: Roles de usuario
 
-1. Usuario accede al panel de administración
-2. Keycloak JS detecta falta de sesión
-3. Redirige a página de login de Keycloak (realm internal)
-4. Usuario ingresa credenciales
-5. Keycloak emite JWT y redirige de vuelta
-6. Token se almacena y usa en solicitudes GraphQL
+## Control de Acceso Basado en Roles
 
-## Autenticación en el Portal de Clientes
+### Modelo Casbin
 
-El portal de clientes usa NextAuth.js con proveedor Keycloak.
+```ini
+[request_definition]
+r = sub, obj, act
 
-### Integración con NextAuth
+[policy_definition]
+p = sub, obj, act
 
-```typescript
-// apps/customer-portal/app/api/auth/[...nextauth]/route.ts
-import NextAuth from 'next-auth';
-import KeycloakProvider from 'next-auth/providers/keycloak';
+[role_definition]
+g = _, _
 
-export const authOptions = {
-  providers: [
-    KeycloakProvider({
-      clientId: process.env.KEYCLOAK_CLIENT_ID!,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
-      issuer: `${process.env.KEYCLOAK_URL}/realms/customer`,
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, account }) {
-      if (account) {
-        token.accessToken = account.access_token;
-      }
-      return token;
-    },
-  },
-};
+[policy_effect]
+e = some(where (p.eft == allow))
+
+[matchers]
+m = g(r.sub, p.sub) && r.obj == p.obj && r.act == p.act
 ```
 
-## Validación de Tokens en el Backend
+### Estructura de Permisos
 
-Los servidores backend validan tokens JWT usando `RemoteJwksDecoder`.
+| Rol | Permisos |
+|------|-------------|
+| SUPERUSER | Todos los permisos |
+| BANK_MANAGER | Gestión de clientes, créditos e informes |
+| CREDIT_OFFICER | Operaciones de facilidades crediticias |
+| TELLER | Operaciones básicas de depósito/retiro |
 
-### Extracción del Contexto de Usuario
+### Autorización GraphQL
 
 ```rust
-// lana/admin-server/src/lib.rs
-async fn graphql_handler(
-    State(state): State<AppState>,
-    headers: HeaderMap,
-    req: GraphQLRequest,
-) -> impl IntoResponse {
-    let token = extract_bearer_token(&headers)?;
-    let claims = state.jwks_decoder.decode(token).await?;
+#[derive(SimpleObject)]
+pub struct Query;
 
-    let subject = Subject::from_claims(&claims)?;
-    let auth_context = AdminAuthContext::new(subject);
-
-    let schema = state.schema.execute(req.into_inner().data(auth_context)).await;
-    GraphQLResponse::from(schema)
+#[Object]
+impl Query {
+    #[graphql(guard = "RoleGuard::new(Permission::CustomerRead)")]
+    async fn customer(&self, ctx: &Context<'_>, id: ID) -> Result<Customer> {
+        // Implementation
+    }
 }
 ```
 
-## Modelo de Autorización RBAC
+## Jerarquía de Permisos
 
-El sistema usa Control de Acceso Basado en Roles implementado con Casbin.
-
-### Arquitectura RBAC
-
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Subject    │───▶│    authz     │───▶│   Casbin     │
-│  (Usuario)   │    │   Service    │    │   Engine     │
-└──────────────┘    └──────────────┘    └──────────────┘
-                                               │
-                                               ▼
-                                        ┌──────────────┐
-                                        │  PostgreSQL  │
-                                        │  (Políticas) │
-                                        └──────────────┘
+```mermaid
+graph TD
+    SU["SUPERUSER"] --> BM["BANK_MANAGER"]
+    SU --> ADM["ADMIN"]
+    BM --> CO["CREDIT OFFICER"]
+    BM --> CS["CUSTOMER SERVICE"]
+    ADM --> RV["REPORT VIEWER"]
+    ADM --> CA["CONFIG ADMIN"]
 ```
 
-### Definición de Políticas
+## Registro de Auditoría
 
-```csv
+Todas las decisiones de autorización se registran:
 
-# Modelo RBAC
-
-p, admin, credit_facility, create
-p, admin, credit_facility, approve
-p, operator, credit_facility, read
-p, operator, deposit_account, create
-p, customer, own_account, read
+```rust
+pub struct AuthorizationAudit {
+    timestamp: DateTime<Utc>,
+    subject: SubjectId,
+    object: String,
+    action: String,
+    decision: Decision,
+    reason: Option<String>,
+}
 ```
+
+### Consulta de Auditoría
+
+```graphql
+query GetAuthorizationAudits($filter: AuditFilter!) {
+  authorizationAudits(filter: $filter) {
+    edges {
+      node {
+        timestamp
+        subject
+        action
+        decision
+      }
+    }
+  }
+}
+```
+
+## Gestión de Sesiones
+
+### Renovación de Tokens
+
+Los tokens tienen tiempos de vida configurables:
+- Token de acceso: 5 minutos
+- Token de renovación: 30 minutos
+- Sesión: 8 horas
+
+### Cierre de Sesión
+
+```typescript
+// Client-side logout
+keycloak.logout({
+  redirectUri: window.location.origin,
+});
+```
+
+## Mejores Prácticas de Seguridad
+
+### Almacenamiento de Tokens
+
+- Almacenar tokens en memoria (no en localStorage)
+- Usar cookies httpOnly para tokens de renovación
+- Limpiar tokens al cerrar sesión
+
+### Configuración de CORS
+
+- Restringir los orígenes permitidos
+- Validar los encabezados Referer
+- Usar verificación estricta de Content-Type
+
+### Limitación de velocidad
+
+- Implementar límites de velocidad por usuario
+- Monitorear patrones inusuales
+- Bloquear después de intentos fallidos de autenticación

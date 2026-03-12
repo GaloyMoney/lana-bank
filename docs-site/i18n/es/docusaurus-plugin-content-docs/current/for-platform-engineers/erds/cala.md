@@ -1,10 +1,10 @@
 ---
 id: cala
-title: ERD del Libro Mayor Cala
+title: ERD del libro mayor de Cala
 sidebar_position: 2
 ---
 
-# ERD del Libro Mayor Cala
+# ERD del Libro Mayor de Cala
 
 ```mermaid
 erDiagram

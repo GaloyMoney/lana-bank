@@ -6,327 +6,104 @@ sidebar_position: 2
 
 # Informes Financieros
 
-Este documento describe los informes financieros disponibles, su estructura y cómo generarlos.
+Los informes financieros en Lana se generan en tiempo real a partir del libro mayor de doble entrada de Cala. A diferencia de los informes regulatorios (que se generan por lotes a través del pipeline de Dagster), los estados financieros están siempre actualizados y reflejan el estado más reciente de todas las cuentas. Están disponibles a través del panel de administración y la API de GraphQL.
 
-## Balanza de Comprobación
+## Balance de Comprobación
 
-La balanza de comprobación muestra los saldos de todas las cuentas contables en un período determinado.
+El balance de comprobación enumera todas las cuentas de primer nivel del plan de cuentas con sus saldos deudores y acreedores para un rango de fechas especificado. Su propósito principal es la verificación: el total de débitos debe ser igual al total de créditos. Si no coinciden, existe un error contable en algún punto del sistema.
 
-### Estructura
+### Qué Muestra
 
 | Columna | Descripción |
-|---------|-------------|
-| Cuenta | Código y nombre de cuenta |
-| Débito | Total de movimientos débito |
-| Crédito | Total de movimientos crédito |
-| Saldo | Saldo resultante |
+|--------|-------------|
+| **Cuenta** | Código y nombre de la cuenta del plan de cuentas |
+| **Saldo Inicial** | Saldo al inicio del período seleccionado |
+| **Actividad del Período (Débito)** | Total de movimientos de débito durante el período |
+| **Actividad del Período (Crédito)** | Total de movimientos de crédito durante el período |
+| **Saldo Final** | Saldo al final del período seleccionado |
 
-### Generación
+El balance de comprobación agrega los saldos de todas las cuentas subordinadas bajo cada nodo de primer nivel utilizando los conjuntos de cuentas de CALA. Se admiten las monedas USD y BTC y pueden visualizarse por separado.
 
-#### Desde el Panel
+### Cuándo Utilizarlo
 
-1. Navegar a **Reportes** > **Balanza de Comprobación**
-2. Seleccionar período:
-   - Fecha inicio
-   - Fecha fin
-3. Hacer clic en **Generar**
-
-El balance general presenta la situación financiera del banco como una instantánea en un momento específico, organizada según la ecuación contable fundamental: **Activos = Pasivos + Patrimonio**. Por defecto, el balance general muestra la fecha actual, pero los operadores pueden seleccionar cualquier fecha pasada para ver una instantánea histórica.
-
-```graphql
-query GetTrialBalance($input: TrialBalanceInput!) {
-  trialBalance(input: $input) {
-    accounts {
-      code
-      name
-      debit
-      credit
-      balance
-    }
-    totals {
-      debit
-      credit
-    }
-    asOfDate
-  }
-}
-```
-
-El balance general presenta la situación financiera del banco como una instantánea en una fecha determinada, organizada según la ecuación contable fundamental: **Activos = Pasivos + Patrimonio**.
-
-```
-BALANZA DE COMPROBACIÓN
-Al 31 de Diciembre de 2024
-
-Cuenta                          Débito        Crédito       Saldo
-─────────────────────────────────────────────────────────────────
-1000 - Efectivo               100,000.00                 100,000.00
-1100 - Préstamos              500,000.00                 500,000.00
-2000 - Depósitos Clientes                   400,000.00  -400,000.00
-3000 - Capital                              150,000.00  -150,000.00
-4000 - Ingresos por Intereses                50,000.00   -50,000.00
-─────────────────────────────────────────────────────────────────
-TOTALES                       600,000.00    600,000.00          0.00
-```
+- **Verificación diaria**: Confirmar que el libro mayor sea internamente consistente (débitos = créditos).
+- **Antes del cierre mensual**: Verificar el balance de comprobación antes de cerrar un mes para detectar discrepancias.
+- **Investigación de errores**: El balance de comprobación es el primer lugar donde buscar cuando se sospecha una discrepancia contable.
 
 ## Balance General
 
-El balance general presenta la posición financiera de la institución en una fecha determinada.
+El balance general presenta la posición financiera del banco como una instantánea en un momento determinado para una fecha específica, organizada según la ecuación contable fundamental: **Activos = Pasivos + Patrimonio**.
 
 ### Estructura
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    BALANCE GENERAL                              │
-│                                                                  │
-│  ACTIVOS                          │  PASIVOS Y PATRIMONIO       │
-│  ─────────────────────────────────┼───────────────────────────  │
-│  Activos Corrientes              │  Pasivos Corrientes          │
-│    Efectivo                      │    Depósitos                 │
-│    Préstamos a Corto Plazo       │    Obligaciones              │
-│                                  │                              │
-│  Activos No Corrientes           │  Pasivos No Corrientes       │
-│    Préstamos a Largo Plazo       │    Deuda a Largo Plazo       │
-│    Activos Fijos                 │                              │
-│                                  │  Patrimonio                  │
-│                                  │    Capital                   │
-│                                  │    Utilidades Retenidas      │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    ROOT["Balance General"]
+    ROOT --> A["Activos<br/>(saldo normal deudor)"]
+    ROOT --> LE["Pasivos y Patrimonio"]
+    LE --> L["Pasivos<br/>(saldo normal acreedor)"]
+    LE --> E["Patrimonio<br/>(saldo normal acreedor)"]
+    E --> RE["Ganancias Retenidas"]
+    E --> CE["Ganancias Actuales"]
+    CE --> REV["Ingresos<br/>(saldo normal acreedor)"]
+    CE --> COR["Costo de Ingresos<br/>(saldo normal deudor)"]
+    CE --> EXP["Gastos<br/>(saldo normal deudor)"]
 ```
 
-### Generación
+El balance general se implementa como una jerarquía de conjuntos de cuentas CALA. Cada categoría (Activos, Pasivos, Patrimonio) es un conjunto de cuentas que contiene los conjuntos de cuentas del plan de cuentas correspondientes como hijos. El Patrimonio incluye una subsección de "Ganancias Actuales" que contiene Ingresos, Costo de Ingresos y Gastos — esto proporciona el vínculo entre el balance general y el estado de resultados.
 
-```graphql
-query GetBalanceSheet($asOfDate: Date!) {
-  balanceSheet(asOfDate: $asOfDate) {
-    assets {
-      current {
-        cash
-        shortTermLoans
-        total
-      }
-      nonCurrent {
-        longTermLoans
-        fixedAssets
-        total
-      }
-      total
-    }
-    liabilities {
-      current {
-        deposits
-        shortTermObligations
-        total
-      }
-      nonCurrent {
-        longTermDebt
-        total
-      }
-      total
-    }
-    equity {
-      capital
-      retainedEarnings
-      total
-    }
-    totalLiabilitiesAndEquity
-  }
-}
-```
+Ambas monedas USD y BTC están disponibles. La capa de saldos puede filtrarse (liquidados vs. pendientes) para ver saldos solo confirmados o todos los saldos.
 
-## Estado de Resultados
+### Cuándo Usar
 
-El estado de resultados muestra los ingresos, gastos y utilidad de un período.
+- **Reportes de posición financiera**: Comprender qué posee el banco (activos), qué debe (pasivos) y el valor residual (patrimonio) en cualquier momento.
+- **Reportes regulatorios**: El balance general alimenta varios cálculos de informes regulatorios.
+- **Revisión de fin de período**: Antes de cerrar un año fiscal, verificar que la ecuación del balance general se cumpla y que las ganancias retenidas sean correctas.
 
-### Estructura
+## Estado de Pérdidas y Ganancias
 
-| Sección | Componentes |
-|---------|-------------|
-| Ingresos | Intereses por préstamos, comisiones |
-| Gastos Financieros | Intereses pagados |
-| Gastos Operativos | Salarios, administración |
-| Utilidad Neta | Ingresos - Gastos |
+El estado de pérdidas y ganancias (P&L) muestra el desempeño financiero del banco durante un período mediante el cálculo del ingreso neto: **Ingreso Neto = Ingresos - Costo de Ingresos - Gastos**.
 
-### Generación
+### Secciones
 
-```graphql
-query GetIncomeStatement($input: IncomeStatementInput!) {
-  incomeStatement(input: $input) {
-    revenue {
-      interestIncome
-      feeIncome
-      otherIncome
-      total
-    }
-    expenses {
-      interestExpense
-      operatingExpenses
-      provisions
-      total
-    }
-    netIncome
-    period {
-      start
-      end
-    }
-  }
-}
-```
+| Sección | Saldo Normal | Componentes |
+|---------|---------------|------------|
+| **Ingresos** | Acreedor | Ingresos por intereses de líneas de crédito, ingresos por comisiones de estructuración |
+| **Costo de Ingresos** | Deudor | Costos directos asociados con la generación de ingresos |
+| **Gastos** | Deudor | Provisiones para pérdidas crediticias, gastos operativos |
 
-## Reportes de Cartera
+El estado de P&L está estructurado de manera similar al balance general: un conjunto de cuentas raíz contiene Ingresos, Costo de Ingresos y Gastos como hijos, cada uno vinculado a las categorías correspondientes del plan de cuentas.
 
-### Cartera de Crédito
+Al final de cada año fiscal, el proceso de cierre pone a cero todas las cuentas de P&L y transfiere el resultado neto a las ganancias retenidas en el balance general (ver [Cierre de Período](../accounting/closing)).
 
-Detalle de todas las líneas de crédito activas.
+### Cuándo usar
 
-```graphql
-query GetCreditPortfolioReport($asOfDate: Date!) {
-  creditPortfolioReport(asOfDate: $asOfDate) {
-    facilities {
-      id
-      customer {
-        name
-      }
-      principal
-      outstanding
-      status
-      interestRate
-      maturityDate
-    }
-    summary {
-      totalFacilities
-      totalPrincipal
-      totalOutstanding
-      averageRate
-    }
-  }
-}
-```
+- **Seguimiento del rendimiento**: Monitorea ingresos y gastos durante cualquier período de tiempo.
+- **Antes del cierre del ejercicio fiscal**: Revisa el P&L antes de ejecutar el asiento de cierre de fin de año.
+- **Análisis de variaciones**: Compara el rendimiento período tras período para identificar tendencias.
 
-### Reporte de Morosidad
+## Exportación CSV de cuenta contable
 
-Análisis de cartera por días de atraso.
+El historial de transacciones de cuentas contables individuales puede exportarse a CSV para un análisis detallado. Esto es útil para conciliación, auditoría o para alimentar datos en herramientas externas.
 
-| Categoría | Descripción |
-|-----------|-------------|
-| Al día | Sin atraso |
-| 1-30 días | Atraso menor |
-| 31-60 días | Atraso moderado |
-| 61-90 días | Atraso significativo |
-| > 90 días | Cartera vencida |
+### Cómo funciona
 
-```graphql
-query GetDelinquencyReport($asOfDate: Date!) {
-  delinquencyReport(asOfDate: $asOfDate) {
-    buckets {
-      category
-      count
-      principal
-      percentage
-    }
-    total {
-      facilities
-      principal
-    }
-  }
-}
-```
+1. Navega a una cuenta contable en el plan de cuentas.
+2. Solicita una exportación CSV.
+3. El sistema genera de forma asíncrona un archivo CSV que contiene el historial completo de transacciones.
+4. Una notificación en tiempo real (vía suscripción GraphQL) alerta a la interfaz cuando la exportación está lista.
+5. Genera un enlace de descarga para recuperar el archivo.
 
-## Reportes de Colateral
+### Formato CSV
 
-### Valoración de Colateral
-
-```graphql
-query GetCollateralValuationReport($asOfDate: Date!) {
-  collateralValuationReport(asOfDate: $asOfDate) {
-    collateral {
-      facilityId
-      type
-      originalValue
-      currentValue
-      ltv
-      lastValuationDate
-    }
-    summary {
-      totalCollateralValue
-      averageLTV
-      collateralCoverage
-    }
-  }
-}
-```
-
-## Reportes Regulatorios
-
-### Concentración de Crédito
-
-Análisis de exposición por cliente o sector.
-
-```graphql
-query GetConcentrationReport($asOfDate: Date!) {
-  concentrationReport(asOfDate: $asOfDate) {
-    byCustomer {
-      customer
-      exposure
-      percentageOfPortfolio
-    }
-    bySector {
-      sector
-      exposure
-      percentageOfPortfolio
-    }
-    largestExposures {
-      customer
-      exposure
-    }
-  }
-}
-```
-
-### Ratios de Capital
-
-```graphql
-query GetCapitalRatios($asOfDate: Date!) {
-  capitalRatios(asOfDate: $asOfDate) {
-    tier1Capital
-    tier2Capital
-    riskWeightedAssets
-    capitalAdequacyRatio
-    leverageRatio
-    liquidity {
-      lcr
-      nsfr
-    }
-  }
-}
-```
-
-## Exportación de Reportes
-
-### Formatos Disponibles
-
-| Formato | Extensión | Uso |
-|---------|-----------|-----|
-| PDF | .pdf | Presentación formal |
-| Excel | .xlsx | Análisis |
-| CSV | .csv | Integración |
-| JSON | .json | APIs |
-
-### Via API
-
-```graphql
-mutation ExportReport($input: ReportExportInput!) {
-  reportExport(input: $input) {
-    downloadUrl
-    expiresAt
-    format
-  }
-}
-```
-
-## Programación de Reportes
-
-### Configurar Reporte Automático
+| Columna | Descripción |
+|--------|-------------|
+| Recorded At | Marca de tiempo de la transacción |
+| Currency | USD o BTC |
+| Debit Amount | Monto del débito (si aplica) |
+| Credit Amount | Monto del crédito (si aplica) |
+| Description | Descripción de la transacción |
+| Entry Type | Tipo de asiento contable |
 
 ## Recorrido en Panel de Administración: Balanza de Comprobación
 

@@ -1,95 +1,53 @@
 ---
 id: index
-title: Gestión de Depósitos
+title: Gestión de depósitos
 sidebar_position: 1
 ---
 
 # Sistema de Depósitos y Retiros
 
-El Sistema de Depósitos y Retiros gestiona las cuentas de depósito de clientes y facilita las operaciones de depósito/retiro dentro de la plataforma.
+El Sistema de Depósitos y Retiros gestiona las cuentas de depósito de los clientes y facilita todos los movimientos de fondos dentro de la plataforma. Cada cliente tiene una única cuenta de depósito en USD que sirve como centro para recibir depósitos, procesar retiros y recibir desembolsos de líneas de crédito. El sistema está completamente integrado con el libro mayor de doble entrada Cala, asegurando que cada movimiento de fondos se registre adecuadamente y que las cuentas no puedan tener sobregiros.
 
-```mermaid
-graph LR
-    subgraph DomainLayer["Capa de Dominio (lana-app)"]
-        DC["core_customer::Customer<br/>From trait"]
-        DCR["core_credit::CreditFacility<br/>From trait"]
-        DLA["core_accounting::LedgerAccount<br/>From trait"]
-    end
+## Estructura de la Cuenta de Depósito
 
-    subgraph Wrapper["Patrón Wrapper"]
-        WC["Customer {<br/>entity: Arc&lt;DomainCustomer&gt;<br/>}"]
-        WCF["CreditFacility {<br/>entity: Arc&lt;DomainCreditFacility&gt;<br/>}"]
-        WLA["LedgerAccount {<br/>entity: Arc&lt;DomainLedgerAccount&gt;<br/>}"]
-    end
+Cada cuenta de depósito en Lana está respaldada por **dos** cuentas contables en el libro mayor Cala:
 
-    subgraph GQLLayer["Capa GraphQL"]
-        GC["Customer<br/>(SimpleObject)"]
-        GCF["CreditFacility<br/>(ComplexObject)"]
-        GLA["LedgerAccount<br/>(ComplexObject)"]
-    end
+| Cuenta Contable | Saldo Normal | Propósito |
+|----------------|---------------|---------|
+| **Cuenta de Depósito** | Crédito (pasivo) | Rastrea el saldo disponible del cliente. Representa la obligación del banco con el cliente. |
+| **Cuenta de Depósito Congelada** | Crédito (pasivo) | Mantiene el saldo del cliente mientras la cuenta está congelada. Los saldos se transfieren aquí durante una congelación y se restauran al descongelar. |
 
-    DC --> WC
-    DCR --> WCF
-    DLA --> WLA
-    WC -->|"expone como"| GC
-    WCF -->|"expone como"| GCF
-    WLA -->|"expone como"| GLA
-```
+Además, una única **Cuenta Ómnibus de Depósitos** a nivel del sistema (débito-normal, activo) sirve como contraparte para todas las transacciones de depósito y retiro. Representa las reservas de efectivo reales del banco que respaldan los depósitos de los clientes.
 
-## Propósito
+### Prevención de Sobregiros
 
-El sistema maneja el ciclo de vida completo de los fondos del cliente:
-- Creación de cuentas de depósito
-- Registro de depósitos
-- Procesamiento de retiros
-- Flujos de trabajo de aprobación
+Cada cuenta de depósito tiene un control de velocidad que impide que el saldo liquidado caiga por debajo de cero. Esto se aplica a nivel del libro mayor, lo que significa que ninguna transacción puede hacer que el saldo sea negativo independientemente de cómo se inicie. Esto proporciona una garantía firme contra sobregiros sin necesidad de verificaciones de saldo a nivel de aplicación.
 
-Todas las operaciones financieras están integradas con Cala Ledger para contabilidad de partida doble.
+### Modelo de Saldo
 
-## Arquitectura del Sistema
+Los saldos de las cuentas de depósito se reportan como dos cifras separadas:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                       CoreDeposit                               │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │DepositAccountRepo│  │   DepositRepo   │  │  WithdrawalRepo │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    DepositLedger                         │   │
-│  │              (Operaciones contables)                     │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                 ApproveWithdrawal                        │   │
-│  │              (Proceso de aprobación)                     │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-```
+- **Saldo liquidado**: Fondos confirmados y disponibles. Refleja los depósitos completados menos los retiros completados.
+- **Saldo pendiente**: Fondos comprometidos por retiros en tránsito que han sido iniciados pero aún no confirmados o cancelados. El monto pendiente reduce el saldo disponible efectivo.
 
-## Entidades Principales
+Cuando se inicia un retiro, el monto se traslada inmediatamente de liquidado a pendiente (mediante una transacción contable). Esto asegura que los fondos estén reservados y no puedan gastarse dos veces. Cuando se confirma el retiro, el saldo pendiente se elimina. Si el retiro es cancelado o denegado, el saldo pendiente se restaura a liquidado.
 
-### Cuenta de Depósito (DepositAccount)
+## Tipos de Cuenta
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | UUID | Identificador único |
-| publicId | String | ID público legible |
-| accountHolderId | UUID | ID del cliente titular |
-| status | Enum | Estado de la cuenta |
-| accountType | Enum | Tipo de cuenta |
+Las cuentas de depósito se categorizan por el tipo de cliente de su titular. Cada tipo de cliente se asigna a un conjunto de cuentas contables separado, permitiendo informes de saldo agregado por categoría de cliente:
 
-### Depósito (Deposit)
+| Tipo | Descripción |
+|------|-------------|
+| Individual | Cuentas de clientes personales |
+| GovernmentEntity | Cuentas de organizaciones gubernamentales |
+| PrivateCompany | Cuentas empresariales |
+| Bank | Cuentas de instituciones bancarias |
+| FinancialInstitution | Cuentas de otras instituciones financieras |
+| NonDomiciledCompany | Cuentas de empresas no residentes |
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | UUID | Identificador único |
-| depositAccountId | UUID | Cuenta destino |
-| amount | UsdCents | Monto en centavos USD |
-| reference | String | Referencia externa |
-| status | Enum | Estado del depósito |
+Esta categorización se utiliza en el plan de cuentas para ubicar los pasivos de depósito bajo los nodos principales correctos para la presentación de informes financieros.
+
+## Estado y Ciclo de Vida de la Cuenta
 
 ```mermaid
 stateDiagram-v2
@@ -101,136 +59,54 @@ stateDiagram-v2
     Active --> Closed : Close (zero balance required)
 ```
 
-| Estado | Descripción | Depósitos permitidos | Retiros permitidos |
+| Estado | Descripción | Depósitos Permitidos | Retiros Permitidos |
 |--------|-------------|:---:|:---:|
-| **Activa** | Operaciones normales | Sí | Sí |
-| **Inactiva** | Cuenta operativamente inactiva | No | No |
-| **Congelada** | Retención por cumplimiento o disputa | No | No |
-| **Cerrada** | Desactivada permanentemente | No | No |
+| **Active** | Operaciones normales | Sí | Sí |
+| **Inactive** | Cuenta operativamente inactiva | No | No |
+| **Frozen** | Retención por cumplimiento o disputa | No | No |
+| **Closed** | Desactivada permanentemente | No | No |
 
-La actividad de la cuenta se rastrea por separado del estado de la cuenta. El sistema clasifica cada cuenta de depósito como `Active`, `Inactive` o `Suspended` para el monitoreo de inactividad, mientras que el `status` operativo anterior continúa controlando si se permiten depósitos y retiros.
-
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | UUID | Identificador único |
-| depositAccountId | UUID | Cuenta origen |
-| amount | UsdCents | Monto en centavos USD |
-| reference | String | Referencia externa |
-| status | Enum | Estado del retiro |
-
-```mermaid
-stateDiagram-v2
-    [*] --> Active : Cuenta creada
-    Active --> Inactive : Inactivación operativa
-    Inactive --> Active : Reactivación
-    Active --> Frozen : Congelar
-    Frozen --> Active : Descongelar
-    Active --> Closed : Cerrar (se requiere saldo cero)
-```
-
-| Estado | Descripción | Depósitos permitidos | Retiros permitidos |
-|--------|-------------|:---:|:---:|
-| **Activa** | Operaciones normales | Sí | Sí |
-| **Inactiva** | Cuenta operativamente inactiva | No | No |
-| **Congelada** | Retención por cumplimiento o disputa | No | No |
-| **Cerrada** | Desactivada permanentemente | No | No |
-
-La actividad de la cuenta se registra por separado del estado de la cuenta. El sistema clasifica cada cuenta de depósito como `Activa`, `Inactiva` o `Suspendida` para el monitoreo de inactividad, obteniendo la fecha de la última actividad de la última transacción en el libro mayor de la cuenta, o de la fecha de creación si aún no existen transacciones. El `estado` operativo anterior continúa determinando si se permiten depósitos y retiros.
-
-| Tipo | Descripción | Uso |
-|------|-------------|-----|
-| Individual | Cuenta personal | Clientes individuales |
-| GovernmentEntity | Cuenta gubernamental | Entidades de gobierno |
-| PrivateCompany | Cuenta empresarial | Empresas privadas |
-| Bank | Cuenta bancaria | Instituciones financieras |
-| FinancialInstitution | Cuenta institucional | Otras instituciones |
-| ForeignAgencyOrSubsidiary | Cuenta foránea | Agencias extranjeras |
-| NonDomiciledCompany | Cuenta no residente | Empresas no domiciliadas |
-
-```mermaid
-stateDiagram-v2
-    [*] --> Active : Cuenta creada
-    Active --> Inactive : Inactivación operativa
-    Inactive --> Active : Reactivación
-    Active --> Frozen : Congelar
-    Frozen --> Active : Descongelar
-    Active --> Closed : Cerrar (se requiere saldo cero)
-```
-
-| Estado | Descripción | Depósitos permitidos | Retiros permitidos |
-|--------|-------------|:---:|:---:|
-| **Activa** | Operaciones normales | Sí | Sí |
-| **Inactiva** | Cuenta operativamente inactiva | No | No |
-| **Congelada** | Retención por cumplimiento o disputa | No | No |
-| **Cerrada** | Desactivada permanentemente | No | No |
-
-La actividad de la cuenta se rastrea por separado del estado de la cuenta. El sistema clasifica cada cuenta de depósito como `Activa`, `Inactiva` o `Escheatable` para el monitoreo de inactividad, obteniendo la fecha de la última actividad de la transacción más reciente en el libro mayor de la cuenta, o de la fecha de creación si aún no existen transacciones. Por defecto, las cuentas se vuelven `Inactivas` tras 365 días sin actividad y `Escheatable` después de 3650 días, y estos umbrales pueden modificarse desde la aplicación administrativa a través de las configuraciones de dominio `deposit-activity-inactive-threshold-days` y `deposit-activity-escheatable-threshold-days`. El `estado` operativo anterior sigue controlando si se permiten depósitos y retiros.
-
-| Estado | Descripción |
-|--------|-------------|
-| ACTIVE | Cuenta operativa — depósitos y retiros permitidos |
-| INACTIVE | Cuenta desactivada |
-| FROZEN | Cuenta congelada — no se permiten nuevos depósitos ni retiros |
-| CLOSED | Cuenta cerrada permanentemente (requiere saldo cero) |
-
-```mermaid
-stateDiagram-v2
-    [*] --> INACTIVE : Cuenta creada
-    INACTIVE --> ACTIVE : Titular activado
-    ACTIVE --> FROZEN : Congelar
-    FROZEN --> ACTIVE : Descongelar
-    ACTIVE --> CLOSED : Cerrar (saldo cero)
-```
-
-```mermaid
-stateDiagram-v2
-    [*] --> Active : Cuenta creada
-    Active --> Inactive : Inactivación operativa
-    Inactive --> Active : Reactivar
-    Active --> Frozen : Congelar
-    Frozen --> Active : Descongelar
-    Active --> Closed : Cerrar (saldo cero requerido)
-```
-
-| Estado | Descripción | Depósitos permitidos | Retiros permitidos |
-|--------|-------------|:---:|:---:|
-| **Activo** | Operaciones normales | Sí | Sí |
-| **Inactivo** | Cuenta inactiva operativamente | No | No |
-| **Congelado** | Retención por cumplimiento o disputa | No | No |
-| **Cerrado** | Desactivado permanentemente | No | No |
-
-La actividad de la cuenta se rastrea de forma independiente al estado de la cuenta. El sistema clasifica cada cuenta de depósito como `Active`, `Inactive` o `Escheatable` para el monitoreo de inactividad, determinando la última fecha de actividad a partir de la transacción más reciente dirigida por el cliente en el libro mayor de la cuenta, o desde la fecha de creación de la cuenta si aún no existen transacciones que califiquen. Las transferencias internas de saldo para congelar o descongelar están excluidas, por lo que cambiar el estado operativo de una cuenta no reinicia la inactividad por sí solo. Por defecto, las cuentas pasan a `Inactive` después de 365 días sin actividad y a `Escheatable` después de 3650 días, y estos umbrales pueden modificarse desde la aplicación de administración mediante las configuraciones de dominio expuestas `deposit-activity-inactive-threshold-days` y `deposit-activity-escheatable-threshold-days`. El `status` operativo anterior sigue controlando si se permiten depósitos y retiros.
+La actividad de la cuenta se rastrea por separado del estado de la cuenta. El sistema clasifica cada cuenta de depósito como `Active`, `Inactive` o `Escheatable` para el monitoreo de inactividad, derivando la fecha de última actividad de la transacción contable más reciente iniciada por el cliente en la cuenta, o de la fecha de creación de la cuenta cuando aún no existen transacciones calificadas. Las transferencias de saldo internas de congelación y descongelación se excluyen, por lo que cambiar el estado operativo de una cuenta no restablece por sí solo la inactividad. Por defecto, las cuentas se vuelven `Inactive` después de 365 días sin actividad y `Escheatable` después de 3650 días, y estos umbrales pueden modificarse desde la aplicación de administración a través de las configuraciones de dominio expuestas `deposit-activity-inactive-threshold-days` y `deposit-activity-escheatable-threshold-days`. El `status` operativo mencionado anteriormente continúa controlando si se permiten depósitos y retiros.
 
 ### Congelar Cuenta
 
-Congelar una cuenta de depósito impide todos los nuevos depósitos y retiros, manteniendo la cuenta y sus saldos visibles. Se utiliza para retenciones de cumplimiento o investigaciones de disputas.
+Congelar una cuenta de depósito impide todos los nuevos depósitos y retiros mientras preserva el saldo de la cuenta. Esto se utiliza para retenciones de cumplimiento, investigaciones de disputas o requisitos regulatorios.
 
-- La cuenta transiciona de `ACTIVE` a `FROZEN`
-- Los saldos liquidados y pendientes permanecen visibles
-- Se emite un evento `DepositAccountFrozen`
-- Una cuenta `INACTIVE` o `CLOSED` no puede ser congelada
+Cuando una cuenta está congelada:
+1. El saldo liquidado se traslada desde la cuenta contable de depósito principal a la cuenta complementaria congelada mediante una transacción contable.
+2. La cuenta contable de depósito principal se bloquea, impidiendo cualquier transacción adicional.
+3. Se emite un evento `DepositAccountFrozen`.
+
+El saldo permanece visible para los operadores durante la congelación. Una cuenta `Inactive` o `Closed` no puede ser congelada.
 
 ### Descongelar Cuenta
 
-Descongelar restaura una cuenta congelada a operación normal, habilitando nuevamente depósitos y retiros.
+Descongelar restaura una cuenta congelada a su operación normal:
+1. La cuenta contable de depósito principal se desbloquea.
+2. El saldo congelado se traslada de vuelta desde la cuenta complementaria congelada a la cuenta de depósito principal.
+3. Se emite un evento `DepositAccountUnfrozen`.
 
-- La cuenta transiciona de `FROZEN` a `ACTIVE`
-- Se emite un evento `DepositAccountUnfrozen`
-- La operación es idempotente — descongelar una cuenta ya activa no tiene efecto
+La operación es idempotente: descongelar una cuenta ya activa no tiene ningún efecto.
 
 ### Cerrar Cuenta
 
-Cerrar desactiva permanentemente una cuenta de depósito. Esta acción no puede revertirse.
+Cerrar desactiva permanentemente una cuenta de depósito. Esta acción no se puede revertir.
 
-- **Requiere saldo cero** — tanto el saldo liquidado como el pendiente deben ser cero
-- Una cuenta `FROZEN` no puede cerrarse directamente; primero descongelar
-- La cuenta contable correspondiente se bloquea al cierre
-- Se emite un evento `DepositAccountClosed`
+- **Requiere saldo cero**: Tanto el saldo liquidado como el pendiente deben ser cero antes del cierre.
+- Una cuenta `Frozen` no puede cerrarse directamente; primero debe descongelarse.
+- La cuenta contable correspondiente se bloquea al cerrarse, impidiendo cualquier transacción futura.
+- Se emite un evento `DepositAccountClosed`.
 
-## Documentación Relacionada
+## Relación con las Facilidades de Crédito
 
-- [Operaciones de Depósito](operations) - Depósitos y retiros
-- [Libro Mayor](ledger) - Resumen de conjuntos de cuentas y plantillas de transacción
+Las cuentas de depósito sirven como destino para los desembolsos de facilidades de crédito. Cuando se confirma un desembolso, el monto desembolsado se acredita en la cuenta de depósito del cliente. Esto significa que el saldo de la cuenta de depósito refleja tanto los depósitos directos como los productos de las facilidades de crédito.
+
+De manera similar, cuando un cliente realiza un pago en una facilidad de crédito, los fondos se debitan de su cuenta de depósito y se aplican a las obligaciones pendientes.
+
+## Documentación relacionada
+
+- [Operaciones de depósito](operations) - Depósitos y retiros
+- [Libro mayor](ledger) - Descripción general de conjuntos de cuentas y plantillas de transacciones
 
 ## Recorrido en Panel de Administración: Alta de Cuenta de Depósito
 

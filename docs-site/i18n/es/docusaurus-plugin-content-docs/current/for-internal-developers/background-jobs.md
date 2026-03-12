@@ -6,314 +6,247 @@ sidebar_position: 9
 
 # Sistema de Trabajos en Segundo Plano
 
-Este documento describe el sistema de procesamiento de trabajos en segundo plano en Lana Bank, que proporciona ejecución confiable de tareas asíncronas con lógica de reintentos, control de concurrencia y compatibilidad con trazado distribuido.
+Este documento describe el sistema de procesamiento de trabajos en segundo plano utilizado para operaciones asíncronas.
 
 ```mermaid
 sequenceDiagram
-    participant SCHED as Planificador
+    participant SCHED as Job Scheduler
     participant SYNC as customer-sync<br/>CustomerSyncJob
-    participant PG as PostgreSQL<br/>tabla customers
+    participant PG as PostgreSQL<br/>customers table
     participant SUMSUB as Sumsub API
     participant CUST as Customers
     participant OUT as Outbox
 
     rect rgb(255, 255, 230)
-        Note over SCHED,OUT: Se ejecuta cada N minutos
+        Note over SCHED,OUT: Runs every N minutes (configured)
     end
 
     SCHED->>SYNC: execute()
     SYNC->>PG: SELECT * FROM customers<br/>WHERE applicant_id IS NOT NULL<br/>AND kyc_verification = PENDING
     PG-->>SYNC: pending_customers[]
 
-    loop Para cada cliente pendiente
+    loop For each pending customer
         SYNC->>SUMSUB: GET /resources/applicants/{applicantId}/status
         SUMSUB-->>SYNC: {reviewResult, reviewStatus}
 
-        alt Revisión Completa y Aprobada
-            SYNC->>SYNC: Mapear a VERIFIED
-        else Revisión Completa y Rechazada
-            SYNC->>SYNC: Mapear a REJECTED
-        else Revisión en Progreso
-            SYNC->>SYNC: Mantener como PENDING
+        alt Review Complete and Approved
+            SYNC->>SYNC: Map to VERIFIED
+        else Review Complete and Rejected
+            SYNC->>SYNC: Map to REJECTED
+        else Review in Progress
+            SYNC->>SYNC: Keep as PENDING
         end
 
         SYNC->>PG: UPDATE customers SET kyc_verification = ?
         SYNC->>CUST: update_kyc_verification(customer_id, status)
         SYNC->>OUT: publish(CustomerKycVerificationUpdated)
     end
+
+    Note over SCHED: Job complete
 ```
 
-## Propósito
+## Descripción General
 
-El sistema de trabajos habilita:
-- Programación basada en tiempo (cron-like)
-- Procesamiento impulsado por eventos
-- Operaciones de larga duración independientes del ciclo solicitud-respuesta
+Lana utiliza un sistema de trabajos para:
 
-## Arquitectura del Sistema
+- Procesamiento asíncrono
+- Tareas programadas
+- Operaciones con reintentos
+- Coordinación entre servicios
 
-El sistema sigue una arquitectura basada en 'pull', donde un despachador central consulta trabajos pendientes en la tabla `job_executions` de PostgreSQL.
+## Arquitectura
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                  Fuentes de Creación de Trabajos                │
-│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐       │
-│  │  Trabajos     │  │  Trabajos     │  │  Trabajos     │       │
-│  │  Programados  │  │  por Eventos  │  │  de Sondeo    │       │
-│  │  (tipo cron)  │  │  (outbox)     │  │  (auto-rep.)  │       │
-│  └───────────────┘  └───────────────┘  └───────────────┘       │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  Infraestructura de Trabajos                    │
-│  ┌───────────────────────────────────────────────────────┐     │
-│  │              JobTracker                                │     │
-│  │         (Control de Concurrencia)                      │     │
-│  └───────────────────────────────────────────────────────┘     │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌───────────────────────────────────────────────────────┐     │
-│  │              JobDispatcher                             │     │
-│  │          (Gestor de Ejecución)                         │     │
-│  └───────────────────────────────────────────────────────┘     │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌───────────────────────────────────────────────────────┐     │
-│  │              job_executions                            │     │
-│  │            (Tabla PostgreSQL)                          │     │
-│  └───────────────────────────────────────────────────────┘     │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Componentes Principales
-
-### JobTracker - Control de Concurrencia
-
-El `JobTracker` gestiona la concurrencia rastreando los trabajos en ejecución y determinando tamaños de lote para consultas.
-
-| Componente | Tipo | Responsabilidad |
-|------------|------|-----------------|
-| running_jobs | AtomicUsize | Contador thread-safe de ejecuciones activas |
-| notify | Notify | Notificación asíncrona para cambios de estado |
-| next_batch_size() | método | Calcula cuántos trabajos consultar |
-| dispatch_job() | método | Incrementa contador al iniciar trabajo |
-| job_completed() | método | Decrementa contador y notifica |
-
-```rust
-pub fn next_batch_size(&self) -> Option<usize> {
-    let n_running = self.running_jobs.load(Ordering::SeqCst);
-    if n_running < self.min_jobs {
-        Some(self.max_jobs - n_running)
-    } else {
-        None
-    }
-}
-```
-
-### JobDispatcher - Gestor de Ejecución
-
-El `JobDispatcher` maneja el ciclo de vida completo de un trabajo: inicialización, ejecución, reintentos y finalización.
-
-| Transición | Método | Operación DB |
-|------------|--------|--------------|
-| Pending → Running | execute_job() | SELECT + UPDATE state='running' |
-| Running → Heartbeat | keep_job_alive() | UPDATE alive_at |
-| Running → Complete | complete_job() | DELETE de job_executions |
-| Running → Failed | fail_job() | UPDATE con reintento o DELETE |
-| Running → Rescheduled | reschedule_job() | UPDATE execute_at |
-
-### Ciclo de Vida del Trabajo
-
-```
-        ┌─────────┐
-        │ Pending │
-        └────┬────┘
-             │ consultar
-             ▼
-        ┌─────────┐
-        │ Running │◄──────────────┐
-        └────┬────┘               │
-             │                    │ heartbeat
-             ├─────────┬──────────┘
-             │         │
-    éxito    │         │ error
-             ▼         ▼
-        ┌─────────┐ ┌─────────┐
-        │Complete │ │ Failed  │
-        └─────────┘ └────┬────┘
-                         │ reintento
-                         ▼
-                    ┌─────────────┐
-                    │ Rescheduled │
-                    └─────────────┘
+```mermaid
+graph TD
+    CREATOR["Job Creator<br/>(Domain Service)"] --> QUEUE["Job Queue<br/>(PostgreSQL Table)"]
+    QUEUE --> DISPATCH["Job Dispatcher"]
+    DISPATCH --> EXEC["Job Executor"]
+    EXEC --> RESULT["Job Result<br/>(Success/Fail)"]
 ```
 
 ## Tipos de Trabajos
 
-### Trabajos Impulsados por Eventos
+| Tipo de Trabajo | Propósito | Ejemplo |
+|----------|---------|---------|
+| Procesamiento de Aprobaciones | Ejecutar decisiones de gobernanza | Aprobar desembolso |
+| Acumulación de Intereses | Calcular intereses periódicos | Interés diario |
+| Notificaciones | Enviar alertas y correos electrónicos | Recordatorio de pago |
+| Sincronización | Sincronización de sistemas externos | Valoración de cartera |
 
-Activados por eventos del outbox:
+## Definición de Trabajo
 
 ```rust
-pub struct UserOnboardingJob {
-    customers: Customers,
-    outbox_consumer: OutboxConsumer,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Job {
+    id: JobId,
+    job_type: JobType,
+    payload: serde_json::Value,
+    status: JobStatus,
+    attempts: u32,
+    max_attempts: u32,
+    scheduled_at: DateTime<Utc>,
+    started_at: Option<DateTime<Utc>>,
+    completed_at: Option<DateTime<Utc>>,
 }
 
-impl Job for UserOnboardingJob {
-    const NAME: &'static str = "user-onboarding";
+pub enum JobStatus {
+    Pending,
+    Running,
+    Completed,
+    Failed,
+    Retrying,
+}
+```
 
-    async fn run(&self, _: CurrentJob) -> Result<JobCompletion, JobError> {
-        let events = self.outbox_consumer
-            .poll::<CoreCustomerEvent>()
-            .await?;
+## Ejecución de Trabajos
 
-        for event in events {
-            if let CoreCustomerEvent::KycCompleted { id, .. } = event.payload {
-                self.customers.provision_user(id).await?;
-            }
-            self.outbox_consumer.ack(event.sequence).await?;
-        }
+### Rastreador de Trabajos
 
-        Ok(JobCompletion::Complete)
+Gestiona el ciclo de vida de los trabajos:
+
+```rust
+pub struct JobTracker {
+    pool: PgPool,
+}
+
+impl JobTracker {
+    pub async fn enqueue(&self, job: NewJob) -> Result<JobId> {
+        // Insert job into queue
+    }
+
+    pub async fn fetch_ready(&self, limit: u32) -> Result<Vec<Job>> {
+        // Get jobs ready for execution
+    }
+
+    pub async fn mark_completed(&self, id: JobId) -> Result<()> {
+        // Mark job as completed
+    }
+
+    pub async fn mark_failed(&self, id: JobId, error: String) -> Result<()> {
+        // Mark job as failed, possibly schedule retry
     }
 }
 ```
 
-### Trabajos Programados
+### Despachador de Trabajos
 
-Ejecución periódica tipo cron:
-
-```rust
-pub struct InterestAccrualJob {
-    credit_facilities: CreditFacilities,
-}
-
-impl Job for InterestAccrualJob {
-    const NAME: &'static str = "interest-accrual";
-
-    async fn run(&self, _: CurrentJob) -> Result<JobCompletion, JobError> {
-        self.credit_facilities.accrue_interest().await?;
-
-        // Reprogramar para mañana
-        Ok(JobCompletion::RescheduleAt(
-            Utc::now() + Duration::days(1)
-        ))
-    }
-}
-```
-
-### Trabajos de Sondeo
-
-Auto-reprogramación para sincronización continua:
+Ejecuta trabajos según su tipo:
 
 ```rust
-pub struct CollateralSyncJob {
-    custody: Custody,
-    price_service: PriceService,
+pub struct JobDispatcher {
+    executors: HashMap<JobType, Box<dyn JobExecutor>>,
 }
 
-impl Job for CollateralSyncJob {
-    const NAME: &'static str = "collateral-sync";
+impl JobDispatcher {
+    pub async fn dispatch(&self, job: Job) -> Result<JobResult> {
+        let executor = self.executors
+            .get(&job.job_type)
+            .ok_or(Error::UnknownJobType)?;
 
-    async fn run(&self, _: CurrentJob) -> Result<JobCompletion, JobError> {
-        let wallets = self.custody.list_active_wallets().await?;
-
-        for wallet in wallets {
-            let balance = self.custody.sync_balance(&wallet).await?;
-            let price = self.price_service.get_btc_price().await?;
-            self.custody.update_collateral_value(&wallet, balance, price).await?;
-        }
-
-        // Reprogramar en 5 minutos
-        Ok(JobCompletion::RescheduleIn(Duration::minutes(5)))
+        executor.execute(job.payload).await
     }
 }
-```
-
-## Esquema de Base de Datos
-
-```sql
-CREATE TABLE job_executions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    job_type TEXT NOT NULL,
-    execute_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    state TEXT NOT NULL DEFAULT 'pending',
-    attempt_index INT NOT NULL DEFAULT 0,
-    alive_at TIMESTAMPTZ,
-    payload JSONB,
-    trace_context JSONB,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_job_executions_pending
-    ON job_executions(execute_at)
-    WHERE state = 'pending';
-
-CREATE INDEX idx_job_executions_stale
-    ON job_executions(alive_at)
-    WHERE state = 'running';
 ```
 
 ## Lógica de Reintentos
 
-### Configuración de RetrySettings
+Los trabajos fallidos se reintentan con retroceso exponencial:
 
 ```rust
-pub struct RetrySettings {
-    pub max_attempts: u32,
-    pub initial_interval: Duration,
-    pub max_interval: Duration,
-    pub multiplier: f64,
-}
+impl Job {
+    pub fn calculate_next_retry(&self) -> DateTime<Utc> {
+        let delay_seconds = 2u64.pow(self.attempts) * 60;
+        Utc::now() + Duration::seconds(delay_seconds as i64)
+    }
 
-impl Default for RetrySettings {
-    fn default() -> Self {
-        Self {
-            max_attempts: 5,
-            initial_interval: Duration::seconds(5),
-            max_interval: Duration::hours(1),
-            multiplier: 2.0,
-        }
+    pub fn should_retry(&self) -> bool {
+        self.attempts < self.max_attempts
     }
 }
 ```
 
-### Backoff Exponencial
+### Configuración de Reintentos
+
+| Intento | Retraso |
+|---------|-------|
+| 1 | 2 minutos |
+| 2 | 4 minutos |
+| 3 | 8 minutos |
+| 4 | 16 minutos |
+| 5 | 32 minutos (máx.) |
+
+## Trabajos Programados
+
+Los trabajos pueden programarse para ejecución futura:
 
 ```rust
-fn calculate_next_attempt(&self, attempt: u32) -> Duration {
-    let interval = self.initial_interval.as_secs_f64()
-        * self.multiplier.powi(attempt as i32);
+// Schedule interest accrual for midnight
+let job = NewJob {
+    job_type: JobType::InterestAccrual,
+    payload: json!({}),
+    scheduled_at: next_midnight(),
+};
 
-    Duration::seconds(
-        interval.min(self.max_interval.as_secs_f64()) as i64
-    )
-}
+tracker.enqueue(job).await?;
 ```
 
-## Mecanismo Keep-Alive
+## Ejemplos de Trabajos
 
-El sistema mantiene latidos para detectar trabajos que se han quedado colgados:
+### Trabajo de Procesamiento de Aprobaciones
 
 ```rust
-async fn keep_alive_loop(&self, job_id: Uuid, interval: Duration) {
-    let mut ticker = tokio::time::interval(interval / 4);
+pub struct ApprovalProcessingExecutor {
+    governance: GovernanceService,
+}
 
-    loop {
-        ticker.tick().await;
+impl JobExecutor for ApprovalProcessingExecutor {
+    async fn execute(&self, payload: Value) -> Result<JobResult> {
+        let input: ApprovalInput = serde_json::from_value(payload)?;
 
-        if let Err(e) = self.update_alive_at(job_id).await {
-            tracing::warn!("Failed to update keep-alive: {}", e);
-            break;
-        }
+        self.governance
+            .process_approval(input.process_id)
+            .await?;
+
+        Ok(JobResult::Success)
     }
 }
 ```
 
-Los trabajos sin latido reciente se consideran fallidos y se reprograman.
+### Trabajo de Acumulación de Intereses
 
-## Observabilidad y Trazado
+```rust
+pub struct InterestAccrualExecutor {
+    credit_service: CreditService,
+}
 
-### Preservación del Contexto de Trazas
+impl JobExecutor for InterestAccrualExecutor {
+    async fn execute(&self, payload: Value) -> Result<JobResult> {
+        let facilities = self.credit_service
+            .get_active_facilities()
+            .await?;
+
+        for facility in facilities {
+            self.credit_service
+                .accrue_interest(facility.id)
+                .await?;
+        }
+
+        Ok(JobResult::Success)
+    }
+}
+```
+
+## Monitoreo
+
+### Métricas
+
+- Trabajos encolados por minuto
+- Tiempo de ejecución del trabajo
+- Tasas de éxito/fallo
+- Profundidad de la cola
+
+### Alertas
+
+- Alta tasa de fallos
+- Trabajos de larga duración
+- Acumulación en la cola

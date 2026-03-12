@@ -7,14 +7,6 @@
     "message": "Comenzando",
     "description": "The label for category 'Getting Started' in sidebar 'docsSidebar'"
   },
-  "sidebar.docsSidebar.category.For Developers": {
-    "message": "Para Desarrolladores",
-    "description": "The label for category 'For Developers' in sidebar 'docsSidebar'"
-  },
-  "sidebar.docsSidebar.category.For Operators": {
-    "message": "Para Operadores",
-    "description": "The label for category 'For Operators' in sidebar 'docsSidebar'"
-  },
   "sidebar.docsSidebar.category.For Platform Engineers": {
     "message": "Para Ingenieros de Plataforma",
     "description": "The label for category 'For Platform Engineers' in sidebar 'docsSidebar'"
@@ -27,10 +19,6 @@
     "message": "Contabilidad",
     "description": "The label for category 'Accounting' in sidebar 'docsSidebar'"
   },
-  "sidebar.docsSidebar.category.Configuration": {
-    "message": "Configuración",
-    "description": "The label for category 'Configuration' in sidebar 'docsSidebar'"
-  },
   "sidebar.docsSidebar.category.Data Models (ERDs)": {
     "message": "Modelos de Datos (ERDs)",
     "description": "The label for category 'Data Models (ERDs)' in sidebar 'docsSidebar'"
@@ -38,14 +26,6 @@
   "sidebar.docsSidebar.category.Reference": {
     "message": "Referencia",
     "description": "The label for category 'Reference' in sidebar 'docsSidebar'"
-  },
-  "sidebar.docsSidebar.category.Admin API": {
-    "message": "API de Administración",
-    "description": "The label for category 'Admin API' in sidebar 'docsSidebar'"
-  },
-  "sidebar.docsSidebar.category.Customer API": {
-    "message": "API de Cliente",
-    "description": "The label for category 'Customer API' in sidebar 'docsSidebar'"
   },
   "sidebar.docsSidebar.category.admin-operations-group": {
     "message": "Operaciones",
@@ -190,5 +170,57 @@
   "sidebar.docsSidebar.category.for-developers-customer-api-types-unions.link.generated-index.title": {
     "message": "Resumen de uniones",
     "description": "The generated-index page title for category 'Unions' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Technical Documentation": {
+    "message": "Documentación Técnica",
+    "description": "The label for category 'Technical Documentation' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Customer Management": {
+    "message": "Gestión de Clientes",
+    "description": "The label for category 'Customer Management' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Deposits and Withdrawals": {
+    "message": "Depósitos y Retiros",
+    "description": "The label for category 'Deposits and Withdrawals' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Approvals and Governance": {
+    "message": "Aprobaciones y Gobernanza",
+    "description": "The label for category 'Approvals and Governance' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Financial Reports": {
+    "message": "Informes Financieros",
+    "description": "The label for category 'Financial Reports' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.For Internal Developers": {
+    "message": "Para Desarrolladores Internos",
+    "description": "The label for category 'For Internal Developers' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Frontend Applications": {
+    "message": "Aplicaciones Frontend",
+    "description": "The label for category 'Frontend Applications' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Domain Architecture": {
+    "message": "Arquitectura de Dominio",
+    "description": "The label for category 'Domain Architecture' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Infrastructure": {
+    "message": "Infraestructura",
+    "description": "The label for category 'Infrastructure' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.For External Developers": {
+    "message": "Para Desarrolladores Externos",
+    "description": "The label for category 'For External Developers' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.APIs": {
+    "message": "APIs",
+    "description": "The label for category 'APIs' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.System Architecture": {
+    "message": "Arquitectura del Sistema",
+    "description": "The label for category 'System Architecture' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Release Engineering": {
+    "message": "Ingeniería de Lanzamiento",
+    "description": "The label for category 'Release Engineering' in sidebar 'docsSidebar'"
   }
 }

@@ -4,248 +4,63 @@ title: Comités de Aprobación
 sidebar_position: 2
 ---
 
-# Configuración de Comités de Aprobación
+# Comités de Aprobación
 
-Este documento describe cómo configurar y gestionar los comités de aprobación en el sistema de gobernanza.
+Un comité es un grupo designado de usuarios autorizados que toman decisiones sobre procesos de aprobación. Los comités proporcionan el elemento humano en el sistema de gobernanza: cuando una política se configura con un umbral de comité, los miembros del comité son las personas que votan para aprobar o denegar operaciones.
 
-## Concepto de Comité
+## Estructura del Comité
 
-Un comité es un grupo de usuarios autorizados para tomar decisiones sobre operaciones específicas. Cada comité tiene:
+Cada comité tiene:
 
-- **Miembros**: Usuarios con derecho a votar
-- **Quórum**: Número mínimo de votos requeridos
-- **Tipo de proceso**: Categoría de operaciones que puede aprobar
+- **Nombre**: Un identificador legible para humanos (por ejemplo, "Comité de Crédito", "Comité de Operaciones"). Debe ser único.
+- **Miembros**: Un conjunto de usuarios que son elegibles para votar en los procesos de aprobación asignados a este comité.
 
-## Arquitectura de Comités
+Los comités no están vinculados a tipos de operaciones específicas. Un solo comité puede asignarse a múltiples políticas (por ejemplo, el mismo comité de crédito podría aprobar tanto propuestas de facilidades como desembolsos). Por el contrario, cada política solo puede hacer referencia a un comité a la vez.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    REGISTRO DE COMITÉS                          │
-│                                                                  │
-│  ┌─────────────────┐                                            │
-│  │ Committee       │                                            │
-│  │ ┌─────────────┐ │                                            │
-│  │ │  Members    │ │                                            │
-│  │ │  - User A   │ │                                            │
-│  │ │  - User B   │ │                                            │
-│  │ │  - User C   │ │                                            │
-│  │ └─────────────┘ │                                            │
-│  │ ┌─────────────┐ │                                            │
-│  │ │  Quorum: 2  │ │                                            │
-│  │ └─────────────┘ │                                            │
-│  │ ┌─────────────┐ │                                            │
-│  │ │Process Type │ │                                            │
-│  │ └─────────────┘ │                                            │
-│  └─────────────────┘                                            │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Tipos de Comités
-
-### Comité de Crédito
-
-Responsable de aprobar:
-- Propuestas de líneas de crédito
-- Desembolsos de préstamos
-
-### Comité de Operaciones
-
-Responsable de aprobar:
-- Retiros de clientes
-- Operaciones especiales
-
-## Gestión de Comités
-
-### Crear un Comité
-
-#### Desde el Panel de Administración
-
-1. Navegar a **Configuración** > **Comités**
-2. Hacer clic en **Nuevo Comité**
-3. Configurar:
-   - Nombre del comité
-   - Tipo de proceso asociado
-   - Quórum requerido
-4. Agregar miembros
-5. Guardar configuración
-
-#### Via API GraphQL
-
-```graphql
-mutation CreateCommittee($input: CommitteeCreateInput!) {
-  committeeCreate(input: $input) {
-    committee {
-      id
-      name
-      processType
-      quorum
-    }
-  }
-}
-```
+## Gestión de Miembros
 
 ### Agregar Miembros
 
-```graphql
-mutation AddCommitteeMember($input: CommitteeMemberAddInput!) {
-  committeeMemberAdd(input: $input) {
-    committee {
-      id
-      members {
-        id
-        email
-        role
-      }
-    }
-  }
-}
-```
+Los miembros del comité se identifican por su ID de usuario. Cuando se agrega un usuario a un comité, se vuelve elegible para votar en cualquier proceso de aprobación activo que haga referencia a ese comité. Agregar un miembro que ya está en el comité no tiene ningún efecto (la operación es idempotente).
 
-### Remover Miembros
+### Eliminar Miembros
 
-```graphql
-mutation RemoveCommitteeMember($input: CommitteeMemberRemoveInput!) {
-  committeeMemberRemove(input: $input) {
-    committee {
-      id
-      members {
-        id
-        email
-      }
-    }
-  }
-}
-```
+Cuando se elimina un miembro de un comité, ya no puede votar en nuevos procesos de aprobación. Sin embargo, cualquier voto que ya haya emitido en procesos existentes permanece válido. Eliminar a alguien que no es miembro no tiene ningún efecto.
 
-## Configuración de Quórum
+### Impacto en Procesos Activos
 
-El quórum define el número mínimo de votos necesarios para tomar una decisión.
+Los cambios en la membresía pueden afectar los procesos de aprobación en curso:
 
-### Reglas de Quórum
+- **Agregar un miembro** amplía el conjunto de votantes elegibles. El nuevo miembro puede votar inmediatamente en cualquier proceso activo que utilice ese comité.
+- **Eliminar un miembro** reduce el conjunto de votantes elegibles. Si los miembros elegibles restantes ya no pueden alcanzar el umbral (por ejemplo, el umbral es 3 pero solo quedan 2 miembros elegibles, y menos de 3 ya han aprobado), el proceso se deniega automáticamente.
 
-| Configuración | Descripción |
-|---------------|-------------|
-| Mayoría simple | Más del 50% de los miembros |
-| Unanimidad | Todos los miembros deben votar |
-| Número fijo | Cantidad específica de votos |
+Esto se debe a que la lógica de aprobación verifica si todavía es matemáticamente posible alcanzar el umbral con el conjunto elegible actual. Si no lo es, el proceso concluye como denegado.
 
-### Modificar Quórum
+## Reglas de Votación
 
-```graphql
-mutation UpdateCommitteeQuorum($input: CommitteeUpdateInput!) {
-  committeeUpdate(input: $input) {
-    committee {
-      id
-      quorum
-    }
-  }
-}
-```
+Cuando un miembro del comité vota en un proceso de aprobación:
 
-## Proceso de Votación
+1. **Cada miembro vota una vez**: Un miembro no puede cambiar su voto después de emitirlo. Intentar votar nuevamente (en cualquier dirección) es rechazado.
+2. **La aprobación se acumula**: Los votos de aprobación se cuentan contra el umbral. Cuando el número de aprobaciones de miembros elegibles alcanza o supera el umbral, el proceso es aprobado.
+3. **El rechazo es inmediato**: Un solo voto de rechazo de cualquier miembro elegible del comité niega inmediatamente todo el proceso, independientemente de cuántas aprobaciones ya se hayan emitido. Esto otorga a cada miembro del comité poder de veto efectivo.
+4. **Los no miembros no pueden votar**: Solo los usuarios que son miembros actuales del comité asignado y que aún no han votado son elegibles para votar.
 
-### Flujo de Votación
+### Cálculo del Umbral
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│  Solicitud   │───▶│   Votación   │───▶│   Decisión   │
-│  enviada     │    │   activa     │    │   tomada     │
-└──────────────┘    └──────────────┘    └──────────────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │  Cada miembro│
-                    │  emite voto  │
-                    └──────────────┘
-```
+La verificación de aprobación funciona de la siguiente manera:
 
-### Emitir un Voto
+1. Obtener el conjunto de miembros actuales del comité (los votantes elegibles).
+2. Intersectar los votantes elegibles con el conjunto de miembros que han votado a favor de la aprobación.
+3. Si el recuento de la intersección cumple con el umbral, el proceso es aprobado.
+4. Si algún miembro elegible ha rechazado, el proceso es denegado.
+5. Si el número de miembros elegibles es menor que el umbral (imposible de aprobar), el proceso es denegado.
+6. De lo contrario, el proceso permanece en curso, esperando más votos.
 
-1. Navegar a **Aprobaciones Pendientes**
-2. Seleccionar la solicitud
-3. Revisar detalles
-4. Hacer clic en **Aprobar** o **Rechazar**
+## Consideraciones Operativas
 
-#### Via API GraphQL
-
-```graphql
-mutation CastVote($input: VoteCastInput!) {
-  voteCast(input: $input) {
-    vote {
-      id
-      decision
-      comment
-      createdAt
-    }
-  }
-}
-```
-
-## Consultas de Comités
-
-### Listar Comités
-
-```graphql
-query ListCommittees {
-  committees {
-    edges {
-      node {
-        id
-        name
-        processType
-        quorum
-        memberCount
-      }
-    }
-  }
-}
-```
-
-### Detalle de Comité
-
-```graphql
-query GetCommittee($id: ID!) {
-  committee(id: $id) {
-    id
-    name
-    processType
-    quorum
-    members {
-      id
-      email
-      role
-      addedAt
-    }
-  }
-}
-```
-
-### Historial de Decisiones
-
-```graphql
-query GetCommitteeDecisions($committeeId: ID!, $first: Int) {
-  committee(id: $committeeId) {
-    decisions(first: $first) {
-      edges {
-        node {
-          id
-          processType
-          outcome
-          votes {
-            member {
-              email
-            }
-            decision
-          }
-          completedAt
-        }
-      }
-    }
-  }
-}
-```
-
-## Permisos Requeridos
+- **Crear comités antes de asignarlos a políticas**: Un comité debe existir y tener miembros antes de poder ser asignado significativamente a una política. Asignar un comité vacío a una política haría que cada proceso de aprobación fuera instantáneamente denegado (umbral inalcanzable).
+- **El umbral no debe exceder el número de miembros**: Al asignar un comité a una política, el umbral se valida contra el número actual de miembros. Un umbral de 3 es rechazado si el comité tiene solo 2 miembros.
+- **Tamaño del comité y disponibilidad**: En la práctica, los comités deben tener más miembros que el umbral requerido para tener en cuenta la no disponibilidad de los miembros. Un umbral de 2 con exactamente 2 miembros significa que ambos deben aprobar; un umbral de 2 con 4 miembros proporciona redundancia.
 
 ## Recorrido en Panel de Administración: Crear Comité y Agregar Miembros
 

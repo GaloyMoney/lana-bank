@@ -8,19 +8,19 @@ sidebar_position: 4
 
 Este documento describe el enfoque de pruebas utilizado en Lana.
 
-## Piramide de Pruebas
+## Pirámide de Pruebas
 
 ```mermaid
 block-beta
     columns 1
     block:E2E
-        e2e["Pruebas E2E (BATS)"]
+        e2e["E2E Tests (BATS)"]
     end
     block:INT
-        int["Pruebas de Integracion (Base de Datos, APIs)"]
+        int["Integration Tests (Database, APIs)"]
     end
     block:UNIT
-        unit["Pruebas Unitarias (Logica de Dominio, Funciones Puras)"]
+        unit["Unit Tests (Domain Logic, Pure Functions)"]
     end
 
     style E2E fill:#f9a825,color:#000
@@ -32,7 +32,7 @@ block-beta
 
 ### Pruebas Unitarias
 
-Prueban la logica de negocio de forma aislada:
+Prueba la lógica de negocio aislada:
 
 ```rust
 #[cfg(test)]
@@ -52,9 +52,9 @@ mod tests {
 }
 ```
 
-### Pruebas de Integracion
+### Pruebas de Integración
 
-Prueban con una base de datos real:
+Prueba con base de datos real:
 
 ```rust
 #[tokio::test]
@@ -70,15 +70,15 @@ async fn test_create_facility() {
 
 ### Pruebas E2E (BATS)
 
-Prueban flujos de trabajo completos:
+Prueba flujos de trabajo completos:
 
 ```bash
 @test "create customer and facility" {
-    # Crear cliente
+    # Create customer
     run create_customer
     [ "$status" -eq 0 ]
 
-    # Crear facilidad
+    # Create facility
     run create_facility "$customer_id"
     [ "$status" -eq 0 ]
 }
@@ -100,7 +100,7 @@ describe('Credit Facility', () => {
 });
 ```
 
-## Ejecucion de Pruebas
+## Ejecución de Pruebas
 
 ### Pruebas de Rust
 
@@ -129,7 +129,7 @@ make e2e
 
 ```bash
 
-# Sin interfaz grafica
+# Sin interfaz gráfica
 
 pnpm cypress:run-headless
 
@@ -157,11 +157,11 @@ impl TestFixtures {
 }
 ```
 
-### Carga de Datos en la Base de Datos
+### Inicialización de Base de Datos
 
 ```bash
 
-# Cargar datos de desarrollo
+# Inicializar datos de desarrollo
 
 cargo run -- seed
 ```

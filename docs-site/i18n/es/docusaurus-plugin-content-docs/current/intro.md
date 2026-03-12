@@ -7,9 +7,9 @@ sidebar_position: 1
 
 # Plataforma Bancaria Lana
 
-Lana es una plataforma bancaria moderna construida para operaciones de préstamos digitales y custodia. Proporciona APIs y herramientas completas para gestionar facilidades de crédito, cuentas de clientes y operaciones financieras.
+Lana es una plataforma bancaria central moderna diseñada para operaciones de préstamos digitales y custodia. Proporciona APIs y herramientas integrales para gestionar facilidades crediticias, cuentas de clientes y operaciones financieras.
 
-## Elige Tu Camino
+## Elige tu Ruta
 
 <div className="row">
   <div className="col col--6">
@@ -18,7 +18,7 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
         <h3>Documentación Técnica</h3>
       </div>
       <div className="card__body">
-        <p>Procesos de negocio, conceptos del dominio y procedimientos del panel de administración para el personal del banco.</p>
+        <p>Procesos de negocio, conceptos de dominio y procedimientos del panel de administración para el personal bancario.</p>
       </div>
       <div className="card__footer">
         <a className="button button--primary button--block" href="technical-documentation/">Documentación Técnica</a>
@@ -34,7 +34,7 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
         <p>Integra con las APIs GraphQL de Lana desde aplicaciones externas.</p>
       </div>
       <div className="card__footer">
-        <a className="button button--primary button--block" href="for-external-developers/">Guía del Desarrollador Externo</a>
+        <a className="button button--primary button--block" href="for-external-developers/">Guía para Desarrolladores Externos</a>
       </div>
     </div>
   </div>
@@ -50,7 +50,7 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
         <p>Configuración local, aplicaciones frontend, arquitectura de dominio y patrones de código.</p>
       </div>
       <div className="card__footer">
-        <a className="button button--primary button--block" href="for-internal-developers/">Guía del Desarrollador Interno</a>
+        <a className="button button--primary button--block" href="for-internal-developers/">Guía para Desarrolladores Internos</a>
       </div>
     </div>
   </div>
@@ -60,7 +60,7 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
         <h3>Para Ingenieros de Plataforma</h3>
       </div>
       <div className="card__body">
-        <p>Arquitectura del sistema, despliegue, CI/CD y canalización de datos.</p>
+        <p>Arquitectura de sistemas, implementación, CI/CD y pipelines de datos.</p>
       </div>
       <div className="card__footer">
         <a className="button button--primary button--block" href="for-platform-engineers/">Guía de Plataforma</a>
@@ -69,36 +69,36 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
   </div>
 </div>
 
-## Características de la Plataforma
+## Aspectos Destacados de la Plataforma
 
 | Capacidad | Descripción |
-|-----------|-------------|
-| **Facilidades de Crédito** | Gestión completa del ciclo de vida para préstamos y líneas de crédito |
-| **Multi-Moneda** | Soporte nativo para USD y BTC |
+|------------|-------------|
+| **Facilidades Crediticias** | Gestión completa del ciclo de vida de préstamos y líneas de crédito |
+| **Multimoneda** | Soporte nativo para USD y BTC |
 | **Event Sourcing** | Rastro de auditoría completo de todas las operaciones |
-| **APIs GraphQL** | API de Administración (interna) + API de Cliente (externa) |
-| **Contabilidad de Doble Entrada** | Potenciada por el libro mayor Cala |
-| **Arquitectura Hexagonal** | Clara separación de responsabilidades |
+| **APIs GraphQL** | API de administración (interna) + API de cliente (externa) |
+| **Contabilidad por Partida Doble** | Impulsada por el libro mayor Cala |
+| **Arquitectura Hexagonal** | Separación clara de responsabilidades |
 
 ## Enlaces Rápidos
 
 ### APIs
 
-- [Referencia de API de Administración](apis/admin-api/) - Operaciones administrativas completas
-- [Referencia de API de Cliente](apis/customer-api/) - Operaciones orientadas al cliente
+- [Referencia de la API de Administración](apis/admin-api/) - Operaciones administrativas completas
+- [Referencia de la API de Clientes](apis/customer-api/) - Operaciones orientadas al cliente
 - [Eventos de Dominio](apis/events/) - Catálogo de eventos
 
 ### Operaciones
 
-- [Gestión de Crédito](technical-documentation/credit/) - Ciclo de vida de facilidades
+- [Gestión de Créditos](technical-documentation/credit/) - Ciclo de vida de facilidades
 - [Contabilidad](technical-documentation/accounting/) - Operaciones financieras
 
 ### Técnico
 
 - [Arquitectura del Sistema](for-platform-engineers/functional-architecture) - Diseño técnico integral
-- [Modelos de Datos](for-platform-engineers/erds/) - Diagramas de entidad-relación
+- [Modelos de Datos](for-platform-engineers/erds/) - Diagramas de relación de entidades
 - [Desarrollo Local](for-internal-developers/local-development) - Configuración del entorno de desarrollo
 
-## Comenzando
+## Primeros Pasos
 
-¿Nuevo en Lana? Comienza con la guía [Comenzando](getting-started/).
+¿Nuevo en Lana? Comienza con la guía de [Primeros Pasos](getting-started/).

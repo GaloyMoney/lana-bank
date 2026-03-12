@@ -6,111 +6,103 @@ sidebar_position: 1
 
 # Sistema de Gobernanza y Aprobación
 
-El sistema de gobernanza proporciona un mecanismo de aprobación estructurado para operaciones financieras críticas que requieren autorización multipartita antes de su ejecución.
+El sistema de gobernanza proporciona autorización estructurada multipartita para operaciones financieras críticas. Antes de que una propuesta de línea de crédito pueda proceder, antes de que un desembolso libere fondos, o antes de que se confirme un retiro, el sistema de gobernanza garantiza que las personas apropiadas hayan revisado y aprobado la acción.
+
+El sistema se basa en tres conceptos fundamentales: las **políticas** definen las reglas, los **comités** proporcionan las personas, y los **procesos de aprobación** ejecutan el flujo de trabajo para cada operación individual.
+
+## Cómo Funciona
 
 ```mermaid
-graph LR
-    subgraph DomainService["Estructura Interna del Servicio de Dominio"]
-        CMD["Comando"] -->|"valida y ejecuta"| AGG["Aggregate Root<br/>(es-entity)"]
-        AGG -->|"emite"| EVT["Eventos de Dominio"]
-        EVT -->|"persiste en"| REPO["Repositorio"]
-        EVT -->|"publica vía"| OUTBOX["Outbox Publisher"]
+graph TD
+    subgraph GOV["Sistema de Gobernanza"]
+        POL["Políticas<br/>(una por tipo de operación)"]
+        COM["Comités<br/>(grupos de usuarios autorizados)"]
+        PROC["Procesos de Aprobación<br/>(uno por instancia de operación)"]
     end
-
-    subgraph Infrastructure["Infraestructura"]
-        REPO -->|"persiste"| PG[("PostgreSQL<br/>Event Store")]
-        OUTBOX -->|"escribe"| OE[("outbox_events<br/>Tabla")]
-    end
+    POL -->|"asigna comité<br/>+ umbral"| PROC
+    COM -->|"proporciona votantes<br/>elegibles"| PROC
+    PROC -->|"publica conclusión<br/>vía outbox"| EVT["Módulos de Dominio<br/>(crédito, depósito)"]
 ```
 
-## Propósito
+Cuando una operación de dominio requiere aprobación:
 
-El sistema actúa como un guardián para acciones de alto riesgo:
-- Propuestas de líneas de crédito
-- Desembolsos de préstamos
-- Retiros de clientes
+1. El módulo originador (crédito o depósito) llama al sistema de gobernanza para **iniciar un proceso de aprobación**.
+2. El sistema de gobernanza busca la **política** configurada para ese tipo de operación.
+3. Las **reglas** de la política se copian en el nuevo proceso (ya sea aprobación automática o umbral de comité).
+4. Si las reglas requieren aprobación del comité, **los miembros del comité votan** para aprobar o denegar.
+5. Cuando se alcanza el umbral (o se produce una denegación), el proceso **concluye** y publica un evento outbox.
+6. El módulo originador reacciona al evento de conclusión y procede en consecuencia (por ejemplo, liquidando un desembolso o revirtiendo una retención de retiro).
 
-## Arquitectura del Sistema
+## Tipos de Operaciones Gobernadas
 
+Tres tipos de operaciones son gobernados por el sistema de aprobación:
+
+| Operación | Tipo de Proceso | Se Activa Cuando | Al Aprobar | Al Denegar |
+|-----------|-------------|----------------|-------------|-----------|
+| **Propuesta de Línea de Crédito** | `credit-facility-proposal` | El cliente acepta una propuesta | La propuesta se convierte en una línea pendiente | La propuesta es rechazada |
+| **Desembolso** | `disbursal` | El operador crea un desembolso | El desembolso se liquida, los fondos se acreditan | El desembolso se cancela, no se liberan fondos |
+| **Retiro** | `withdraw` | El operador inicia un retiro | El retiro procede a confirmación | El retiro es denegado, los fondos retenidos se restauran |
+
+Cada tipo de operación tiene exactamente una política. Por defecto, todas las políticas comienzan con reglas `SystemAutoApprove`, lo que significa que las operaciones se aprueban instantáneamente sin intervención humana. Un administrador puede entonces asignar un comité y umbral a cualquier política, cambiándola para requerir aprobación manual.
+
+## Reglas de Aprobación
+
+Las reglas determinan cómo un proceso de aprobación llega a su conclusión. Existen dos modos:
+
+### Aprobación Automática del Sistema
+
+El modo predeterminado para todas las políticas. Cuando se crea un proceso de aprobación bajo una política `SystemAutoApprove`, concluye inmediatamente con un resultado aprobado. No se necesita intervención humana.
+
+Esto es apropiado para operaciones de bajo riesgo o durante la configuración inicial del sistema antes de que se configuren los comités de gobernanza.
+
+### Umbral del Comité
+
+Cuando una política se configura con un comité y un número umbral, cada proceso de aprobación requiere que al menos N miembros elegibles del comité voten para aprobar antes de que el proceso concluya. El umbral debe ser:
+
+- Al menos 1 (no se permiten políticas con umbral cero)
+- Como máximo igual al número actual de miembros del comité
+
+**La denegación es inmediata**: Un solo voto de rechazo de cualquier miembro elegible del comité hace que todo el proceso sea denegado, independientemente de cuántas aprobaciones ya se hayan emitido. Esto otorga a cada miembro del comité un poder de veto efectivo.
+
+**Los votantes elegibles se evalúan en el momento de votar**: Si se añade un miembro a un comité después de que comienza un proceso, aún puede votar en ese proceso. Si se elimina un miembro, sus votos existentes aún cuentan, pero el conjunto elegible se reduce, lo que potencialmente hace que el umbral sea inalcanzable (lo que también resulta en denegación).
+
+## Ciclo de Vida del Proceso de Aprobación
+
+```mermaid
+stateDiagram-v2
+    [*] --> InProgress: Process created
+    InProgress --> Approved: Threshold reached
+    InProgress --> Denied: Any member denies<br/>or threshold unreachable
+    Approved --> [*]
+    Denied --> [*]
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    SISTEMA DE GOBERNANZA                        │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │ Policy          │  │   Approval      │  │   Committee     │ │
-│  │ Definitions     │  │   Processes     │  │   Registry      │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    Event System                          │   │
-│  │              (Outbox Pattern)                            │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                 Domain Integration                       │   │
-│  │    (Credit Facilities, Deposits, Withdrawals)           │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Tipos de Procesos de Aprobación
-
-El sistema define tipos específicos de procesos para diferentes categorías de operaciones:
-
-| Tipo de Proceso | Constante | Propósito |
-|-----------------|-----------|-----------|
-| Propuesta de Línea de Crédito | `APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS` | Aprobar nuevas solicitudes |
-| Desembolso | `APPROVE_DISBURSAL_PROCESS` | Aprobar desembolsos |
-| Retiro | `APPROVE_WITHDRAWAL_PROCESS` | Aprobar retiros de clientes |
-
-## Ciclo de Vida del Flujo de Aprobación
-
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Iniciado   │───▶│  En Proceso  │───▶│   Aprobado   │
-│              │    │              │    │              │
-└──────────────┘    └──────────────┘    └──────────────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   Rechazado  │
-                    │              │
-                    └──────────────┘
-```
-
-### Estados del Proceso
 
 | Estado | Descripción |
 |--------|-------------|
-| PENDING | Proceso iniciado, esperando revisión |
-| IN_REVIEW | Proceso bajo revisión del comité |
-| APPROVED | Proceso aprobado |
-| DENIED | Proceso rechazado |
+| **En Progreso** | El proceso está activo, aceptando votos de los miembros del comité |
+| **Aprobado** | Se han recibido suficientes aprobaciones; la operación gobernada puede proceder |
+| **Denegado** | Un miembro del comité denegó, o el umbral se volvió inalcanzable |
 
-## Componentes del Sistema
+Cuando un proceso concluye (ya sea aprobado o denegado), se publica un evento `ApprovalProcessConcluded` en la bandeja de salida. El módulo del dominio que inició el proceso escucha este evento y toma la acción apropiada.
 
-### Definiciones de Políticas
+## Patrón de Integración
 
-Las políticas definen las reglas para cada tipo de aprobación:
-- Umbrales de aprobación
-- Comités responsables
-- Reglas de quórum
+Los tres módulos de dominio siguen el mismo patrón de integración con la gobernanza:
 
-### Registro de Comités
+1. **Inicialización de políticas**: Al iniciar la aplicación, cada módulo registra su tipo de proceso de aprobación. Si la política ya existe, se reutiliza la existente (inicialización idempotente).
+2. **Creación de procesos**: Cuando ocurre la operación de dominio, se inicia un nuevo proceso de aprobación dentro de la misma transacción de base de datos. Si la política es de auto-aprobación, el proceso concluye inmediatamente.
+3. **Manejo asíncrono de conclusión**: Un ejecutor de trabajos en segundo plano escucha la bandeja de salida en busca de eventos `ApprovalProcessConcluded`, filtra por tipo de proceso y ejecuta la consecuencia específica del dominio.
 
-Gestiona los comités de aprobación:
-- Miembros del comité
-- Roles y permisos
-- Historial de decisiones
+Este patrón basado en eventos significa que el sistema de gobernanza está desacoplado de los módulos de dominio. El sistema de gobernanza no sabe ni le importa qué es un "desembolso" o un "retiro"; solo conoce procesos de aprobación con tipos y votos.
 
-### Procesos de Aprobación
+## Control de Acceso Basado en Roles
 
-Ejecuta el flujo de aprobación:
-- Validación de requisitos
-- Recopilación de votos
-- Ejecución de la decisión
+Las operaciones de gobernanza están protegidas por permisos RBAC:
+
+- **GovernanceWriter**: Puede crear comités, gestionar membresías, crear políticas, actualizar reglas y emitir votos.
+- **GovernanceViewer**: Puede leer y listar comités, políticas y procesos de aprobación.
+
+Todas las acciones de gobernanza se registran en el log de auditoría, incluyendo quién votó, cuándo y cuál fue el resultado.
 
 ## Documentación Relacionada
 

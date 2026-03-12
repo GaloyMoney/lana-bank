@@ -1,25 +1,25 @@
 ---
 id: index
-title: External Developer Guide
+title: Guía para desarrolladores externos
 sidebar_position: 1
 ---
 
-# External Developer Guide
+# Guía para desarrolladores externos
 
-Welcome to the Lana external developer documentation. This section covers everything you need to integrate with Lana's GraphQL APIs from external applications.
+Bienvenido a la documentación para desarrolladores externos de Lana. Esta sección cubre todo lo que necesitas para integrarte con las APIs GraphQL de Lana desde aplicaciones externas.
 
-## Getting Started
+## Primeros pasos
 
-- [Quickstart](quickstart) — Make your first API call in minutes
-- [Authentication](authentication) — Obtain and manage API tokens
+- [Inicio rápido](quickstart) — Realiza tu primera llamada a la API en minutos
+- [Autenticación](authentication) — Obtén y gestiona tokens de API
 
-## Integration
+## Integración
 
-- [GraphQL Integration](graphql-integration) — Client setup, queries, mutations, and pagination
-- [Suscripciones en Tiempo Real](realtime-subscriptions) — Recibe notificaciones de eventos en tiempo real via suscripciones GraphQL
+- [Integración con GraphQL](graphql-integration) — Configuración del cliente, consultas, mutaciones y paginación
+- [Suscripciones en tiempo real](realtime-subscriptions) — Recibe notificaciones de eventos en tiempo real mediante suscripciones GraphQL
 
-## API Reference
+## Referencia de la API
 
-- [Admin API Reference](../apis/admin-api) — Full administrative operations and types
-- [Customer API Reference](../apis/customer-api) — Customer-facing operations
-- [Domain Events](../apis/events) — Complete event catalog
+- [Referencia de la API de administración](../apis/admin-api) — Operaciones y tipos administrativos completos
+- [Referencia de la API de cliente](../apis/customer-api) — Operaciones orientadas al cliente
+- [Eventos de dominio](../apis/events/events.md) — Catálogo completo de eventos

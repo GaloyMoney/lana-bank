@@ -1,257 +1,267 @@
 ---
 id: ledger
-title: Libro Mayor
+title: Libro mayor
 sidebar_position: 8
 ---
 
-# Resumen del Libro Mayor
+# Descripción General del Libro Mayor
 
-Este documento describe los conjuntos de cuentas creados por el módulo de crédito durante la inicialización, su contexto contable y las plantillas de transacción que estructuran el flujo de fondos entre cuentas.
+Este documento describe los conjuntos de cuentas creados por el módulo de crédito durante la inicialización, su contexto contable y las plantillas de transacciones que estructuran el flujo de fondos entre cuentas.
 
 ## Conjuntos de Cuentas Ómnibus
 
-Todos los conjuntos de cuentas ómnibus son fuera de balance y contienen una sola cuenta compartida.
+Todos los conjuntos de cuentas ómnibus están fuera de balance y contienen una única cuenta compartida.
 
-### Línea de crédito
-
-```
-Referencia: credit-facility-omnibus-account-set
-Nombre: Conjunto de Cuentas Ómnibus de Línea de Crédito
-Propósito: Rastrea el compromiso total de líneas de crédito en todas las líneas
-Categoría: Fuera de balance
-Balance normal: Débito
-Creación de cuenta: Compartida (1 cuenta: credit-facility-omnibus-account)
-```
-
-### Colateral
+### Línea de Crédito
 
 ```
-Referencia: credit-collateral-omnibus-account-set
-Nombre: Conjunto de Cuentas Ómnibus de Colateral de Crédito
-Propósito: Rastrea el colateral total depositado en todas las líneas de crédito
-Categoría: Fuera de balance
-Balance normal: Débito
-Creación de cuenta: Compartida (1 cuenta: credit-collateral-omnibus-account)
+Ref: credit-facility-omnibus-account-set
+Name: Conjunto de Cuentas Ómnibus de Líneas de Crédito
+Purpose: Rastrea los compromisos totales de líneas de crédito en todas las líneas
+Category: Fuera de Balance
+Normal Balance: Débito
+Account Creation: Compartida (1 cuenta: credit-facility-omnibus-account)
+```
+
+### Garantía
+
+```
+Ref: credit-collateral-omnibus-account-set
+Name: Conjunto de Cuentas Ómnibus de Garantías de Crédito
+Purpose: Rastrea el total de garantías depositadas en todas las líneas
+Category: Fuera de Balance
+Normal Balance: Débito
+Account Creation: Compartida (1 cuenta: credit-collateral-omnibus-account)
 ────────────────────────────────────────
-Referencia: credit-facility-liquidation-proceeds-omnibus-account-set
-Nombre: Conjunto de Cuentas Ómnibus de Producto de Liquidación de Líneas de Crédito
-Propósito: Rastrea los productos totales de liquidación recibidos en todas las líneas de crédito
-Categoría: Fuera de balance
-Balance normal: Débito
-Creación de cuenta: Compartida (1 cuenta: credit-facility-liquidation-proceeds-omnibus-account)
+Ref: credit-facility-liquidation-proceeds-omnibus-account-set
+Name: Conjunto de Cuentas Ómnibus de Ingresos por Liquidación de Líneas de Crédito
+Purpose: Rastrea el total de ingresos por liquidación recibidos en todas las líneas
+Category: Fuera de Balance
+Normal Balance: Débito
+Account Creation: Compartida (1 cuenta: credit-facility-liquidation-proceeds-omnibus-account)
 ```
 
-### Interés
+### Intereses
 
 ```
-Referencia: credit-interest-added-to-obligations-omnibus-account-set
-Nombre: Conjunto de Cuentas Ómnibus de Interés Añadido a Obligaciones
-Propósito: Rastrea el interés total contabilizado y añadido a las obligaciones del prestatario
-Categoría: Fuera de balance
-Balance normal: Débito
-Creación de cuenta: Compartida (1 cuenta: credit-interest-added-to-obligations-omnibus-account)
+Ref: credit-interest-added-to-obligations-omnibus-account-set
+Name: Conjunto de Cuentas Ómnibus de Intereses Agregados a Obligaciones de Crédito
+Purpose: Rastrea el total de intereses registrados agregados a las obligaciones del prestatario
+Category: Fuera de Balance
+Normal Balance: Débito
+Account Creation: Compartida (1 cuenta: credit-interest-added-to-obligations-omnibus-account)
 ```
 
 ### Pagos
 
 ```
-Referencia: credit-payments-made-omnibus-account-set
-Nombre: Conjunto de Cuentas Ómnibus de Pagos de Crédito Recibidos
-Propósito: Rastrea el total de pagos recibidos en todas las líneas de crédito
-Categoría: Fuera de balance
-Balance normal: Crédito
-Creación de cuenta: Compartida (1 cuenta: credit-payments-made-omnibus-account)
+Ref: credit-payments-made-omnibus-account-set
+Name: Conjunto de Cuentas Ómnibus de Pagos Realizados de Crédito
+Purpose: Rastrea el total de pagos recibidos en todas las líneas
+Category: Fuera de Balance
+Normal Balance: Crédito
+Account Creation: Compartida (1 cuenta: credit-payments-made-omnibus-account)
 ```
 
 ## Conjuntos de Cuentas Resumen
 
-Todos los conjuntos de cuentas resumen agregan saldos y transacciones de cuentas creadas por línea de crédito.
+Todos los conjuntos de cuentas resumen agregan saldos/transacciones de cuentas que se crean por línea de crédito.
 
-### Línea de crédito
-
-```
-Referencia: credit-facility-remaining-account-set
-Nombre: Conjunto de Cuentas de Remanente de Línea de Crédito
-Propósito: Rastrea el saldo no dispuesto de la línea de crédito
-Categoría: Fuera de balance
-Balance normal: Crédito
-Creación de cuenta: Por línea de crédito
-────────────────────────────────────────
-Referencia: credit-uncovered-outstanding-account-set
-Nombre: Conjunto de Cuentas de Pendiente sin Cobertura de Crédito
-Propósito: Rastrea el monto pendiente aún no cubierto por un pago no aplicado
-Categoría: Fuera de balance
-Balance normal: Crédito
-Creación de cuenta: Por línea de crédito
-```
-
-### Colateral
+### Línea de Crédito
 
 ```
-Referencia: credit-collateral-account-set
-Nombre: Conjunto de Cuentas de Colateral de Crédito
-Propósito: Rastrea el colateral comprometido a la línea de crédito
-Categoría: Fuera de balance
-Balance normal: Crédito
-Creación de cuenta: Por línea de crédito
+Ref: credit-facility-remaining-account-set
+Name: Conjunto de Cuentas de Saldo Restante de Línea de Crédito
+Purpose: Rastrea el saldo de la línea no utilizado
+Category: Fuera de Balance
+Normal Balance: Crédito
+Account Creation: Por línea
 ────────────────────────────────────────
-Referencia: credit-facility-collateral-in-liquidation-account-set
-Nombre: Conjunto de Cuentas de Colateral en Liquidación de Línea de Crédito
-Propósito: Rastrea el colateral en liquidación activa
-Categoría: Fuera de balance
-Balance normal: Crédito
-Creación de cuenta: Por línea de crédito
-────────────────────────────────────────
-Referencia: credit-facility-liquidated-collateral-account-set
-Nombre: Conjunto de Cuentas de Colateral Liquidado de Línea de Crédito
-Propósito: Rastrea el colateral que ya fue liquidado
-Categoría: Fuera de balance
-Balance normal: Crédito
-Creación de cuenta: Por línea de crédito
-────────────────────────────────────────
-Referencia: credit-facility-proceeds-from-liquidation-account-set
-Nombre: Conjunto de Cuentas de Producto por Liquidación de Línea de Crédito
-Propósito: Rastrea los productos recibidos por liquidación de colateral
-Categoría: Fuera de balance
-Balance normal: Crédito
-Creación de cuenta: Por línea de crédito
+Ref: credit-uncovered-outstanding-account-set
+Name: Conjunto de Cuentas de Saldo Pendiente No Cubierto de Crédito
+Purpose: Rastrea el monto pendiente aún no cubierto por un pago no aplicado
+Category: Fuera de Balance
+Normal Balance: Crédito
+Account Creation: Por línea
 ```
 
-### Cartera Desembolsada de Corto Plazo
+### Garantía
 
-Todos los conjuntos en este grupo pertenecen a la categoría de Activos, tienen balance normal débito y se crean por línea de crédito.
+```
+Ref: credit-collateral-account-set
+Name: Conjunto de Cuentas de Garantía de Crédito
+Purpose: Rastrea la garantía comprometida a la facilidad
+Category: Fuera de Balance
+Normal Balance: Crédito
+Account Creation: Por facilidad
+────────────────────────────────────────
+Ref: credit-facility-collateral-in-liquidation-account-set
+Name: Conjunto de Cuentas de Garantía en Liquidación de Facilidad de Crédito
+Purpose: Rastrea la garantía en liquidación activa
+Category: Fuera de Balance
+Normal Balance: Crédito
+Account Creation: Por facilidad
+────────────────────────────────────────
+Ref: credit-facility-liquidated-collateral-account-set
+Name: Conjunto de Cuentas de Garantía Liquidada de Facilidad de Crédito
+Purpose: Rastrea la garantía que ha sido liquidada
+Category: Fuera de Balance
+Normal Balance: Crédito
+Account Creation: Por facilidad
+────────────────────────────────────────
+Ref: credit-facility-proceeds-from-liquidation-account-set
+Name: Conjunto de Cuentas de Productos de Liquidación de Facilidad de Crédito
+Purpose: Rastrea los ingresos recibidos de la liquidación de garantías
+Category: Fuera de Balance
+Normal Balance: Crédito
+Account Creation: Por facilidad
+```
+
+### Cuentas por Cobrar Desembolsadas a Corto Plazo
+
+Todos los conjuntos en este grupo son de categoría Activo, saldo normal Débito, por facilidad.
 
 Patrón de referencia: `short-term-credit-{type}-disbursed-receivable-account-set`
 
-Propósito: rastrear el principal adeudado en líneas de crédito de corto plazo por tipo de cliente.
+Propósito: Rastrea el principal adeudado en facilidades a corto plazo, por tipo de cliente.
 
 Donde `{type}` es uno de: `individual`, `government-entity`, `private-company`, `bank`, `financial-institution`, `foreign-agency-or-subsidiary`, `non-domiciled-company`.
 
-### Cartera Desembolsada de Largo Plazo
+### Cuentas por Cobrar Desembolsadas a Largo Plazo
 
-Todos los conjuntos en este grupo pertenecen a la categoría de Activos, tienen balance normal débito y se crean por línea de crédito.
+Todos los conjuntos en este grupo son de categoría Activo, saldo normal Débito, por facilidad.
 
 Patrón de referencia: `long-term-credit-{type}-disbursed-receivable-account-set`
 
-Propósito: rastrear el principal adeudado en líneas de crédito de largo plazo por tipo de cliente.
+Propósito: Rastrea el principal adeudado en facilidades a largo plazo, por tipo de cliente.
 
 Donde `{type}` es uno de: `individual`, `government-entity`, `private-company`, `bank`, `financial-institution`, `foreign-agency-or-subsidiary`, `non-domiciled-company`.
 
-### Cartera Desembolsada en Mora
+### Cuentas por Cobrar Desembolsadas Vencidas
 
-Todos los conjuntos en este grupo pertenecen a la categoría de Activos, tienen balance normal débito y se crean por línea de crédito.
+Todos los conjuntos en este grupo son de categoría Activo, saldo normal Débito, por facilidad.
 
 Patrón de referencia: `overdue-credit-{type}-disbursed-receivable-account-set`
 
-Propósito: rastrear principal vencido por tipo de cliente.
+Propósito: Rastrea el principal vencido, por tipo de cliente.
 
 Donde `{type}` es uno de: `individual`, `government-entity`, `private-company`, `bank`, `financial-institution`, `foreign-agency-or-subsidiary`, `non-domiciled-company`.
 
-### Cartera en Incumplimiento
+### Cuentas por Cobrar en Mora
 
 ```
-Referencia: credit-disbursed-defaulted-account-set
-Nombre: Conjunto de Cuentas de Cartera Desembolsada en Incumplimiento
-Propósito: Rastrea principal en incumplimiento
-Categoría: Activo
-Balance normal: Débito
-Creación de cuenta: Por línea de crédito
+Ref: credit-disbursed-defaulted-account-set
+Name: Conjunto de Cuentas de Principal Desembolsado en Mora
+Purpose: Rastrea el principal en mora
+Category: Activo
+Normal Balance: Débito
+Account Creation: Por facilidad
 ────────────────────────────────────────
-Referencia: credit-interest-defaulted-account-set
-Nombre: Conjunto de Cuentas de Interés en Incumplimiento
-Propósito: Rastrea interés en incumplimiento
-Categoría: Activo
-Balance normal: Débito
-Creación de cuenta: Por línea de crédito
+Ref: credit-interest-defaulted-account-set
+Name: Conjunto de Cuentas de Interés en Mora
+Purpose: Rastrea el interés en mora
+Category: Activo
+Normal Balance: Débito
+Account Creation: Por facilidad
 ```
 
-### Interés por Cobrar de Corto Plazo
+### Intereses por Cobrar a Corto Plazo
 
-Todos los conjuntos en este grupo pertenecen a la categoría de Activos, tienen balance normal débito y se crean por línea de crédito.
+Todos los conjuntos en este grupo son categoría Activo, saldo normal Débito, por facilidad.
 
 Patrón de referencia: `short-term-credit-{type}-interest-receivable-account-set`
 
-Propósito: rastrear intereses adeudados en líneas de crédito de corto plazo por tipo de cliente.
+Propósito: Rastrea los intereses adeudados en facilidades a corto plazo, por tipo de cliente.
 
 Donde `{type}` es uno de: `individual`, `government-entity`, `private-company`, `bank`, `financial-institution`, `foreign-agency-or-subsidiary`, `non-domiciled-company`.
 
-### Interés por Cobrar de Largo Plazo
+### Intereses por Cobrar a Largo Plazo
 
-Todos los conjuntos en este grupo pertenecen a la categoría de Activos, tienen balance normal débito y se crean por línea de crédito.
+Todos los conjuntos en este grupo son categoría Activo, saldo normal Débito, por facilidad.
 
 Patrón de referencia: `long-term-credit-{type}-interest-receivable-account-set`
 
-Propósito: rastrear intereses adeudados en líneas de crédito de largo plazo por tipo de cliente.
+Propósito: Rastrea los intereses adeudados en facilidades a largo plazo, por tipo de cliente.
 
 Donde `{type}` es uno de: `individual`, `government-entity`, `private-company`, `bank`, `financial-institution`, `foreign-agency-or-subsidiary`, `non-domiciled-company`.
 
 ### Ingresos
 
 ```
-Referencia: credit-interest-income-account-set
-Nombre: Conjunto de Cuentas de Ingreso por Interés de Crédito
-Propósito: Ingreso por interés reconocido
-Categoría: Ingresos
-Balance normal: Crédito
-Creación de cuenta: Por línea de crédito
+Ref: credit-interest-income-account-set
+Name: Conjunto de Cuentas de Ingresos por Intereses de Crédito
+Purpose: Ingresos por intereses reconocidos
+Category: Ingresos
+Normal Balance: Crédito
+Account Creation: Por facilidad
 ────────────────────────────────────────
-Referencia: credit-fee-income-account-set
-Nombre: Conjunto de Cuentas de Ingreso por Comisiones de Crédito
-Propósito: Ingreso por comisiones reconocido (comisiones de estructuración)
-Categoría: Ingresos
-Balance normal: Crédito
-Creación de cuenta: Por línea de crédito
+Ref: credit-fee-income-account-set
+Name: Conjunto de Cuentas de Ingresos por Comisiones de Crédito
+Purpose: Ingresos por comisiones reconocidos (comisiones de estructuración)
+Category: Ingresos
+Normal Balance: Crédito
+Account Creation: Por facilidad
 ```
 
-### Cuenta Puente de Pagos
+### Retención de Pagos
 
 ```
-Referencia: credit-payment-holding-account-set
-Nombre: Conjunto de Cuentas Puente de Pagos de Crédito
-Propósito: Retiene temporalmente pagos que esperan aplicación a obligaciones
-Categoría: Activo
-Balance normal: Crédito
-Creación de cuenta: Por línea de crédito
+Ref: credit-payment-holding-account-set
+Name: Conjunto de Cuentas de Retención de Pagos de Crédito
+Purpose: Retiene temporalmente los pagos que están esperando ser aplicados a las obligaciones
+Category: Activo
+Normal Balance: Crédito
+Account Creation: Por facilidad
 ```
 
-## Plantillas de Transacción
+## Plantillas de Transacciones
 
-Las columnas a la derecha de `Código de plantilla` representan los conjuntos de cuentas involucrados en la transacción. Un valor en una celda indica que la plantilla debita o acredita una cuenta de ese conjunto, en la capa Liquidada o Pendiente. Las celdas vacías significan que la plantilla no involucra ese conjunto de cuentas.
+Las columnas a la derecha del Código de Plantilla representan los conjuntos de cuentas involucrados en la transacción. Un valor de celda indica que la plantilla debita (DR) o acredita (CR) una cuenta de ese conjunto de cuentas, en la capa Liquidada o Pendiente. Las celdas vacías significan que la plantilla no involucra ese conjunto de cuentas.
 
-### Línea de Crédito
+### Facilidad
 
 ```
 ┌─────────────────────────────────────┬──────────────────────┬──────────────────────┐
-│ Código de plantilla                 │ Ómnibus de línea de crédito │ Remanente línea de crédito  │
+│ Código de Plantilla                │ Ómnibus de Facilidad │ Remanente Facilidad  │
 ├─────────────────────────────────────┼──────────────────────┼──────────────────────┤
-│ CREATE_CREDIT_FACILITY_PROPOSAL     │ Débito (Pendiente)   │ Crédito (Pendiente)  │
+│ CREATE_CREDIT_FACILITY_PROPOSAL     │ DR (Pendiente)       │ CR (Pendiente)       │
 ├─────────────────────────────────────┼──────────────────────┼──────────────────────┤
-│ ACTIVATE_CREDIT_FACILITY            │ Crédito (Pendiente)  │ Débito (Pendiente)   │
-│                                     │ Débito (Liquidado)   │ Crédito (Liquidado)  │
+│ ACTIVATE_CREDIT_FACILITY            │ CR (Pendiente)       │ DR (Pendiente)       │
+│                                     │ DR (Liquidado)       │ CR (Liquidado)       │
 └─────────────────────────────────────┴──────────────────────┴──────────────────────┘
 ```
 
 ### Desembolsos
 
-| Código de plantilla                     | Remanente línea de crédito                            | Pendiente sin cobertura                         | Cartera desembolsada                            | Ómnibus de depósitos (externo)                  |
-| --------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- |
-| INITIAL_DISBURSAL                       | Débito (Liquidado)                              | Crédito (Liquidado)                             | Débito (Liquidado)                              | Crédito (Liquidado)                             |
-| INITIATE_CREDIT_FACILITY_DISBURSAL      | Débito (Liquidado)<br/>Crédito (Pendiente)       | Crédito (Liquidado)<br/>Débito (Pendiente)       | –                                               | –                                               |
-| CONFIRM_DISBURSAL                       | Débito (Pendiente)                              | Crédito (Pendiente)                             | Débito (Liquidado)                              | Crédito (Liquidado)                             |
-| CANCEL_DISBURSAL                        | Débito (Pendiente)<br/>Crédito (Liquidado)       | Crédito (Pendiente)<br/>Débito (Liquidado)       | –                                               | –                                               |
+```
+┌──────────────────────────┬─────────────┬─────────────┬─────────────┬──────────────────┐
+│ Template Code            │ Facility    │ Uncovered   │ Disbursed   │ Deposit Omnibus  │
+│                          │ Remaining   │ Outstanding │ Receivable  │ (external)       │
+├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
+│ INITIAL_DISBURSAL        │ DR (Settled)│ CR (Settled)│ DR (Settled)│ CR (Settled)     │
+├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
+│ INITIATE_CREDIT_FACILITY │ DR (Settled)│ CR (Settled)│             │                  │
+│ _DISBURSAL               │ CR (Pending)│ DR (Pending)│             │                  │
+├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
+│ CONFIRM_DISBURSAL        │ DR (Pending)│ CR (Pending)│ DR (Settled)│ CR (Settled)     │
+├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
+│ CANCEL_DISBURSAL         │ DR (Pending)│ CR (Pending)│             │                  │
+│                          │ CR (Settled)│ DR (Settled)│             │                  │
+└──────────────────────────┴─────────────┴─────────────┴─────────────┴──────────────────┘
+```
 
-### Interés
+### Intereses
 
 ```
 ┌────────────────────────────────────┬─────────────┬─────────────┬─────────────┬─────────────┐
-│ Código de plantilla                │ Interés por │ Ingreso por │ Int. añadido│ Pendiente   │
-│                                    │ cobrar      │ interés     │ a oblig.    │ sin cobertura│
-│                                    │             │             │ ómnibus     │             │
+│ Template Code                      │ Interest    │ Interest    │ Int. Added  │ Uncovered   │
+│                                    │ Receivable  │ Income      │ to Oblig.   │ Outstanding │
+│                                    │             │             │ Omnibus     │             │
 ├────────────────────────────────────┼─────────────┼─────────────┼─────────────┼─────────────┤
-│ CREDIT_FACILITY_ACCRUE_INTEREST    │ Débito (Pendiente)│ Crédito (Pendiente)│             │             │
+│ CREDIT_FACILITY_ACCRUE_INTEREST    │ DR (Pending)│ CR (Pending)│             │             │
 ├────────────────────────────────────┼─────────────┼─────────────┼─────────────┼─────────────┤
-│ CREDIT_FACILITY_POST_ACCRUED_      │ Crédito (Pendiente)│ Débito (Pendiente)│             │             │
-│ INTEREST                           │ Débito (Liquidado)│ Crédito (Liquidado)│ Débito (Liquidado)│ Crédito (Liquidado)│
+│ CREDIT_FACILITY_POST_ACCRUED_      │ CR (Pending)│ DR (Pending)│             │             │
+│ INTEREST                           │ DR (Settled)│ CR (Settled)│ DR (Settled)│ CR (Settled)│
 └────────────────────────────────────┴─────────────┴─────────────┴─────────────┴─────────────┘
 ```
 
@@ -259,9 +269,9 @@ Las columnas a la derecha de `Código de plantilla` representan los conjuntos de
 
 ```
 ┌─────────────────────┬────────────────────┬──────────────┐
-│ Código de plantilla │ Cartera desembolsada│ Ingreso por  │
-│                     │                    │ comisiones   │
+│ Template Code       │ Disbursed          │ Fee Income   │
+│                     │ Receivable         │              │
 ├─────────────────────┼────────────────────┼──────────────┤
-│ ADD_STRUCTURING_FEE │ Débito (Liquidado) │ Crédito (Liquidado) │
+│ ADD_STRUCTURING_FEE │ DR (Settled)       │ CR (Settled) │
 └─────────────────────┴────────────────────┴──────────────┘
 ```

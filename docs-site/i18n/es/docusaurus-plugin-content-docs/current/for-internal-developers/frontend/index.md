@@ -8,68 +8,31 @@ sidebar_position: 6
 
 Este documento describe las aplicaciones frontend de Lana, su arquitectura y patrones de desarrollo.
 
-## Visión General
+## Descripción General
 
 Lana incluye dos aplicaciones frontend principales:
 
 | Aplicación | Propósito | Usuarios |
 |------------|-----------|----------|
-| Panel de Administración | Gestión del banco | Personal administrativo |
+| Panel de Administración | Gestión bancaria | Personal administrativo |
 | Portal del Cliente | Autoservicio | Clientes del banco |
 
-## Stack Tecnológico
+## Pila Tecnológica
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    STACK FRONTEND                               │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │    Next.js      │  │     React       │  │   TypeScript    │ │
-│  │    (Framework)  │  │    (UI Library) │  │   (Lenguaje)    │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │  Apollo Client  │  │   Tailwind CSS  │  │  shadcn/ui      │ │
-│  │  (GraphQL)      │  │   (Estilos)     │  │  (Componentes)  │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │   Keycloak JS   │  │   React Hook    │  │   Zod           │ │
-│  │   (Auth)        │  │   Form          │  │   (Validación)  │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Arquitectura de Aplicaciones
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    ARQUITECTURA FRONTEND                        │
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                       Next.js App                         │  │
-│  │  ┌────────────────┐  ┌────────────────┐                  │  │
-│  │  │   Pages/       │  │   Components/  │                  │  │
-│  │  │   Routes       │  │   UI           │                  │  │
-│  │  └────────────────┘  └────────────────┘                  │  │
-│  │  ┌────────────────┐  ┌────────────────┐                  │  │
-│  │  │   Hooks/       │  │   Lib/         │                  │  │
-│  │  │   Custom       │  │   Utilities    │                  │  │
-│  │  └────────────────┘  └────────────────┘                  │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    Apollo Client                          │  │
-│  │              (Gestión de estado y caché)                  │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    GraphQL APIs                           │  │
-│  │              (Admin Server / Customer Server)             │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Stack["Pila Frontend"]
+        subgraph Frameworks
+            NEXT["Next.js<br/>(Framework)"]
+            REACT["React<br/>(Biblioteca UI)"]
+            TS["TypeScript<br/>(Lenguaje)"]
+        end
+        subgraph Libraries
+            APOLLO["Apollo Client<br/>(GraphQL)"]
+            TW["Tailwind CSS<br/>(Estilos)"]
+            SHAD["shadcn/ui<br/>(Componentes)"]
+        end
+    end
 ```
 
 ## Estructura de Directorios
@@ -80,37 +43,30 @@ apps/
 │   ├── app/               # Next.js App Router
 │   ├── components/        # Componentes React
 │   ├── lib/               # Utilidades y configuración
-│   ├── hooks/             # Custom hooks
 │   └── generated/         # Código generado (GraphQL)
 │
 ├── customer-portal/       # Portal del Cliente
 │   ├── app/               # Next.js App Router
 │   ├── components/        # Componentes React
-│   ├── lib/               # Utilidades y configuración
-│   ├── hooks/             # Custom hooks
 │   └── generated/         # Código generado (GraphQL)
 │
 └── shared/                # Código compartido
-    ├── ui/                # Componentes de UI
+    ├── ui/                # Componentes UI
     └── utils/             # Utilidades comunes
 ```
 
 ## Patrones de Desarrollo
 
-### Server Components vs Client Components
-
-Next.js 13+ usa React Server Components por defecto:
+### Componentes de Servidor vs Componentes de Cliente
 
 ```typescript
-// Server Component (por defecto)
-// app/customers/page.tsx
+// Componente de Servidor (predeterminado)
 export default async function CustomersPage() {
   const customers = await fetchCustomers();
   return <CustomerList customers={customers} />;
 }
 
-// Client Component (interactivo)
-// components/customer-form.tsx
+// Componente de Cliente (interactivo)
 'use client';
 
 export function CustomerForm() {
@@ -121,25 +77,9 @@ export function CustomerForm() {
 
 ### Gestión de Estado
 
-- **Apollo Client**: Estado del servidor (datos de GraphQL)
-- **React Context**: Estado global de UI
-- **useState/useReducer**: Estado local de componentes
-
-### Autenticación
-
-```typescript
-// hooks/useAuth.ts
-export function useAuth() {
-  const { keycloak, initialized } = useKeycloak();
-
-  return {
-    isAuthenticated: keycloak.authenticated,
-    token: keycloak.token,
-    login: () => keycloak.login(),
-    logout: () => keycloak.logout(),
-  };
-}
-```
+- **Apollo Client**: Estado del servidor (datos GraphQL)
+- **React Context**: Estado global de la UI
+- **useState/useReducer**: Estado local del componente
 
 ## Desarrollo Local
 
@@ -157,3 +97,17 @@ pnpm dev
 cd apps/customer-portal
 pnpm dev
 ```
+
+### URLs de Desarrollo
+
+| Aplicación | URL |
+|------------|-----|
+| Panel de Administración | http://admin.localhost:4455 |
+| Portal del Cliente | http://app.localhost:4455 |
+
+## Documentación relacionada
+
+- [Admin Panel](admin-panel) - Documentación del panel de administración
+- [Customer Portal](customer-portal) - Documentación del portal del cliente
+- [Shared Components](shared-components) - Biblioteca de interfaz de usuario
+- [Credit UI](credit-ui) - Gestión de facilidades de crédito

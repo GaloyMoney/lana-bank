@@ -6,198 +6,253 @@ sidebar_position: 7
 
 # Servicios de Dominio
 
-Este documento proporciona una visión general de la capa de servicios de dominio en el sistema Lana Bank. Los servicios de dominio se implementan como crates `core-*` que encapsulan dominios de negocio específicos siguiendo los principios de Domain-Driven Design (DDD).
+Este documento describe la implementación del Diseño Orientado al Dominio en Lana, incluyendo patrones, estructuras y mejores prácticas.
 
-## Enfoque de Domain-Driven Design
+## Descripción General del Diseño Orientado al Dominio
 
-El sistema Lana Bank sigue un enfoque de diseño guiado por el dominio en el que la lógica de negocio se organiza en módulos discretos y cohesivos llamados servicios de dominio. Cada servicio de dominio:
+Lana implementa los principios de DDD:
 
-- **Encapsula un contexto delimitado**: Contiene toda la lógica, modelos y datos relacionados con un dominio de negocio específico
-- **Mantiene la pureza del dominio**: La lógica de negocio está separada de las preocupaciones de infraestructura
-- **Usa event sourcing**: Las entidades de dominio publican eventos que impulsan cambios de estado y comunicación entre servicios
-- **Hace cumplir invariantes**: Las reglas de negocio se hacen cumplir dentro de los límites del dominio
-- **Expone una API limpia**: Otros servicios interactúan a través de interfaces bien definidas
+- **Contextos Delimitados**: Cada módulo de dominio tiene límites claros
+- **Agregados**: Entidades agrupadas por invariantes de negocio
+- **Eventos de Dominio**: Comunicación entre contextos
+- **Repositorios**: Abstracción de persistencia
 
-Los servicios de dominio se ubican en la estructura de directorios `core/*`, siendo cada servicio un crate independiente de Rust.
+## Estructura del Dominio
 
-## Arquitectura de Servicios de Dominio
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        Capa de Aplicación                               │
-│                           (lana-app)                                    │
-└─────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    Servicios de Dominio (core-*)                        │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │ core-credit │  │core-deposit │  │core-customer│  │core-custody │    │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │core-account │  │ governance  │  │ core-access │  │core-applicant│   │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
-└─────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    Servicios de Infraestructura                         │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────────┐   │
-│  │  audit  │  │  authz  │  │  outbox │  │   job   │  │tracing-utils│   │
-│  └─────────┘  └─────────┘  └─────────┘  └─────────┘  └─────────────┘   │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph MODULE["Domain Module"]
+        ENT["Entity<br/>(Aggregate)"] --> EVT["Events<br/>(State Changes)"]
+        REPO["Repository<br/>(Persistence)"] --> PRIM["Primitives<br/>(Value Objects)"]
+        SVC["Service<br/>(Business Logic)"] --> PUB["Publisher<br/>(Outbox)"]
+    end
 ```
 
-## Módulos Principales del Dominio
+## Organización de Archivos
 
-### Servicios de Dominio Primarios
-
-| Módulo | Crate | Propósito | Dependencias Clave |
-|--------|-------|-----------|-------------------|
-| Money | core-money | Define tipos de moneda, importes monetarios y utilidades de conversión | rust_decimal, async-graphql |
-| Customer | core-customer | Gestiona entidades de clientes, perfiles y relaciones | es-entity, governance, document-storage |
-| Credit | core-credit | Maneja facilidades de crédito, desembolsos, obligaciones, devengo de intereses y pagos | cala-ledger, core-accounting, core-custody, governance |
-| Deposit | core-deposit | Gestiona cuentas de depósito, depósitos y retiros | cala-ledger, core-accounting, core-customer, governance |
-| Accounting | core-accounting | Proporciona plan de cuentas, balance de comprobación y transacciones manuales | cala-ledger, core-money, cloud-storage |
-| Custody | core-custody | Gestiona billeteras e integra con custodios externos (BitGo, Komainu) | bitgo, komainu, core-money |
-| Applicant | core-applicant | Maneja flujos KYC/AML e integración con Sumsub | sumsub, core-customer, es-entity |
-| Access | core-access | Gestiona usuarios, roles y control de acceso | es-entity, governance, authz |
-
-### Servicios de Dominio de Soporte
-
-| Módulo | Crate | Propósito |
-|--------|-------|-----------|
-| Governance | governance | Implementa procesos de aprobación, votación de comités y aplicación de políticas |
-| Document Storage | document-storage | Maneja carga, almacenamiento y recuperación de documentos |
-| Public ID | public-id | Genera y gestiona identificadores públicos legibles por humanos |
-| Price | core-price | Proporciona fuentes de precios de criptomonedas y tasas de conversión |
-| Report | core-report | Gestiona la generación de reportes e integración con Airflow |
-
-## Patrones Arquitectónicos Comunes
-
-Todos los servicios de dominio siguen patrones arquitectónicos consistentes para garantizar mantenibilidad y consistencia.
-
-### Patrón de Event Sourcing
-
-Las entidades de dominio usan el framework `es-entity`, que proporciona:
-
-- **Definiciones de entidades**: Rasgos base para agregados y entidades
-- **Event sourcing**: Persistencia y reproducción automática de eventos
-- **Contexto de eventos**: Seguimiento de metadatos para auditoría y trazabilidad
-- **Integración GraphQL**: Generación automática de esquema cuando la característica `graphql` está habilitada
+Cada módulo de dominio sigue una estructura consistente:
 
 ```
-┌──────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│   Command    │───▶│  Domain Service  │───▶│  Domain Events   │
-└──────────────┘    └──────────────────┘    └──────────────────┘
-                           │                        │
-                           ▼                        ▼
-                    ┌──────────────┐         ┌──────────────┐
-                    │  Repository  │         │   Outbox     │
-                    └──────────────┘         │  Publisher   │
-                           │                 └──────────────┘
-                           ▼                        │
-                    ┌──────────────┐                ▼
-                    │  PostgreSQL  │         ┌──────────────┐
-                    │ Event Store  │         │outbox.events │
-                    └──────────────┘         └──────────────┘
+core/<domain>/
+├── mod.rs              # Interfaz del módulo
+├── entity.rs           # Definición de entidad con eventos
+├── repo.rs             # Implementación del repositorio
+├── error.rs            # Errores específicos del dominio
+├── primitives.rs       # Objetos de valor y tipos
+├── publisher.rs        # Publicador de eventos (outbox)
+├── job.rs              # Trabajos en segundo plano
+└── public/             # Eventos públicos para otros dominios
+    └── events.rs
 ```
 
-### Patrón de Autorización y Auditoría
+## Patrón de Entidad con es-entity
 
-Cada operación de dominio sigue un patrón consistente para autorización y auditoría:
-
-1. **Verificación de autorización**: La librería `authz` valida que el sujeto tenga los permisos requeridos
-2. **Ejecución de la lógica de negocio**: La lógica de dominio se ejecuta y emite eventos
-3. **Registro de auditoría**: La librería `audit` registra la acción con sujeto, recurso y resultado
-4. **Publicación de eventos**: Los eventos se publican en outbox para procesamiento asíncrono
+Lana utiliza la crate `es-entity` para entidades basadas en eventos:
 
 ```rust
-// Ejemplo de patrón en un servicio de dominio
-pub async fn execute_action(
-    &self,
-    subject: &Subject,
-    input: ActionInput,
-) -> Result<ActionOutput, Error> {
-    // 1. Verificar autorización
-    self.authz.enforce(subject, Object::Action, Permission::Execute).await?;
+use es_entity::*;
 
-    // 2. Ejecutar lógica de negocio
-    let result = self.perform_action(input).await?;
+#[derive(EsEntity)]
+pub struct CreditFacility {
+    events: EntityEvents<CreditFacilityEvent>,
+    id: CreditFacilityId,
+    customer_id: CustomerId,
+    amount: UsdCents,
+    status: FacilityStatus,
+}
 
-    // 3. Registrar auditoría
-    self.audit.record(subject, Action::Execute, &result).await;
-
-    // 4. Publicar eventos (automático via es-entity)
-    Ok(result)
+#[derive(EsEvent)]
+pub enum CreditFacilityEvent {
+    Initialized {
+        id: CreditFacilityId,
+        customer_id: CustomerId,
+        amount: UsdCents,
+    },
+    Activated {
+        activated_at: DateTime<Utc>,
+    },
+    DisbursalInitiated {
+        disbursal_id: DisbursalId,
+        amount: UsdCents,
+    },
 }
 ```
 
-### Patrón de Integración con el Libro Mayor
+## Patrón de Repositorio
 
-Los servicios de dominio que manejan transacciones financieras se integran con el libro mayor Cala:
+Los repositorios manejan la persistencia con event sourcing:
 
-```
-┌─────────────────────┐
-│  Servicio Dominio   │
-│  (core-credit)      │
-└─────────────────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  core-accounting    │
-│  (Adaptador)        │
-└─────────────────────┘
-          │
-          ▼
-┌─────────────────────┐
-│   cala-ledger       │
-│  (Libro Mayor)      │
-└─────────────────────┘
-```
+```rust
+pub struct CreditFacilityRepo {
+    pool: PgPool,
+    outbox: Outbox,
+}
 
-## Comunicación Impulsada por Eventos
+impl CreditFacilityRepo {
+    pub async fn create(&self, facility: CreditFacility) -> Result<CreditFacility, Error> {
+        let mut tx = self.pool.begin().await?;
 
-Los servicios de dominio se comunican mediante eventos:
+        // Persist events
+        facility.persist(&mut tx).await?;
 
-### Tipos de Eventos
+        // Publish to outbox
+        self.outbox.publish(&mut tx, facility.events()).await?;
 
-| Tipo | Propósito | Ejemplo |
-|------|-----------|---------|
-| Eventos de Entidad | Cambios de estado internos | `CreditFacilityCreated` |
-| Eventos de Dominio | Comunicación entre servicios | `CollateralUpdated` |
-| Eventos Públicos | Integración externa | `PaymentReceived` |
+        tx.commit().await?;
+        Ok(facility)
+    }
 
-### Flujo de Eventos
-
-```
-┌────────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐
-│  Comando   │───▶│  Servicio  │───▶│   Evento   │───▶│   Outbox   │
-└────────────┘    │  Dominio   │    │            │    │  Publisher │
-                  └────────────┘    └────────────┘    └────────────┘
-                                                            │
-                  ┌────────────┐    ┌────────────┐          │
-                  │   Job      │◀───│   Evento   │◀─────────┘
-                  │  Handler   │    │  Consumer  │
-                  └────────────┘    └────────────┘
+    pub async fn find_by_id(&self, id: CreditFacilityId) -> Result<CreditFacility, Error> {
+        CreditFacility::load(&self.pool, id).await
+    }
+}
 ```
 
-## Estructura de Dependencias
+## Eventos de Dominio
 
-### Reglas de Dependencia
+### Eventos de Entidad (Privados)
 
-1. Los servicios de dominio no dependen unos de otros directamente
-2. La coordinación se realiza a través de eventos o la capa de aplicación
-3. Los servicios de infraestructura son compartidos
-4. La comunicación con el libro mayor se realiza a través de `core-accounting`
+Cambios de estado internos dentro de un agregado:
 
-### Feature Flags
+```rust
+#[derive(EsEvent)]
+pub enum CustomerEvent {
+    Initialized { id: CustomerId, email: String },
+    KycApproved { approved_at: DateTime<Utc> },
+    StatusChanged { new_status: CustomerStatus },
+}
+```
 
-Los servicios de dominio usan feature flags para controlar dependencias opcionales:
+### Eventos Públicos
 
-```toml
-[features]
-default = []
-graphql = ["async-graphql"]
-import = ["cloud-storage"]
+Eventos publicados para que otros dominios los consuman:
+
+```rust
+// public/events.rs
+pub enum CustomerPublicEvent {
+    CustomerCreated {
+        customer_id: CustomerId,
+        email: String,
+    },
+    CustomerActivated {
+        customer_id: CustomerId,
+    },
+}
+```
+
+## Servicios de Dominio
+
+Los servicios implementan operaciones de negocio:
+
+```rust
+pub struct CreditService {
+    facility_repo: CreditFacilityRepo,
+    customer_repo: CustomerRepo,
+    ledger: DepositLedger,
+    governance: GovernanceService,
+}
+
+impl CreditService {
+    pub async fn create_facility(
+        &self,
+        customer_id: CustomerId,
+        terms: FacilityTerms,
+    ) -> Result<CreditFacility, CreditError> {
+        // Validate customer
+        let customer = self.customer_repo.find_by_id(customer_id).await?;
+        customer.validate_for_credit()?;
+
+        // Create facility
+        let facility = CreditFacility::new(customer_id, terms)?;
+
+        // Persist
+        self.facility_repo.create(facility).await
+    }
+}
+```
+
+## Manejo de Errores
+
+Cada dominio define errores específicos:
+
+```rust
+// error.rs
+#[derive(Debug, thiserror::Error)]
+pub enum CreditError {
+    #[error("Customer not found: {0}")]
+    CustomerNotFound(CustomerId),
+
+    #[error("Insufficient collateral")]
+    InsufficientCollateral,
+
+    #[error("Facility already active")]
+    FacilityAlreadyActive,
+}
+```
+
+## Objetos de Valor (Primitivos)
+
+Conceptos de dominio fuertemente tipados:
+
+```rust
+// primitives.rs
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct UsdCents(i64);
+
+impl UsdCents {
+    pub fn new(cents: i64) -> Self {
+        Self(cents)
+    }
+
+    pub fn as_dollars(&self) -> f64 {
+        self.0 as f64 / 100.0
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct InterestRate(Decimal);
+```
+
+## Comunicación entre Dominios
+
+Los dominios se comunican a través de eventos y el patrón outbox:
+
+```mermaid
+graph LR
+    CUST["Dominio de Cliente"] -->|"CustomerActivated"| OUTBOX["Tabla Outbox"]
+    OUTBOX -->|"Creates Deposit Account"| DEP["Dominio de Depósito"]
+```
+
+## Patrones de Prueba
+
+### Pruebas Unitarias
+
+```rust
+#[tokio::test]
+async fn test_create_facility() {
+    let facility = CreditFacility::new(
+        CustomerId::new(),
+        FacilityTerms::default(),
+    ).unwrap();
+
+    assert_eq!(facility.status(), FacilityStatus::PendingCollateral);
+}
+```
+
+### Pruebas de Integración
+
+```rust
+#[tokio::test]
+async fn test_full_credit_flow() {
+    let app = TestApp::new().await;
+
+    // Create customer
+    let customer = app.create_customer().await;
+
+    // Create facility
+    let facility = app.create_facility(customer.id).await;
+
+    // Verify state
+    assert!(facility.is_active());
+}
 ```

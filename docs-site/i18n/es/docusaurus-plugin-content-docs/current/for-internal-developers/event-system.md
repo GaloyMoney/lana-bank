@@ -6,30 +6,37 @@ sidebar_position: 8
 
 # Sistema de Eventos y Patrón Outbox
 
-Este documento describe la arquitectura orientada a eventos implementada en Lana Bank, centrándose en el patrón de event sourcing usado dentro de las entidades de dominio y el patrón outbox usado para la publicación confiable de eventos.
+Este documento describe el sistema de eventos de Lana, incluyendo event sourcing, el patrón outbox y la comunicación entre dominios.
 
 ```mermaid
 graph TD
-    subgraph EventTypes["Tipos de Eventos"]
-        EE["Eventos de Entidad<br/>(Cambios internos)"]
-        DE["Eventos de Dominio<br/>(Entre dominios)"]
-        PE["Eventos Públicos<br/>(Consumidores externos)"]
+    subgraph EventTypes["Event Types"]
+        EE["Entity Events<br/>(Internal state changes)"]
+        DE["Domain Events<br/>(Cross-domain)"]
+        PE["Public Events<br/>(External consumers)"]
     end
 
-    subgraph DomainEvents["Flujo de Eventos de Dominio"]
-        OUTBOX["Outbox<br/>(Transaccional)"]
-        PROC["Procesador de Eventos"]
-        SYNC["Servicios de Sync"]
-        BGJOBS["Trabajos en Segundo Plano"]
-        DASH["Dashboard<br/>(métricas)"]
+    subgraph EntityEvents["Entity Event Categories"]
+        CF["CreditFacility<br/>Events"]
+        CU["Customer<br/>Events"]
+        DEP["Deposit<br/>Events"]
     end
 
-    subgraph Consumers["Consumidores"]
-        PRICE["Actualización de Precios"]
-        INTEREST["Acumulación de Intereses"]
-        COLLAT["Colateralización"]
+    subgraph DomainEvents["Domain Event Flow"]
+        OUTBOX["Outbox<br/>(Transactional)"]
+        PROC["Event Processor"]
+        SYNC["Sync Services<br/>(customer-sync, deposit-sync)"]
+        BGJOBS["Background Jobs<br/>(job system)"]
+        DASH["Dashboard<br/>(metrics)"]
     end
 
+    subgraph Consumers["Event Consumers"]
+        PRICE["Price Update Jobs"]
+        INTEREST["Interest Accrual Jobs"]
+        COLLAT["Collateralization Jobs"]
+    end
+
+    EE --> EntityEvents
     DE --> OUTBOX
     OUTBOX --> PROC
     PROC --> SYNC
@@ -40,318 +47,234 @@ graph TD
     BGJOBS --> COLLAT
 ```
 
-## Modelo Dual de Eventos
+## Descripción General
 
-El sistema implementa un modelo dual que separa los eventos internos de entidad de los eventos de dominio externos. Esta separación permite una integración confiable entre contextos acotados manteniendo una estricta consistencia dentro de cada dominio.
+Lana utiliza una arquitectura orientada a eventos con:
 
-### Eventos de Entidad vs Eventos de Dominio
+- **Event Sourcing**: Los cambios de estado se capturan como eventos
+- **Patrón Outbox**: Publicación confiable de eventos
+- **Eventos de Dominio**: Comunicación entre contextos
 
-| Tipo de Evento | Propósito | Alcance | Ejemplos |
-|----------------|-----------|---------|----------|
-| Eventos de Entidad | Cambios de estado internos | Un único agregado | `CreditFacilityEvent::Initialized`, `ObligationEvent::DueRecorded` |
-| Eventos de Dominio | Eventos de negocio para consumo externo | Integración entre dominios | `CoreCreditEvent::FacilityActivated`, `CoreCreditEvent::ObligationDue` |
+## Tipos de Eventos
 
-Los eventos de entidad se persisten como fuente de la verdad mediante event sourcing. Los eventos de dominio se derivan y publican a través del patrón outbox.
-
-## Event Sourcing para Entidades
-
-### Arquitectura de Event Sourcing
-
-```
-┌──────────────────┐
-│ Business Command │
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐    ┌──────────────────┐
-│  Domain Entity   │───▶│  Entity Events   │
-│ (execute logic)  │    │  push(new_event) │
-└────────┬─────────┘    └────────┬─────────┘
-         │                       │
-         ▼                       ▼
-┌──────────────────┐    ┌──────────────────┐
-│   Repository     │    │  Domain Publisher│
-│ update_in_op()   │    │  publish()       │
-└────────┬─────────┘    └────────┬─────────┘
-         │                       │
-         ▼                       ▼
-┌──────────────────┐    ┌──────────────────┐
-│   PostgreSQL     │    │   Outbox Table   │
-│  (Event Store)   │    │                  │
-└──────────────────┘    └──────────────────┘
+```mermaid
+graph LR
+    EE["**Entity Events**<br/>(Internal)<br/>State changes<br/>within aggregate"]
+    DE["**Domain Events**<br/>(Cross-domain)<br/>Business processes<br/>within application"]
+    PE["**Public Events**<br/>(External)<br/>Webhooks/APIs<br/>external consumers"]
 ```
 
-### Implementación con es-entity
+## Eventos de Entidad
 
-Las entidades de dominio usan el framework `es-entity`:
+Cambios de estado internos dentro de un agregado:
 
 ```rust
-use es_entity::*;
-
-#[derive(EsEntity)]
-pub struct CreditFacility {
-    events: EntityEvents<CreditFacilityEvent>,
-    // ... otros campos
-}
-
 #[derive(EsEvent)]
 pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
         customer_id: CustomerId,
-        terms: TermsId,
+        amount: UsdCents,
+    },
+    CollateralPosted {
+        collateral_id: CollateralId,
+        amount: Satoshis,
     },
     Activated {
         activated_at: DateTime<Utc>,
     },
     DisbursalInitiated {
         disbursal_id: DisbursalId,
-        amount: Money,
+        amount: UsdCents,
     },
-    // ... más variantes
-}
-```
-
-### Flujo de Procesamiento
-
-1. **Comando de negocio**: Se recibe una solicitud (ej. activar facilidad)
-2. **Ejecución de lógica**: La entidad valida y ejecuta la operación
-3. **Emisión de evento**: Se crea y agrega el evento al historial
-4. **Persistencia**: El repositorio guarda los nuevos eventos en transacción
-5. **Publicación**: El publisher convierte a eventos de dominio y publica al outbox
-
-```rust
-impl CreditFacility {
-    pub fn activate(&mut self) -> Result<(), CreditFacilityError> {
-        // Validar estado actual
-        if self.status != CreditFacilityStatus::Approved {
-            return Err(CreditFacilityError::InvalidStatus);
-        }
-
-        // Emitir evento
-        self.events.push(CreditFacilityEvent::Activated {
-            activated_at: Utc::now(),
-        });
-
-        Ok(())
-    }
 }
 ```
 
 ## Patrón Outbox
 
-El patrón outbox garantiza la publicación confiable de eventos persistiendo los eventos de dominio en la misma transacción de base de datos que los datos de negocio.
+El outbox garantiza la entrega confiable de eventos:
 
-### Arquitectura del Outbox
+```mermaid
+graph TD
+    DS["Domain Service<br/>Operation"] -->|"Single Transaction"| PG
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PostgreSQL Transaction                        │
-│  ┌─────────────────────┐    ┌─────────────────────┐            │
-│  │   Entity Events     │    │   Outbox Events     │            │
-│  │      Table          │    │      Table          │            │
-│  └─────────────────────┘    └─────────────────────┘            │
-└─────────────────────────────────────────────────────────────────┘
-                                        │
-                                        │ (async)
-                                        ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Event Consumers                               │
-│  ┌─────────────────────┐    ┌─────────────────────┐            │
-│  │   Background Jobs   │    │   External Systems  │            │
-│  └─────────────────────┘    └─────────────────────┘            │
-└─────────────────────────────────────────────────────────────────┘
+    subgraph PG["PostgreSQL"]
+        ET["Entity Table<br/>(State)"]
+        OT["Outbox Table<br/>(Events)"]
+    end
+
+    PG -->|"Background Process"| EP["Event Processor<br/>Reads pending events<br/>Dispatches to handlers<br/>Marks as processed"]
 ```
 
-### Esquema de la Tabla Outbox
-
-| Columna | Tipo | Propósito |
-|---------|------|-----------|
-| sequence | BIGSERIAL | Orden de eventos autoincremental |
-| recorded_at | TIMESTAMPTZ | Marca de tiempo de creación |
-| event_type | TEXT | Discriminador para variantes de evento |
-| payload | JSONB | Evento de dominio serializado |
-| trace_context | JSONB | Contexto de trazabilidad para observabilidad |
+### Estructura de la Tabla Outbox
 
 ```sql
-CREATE TABLE outbox_events (
-    sequence BIGSERIAL PRIMARY KEY,
-    recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    event_type TEXT NOT NULL,
+CREATE TABLE outbox (
+    id UUID PRIMARY KEY,
+    aggregate_type VARCHAR NOT NULL,
+    aggregate_id UUID NOT NULL,
+    event_type VARCHAR NOT NULL,
     payload JSONB NOT NULL,
-    trace_context JSONB
+    created_at TIMESTAMP NOT NULL,
+    processed_at TIMESTAMP,
+    correlation_id UUID
 );
-
-CREATE INDEX idx_outbox_events_sequence ON outbox_events(sequence);
 ```
 
-### Preservación del Contexto de Trazas
-
-El outbox preserva el contexto de trazabilidad para correlacionar eventos:
+### Publicación de Eventos
 
 ```rust
-pub struct OutboxEvent {
-    pub sequence: i64,
-    pub recorded_at: DateTime<Utc>,
-    pub event_type: String,
-    pub payload: serde_json::Value,
-    pub trace_context: Option<TraceContext>,
-}
+impl CreditFacilityRepo {
+    pub async fn create(&self, facility: CreditFacility) -> Result<CreditFacility> {
+        let mut tx = self.pool.begin().await?;
 
-impl OutboxEvent {
-    pub fn new<E: Serialize>(event: &E, trace_context: Option<TraceContext>) -> Self {
-        Self {
-            sequence: 0, // Asignado por la BD
-            recorded_at: Utc::now(),
-            event_type: std::any::type_name::<E>().to_string(),
-            payload: serde_json::to_value(event).unwrap(),
-            trace_context,
+        // Save entity
+        facility.persist(&mut tx).await?;
+
+        // Publish to outbox (same transaction)
+        for event in facility.events() {
+            self.outbox.publish(&mut tx, event).await?;
         }
+
+        tx.commit().await?;
+        Ok(facility)
     }
 }
 ```
 
-## Eventos de Dominio Publicados
+## Procesamiento de Eventos
 
-### Tipos de Eventos del Dominio Core
-
-```rust
-// lana/events/src/lib.rs
-pub enum CoreCreditEvent {
-    FacilityCreated {
-        id: CreditFacilityId,
-        customer_id: CustomerId,
-    },
-    FacilityActivated {
-        id: CreditFacilityId,
-    },
-    DisbursalCompleted {
-        facility_id: CreditFacilityId,
-        disbursal_id: DisbursalId,
-        amount: Money,
-    },
-    ObligationDue {
-        facility_id: CreditFacilityId,
-        obligation_id: ObligationId,
-        due_date: NaiveDate,
-    },
-    PaymentReceived {
-        facility_id: CreditFacilityId,
-        payment_id: PaymentId,
-        amount: Money,
-    },
-}
-
-pub enum CoreDepositEvent {
-    AccountCreated {
-        id: DepositAccountId,
-        customer_id: CustomerId,
-    },
-    DepositRecorded {
-        account_id: DepositAccountId,
-        amount: Money,
-    },
-    WithdrawalInitiated {
-        account_id: DepositAccountId,
-        withdrawal_id: WithdrawalId,
-        amount: Money,
-    },
-}
-
-pub enum CoreCustomerEvent {
-    CustomerCreated {
-        id: CustomerId,
-    },
-    KycCompleted {
-        id: CustomerId,
-        status: KycStatus,
-    },
-}
-```
-
-## Patrón Publisher
-
-### Implementación del Publisher
+### Procesador de Eventos
 
 ```rust
-// core/credit/src/publisher.rs
-pub struct CreditFacilityPublisher {
-    outbox: OutboxPublisher,
+pub struct EventProcessor {
+    handlers: Vec<Box<dyn EventHandler>>,
 }
 
-impl CreditFacilityPublisher {
-    pub async fn publish(
-        &self,
-        events: &[CreditFacilityEvent],
-        db_op: &mut DbOp<'_>,
-    ) -> Result<(), PublisherError> {
+impl EventProcessor {
+    pub async fn process_pending(&self) -> Result<()> {
+        let events = self.outbox.fetch_pending(100).await?;
+
         for event in events {
-            if let Some(domain_event) = self.to_domain_event(event) {
-                self.outbox.publish(&domain_event, db_op).await?;
+            for handler in &self.handlers {
+                if handler.can_handle(&event) {
+                    handler.handle(&event).await?;
+                }
             }
+            self.outbox.mark_processed(event.id).await?;
         }
+
         Ok(())
     }
-
-    fn to_domain_event(&self, event: &CreditFacilityEvent) -> Option<CoreCreditEvent> {
-        match event {
-            CreditFacilityEvent::Activated { .. } => {
-                Some(CoreCreditEvent::FacilityActivated {
-                    id: self.facility_id
-                })
-            }
-            // No todos los eventos internos se publican externamente
-            CreditFacilityEvent::InternalStateChange { .. } => None,
-            // ... más mappings
-        }
-    }
 }
 ```
 
-### Publicación Selectiva
-
-No todos los eventos de entidad se publican como eventos de dominio:
+### Manejadores de Eventos
 
 ```rust
-fn to_domain_event(&self, event: &CreditFacilityEvent) -> Option<CoreCreditEvent> {
-    match event {
-        // Eventos que SÍ se publican
-        CreditFacilityEvent::Activated { .. } => Some(CoreCreditEvent::FacilityActivated { .. }),
-        CreditFacilityEvent::DisbursalCompleted { .. } => Some(CoreCreditEvent::DisbursalCompleted { .. }),
+pub struct CustomerActivationHandler {
+    deposit_service: DepositService,
+}
 
-        // Eventos internos que NO se publican
-        CreditFacilityEvent::TermsUpdated { .. } => None,
-        CreditFacilityEvent::CollateralRevalued { .. } => None,
+#[async_trait]
+impl EventHandler for CustomerActivationHandler {
+    fn can_handle(&self, event: &OutboxEvent) -> bool {
+        event.event_type == "CustomerActivated"
     }
-}
-```
 
-## Integración con Jobs
+    async fn handle(&self, event: &OutboxEvent) -> Result<()> {
+        let payload: CustomerActivatedEvent = serde_json::from_value(event.payload)?;
 
-### Consumo de Eventos
-
-```rust
-// Job que consume eventos del outbox
-pub struct CollateralSyncJob {
-    outbox_consumer: OutboxConsumer,
-}
-
-impl Job for CollateralSyncJob {
-    async fn run(&self) -> Result<(), JobError> {
-        let events = self.outbox_consumer
-            .poll::<CoreCreditEvent>()
+        // Create deposit account for new customer
+        self.deposit_service
+            .create_account(payload.customer_id)
             .await?;
 
-        for event in events {
-            match event.payload {
-                CoreCreditEvent::FacilityActivated { id } => {
-                    self.sync_collateral_for_facility(id).await?;
-                }
-                _ => {}
-            }
-            self.outbox_consumer.ack(event.sequence).await?;
-        }
         Ok(())
     }
 }
 ```
+
+## Comunicación entre Dominios
+
+```mermaid
+graph TD
+    CUST["Customer Domain"] -->|"CustomerActivated"| OUTBOX["Outbox<br/>(Event Queue)"]
+    OUTBOX --> EP["Event Processor"]
+    EP -->|"Creates Deposit Account"| DEP["Deposit Domain"]
+```
+
+## Correlación de Eventos
+
+Los eventos pueden correlacionarse para el rastreo:
+
+```rust
+pub struct CorrelationContext {
+    correlation_id: Uuid,
+    causation_id: Option<Uuid>,
+    trace_id: String,
+}
+
+impl Outbox {
+    pub async fn publish_with_context(
+        &self,
+        tx: &mut Transaction,
+        event: impl Event,
+        context: CorrelationContext,
+    ) -> Result<()> {
+        // Include correlation data in outbox record
+    }
+}
+```
+
+## Idempotencia
+
+Los manejadores de eventos deben ser idempotentes:
+
+```rust
+impl DepositAccountCreationHandler {
+    async fn handle(&self, event: &CustomerActivatedEvent) -> Result<()> {
+        // Check if already processed
+        if self.repo.exists_for_customer(event.customer_id).await? {
+            return Ok(()); // Already created
+        }
+
+        // Create new account
+        self.repo.create_account(event.customer_id).await
+    }
+}
+```
+
+## Reproducción de Eventos
+
+Los eventos se pueden reproducir para recuperación o pruebas:
+
+```rust
+pub async fn replay_events(
+    from: DateTime<Utc>,
+    to: DateTime<Utc>,
+) -> Result<()> {
+    let events = outbox.fetch_range(from, to).await?;
+
+    for event in events {
+        processor.process(event).await?;
+    }
+
+    Ok(())
+}
+```
+
+## Monitoreo
+
+### Métricas
+
+- Eventos publicados por segundo
+- Latencia de procesamiento de eventos
+- Cantidad de eventos pendientes
+- Tasas de éxito/fallo de manejadores
+
+### Alertas
+
+- Cantidad alta de eventos pendientes
+- Fallos de procesamiento
+- Manejadores lentos

@@ -1,21 +1,21 @@
 ---
 id: self-custody-signet
-title: Probando la autocustodia en Signet
+title: Prueba de Autocustodia en Signet
 ---
 
-# Probar la autocustodia en Signet
+# Prueba de Auto-custodia en Signet
 
-Esta guía explica el flujo local de Signet para el proveedor de autocustodia.
+Esta guía recorre el flujo local de Signet para el proveedor de auto-custodia.
 
-En los ejemplos siguientes:
+En los ejemplos a continuación:
 
-- `default` es la billetera emisora y representa a la parte externa que financia la billetera del préstamo
-- `mykeys_receive_test` es una billetera local de recepción que puedes usar para inspeccionar descriptores
-- Lana almacena sólo la `xpub` de la cuenta; la `xpriv` correspondiente permanece fuera del backend
+- `default` es la billetera emisora y representa la parte externa que financia la billetera de préstamo
+- `mykeys_receive_test` es una billetera de recepción local que puedes usar para inspeccionar descriptores
+- Lana almacena solo el `xpub` de la cuenta; el `xpriv` correspondiente permanece fuera del backend
 
 ## Requisitos previos
 
-Inicia Lana con una configuración que incluya soporte de esplora para Signet bajo `app.custody.custody_providers.self_custody_directory`:
+Inicia Lana con una configuración que incluya soporte de esplora de Signet bajo `app.custody.custody_providers.self_custody_directory`:
 
 ```yaml
 app:
@@ -28,17 +28,17 @@ app:
         signet_url: https://blockstream.info/signet/api/
 ```
 
-También necesitas un nodo Bitcoin Core en funcionamiento con Signet habilitado para que `bitcoin-cli -signet` pueda comunicarse con él.
+También necesitas un nodo Bitcoin Core en ejecución con Signet habilitado para que `bitcoin-cli -signet` pueda comunicarse con él.
 
 ## Generación de claves preferida
 
-El flujo soportado de Lana es generar la clave de cuenta de autocustodia localmente con `lana-cli` y pegar sólo el `account_xpub` en el panel de administración:
+El flujo compatible con Lana consiste en generar la clave de cuenta de auto-custodia localmente con `lana-cli` y pegar solo el `account_xpub` en el panel de administración:
 
 ```bash
 cargo run -p lana-cli -- genxpriv --network signet
 ```
 
-El comando muestra:
+El comando imprime:
 
 - `network`
 - `account_path`
@@ -46,7 +46,7 @@ El comando muestra:
 - `account_xpub`
 - `receive_path_template`
 
-Sólo `account_xpub` debe ingresar en Lana. Mantén `account_xpriv` fuera del backend.
+Solo `account_xpub` debe estar en Lana. Mantén `account_xpriv` fuera del backend.
 
 ## Opcional: Inspeccionar una billetera de recepción de Signet en Bitcoin Core
 
@@ -56,13 +56,13 @@ Si deseas una billetera local de Bitcoin Core para inspeccionar descriptores de 
 bitcoin-cli -signet createwallet "mykeys_receive_test" false false "" false true
 ```
 
-Si hay varias billeteras cargadas, pasa siempre `-rpcwallet=<walletname>`:
+Si hay varias billeteras cargadas, siempre pasa `-rpcwallet=<walletname>`:
 
 ```bash
 bitcoin-cli -signet -rpcwallet=mykeys_receive_test listdescriptors
 ```
 
-Para extraer la `xpub` de la cuenta externa BIP84 del descriptor público:
+Para extraer el `xpub` de cuenta BIP84 externo de la salida del descriptor público:
 
 ```bash
 bitcoin-cli -signet -rpcwallet=mykeys_receive_test listdescriptors \
@@ -74,11 +74,11 @@ bitcoin-cli -signet -rpcwallet=mykeys_receive_test listdescriptors \
     | .xpub'
 ```
 
-No utilices `listdescriptors true` para este paso. Ese comando devuelve descriptores privados que contienen `tprv`, los cuales no deben pegarse en Lana.
+No uses `listdescriptors true` para este paso. Eso devuelve descriptores privados que contienen `tprv`, que no deben pegarse en Lana.
 
-## Crear una billetera de envío
+## Crear una Cartera Remitente
 
-Si aún no tienes una billetera de Signet cargada para financiar transacciones, crea una primero:
+Si aún no tienes una cartera Signet con fondos para financiar transacciones, créala primero:
 
 ```bash
 bitcoin-cli -signet createwallet "default"
@@ -86,24 +86,24 @@ bitcoin-cli -signet -rpcwallet=default getnewaddress
 bitcoin-cli -signet -rpcwallet=default getbalance
 ```
 
-Si `bitcoin-cli -signet getnewaddress` falla con `No wallet is loaded`, crea o carga una billetera antes de volver a intentarlo.
+Si `bitcoin-cli -signet getnewaddress` falla con `No wallet is loaded`, crea o carga una cartera antes de reintentar.
 
-## Crear el custodio de auto-custodia en Lana
+## Crear el Custodio de Autocustodia en Lana
 
 En el panel de administración:
 
-1. Abre el diálogo para crear un custodio.
-2. Elige `Self-Custody`.
+1. Abre el diálogo de creación de custodio.
+2. Selecciona `Self-Custody`.
 3. Establece `Network` en `Signet`.
-4. Pega el `account_xpub` de `lana-cli genxpriv --network signet` o desde el paso de extracción del descriptor anterior.
+4. Pega el `account_xpub` de `lana-cli genxpriv --network signet` o del paso de extracción del descriptor anterior.
 
-No necesitas ingresar una URL de esplora en la interfaz. Lana selecciona el backend de esplora de Signet según la configuración de inicio.
+No necesitas ingresar una URL de esplora en la interfaz. Lana selecciona el backend esplora de Signet desde la configuración de inicio.
 
-## Financiar una facilidad pendiente
+## Financiar una Línea de Crédito Pendiente
 
-Después de aprobar una propuesta de línea de crédito, Lana crea una facilidad pendiente con una dirección de recepción de Signet derivada.
+Después de aprobar una propuesta de línea de crédito, Lana crea una línea de crédito pendiente con una dirección de recepción Signet derivada.
 
-Abre la página de la facilidad pendiente, copia la dirección de la billetera y luego fondea desde la billetera de envío:
+Abre la página de la línea de crédito pendiente, copia la dirección de la cartera y luego finánciala desde la cartera remitente:
 
 ```bash
 bitcoin-cli -signet -rpcwallet=default sendtoaddress <pending-facility-address> 0.00001
@@ -115,47 +115,47 @@ Ejemplo:
 bitcoin-cli -signet -rpcwallet=default sendtoaddress tb1qh3pqgmmpp4lqna4kh6ypcz3umsrta92g49q99g 0.00001
 ```
 
-El comando retorna un ID de transacción que puedes inspeccionar en un explorador de Signet:
+El comando devuelve un ID de transacción que puedes inspeccionar en un explorador de Signet:
 
 ```text
 https://mempool.space/signet/tx/<txid>
 ```
 
-## Cuando Lana cuenta los fondos
+## Cuando Lana Contabiliza los Fondos
 
-Lana solo cuenta el saldo confirmado en auto-custodia.
+Lana contabiliza únicamente el saldo de autocustodia confirmado.
 
-- Las transacciones no confirmadas en mempool no cuentan
+- Las transacciones no confirmadas en mempool no se contabilizan
 - Una confirmación es suficiente
-- El proceso de sincronización del saldo de auto-custodia se ejecuta cada 60 segundos
+- El trabajo de sincronización de saldo de autocustodia consulta cada 60 segundos
 
-En la práctica, espera que la página de la facilidad pendiente se actualice aproximadamente un minuto después de la primera confirmación.
+En la práctica, espera que la página de la línea de crédito pendiente se actualice aproximadamente un minuto después de que llegue la primera confirmación.
 
-## Resolución de problemas
+## Solución de Problemas
 
-### No hay billetera cargada
+### No hay cartera cargada
 
-Crea o carga una billetera antes de ejecutar `getnewaddress`:
+Crea o carga una cartera antes de llamar a `getnewaddress`:
 
 ```bash
 bitcoin-cli -signet createwallet "default"
 ```
 
-### Múltiples monederos cargados
+### Múltiples billeteras cargadas
 
-Especifica el monedero explícitamente:
+Especifica la billetera explícitamente:
 
 ```bash
 bitcoin-cli -signet -rpcwallet=mykeys_receive_test listdescriptors
 ```
 
-### La transacción está confirmada pero la instalación aún indica pendiente
+### La transacción está confirmada pero la instalación aún aparece como pendiente
 
 Verifica lo siguiente en orden:
 
 1. La transacción tiene al menos una confirmación
-2. La configuración activa de Lana incluye `signet_url`
-3. Han pasado al menos 60 segundos desde la confirmación
+2. La configuración de Lana en ejecución incluye `signet_url`
+3. Han transcurrido al menos 60 segundos desde la confirmación
 4. El monto depositado es lo suficientemente grande para cumplir con el CVL requerido por la instalación
 
-El último caso es común: el saldo del monedero puede estar presente mientras la instalación sigue `UNDER_COLLATERALIZED`.
+El último caso es común: el saldo de la billetera puede estar presente mientras la instalación permanece como `UNDER_COLLATERALIZED`.

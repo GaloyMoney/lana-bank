@@ -1,55 +1,55 @@
 ---
 id: data-pipelines
-title: Canalización de Datos
+title: Pipelines de Datos
 sidebar_position: 12
 ---
 
-# Canalización de Datos y Analítica
+# Pipelines de Datos
 
-Este documento describe la infraestructura de canalización de datos y analítica utilizada para extraer datos operativos del sistema Lana Bank, transformarlos con fines analíticos y cargarlos en BigQuery para reporting e inteligencia de negocio.
+Este documento describe la arquitectura del pipeline de datos utilizando Meltano, dbt y BigQuery.
 
 ```mermaid
 graph TD
     subgraph Sources["Fuentes de Datos"]
-        PG["PostgreSQL<br/>(BD Operacional)"]
-        BITFINEX["Bitfinex API<br/>(Precios BTC/USD)"]
-        SUMSUB["Sumsub API<br/>(Datos KYC)"]
+        PG["PostgreSQL<br/>(Base de Datos Operacional Principal)"]
+        BITFINEX["API de Bitfinex<br/>(Precios BTC/USD)"]
+        SUMSUB["API de Sumsub<br/>(Datos KYC)"]
     end
 
-    subgraph Orchestration["Orquestación"]
+    subgraph Orchestration
         AIRFLOW["Airflow<br/>(Opcional)"]
-        SCHEDULES["Meltano Schedules"]
-        JOBS["Meltano Jobs"]
+        SCHEDULES["Programaciones de Meltano"]
+        JOBS["Trabajos de Meltano"]
         SCHEDULES --> JOBS
         AIRFLOW -.->|"orquestación opcional"| SCHEDULES
     end
 
-    subgraph Extract["Meltano Extracción"]
-        TAP_PG["tap-postgres"]
-        TAP_BIT["tap-bitfinex"]
-        TAP_SUM["tap-sumsubapi"]
+    subgraph Extract["Extracción con Meltano"]
+        TAP_PG["tap-postgres<br/>(Variante MeltanoLabs)"]
+        TAP_BIT["tap-bitfinex<br/>(Implementación personalizada)"]
+        TAP_SUM["tap-sumsubapi<br/>(Implementación personalizada)"]
     end
 
-    subgraph Load["Meltano Carga"]
-        TARGET_BQ["target-bigquery"]
+    subgraph Load["Carga con Meltano"]
+        TARGET_BQ["target-bigquery<br/>(Variante Adswerve)"]
     end
 
     subgraph Transform["Transformaciones dbt"]
-        DBT_BQ["dbt-bigquery"]
-        MODELS["Modelos"]
-        TESTS["Pruebas de Calidad"]
+        DBT_BQ["dbt-bigquery<br/>(dbt-labs 1.8.1)"]
+        MODELS["Modelos de Transformación"]
+        TESTS["Pruebas de Calidad de Datos"]
         DBT_BQ --> MODELS
         DBT_BQ --> TESTS
     end
 
-    subgraph Warehouse["BigQuery"]
-        RAW["Dataset Raw"]
-        MART["Dataset dbt"]
+    subgraph Warehouse["Conjuntos de Datos de BigQuery"]
+        RAW["Conjunto de Datos Sin Procesar<br/>(LANA_dataset)"]
+        MART["Conjunto de Datos dbt<br/>(dbt_LANA)"]
     end
 
-    subgraph Reports["Reportes"]
-        GEN["generate-es-reports"]
-        FIN["Reportes Financieros"]
+    subgraph Reports
+        GEN["generate-es-reports<br/>(Utilidad personalizada)"]
+        FIN["Informes Financieros"]
     end
 
     PG --> TAP_PG
@@ -65,223 +65,157 @@ graph TD
     GEN --> FIN
 ```
 
-## Arquitectura de la Canalización
+## Descripción General
 
-La canalización de datos sigue un patrón ELT (Extract, Load, Transform) usando Meltano como marco de orquestación. Los datos fluyen desde múltiples sistemas origen hacia BigQuery, donde dbt aplica transformaciones para crear modelos analíticos.
+El pipeline de datos proporciona:
 
+- Extracción de datos desde sistemas operacionales
+- Transformación para análisis
+- Almacén de datos para informes
+- Orquestación con Dagster
+
+## Arquitectura
+
+```mermaid
+graph TD
+    SRC["Sistemas Fuente<br/>(PostgreSQL, Cala Ledger, APIs Externas)"] --> MELT["Meltano<br/>(Extraer y Cargar)"]
+    MELT --> BQ["BigQuery<br/>(Almacén de Datos)"]
+    BQ --> DBT["dbt<br/>(Transformaciones)"]
+    DBT --> DAG["Dagster<br/>(Orquestación)"]
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         Fuentes de Datos                            │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                 │
-│  │ PostgreSQL  │  │ Bitfinex    │  │   Sumsub    │                 │
-│  │  (Core DB)  │  │    API      │  │    API      │                 │
-│  └─────────────┘  └─────────────┘  └─────────────┘                 │
-└─────────────────────────────────────────────────────────────────────┘
-            │                │                │
-            ▼                ▼                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      Extractores (Meltano)                          │
-│  ┌─────────────┐  ┌─────────────────┐  ┌──────────────┐            │
-│  │tap-postgres │  │ tap-bitfinexapi │  │tap-sumsubapi │            │
-│  └─────────────┘  └─────────────────┘  └──────────────┘            │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      Cargador (Meltano)                             │
-│              ┌────────────────────────────┐                         │
-│              │    target-bigquery         │                         │
-│              └────────────────────────────┘                         │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      Transformaciones (dbt)                         │
-│              ┌────────────────────────────┐                         │
-│              │   Modelos Analíticos       │                         │
-│              └────────────────────────────┘                         │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                         BigQuery                                    │
-│              ┌────────────────────────────┐                         │
-│              │   Almacén de Datos         │                         │
-│              └────────────────────────────┘                         │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-## Fuentes de Datos
-
-### PostgreSQL - Datos Operativos
-
-La fuente de datos principal es la base de datos PostgreSQL que contiene todos los datos operativos del sistema. El extractor `tap-postgres` extrae datos de tablas de eventos, vistas de rollup y tablas del libro mayor.
-
-#### Tablas Extraídas
-
-| Categoría | Tablas | Propósito |
-|-----------|--------|-----------|
-| Libro mayor | `cala_balance_history`, `cala_accounts`, `cala_account_sets` | Datos de contabilidad de partida doble |
-| Créditos | `core_credit_facility_events`, `core_credit_facility_proposal_events` | Ciclo de vida de líneas de crédito |
-| Depósitos | `core_deposit_accounts`, `core_deposit_events`, `core_withdrawal_events` | Operaciones de cuentas de depósito |
-| Pagos | `core_obligation_events`, `core_payment_events`, `core_payment_allocation_events` | Procesamiento y asignación de pagos |
-| Desembolsos | `core_disbursal_events` | Desembolsos de líneas de crédito |
-| Intereses | `core_interest_accrual_cycle_events` | Ciclos de cálculo de intereses |
-| Colateral | `core_collateral_events` | Seguimiento de colateral en Bitcoin |
-| Clientes | `core_customer_events` | Ciclo de vida de clientes |
-| Gobernanza | `core_approval_process_events_rollup`, `core_committee_events_rollup` | Flujos de aprobación |
-| Control de Acceso | `core_user_events_rollup`, `core_role_events_rollup` | Sistema RBAC |
-| Contabilidad | `core_chart_events`, `core_manual_transaction_events_rollup` | Plan de cuentas |
-
-### API de Bitfinex - Datos de Precios
-
-El `tap-bitfinexapi` es un extractor personalizado que consulta la API de Bitfinex para datos del mercado BTC/USD. Estos datos son críticos para cálculos de colateralización y gestión de riesgo.
-
-**Datos extraídos:**
-- `bitfinex_ticker` - Información actual del ticker (bid, ask, último precio)
-- `bitfinex_trades` - Historial reciente de operaciones
-- `bitfinex_order_book` - Profundidad actual del libro de órdenes
-
-El extractor se ejecuta cada minuto para mantener información de precio actualizada.
-
-### API de Sumsub - Datos KYC
-
-El `tap-sumsubapi` es un extractor personalizado que recupera datos de verificación KYC de Sumsub. A diferencia de los otros extractores, este tap es stateful y consulta PostgreSQL para determinar qué registros de clientes deben sincronizarse.
-
-**Flujo del extractor:**
-1. Consulta PostgreSQL para recuperar IDs de clientes actualizados
-2. Obtiene datos del solicitante de la API de Sumsub
-3. Descarga imágenes de documentos y las codifica en base64
-4. Emite registros estructurados
 
 ## Configuración de Meltano
 
-### Estructura de la Canalización
-
-La canalización se configura en `meltano.yml`:
+### Extractores
 
 ```yaml
+
+# meltano.yml
+
 plugins:
   extractors:
     - name: tap-postgres
+      variant: meltanolabs
       config:
-        host: ${PG_HOST}
-        port: ${PG_PORT}
-        user: ${PG_USER}
-        password: ${PG_PASSWORD}
-        database: ${PG_DATABASE}
+        host: ${POSTGRES_HOST}
+        port: 5432
+        user: ${POSTGRES_USER}
+        password: ${POSTGRES_PASSWORD}
+        database: lana
+```
 
-    - name: tap-bitfinexapi
-      namespace: tap_bitfinexapi
+### Cargadores
 
-    - name: tap-sumsubapi
-      namespace: tap_sumsubapi
-
+```yaml
+plugins:
   loaders:
     - name: target-bigquery
+      variant: adswerve
       config:
-        project_id: ${BIGQUERY_PROJECT}
-        dataset_id: ${BIGQUERY_DATASET}
+        project_id: ${GCP_PROJECT_ID}
+        dataset_id: lana_raw
+        location: US
 ```
 
-### Schedules y Jobs
+## Transformaciones dbt
+
+### Estructura del Modelo
+
+```
+dagster/dbt/
+├── models/
+│   ├── staging/          # Limpiar datos sin procesar
+│   │   ├── stg_customers.sql
+│   │   ├── stg_facilities.sql
+│   │   └── stg_transactions.sql
+│   ├── intermediate/     # Lógica de negocio
+│   │   ├── int_customer_metrics.sql
+│   │   └── int_facility_performance.sql
+│   └── marts/            # Informes finales
+│       ├── fct_disbursals.sql
+│       ├── fct_payments.sql
+│       └── dim_customers.sql
+└── dbt_project.yml
+```
+
+### Modelo de Ejemplo
+
+```sql
+-- models/staging/stg_customers.sql
+{{ config(materialized='view') }}
+
+select
+    id as customer_id,
+    email,
+    status,
+    customer_type,
+    created_at,
+    updated_at
+from {{ source('lana_raw', 'customers') }}
+where _sdc_deleted_at is null
+```
+
+### Modelo Intermedio
+
+```sql
+-- models/intermediate/int_customer_metrics.sql
+{{ config(materialized='table') }}
+
+select
+    c.customer_id,
+    count(distinct f.facility_id) as total_facilities,
+    sum(f.principal_amount) as total_principal,
+    sum(f.outstanding_balance) as total_outstanding,
+    max(f.created_at) as last_facility_date
+from {{ ref('stg_customers') }} c
+left join {{ ref('stg_facilities') }} f
+    on c.customer_id = f.customer_id
+group by 1
+```
+
+## Orquestación con Dagster
+
+### Definición de Asset
+
+```python
+
+# dagster/assets.py
+
+from dagster import asset
+from dagster_dbt import dbt_assets
+
+@dbt_assets(manifest_path=DBT_MANIFEST_PATH)
+def dbt_models(context):
+    yield from build_dbt_assets(context)
+
+@asset(deps=[dbt_models])
+def customer_report():
+    """Generar informe diario de clientes."""
+    query = """
+    SELECT * FROM `project.dataset.dim_customers`
+    """
+    df = bigquery_client.query(query).to_dataframe()
+    return df
+```
+
+### Programación
+
+```python
+from dagster import ScheduleDefinition
+
+daily_pipeline = ScheduleDefinition(
+    job=etl_job,
+    cron_schedule="0 2 * * *",  # 2 AM daily
+)
+```
+
+## Calidad de Datos
+
+### Pruebas de dbt
 
 ```yaml
-schedules:
-  - name: postgres-to-bigquery
-    interval: "@hourly"
-    job: el-postgres
 
-  - name: bitfinex-to-bigquery
-    interval: "*/1 * * * *"  # Cada minuto
-    job: el-bitfinex
-
-  - name: sumsub-to-bigquery
-    interval: "@daily"
-    job: el-sumsub
-
-jobs:
-  - name: el-postgres
-    tasks:
-      - tap-postgres target-bigquery
-
-  - name: el-bitfinex
-    tasks:
-      - tap-bitfinexapi target-bigquery
-
-  - name: el-sumsub
-    tasks:
-      - tap-sumsubapi target-bigquery
-```
-
-## Transformaciones con dbt
-
-### Configuración de Sources
-
-Las fuentes de dbt se definen en `models/sources.yml`:
-
-```yaml
-version: 2
-
-sources:
-  - name: lana_raw
-    database: "{{ env_var('BIGQUERY_PROJECT') }}"
-    schema: "{{ env_var('BIGQUERY_DATASET') }}"
-    tables:
-      - name: core_credit_facility_events
-        freshness:
-          warn_after: {count: 2, period: hour}
-          error_after: {count: 6, period: hour}
-      - name: core_deposit_events
-      - name: cala_balance_history
-```
-
-### Monitoreo de Frescura
-
-dbt monitorea la frescura de los datos y alerta cuando los datos están desactualizados:
-
-```bash
-dbt source freshness
-```
-
-## Configuración de Entornos
-
-### Desarrollo
-
-```yaml
-environments:
-  - name: dev
-    config:
-      plugins:
-        loaders:
-          - name: target-bigquery
-            config:
-              dataset_id: lana_dev
-```
-
-### Producción
-
-```yaml
-environments:
-  - name: prod
-    config:
-      plugins:
-        loaders:
-          - name: target-bigquery
-            config:
-              dataset_id: lana_prod
-```
-
-## Herramientas Adicionales
-
-### sqlfluff - Linting de SQL
-
-Para mantener la calidad del código SQL:
-
-```bash
-sqlfluff lint models/
-sqlfluff fix models/
-```
+# models/schema.yml
 
 version: 2
 
@@ -299,40 +233,43 @@ models:
       - name: status
         tests:
           - accepted_values:
-              values: ['ACTIVO', 'INACTIVO', 'ESQUIABLE']
+              values: ['ACTIVE', 'INACTIVE', 'ESCHEATABLE']
 ```
 
-Para orquestación avanzada, Airflow puede usarse como alternativa a los schedules de Meltano:
+### Pruebas Personalizadas
 
-```python
-from airflow import DAG
-from airflow.operators.bash import BashOperator
-
-with DAG('lana_etl', schedule_interval='@hourly') as dag:
-    extract = BashOperator(
-        task_id='extract',
-        bash_command='meltano run tap-postgres target-bigquery'
-    )
+```sql
+-- tests/assert_positive_balances.sql
+select
+    facility_id,
+    outstanding_balance
+from {{ ref('fct_facilities') }}
+where outstanding_balance < 0
 ```
 
-## Ejecución de la Canalización
+## Vistas de Informes
 
-### Comandos Básicos
+### Resumen Financiero
 
-```bash
+```sql
+-- models/marts/financial_summary.sql
+select
+    date_trunc('month', transaction_date) as month,
+    sum(case when type = 'DEPOSIT' then amount end) as deposits,
+    sum(case when type = 'WITHDRAWAL' then amount end) as withdrawals,
+    sum(case when type = 'DISBURSAL' then amount end) as disbursals,
+    sum(case when type = 'PAYMENT' then amount end) as payments
+from {{ ref('fct_transactions') }}
+group by 1
+order by 1
+```
 
-# Ejecutar extracción completa
-
-meltano run tap-postgres target-bigquery
-
-# Ejecutar con selección de tablas
-
-meltano run tap-postgres target-bigquery --select core_credit_facility_events
+## Control de Acceso
 
 ### Permisos de BigQuery
 
-| Rol | Nivel de acceso |
-|------|-----------------|
-| Ingeniero de datos | Acceso total |
+| Rol | Nivel de Acceso |
+|------|--------------|
+| Ingeniero de Datos | Acceso completo |
 | Analista | Solo lectura de marts |
 | Reportes | Lectura de vistas específicas |

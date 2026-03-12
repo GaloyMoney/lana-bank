@@ -6,256 +6,134 @@ sidebar_position: 2
 
 # Operaciones de Depósito y Retiro
 
-Este documento describe las operaciones de depósito y retiro, incluyendo flujos de trabajo y procedimientos de aprobación.
+Este documento describe la mecánica del registro de depósitos y el procesamiento de retiros, incluido el flujo de trabajo de aprobación, los asientos contables y las capacidades de reversión.
 
 ## Operaciones de Depósito
 
-### Registro de Depósitos
+### Cómo Funcionan los Depósitos
 
-Los depósitos se registran cuando se reciben fondos externos en la cuenta del cliente.
+Un depósito representa un movimiento de fondos entrantes hacia la cuenta de un cliente. Los depósitos son registrados por operadores cuando se han recibido fondos externos (por ejemplo, mediante transferencia bancaria, cheque u otro mecanismo de liquidación). El sistema no inicia el movimiento real de fondos; registra el hecho de que los fondos han llegado.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    FLUJO DE DEPÓSITO                            │
-│                                                                  │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
-│  │ Recepción de │───▶│   Registro   │───▶│  Fondos      │       │
-│  │    fondos    │    │  del depósito│    │  disponibles │       │
-│  └──────────────┘    └──────────────┘    └──────────────┘       │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    RCV["External funds received"] --> REC["Operator records deposit<br/>(amount + reference)"] --> LEDGER["Ledger entry posted<br/>(omnibus ↔ customer)"] --> AVL["Funds available<br/>in customer account"]
 ```
 
-### Crear un Depósito
+Cuando se registra un depósito:
 
-#### Desde el Panel de Administración
+1. El sistema valida que la cuenta de depósito esté activa y que el monto sea diferente de cero.
+2. Se crea una nueva entidad de depósito con estado `Confirmed`.
+3. Una transacción contable registra dos asientos en la capa de liquidación.
+4. El depósito está disponible inmediatamente en el saldo del cliente.
 
-1. Navegar a **Clientes** > seleccionar cliente
-2. Ir a la cuenta de depósito
-3. Hacer clic en **Registrar Depósito**
-4. Completar:
-   - Monto en USD
-   - Referencia externa
-5. Confirmar operación
+### Asiento Contable del Depósito
 
-#### Via API GraphQL
+| Cuenta | Débito | Crédito | Capa |
+|---------|:-----:|:------:|-------|
+| Depósito Omnibus (Activo) | X | | Liquidada |
+| Cuenta de Depósito del Cliente (Pasivo) | | X | Liquidada |
 
-```graphql
-mutation RecordDeposit($input: DepositRecordInput!) {
-  depositRecord(input: $input) {
-    deposit {
-      id
-      amount
-      reference
-      status
-      createdAt
-    }
-  }
-}
-```
+La cuenta omnibus (efectivo/reservas del banco) aumenta en el lado del débito, y la cuenta de depósito del cliente (un pasivo que el banco debe al cliente) aumenta en el lado del crédito.
 
-Variables:
-```json
-{
-  "input": {
-    "depositAccountId": "uuid-de-la-cuenta",
-    "amount": 100000,
-    "reference": "REF-001"
-  }
-}
-```
+### Reversión de Depósito
 
-### Estados del Depósito
-
-| Estado | Descripción |
-|--------|-------------|
-| PENDING | Depósito registrado, pendiente de confirmación |
-| CONFIRMED | Depósito confirmado y acreditado |
-| CANCELLED | Depósito cancelado |
+Si un depósito fue registrado por error, puede ser revertido. La reversión registra la transacción contable inversa (acredita el omnibus, debita la cuenta del cliente), devolviendo ambas cuentas a su estado previo al depósito. La entidad de depósito pasa al estado `Reverted`. La reversión es idempotente: revertir un depósito ya revertido no tiene efecto.
 
 ## Operaciones de Retiro
 
-### Flujo de Retiro
+### Ciclo de Vida del Retiro
 
-Los retiros requieren un proceso de aprobación antes de ser ejecutados.
+Los retiros son más complejos que los depósitos porque requieren aprobación de gobernanza antes de que se liberen los fondos. El ciclo de vida completo implica comprometer los fondos en la iniciación, esperar la aprobación y luego confirmar o cancelar el retiro.
 
+```mermaid
+stateDiagram-v2
+    [*] --> PendingApproval: Withdrawal initiated
+    PendingApproval --> PendingConfirmation: Governance approves
+    PendingApproval --> Denied: Governance denies
+    PendingApproval --> Cancelled: Operator cancels
+    PendingConfirmation --> Confirmed: Operator confirms
+    PendingConfirmation --> Cancelled: Operator cancels
+    Confirmed --> Reverted: Operator reverts
+    Denied --> [*]
+    Cancelled --> [*]
+    Confirmed --> [*]
+    Reverted --> [*]
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    FLUJO DE RETIRO                              │
-│                                                                  │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
-│  │  Solicitud   │───▶│  Aprobación  │───▶│  Ejecución   │       │
-│  │  de retiro   │    │  requerida   │    │  del retiro  │       │
-│  └──────────────┘    └──────────────┘    └──────────────┘       │
-│                              │                                   │
-│                              ▼                                   │
-│                      ┌──────────────┐                           │
-│                      │  Rechazado   │                           │
-│                      │  (opcional)  │                           │
-│                      └──────────────┘                           │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Iniciar un Retiro
-
-#### Desde el Panel de Administración
-
-1. Navegar a **Clientes** > seleccionar cliente
-2. Ir a la cuenta de depósito
-3. Hacer clic en **Iniciar Retiro**
-4. Completar:
-   - Monto en USD
-   - Referencia externa
-5. El retiro entra en proceso de aprobación
-
-#### Via API GraphQL
-
-```graphql
-mutation InitiateWithdrawal($input: WithdrawalInitiateInput!) {
-  withdrawalInitiate(input: $input) {
-    withdrawal {
-      id
-      amount
-      reference
-      status
-      createdAt
-    }
-  }
-}
-```
-
-### Estados del Retiro
 
 | Estado | Descripción |
 |--------|-------------|
-| PENDING_APPROVAL | Retiro pendiente de aprobación |
-| APPROVED | Retiro aprobado |
-| CONFIRMED | Retiro ejecutado y confirmado |
-| DENIED | Retiro rechazado |
-| CANCELLED | Retiro cancelado |
+| **Pendiente de Aprobación** | Retiro iniciado, fondos comprometidos, esperando decisión de gobernanza |
+| **Pendiente de Confirmación** | Gobernanza aprobada, esperando confirmación del operador del desembolso real de fondos |
+| **Confirmado** | Fondos liberados, retiro completado |
+| **Denegado** | Gobernanza rechazó el retiro, fondos restaurados |
+| **Cancelado** | Operador canceló el retiro antes de la confirmación, fondos restaurados |
+| **Revertido** | Retiro previamente confirmado revertido, fondos restaurados |
 
-## Proceso de Aprobación de Retiros
+### Flujo de Retiro Paso a Paso
 
-### Integración con Gobernanza
+**1. Iniciación** - Un operador inicia un retiro especificando el monto y una referencia opcional. El sistema:
+- Valida que la cuenta esté activa y que el monto sea distinto de cero.
+- Crea un proceso de aprobación de gobernanza (tipo: `withdraw`).
+- Registra una transacción de libro mayor `INITIATE_WITHDRAW` que mueve los fondos de liquidados a pendientes.
+- El saldo liquidado del cliente disminuye inmediatamente, evitando que los fondos se utilicen para otras operaciones.
 
-Los retiros están sujetos al sistema de gobernanza con el tipo de proceso `APPROVE_WITHDRAWAL_PROCESS`.
+**2. Aprobación** - El sistema de gobernanza procesa el retiro según la política configurada:
+- Si la política es `SystemAutoApprove`, el retiro se aprueba instantáneamente.
+- Si la política utiliza `CommitteeThreshold`, los miembros del comité deben votar para aprobar o denegar.
+- Una sola denegación de cualquier miembro del comité rechaza inmediatamente el retiro.
+- Este paso ocurre de forma asíncrona a través del sistema de trabajos impulsado por eventos.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                 APROBACIÓN DE RETIRO                            │
-│                                                                  │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
-│  │  Withdrawal  │───▶│  Governance  │───▶│  Approval    │       │
-│  │  Initiate    │    │  System      │    │  Process     │       │
-│  └──────────────┘    └──────────────┘    └──────────────┘       │
-│                              │                                   │
-│                              ▼                                   │
-│                      ┌──────────────┐                           │
-│                      │   Committee  │                           │
-│                      │   Decision   │                           │
-│                      └──────────────┘                           │
-└─────────────────────────────────────────────────────────────────┘
-```
+**3a. Confirmación** - Después de la aprobación, un operador confirma el retiro, indicando que el desembolso real de fondos ha ocurrido externamente. Una transacción de libro mayor `CONFIRM_WITHDRAW` elimina el saldo pendiente.
 
-### Aprobar un Retiro
+**3b. Cancelación** - En cualquier momento antes de la confirmación (incluso antes de que concluya la aprobación), un operador puede cancelar el retiro. Una transacción de libro mayor `CANCEL_WITHDRAW` revierte el compromiso, restaurando el saldo liquidado.
 
-1. Navegar a **Aprobaciones Pendientes**
-2. Seleccionar el retiro a aprobar
-3. Revisar detalles:
-   - Cliente
-   - Monto
-   - Saldo disponible
-4. Hacer clic en **Aprobar** o **Rechazar**
+**3c. Denegación** - Si la gobernanza deniega el retiro, una transacción de libro mayor `DENY_WITHDRAW` revierte automáticamente el compromiso, idéntico en efecto a la cancelación.
 
-### Via API GraphQL
+**4. Reversión (opcional)** - Un retiro confirmado puede revertirse si el movimiento externo de fondos falló o fue devuelto. Una transacción de libro mayor `REVERT_WITHDRAW` restaura el saldo liquidado.
 
-```graphql
-mutation ApproveWithdrawal($input: WithdrawalApproveInput!) {
-  withdrawalApprove(input: $input) {
-    withdrawal {
-      id
-      status
-    }
-  }
-}
-```
+### Asientos contables de retiro
 
-## Integración Contable
+El proceso de retiro utiliza cuatro plantillas de libro mayor diferentes según la etapa:
 
-### Asientos de Depósito
+#### Inicio (retener fondos)
 
-Cuando se registra un depósito, se crean los siguientes asientos:
+| Cuenta | Débito | Crédito | Capa |
+|---------|:-----:|:------:|-------|
+| Ómnibus de depósitos (Activo) | | X | Liquidada |
+| Cuenta de depósito del cliente (Pasivo) | X | | Liquidada |
+| Ómnibus de depósitos (Activo) | X | | Pendiente |
+| Cuenta de depósito del cliente (Pasivo) | | X | Pendiente |
 
-| Cuenta | Débito | Crédito |
-|--------|--------|---------|
-| Efectivo (Activo) | X | |
-| Depósitos de Clientes (Pasivo) | | X |
+Esto transfiere el importe de liquidado a pendiente tanto en las cuentas ómnibus como en las del cliente.
 
-### Asientos de Retiro
+#### Confirmación (liberar fondos)
 
-Cuando se confirma un retiro:
+| Cuenta | Débito | Crédito | Capa |
+|---------|:-----:|:------:|-------|
+| Ómnibus de depósitos (Activo) | | X | Pendiente |
+| Cuenta de depósito del cliente (Pasivo) | X | | Pendiente |
 
-| Cuenta | Débito | Crédito |
-|--------|--------|---------|
-| Depósitos de Clientes (Pasivo) | X | |
-| Efectivo (Activo) | | X |
+Liquida la retención pendiente. El saldo liquidado ya se redujo al inicio.
 
-## Consultas de Saldo
+#### Cancelación o denegación (restaurar fondos)
 
-### Saldo de Cuenta
+| Cuenta | Débito | Crédito | Capa |
+|---------|:-----:|:------:|-------|
+| Ómnibus de depósitos (Activo) | | X | Pendiente |
+| Cuenta de depósito del cliente (Pasivo) | X | | Pendiente |
+| Ómnibus de depósitos (Activo) | X | | Liquidada |
+| Cuenta de depósito del cliente (Pasivo) | | X | Liquidada |
 
-```graphql
-query GetAccountBalance($accountId: ID!) {
-  depositAccount(id: $accountId) {
-    id
-    balance {
-      available
-      pending
-      total
-    }
-  }
-}
-```
+El inverso exacto del inicio: liquida lo pendiente y restaura lo liquidado.
 
-### Historial de Transacciones
+#### Reversión (deshacer retiro confirmado)
 
-```graphql
-query GetTransactionHistory($accountId: ID!, $first: Int) {
-  depositAccount(id: $accountId) {
-    deposits(first: $first) {
-      edges {
-        node {
-          id
-          amount
-          reference
-          status
-          createdAt
-        }
-      }
-    }
-    withdrawals(first: $first) {
-      edges {
-        node {
-          id
-          amount
-          reference
-          status
-          createdAt
-        }
-      }
-    }
-  }
-}
-```
+| Cuenta | Débito | Crédito | Capa |
+|---------|:-----:|:------:|-------|
+| Ómnibus de depósitos (Activo) | X | | Liquidada |
+| Cuenta de depósito del cliente (Pasivo) | | X | Liquidada |
 
-## Permisos Requeridos
-
-| Operación | Permiso |
-|-----------|---------|
-| Registrar depósito | DEPOSIT_CREATE |
-| Ver depósitos | DEPOSIT_READ |
-| Iniciar retiro | WITHDRAWAL_CREATE |
-| Aprobar retiro | WITHDRAWAL_APPROVE |
-| Confirmar retiro | WITHDRAWAL_CONFIRM |
+Restaurа el saldo liquidado como si el retiro nunca hubiera ocurrido.
 
 ## Recorrido en Panel de Administración: Depósitos y Retiros
 

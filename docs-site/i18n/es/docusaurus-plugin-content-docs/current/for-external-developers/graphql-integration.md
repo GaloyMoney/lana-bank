@@ -4,18 +4,18 @@ title: Integración de GraphQL
 sidebar_position: 4
 ---
 
-# Integración de GraphQL
+# Integración con GraphQL
 
 Esta guía cubre la integración de aplicaciones cliente con las APIs GraphQL de Lana.
 
-## Endpoints de la API
+## Endpoints de API
 
 Lana expone dos APIs GraphQL:
 
 | API | Propósito | URL típica |
 |-----|---------|-------------|
-| **API de administración** | Operaciones administrativas: clientes, crédito, contabilidad | `https://admin.your-instance.com/graphql` |
-| **API de cliente** | Operaciones de cara al cliente: información de cuenta, estado de facilidades | `https://app.your-instance.com/graphql` |
+| **API de administración** | Operaciones administrativas — clientes, crédito, contabilidad | `https://admin.your-instance.com/graphql` |
+| **API de cliente** | Operaciones de cara al cliente — información de cuenta, estado de instalaciones | `https://app.your-instance.com/graphql` |
 
 ## Realizar solicitudes
 
@@ -112,7 +112,7 @@ query GetCustomers($first: Int!, $after: String) {
 
 Para obtener la siguiente página, pasa el valor de `endCursor` como parámetro `after`.
 
-## Manejo de errores
+## Manejo de Errores
 
 Los errores de GraphQL se devuelven en el array `errors` de la respuesta:
 
@@ -131,14 +131,14 @@ Los errores de GraphQL se devuelven en el array `errors` de la respuesta:
 }
 ```
 
-| Tipo de error | Descripción | Acción |
+| Tipo de Error | Descripción | Acción |
 |------------|-------------|--------|
-| `FORBIDDEN` | Permisos insuficientes | Verifica las credenciales de la API y el rol |
-| `UNAUTHENTICATED` | Token inválido o expirado | Actualiza el token de acceso |
-| `BAD_USER_INPUT` | Datos de entrada inválidos | Verifica los parámetros de la solicitud |
-| `INTERNAL_SERVER_ERROR` | Error del servidor | Reintenta con retroceso exponencial |
+| `FORBIDDEN` | Permisos insuficientes | Verificar las credenciales de la API y el rol |
+| `UNAUTHENTICATED` | Token inválido o expirado | Actualizar el token de acceso |
+| `BAD_USER_INPUT` | Datos de entrada inválidos | Verificar los parámetros de la solicitud |
+| `INTERNAL_SERVER_ERROR` | Error del servidor | Reintentar con retroceso exponencial |
 
-## Encabezados requeridos
+## Encabezados Requeridos
 
 ```
 Authorization: Bearer <access-token>
@@ -147,5 +147,5 @@ Content-Type: application/json
 
 ## Referencias de la API
 
-- [Referencia de la API de administración](../apis/admin-api) — Operaciones y tipos completos de administración
-- [Referencia de la API de cliente](../apis/customer-api) — Operaciones completas de cliente
+- [Referencia de la API de Administración](../apis/admin-api) — Operaciones y tipos de administración completos
+- [Referencia de la API de Cliente](../apis/customer-api) — Operaciones de cliente completas

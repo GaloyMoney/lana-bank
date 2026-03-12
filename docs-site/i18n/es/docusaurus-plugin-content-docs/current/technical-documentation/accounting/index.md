@@ -6,49 +6,49 @@ sidebar_position: 1
 
 # Contabilidad
 
-El módulo de contabilidad proporciona contabilidad de partida doble para todas las operaciones financieras en Lana. Está construido sobre el motor de libro mayor Cala, que garantiza que cada transacción mantenga la ecuación contable fundamental: Activos = Pasivos + Patrimonio. Todas las operaciones de negocio del sistema (por ejemplo, depósitos, retiros, desembolsos, devengo de intereses, pagos y reconocimiento de comisiones, etc) generan asientos contables que fluyen por este marco.
+El módulo de contabilidad proporciona contabilidad por partida doble para todas las operaciones financieras en Lana. Está construido sobre el motor de libro mayor Cala, que garantiza que cada transacción mantenga la ecuación contable fundamental: Activos = Pasivos + Patrimonio. Todas las operaciones comerciales en el sistema — depósitos, retiros, desembolsos, devengo de intereses, pagos y reconocimiento de comisiones — finalmente producen asientos contables que fluyen a través de este marco contable.
 
 ## Plan de Cuentas
 
-El plan de cuentas es una estructura jerárquica en árbol que organiza todas las cuentas financieras del sistema. Cada nodo del árbol representa una cuenta individual o un grupo de cuentas, identificado por códigos separados por puntos (por ejemplo, `1` para Activos, `11` para Cuentas por Cobrar de Corto Plazo, `11.01` para una cuenta específica por cobrar de un cliente).
+El plan de cuentas es una estructura jerárquica en forma de árbol que organiza todas las cuentas financieras en el sistema. Cada nodo en el árbol representa ya sea una cuenta individual o un grupo de cuentas, identificado por códigos de cuenta separados por puntos (por ejemplo, "1" para Activos, "11" para Cuentas por Cobrar a Corto Plazo, "11.01" para una cuenta por cobrar de un cliente específico).
 
 ### Categorías de Cuentas
 
-Las cuentas se organizan en categorías financieras estándar:
+Las cuentas están organizadas en las categorías financieras estándar:
 
-| Categoría | Balance Normal | Descripción |
-|----------|----------------|-------------|
-| **Activos** | Débito | Recursos propiedad del banco (efectivo, cuentas por cobrar, colateral) |
-| **Pasivos** | Crédito | Obligaciones frente a terceros (depósitos de clientes, cuentas por pagar) |
-| **Patrimonio** | Crédito | Participación de los dueños en el banco (ganancias retenidas, capital) |
-| **Ingresos** | Crédito | Ingresos devengados (intereses, comisiones) |
-| **Costo de Ingresos** | Débito | Costos directos asociados a la generación de ingresos |
-| **Gastos** | Débito | Costos operativos (provisiones, gastos de operación) |
+| Categoría | Saldo Normal | Descripción |
+|----------|---------------|-------------|
+| **Activos** | Débito | Recursos propiedad del banco (efectivo, cuentas por cobrar, garantías) |
+| **Pasivos** | Crédito | Obligaciones adeudadas a terceros (depósitos de clientes, cuentas por pagar) |
+| **Patrimonio** | Crédito | Participación del propietario en el banco (utilidades retenidas, capital) |
+| **Ingresos** | Crédito | Ganancias obtenidas (ingresos por intereses, ingresos por comisiones) |
+| **Costo de Ingresos** | Débito | Costos directos asociados con la generación de ingresos |
+| **Gastos** | Débito | Costos operativos (provisiones, gastos operacionales) |
 
-El tipo de balance normal determina cómo se calcula el balance efectivo. Para cuentas con balance normal débito (activos, gastos), el balance efectivo es débitos menos créditos. Para cuentas con balance normal crédito (pasivos, patrimonio, ingresos), el balance efectivo es créditos menos débitos.
+El tipo de saldo normal determina cómo se calcula el saldo efectivo. Para cuentas con saldo normal deudor (activos, gastos), el saldo efectivo es débitos menos créditos. Para cuentas con saldo normal acreedor (pasivos, patrimonio, ingresos), el saldo efectivo es créditos menos débitos.
 
 ### Jerarquía de Cuentas
 
-El plan de cuentas usa una jerarquía padre-hijo donde los códigos de nivel superior representan categorías principales y los subcódigos representan grupos cada vez más específicos. Por ejemplo:
+El plan de cuentas utiliza una jerarquía padre-hijo donde los códigos de nivel superior representan categorías principales y los subcódigos representan grupos de cuentas cada vez más específicos. Por ejemplo:
 
 - **1** — Activos
-  - **11** — Cuentas por cobrar de corto plazo
-    - **11.01** — Cuenta por cobrar de cliente individual
-  - **12** — Efectivo y equivalentes
+  - **11** — Cuentas por Cobrar a Corto Plazo
+    - **11.01** — Cuenta individual por cobrar del cliente
+  - **12** — Efectivo y Equivalentes
 - **2** — Pasivos
-  - **21** — Depósitos de clientes
+  - **21** — Depósitos de Clientes
 - **3** — Patrimonio
-  - **31** — Ganancias retenidas
-    - **31.01** — Ganancias retenidas (ganancia)
-    - **31.02** — Ganancias retenidas (pérdida)
+  - **31** — Ganancias Retenidas
+    - **31.01** — Ganancias Retenidas (Ganancia)
+    - **31.02** — Ganancias Retenidas (Pérdida)
 
-Cada cuenta en la jerarquía está respaldada por un conjunto de cuentas en Cala, lo que permite agregar saldos de todas las cuentas hijas al generar reportes para un nodo padre.
+Cada cuenta en la jerarquía está respaldada por un conjunto de cuentas en el libro mayor de Cala, lo que permite al sistema agregar saldos de todas las cuentas secundarias al generar informes para un nodo padre.
 
-### Configuración Base de Contabilidad
+### Configuración de Base Contable
 
-La configuración base de contabilidad mapea categorías de cuentas (así como **ganancias retenidas**, que están anidadas bajo **Patrimonio**) a códigos específicos dentro del plan de cuentas. Es requerida para operaciones contables como el cierre mensual y el cierre de año fiscal, y habilita la conexión de módulos de producto con el plan de cuentas.
+La configuración de base contable mapea las categorías de cuentas (así como las **ganancias retenidas**, que están anidadas bajo la categoría **Patrimonio**) a códigos específicos en el plan de cuentas. Es requerida para operaciones contables como el cierre mensual y de fin de año fiscal y permite adjuntar módulos de productos al plan de cuentas.
 
-Se expresa como JSON, donde cada clave es una categoría de cuenta (o un objetivo de **ganancias retenidas**, uno para ingreso neto positivo y otro para ingreso neto negativo) y cada valor representa un código del plan de cuentas.
+Toma la forma de JSON, donde cada clave es una categoría de cuenta (o un destino de **ganancias retenidas**, uno para ingresos netos positivos y otro para ingresos netos negativos) y cada valor representa un código en el plan de cuentas.
 
 ```json
 {
@@ -63,33 +63,33 @@ Se expresa como JSON, donde cada clave es una categoría de cuenta (o un objetiv
 }
 ```
 
-Cualquier nodo raíz del plan que no esté representado por un par clave/valor en la configuración base se considera fuera de balance. Los conjuntos de cuentas fuera de balance suelen usarse para contingencias o para representar transacciones que entran o salen del sistema.
+Cualquier nodo de nivel raíz en el plan que no esté representado por un par clave/valor en la configuración de base contable se considera fuera de balance. Los conjuntos de cuentas fuera de balance se utilizan típicamente para rastrear contingencias o representar transacciones que entran o salen del sistema.
 
-### Configuración Inicial
+### Configuración
 
-El módulo de contabilidad requiere dos archivos de configuración para operar:
+El módulo de contabilidad requiere dos archivos de configuración para funcionar:
 
 1. Plan de Cuentas (CSV)
-2. Configuración Base Contable (JSON)
+2. Configuración Base de Contabilidad (JSON)
 
-Esto debe definirse antes del arranque inicial mediante archivos de configuración en disco. También puede cargarse manualmente usando la mutación GraphQL `chartOfAccountsCsvImport`.
+Estos deben configurarse antes del arranque inicial mediante archivos de configuración en disco; sin embargo, la mutación GraphQL `chartOfAccountsCsvImport` expone la capacidad de realizar este paso manualmente.
 
 ### Configuración de Integración
 
-La configuración de integración mapea tipos de cliente y tipos de producto a posiciones específicas en el plan de cuentas. Cuando se crea una nueva cuenta de depósito o facilidad de crédito, el sistema genera automáticamente las cuentas hijas necesarias bajo los nodos padre correctos, según el tipo de cliente.
+La configuración de integración mapea los tipos de clientes y tipos de productos a posiciones específicas en el plan de cuentas. Cuando se crea una nueva cuenta de depósito o línea de crédito, el sistema genera automáticamente las cuentas hijas necesarias bajo los nodos padre correctos según el tipo de cliente.
 
-Por ejemplo, la configuración del módulo de crédito define códigos padre para:
-- Cuentas por cobrar desembolsadas de corto plazo por cliente individual
-- Cuentas por cobrar de intereses
-- Cuentas de ingreso por intereses
-- Cuentas de ingreso por comisiones
-- Cuentas de colateral
+Por ejemplo, la configuración del módulo de crédito especifica códigos padre para:
+- Cuentas de préstamos por cobrar desembolsados individuales a corto plazo
+- Cuentas de intereses por cobrar
+- Cuentas de ingresos por intereses
+- Cuentas de ingresos por comisiones
+- Cuentas de garantías
 
-Del mismo modo, la configuración del módulo de depósitos define códigos padre para:
+De manera similar, la configuración del módulo de depósitos especifica códigos padre para:
 - Cuentas de pasivo por depósitos de clientes (por tipo de cliente)
 - Cuentas ómnibus para movimientos de fondos
 
-Esta creación automática de cuentas garantiza que cada operación de negocio tenga su ubicación contable correcta sin requerir mantenimiento manual del plan por cada cliente nuevo.
+Esta creación automática de cuentas garantiza que cada operación comercial tenga un lugar contable apropiado sin requerir mantenimiento manual del plan de cuentas para cada nuevo cliente.
 
 ## Estados Financieros
 
@@ -97,47 +97,47 @@ El sistema genera tres estados financieros principales a partir del plan de cuen
 
 ### Balance de Comprobación
 
-El balance de comprobación lista todas las cuentas de primer nivel (hijas directas de la raíz del plan) con sus saldos débito y crédito en un momento específico. Su propósito principal es de verificación: el total de débitos debe ser igual al total de créditos. Si no lo es, existe un error contable en alguna parte del sistema.
+El balance de comprobación enumera todas las cuentas de primer nivel (hijas directas de la raíz del plan) con sus saldos deudores y acreedores en un momento específico. Su propósito principal es la verificación: el total de débitos debe ser igual al total de créditos. Si no coinciden, existe un error contable en alguna parte del sistema.
 
-El balance de comprobación es lo primero que un operador debe revisar al investigar discrepancias contables. Proporciona una vista rápida para validar la consistencia interna del libro mayor.
+El balance de comprobación es lo primero que un operador debe revisar al investigar discrepancias contables. Proporciona una vista rápida de si el libro mayor es internamente consistente.
 
 ### Balance General
 
 El balance general presenta la posición financiera del banco en una fecha específica organizando las cuentas en tres secciones:
 
-- **Activos**: lo que el banco posee (cuentas por cobrar a clientes, efectivo, colateral retenido)
-- **Pasivos**: lo que el banco debe (depósitos de clientes, cuentas por pagar)
-- **Patrimonio**: interés residual (ganancias retenidas, capital aportado)
+- **Activos**: Lo que el banco posee (cuentas por cobrar a clientes, efectivo, garantías retenidas)
+- **Pasivos**: Lo que el banco adeuda (depósitos de clientes, cuentas por pagar)
+- **Patrimonio**: El interés residual (utilidades retenidas, capital aportado)
 
-La ecuación Activos = Pasivos + Patrimonio debe cumplirse siempre. El balance general se construye agregando todas las cuentas bajo los códigos padre configurados para activos, pasivos y patrimonio.
+La ecuación fundamental Activos = Pasivos + Patrimonio debe cumplirse siempre. El balance general se construye agregando todas las cuentas bajo los códigos padre de activos, pasivos y patrimonio configurados.
 
 ### Estado de Resultados
 
-El estado de resultados (P&L) muestra el desempeño financiero del banco en un período al calcular el ingreso neto:
+El estado de resultados (también conocido como estado de pérdidas y ganancias) muestra el desempeño financiero del banco durante un período mediante el cálculo del ingreso neto:
 
-- **Ingresos**: ingresos devengados durante el período (intereses de facilidades de crédito, comisiones de estructuración)
-- **Costo de Ingresos**: costos directos asociados con la generación de ingresos
-- **Gastos**: gastos operativos, provisiones por pérdidas crediticias y otros costos
+- **Ingresos**: Ingresos obtenidos durante el período (ingresos por intereses de líneas de crédito, ingresos por comisiones de estructuración)
+- **Costo de Ingresos**: Costos directos asociados con la generación de ingresos
+- **Gastos**: Gastos operativos, provisiones para pérdidas crediticias y otros costos
 
-Ingreso Neto = Ingresos - Costo de Ingresos - Gastos. Esta cifra representa la ganancia o pérdida del banco en el período de reporte. Al final de cada año fiscal, el ingreso neto se transfiere a ganancias retenidas en el balance general mediante el proceso de cierre.
+Ingreso Neto = Ingresos - Costo de Ingresos - Gastos. Esta cifra representa la ganancia o pérdida del banco para el período reportado. Al final de cada año fiscal, el ingreso neto se transfiere a las utilidades retenidas en el balance general mediante el proceso de cierre.
 
 ## Modelo Operativo
 
-Las páginas de contabilidad en el panel de administración exponen vistas estructuradas del libro mayor sobre contabilidad de partida doble de Cala. Normalmente los operadores usan:
-- **Plan de Cuentas** para inspeccionar jerarquía y actividad por cuenta.
-- **Balance de Comprobación** para validar consistencia de saldos.
-- **Balance General** para posición financiera (activos, pasivos y patrimonio).
-- **Estado de Resultados** para desempeño del período.
+Las páginas de contabilidad en el panel de administración exponen vistas estructuradas en libro mayor respaldadas por la contabilidad de partida doble de Cala. Los operadores suelen utilizar:
+- **Plan de Cuentas** para inspeccionar la jerarquía y la actividad a nivel de cuenta.
+- **Balance de Comprobación** para validar la consistencia del saldo del libro mayor.
+- **Balance General** para la posición (activos, pasivos, patrimonio).
+- **Estado de Resultados** para el desempeño del período.
 
 ### Transacciones Manuales
 
-Además de los asientos automáticos generados por operaciones de negocio, el sistema permite transacciones manuales para ajustes que no se originan en procesos automáticos. Son útiles para:
+Además de los asientos contables automatizados generados por las operaciones comerciales, el sistema admite transacciones manuales para ajustes que no se originan en procesos automatizados. Estas son útiles para:
 
-- Corregir errores detectados durante conciliaciones
+- Corregir errores descubiertos durante la conciliación
 - Registrar transacciones fuera del sistema
-- Aplicar ajustes de cierre (por ejemplo, provisiones por pérdidas crediticias)
+- Realizar ajustes de fin de período (como provisiones para pérdidas crediticias)
 
-Las transacciones manuales siguen las mismas reglas de partida doble que las automáticas y quedan completamente auditadas.
+Las transacciones manuales siguen las mismas reglas de partida doble que las automatizadas y están completamente auditadas.
 
 ## Recorrido en Panel de Administración: Configuración de Módulos
 

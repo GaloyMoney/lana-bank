@@ -4,15 +4,15 @@ title: Despliegue e Ingeniería de Releases
 sidebar_position: 1
 ---
 
-# Despliegue e Ingeniería de Releases
+# Despliegue e Ingeniería de Lanzamientos
 
-Llevar el código desde la laptop de un desarrollador hasta producción involucra varios sistemas trabajando en conjunto. Esta sección explica cada paso de ese recorrido — desde cómo construimos el software, hasta cómo se prueba, se empaqueta en imágenes Docker, se agrupa en charts de Helm, y finalmente se despliega en múltiples entornos.
+Llevar el código desde la computadora de un desarrollador hasta producción implica varios sistemas trabajando juntos. Esta sección explica cada paso de ese recorrido — desde cómo compilamos el software, hasta cómo se prueba, se empaqueta en imágenes Docker, se agrupa en charts de Helm y finalmente se despliega en múltiples entornos.
 
-Si eres nuevo en el proyecto, comienza con la página de [CI/CD e Ingeniería de Releases](ci-cd). Allí se recorre el pipeline completo de principio a fin, en el orden en que las cosas realmente suceden.
+Si eres nuevo en el proyecto, comienza con la página [CI/CD e Ingeniería de Lanzamientos](ci-cd). Recorre todo el pipeline de principio a fin en el orden en que las cosas realmente suceden.
 
-## La Visión General
+## El Panorama General
 
-El diagrama a continuación muestra el camino completo que toma un cambio de código. No te preocupes si parece mucho — cada paso se explica en detalle en las páginas enlazadas.
+El diagrama a continuación muestra la ruta completa que sigue un cambio de código. No te preocupes si parece mucho — cada paso se explica en detalle en las páginas enlazadas.
 
 ```mermaid
 graph TD
@@ -33,17 +33,17 @@ graph TD
     CEPLER --> PROD["Production"]
 ```
 
-En resumen: el código pasa por **tres repositorios** antes de llegar a producción. Cada repositorio tiene su propio pipeline de CI, y cada uno agrega una capa de validación.
+En resumen: el código pasa por **tres repositorios** antes de llegar a producción. Cada repositorio tiene su propio pipeline de CI, y cada uno añade una capa de validación.
 
 ## Tres Repositorios, Tres Pipelines
 
 | Repositorio | Qué contiene | Qué hace su CI |
-|-------------|-------------|----------------|
-| **lana-bank** | Código fuente de la aplicación | Ejecuta pruebas en PRs (GitHub Actions), construye imágenes Docker y crea releases (Concourse) |
-| **galoy-private-charts** | Chart de Helm que agrupa la app con todas sus dependencias | Despliega el chart en un namespace temporal para verificar que funciona ("testflight"), luego avanza la referencia del chart |
-| **galoy-deployments** | Configuraciones de Terraform por entorno y reglas de control de Cepler | Despliega a staging, QA y producción — en ese orden, con puertas de seguridad entre cada uno |
+|------------|----------------|-----------------|
+| **lana-bank** | Código fuente de la aplicación | Ejecuta pruebas en los PRs (GitHub Actions), compila imágenes Docker y crea lanzamientos (Concourse) |
+| **galoy-private-charts** | Chart de Helm que agrupa la aplicación con todas sus dependencias | Despliega el chart en un namespace temporal para verificar que funciona ("testflight"), luego avanza la referencia del chart |
+| **galoy-deployments** | Configuraciones de Terraform por entorno y reglas de control de Cepler | Despliega en staging, QA y producción — en ese orden, con controles de seguridad entre cada uno |
 
-## El Stack Tecnológico
+## La Pila Tecnológica
 
 ```mermaid
 graph TD
@@ -69,7 +69,7 @@ graph TD
     Build --> Packaging --> Runtime
 ```
 
-## Qué Leer a Continuación
+## Próximos Pasos
 
-- **[Sistema de Build](build-system)** — Cómo funcionan los builds con Nix, cómo la caché binaria de Cachix mantiene las cosas rápidas, y cómo se producen las imágenes Docker.
-- **[CI/CD e Ingeniería de Releases](ci-cd)** — La guía principal. Recorre cada paso desde un PR hasta producción, incluyendo GitHub Actions, pipelines de Concourse, pruebas de charts de Helm, control de entornos con Cepler, y promoción a producción.
+- **[Sistema de Compilación](build-system)** — Cómo funcionan las compilaciones de Nix, cómo el caché binario de Cachix mantiene todo rápido y cómo se producen las imágenes de Docker.
+- **[CI/CD e Ingeniería de Releases](ci-cd)** — La guía principal. Recorre cada paso desde un PR hasta producción, incluyendo GitHub Actions, pipelines de Concourse, pruebas de charts de Helm, control de entornos con Cepler y promoción a producción.

@@ -14,7 +14,7 @@ Todas las solicitudes a la API de Lana requieren autenticación mediante tokens 
 
 Para aplicaciones donde los usuarios finales inician sesión:
 
-1. Redirige al usuario al endpoint de autorización del proveedor de identidad
+1. Redirige al usuario al punto de autorización del proveedor de identidad
 2. Recibe un código de autorización mediante callback
 3. Intercambia el código por tokens de acceso y actualización
 4. Incluye el token de acceso en las solicitudes a la API
@@ -23,7 +23,7 @@ Para aplicaciones donde los usuarios finales inician sesión:
 
 Para integraciones de servicio a servicio en backend:
 
-bash
+```bash
 curl -X POST \
   -d "client_id=YOUR_CLIENT_ID" \
   -d "client_secret=YOUR_CLIENT_SECRET" \
@@ -45,7 +45,7 @@ curl -X POST \
 
 ## Actualización de tokens
 
-Los tokens de acceso caducan y deben actualizarse para mantener las sesiones.
+Los tokens de acceso expiran y deben actualizarse para mantener las sesiones.
 
 ### Duración de los tokens
 
@@ -68,8 +68,8 @@ curl -X POST \
 
 ## Mejores prácticas de seguridad
 
-- **Almacenamiento de tokens**: almacena los tokens en memoria cuando sea posible, no en localStorage
-- **Tokens de actualización**: usa cookies httpOnly para tokens de actualización en aplicaciones web
-- **Cierre de sesión**: borra todos los tokens al cerrar sesión
-- **Transporte**: usa siempre HTTPS para las solicitudes a la API
-- **Rotación**: implementa la actualización automática de tokens antes de que caduquen
+- **Almacenamiento de tokens**: Almacena los tokens en memoria cuando sea posible, no en localStorage
+- **Tokens de actualización**: Usa cookies httpOnly para tokens de actualización en aplicaciones web
+- **Cierre de sesión**: Borra todos los tokens al cerrar sesión
+- **Transporte**: Usa siempre HTTPS para las solicitudes a la API
+- **Rotación**: Implementa la actualización automática de tokens antes de su expiración

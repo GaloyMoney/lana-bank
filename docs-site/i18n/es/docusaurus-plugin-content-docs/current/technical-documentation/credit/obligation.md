@@ -6,102 +6,100 @@ sidebar_position: 4
 
 # Obligación
 
-Rastrea los montos que el prestatario debe a la facilidad.
-Las obligaciones se crean a partir de desembolsos y devengan intereses hasta que son satisfechas por pagos o liquidación.
-Registran saldos, fechas de vencimiento y estado, proporcionando la base para los cronogramas de pago.
+Una obligación representa un monto específico que el prestatario debe al banco bajo una línea de crédito. Las obligaciones son las unidades fundamentales del seguimiento de deuda en el sistema de crédito. Cada dólar que debe un prestatario se registra como una obligación con un tipo, monto, fecha de vencimiento y estado de ciclo de vida definidos.
 
-## Cómo se crean las obligaciones
+## Cómo se Crean las Obligaciones
 
 Las obligaciones se crean automáticamente por el sistema en respuesta a dos tipos de eventos:
 
-### Obligaciones principales (de desembolsos)
+### Obligaciones de Principal (de Desembolsos)
 
-Cuando un desembolso se aprueba y liquida, el sistema crea una obligación principal por el monto desembolsado. Esta obligación representa la deuda principal que el prestatario debe reembolsar. Si una línea de crédito permite múltiples desembolsos, cada liquidación genera su propia obligación separada, lo que permite rastrear el reembolso de cada disposición individual.
+Cuando un desembolso es aprobado y liquidado, el sistema crea una obligación de principal por el monto desembolsado. Esta obligación representa la deuda principal que el prestatario debe reembolsar. Si una línea de crédito permite múltiples desembolsos, cada liquidación genera su propia obligación separada, permitiendo rastrear el reembolso contra cada disposición individual.
 
-### Obligaciones de intereses (de ciclos de devengo)
+### Obligaciones de Interés (de Ciclos de Acumulación)
 
-Al final de cada ciclo de devengo de intereses (normalmente mensual), el sistema consolida todos los devengos de intereses diarios de ese período y crea una obligación de intereses por el monto total. Esto convierte los intereses devengados de un reconocimiento contable en una deuda real por pagar. Consulta [Procesamiento de intereses](interest-process) para obtener detalles sobre cómo se devengan los intereses y se convierten en obligaciones.
+Al finalizar cada ciclo de acumulación de intereses (típicamente mensual), el sistema consolida todas las acumulaciones diarias de intereses para ese período y crea una obligación de interés por el monto total. Esto convierte el interés acumulado de un reconocimiento contable en una deuda pagadera real. Consulte [Procesamiento de Intereses](interest-process) para obtener detalles sobre cómo se acumulan los intereses y se convierten en obligaciones.
 
-### Obligaciones de comisiones únicas
+### Obligaciones de Comisiones Únicas
 
-Cuando se ejecuta un desembolso, puede cobrarse una comisión de estructuración basada en el `one_time_fee_rate` definido en los términos de la línea. Esta comisión se reconoce en el momento del desembolso.
+Cuando se ejecuta un desembolso, se puede cobrar una comisión de estructuración basada en el `one_time_fee_rate` definido en los términos de la línea de crédito. Esta comisión se reconoce en el momento del desembolso.
 
-## Datos de la obligación
+## Datos de la Obligación
 
 Cada obligación rastrea:
 
 | Campo | Descripción |
 |-------|-------------|
 | **Tipo** | Ya sea `Disbursal` (principal) o `Interest` |
-| **Monto inicial** | El monto original de la obligación cuando se creó |
-| **Saldo pendiente** | El monto impago restante (monto inicial menos todas las asignaciones de pago recibidas) |
-| **Fecha de vencimiento** | La fecha en que se espera el pago |
-| **Fecha de mora** | La fecha en que la obligación pasa a mora si no se paga |
-| **Fecha de incumplimiento** | La fecha en que la obligación se clasifica como en incumplimiento |
-| **Fecha de liquidación** | La fecha en que la obligación se vuelve elegible para procedimientos de liquidación |
+| **Monto Inicial** | El monto original de la obligación cuando fue creada |
+| **Saldo Pendiente** | El monto impago restante (monto inicial menos todas las asignaciones de pago recibidas) |
+| **Fecha de Vencimiento** | La fecha cuando se espera el pago |
+| **Fecha de Mora** | La fecha cuando la obligación pasa a mora si no se paga |
+| **Fecha de Incumplimiento** | La fecha cuando la obligación se clasifica como incumplida |
+| **Fecha de Liquidación** | La fecha cuando la obligación se vuelve elegible para procedimientos de liquidación |
 | **Estado** | El estado actual del ciclo de vida (ver abajo) |
 
-## Ciclo de vida de la obligación
+## Ciclo de Vida de la Obligación
 
-Cada obligación sigue una máquina de estados impulsada por el tiempo. Las transiciones ocurren automáticamente mediante un procesamiento por lotes al final del día que evalúa todas las obligaciones frente a la fecha actual y provoca los cambios de estado.
+Cada obligación sigue una máquina de estados impulsada por el tiempo. Las transiciones ocurren automáticamente a través del procesamiento por lotes de fin de día que evalúa todas las obligaciones contra la fecha actual y activa los cambios de estado.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> NotYetDue: Obligación creada
-    NotYetDue --> Due: Llega la fecha de vencimiento
-    NotYetDue --> Paid: Totalmente pagada anticipadamente
-    Due --> Overdue: Vence el período de gracia
-    Due --> Paid: Totalmente pagada
-    Overdue --> Defaulted: Finaliza el período de incumplimiento
-    Overdue --> Paid: Totalmente pagada
-    Defaulted --> Paid: Totalmente pagada
+    [*] --> NotYetDue: Obligation created
+    NotYetDue --> Due: Due date reached
+    NotYetDue --> Paid: Fully paid early
+    Due --> Overdue: Grace period expired
+    Due --> Paid: Fully paid
+    Overdue --> Defaulted: Default period expired
+    Overdue --> Paid: Fully paid
+    Defaulted --> Paid: Fully paid
     Paid --> [*]
 ```
 
-### Aún no vencida
+### Aún No Vencida
 
-El estado inicial para cada nueva obligación. El prestatario está al tanto del próximo pago, pero aún no está obligado a pagar. Las obligaciones de intereses entran en este estado cuando el ciclo de acumulación se cierra y se crea la obligación. Las obligaciones de principal entran en este estado cuando se liquida un desembolso.
+El estado inicial para cada nueva obligación. El prestatario está al tanto del próximo pago pero aún no está obligado a pagar. Las obligaciones de intereses entran en este estado cuando el ciclo de acumulación se cierra y se crea la obligación. Las obligaciones de principal entran en este estado cuando un desembolso se liquida.
 
 ### Vencida
 
-Ha llegado la fecha de vencimiento de la obligación. Ahora se espera que el prestatario realice el pago. El sistema transiciona automáticamente las obligaciones de 'Aún no vencida' a 'Vencida' cuando se alcanza la fecha de vencimiento durante el procesamiento al final del día.
+La fecha de vencimiento de la obligación ha llegado. Ahora se espera que el prestatario realice el pago. El sistema transfiere las obligaciones de Aún No Vencida a Vencida automáticamente cuando se alcanza la fecha de vencimiento durante el procesamiento de fin de día.
 
 ### Atrasada
 
-El prestatario no ha realizado el pago dentro del período de gracia después de la fecha de vencimiento. El período de gracia está controlado por el parámetro de términos `obligation_overdue_duration_from_due`. Por ejemplo, si este se establece en 7 días, una obligación que vencía el 1 de enero pasa a estar atrasada el 8 de enero.
+El prestatario no ha realizado el pago dentro del período de gracia después de la fecha de vencimiento. El período de gracia está controlado por el parámetro de término `obligation_overdue_duration_from_due`. Por ejemplo, si este se establece en 7 días, una obligación que vencía el 1 de enero se vuelve atrasada el 8 de enero.
 
-Las obligaciones atrasadas indican un riesgo crediticio creciente y pueden activar alertas operativas o requisitos de reporte.
+Las obligaciones atrasadas señalan un riesgo crediticio creciente y pueden activar alertas operativas o requisitos de reporte.
 
-### En mora
+### En Mora
 
-La obligación ha permanecido impaga mucho más allá de su fecha de vencimiento. El período de incumplimiento está controlado por el parámetro de términos `obligation_liquidation_duration_from_due`. Esto representa un estado de morosidad más grave y puede desencadenar procedimientos de liquidación sobre la garantía de la facilidad.
+La obligación ha permanecido impaga mucho más allá de su fecha de vencimiento. El período de mora está controlado por el parámetro de término `obligation_liquidation_duration_from_due`. Esto representa un estado de morosidad más grave y puede activar procedimientos de liquidación contra la garantía del crédito.
 
-### Pagada
+### Pagado
 
-La obligación ha sido completamente satisfecha mediante asignaciones de pago. Una obligación pasa al estado Pagada tan pronto como su saldo pendiente llega a cero, independientemente del estado en el que se encontraba antes. Esto significa que las obligaciones pueden pagarse en cualquier momento de su ciclo de vida, desde Aún no vencida hasta En mora.
+La obligación ha sido completamente satisfecha mediante asignaciones de pago. Una obligación pasa al estado Pagado tan pronto como su saldo pendiente llega a cero, independientemente del estado en el que se encontrara anteriormente. Esto significa que las obligaciones pueden pagarse en cualquier momento de su ciclo de vida, desde No Vencido hasta En Incumplimiento.
 
-## Parámetros de temporización
+## Parámetros de Temporización
 
-La temporización de las transiciones de estado de las obligaciones se rige por parámetros definidos en los [Términos](terms) de la facilidad:
+La temporización de las transiciones de estado de las obligaciones se rige por parámetros definidos en los [Términos](terms) de la línea de crédito:
 
 | Parámetro | Controla |
 |-----------|----------|
-| `interest_due_duration_from_accrual` | Cuánto tiempo después de que se devenga el interés hasta que la obligación de interés vence |
+| `interest_due_duration_from_accrual` | Cuánto tiempo después de que se devenguen los intereses hasta que la obligación de intereses se vuelva exigible |
 | `obligation_overdue_duration_from_due` | Período de gracia después de la fecha de vencimiento antes de que la obligación se vuelva vencida |
-| `obligation_liquidation_duration_from_due` | Período después de la fecha de vencimiento antes de que una obligación en mora sea elegible para liquidación |
+| `obligation_liquidation_duration_from_due` | Período después de la fecha de vencimiento antes de que una obligación en incumplimiento sea elegible para liquidación |
 
-Estos parámetros permiten al banco configurar diferentes cronogramas de escalamiento de severidad para diferentes tipos de productos crediticios. Una facilidad de capital de trabajo a corto plazo podría tener cronogramas más ajustados que un préstamo a largo plazo tipo hipotecario.
+Estos parámetros permiten al banco configurar diferentes cronogramas de escalamiento de severidad para diferentes tipos de productos crediticios. Una línea de capital de trabajo a corto plazo podría tener cronogramas más ajustados que un préstamo hipotecario a largo plazo.
 
-## Obligaciones y el plan de pago
+## Obligaciones y el Plan de Reembolso
 
-El conjunto de todas las obligaciones de una facilidad crediticia forma el plan de pago de la facilidad. El plan de pago proporciona una vista consolidada que muestra el tipo, monto, fecha de vencimiento, saldo pendiente y estado actual de cada obligación.
+El conjunto de todas las obligaciones de una línea de crédito forma el plan de reembolso de la línea. El plan de reembolso proporciona una vista consolidada que muestra el tipo, monto, fecha de vencimiento, saldo pendiente y estado actual de cada obligación.
 
-A medida que ocurren eventos (se crean nuevas obligaciones, se asignan pagos, transiciones de estado), el plan de pago se actualiza automáticamente para reflejar el estado actual. Esto proporciona a los operadores y prestatarios una vista en tiempo real de lo que se ha pagado, lo que está actualmente vencido y lo que está próximo.
+A medida que ocurren eventos (se crean nuevas obligaciones, se asignan pagos, ocurren transiciones de estado), el plan de reembolso se actualiza automáticamente para reflejar el estado actual. Esto brinda a los operadores y prestatarios una vista en tiempo real de lo que se ha pagado, lo que está actualmente vencido y lo que está próximo.
 
-## Relación con otras entidades
+## Relación con Otras Entidades
 
-- **Facilidad crediticia**: cada obligación pertenece exactamente a una facilidad crediticia. Los términos de la facilidad rigen los parámetros de temporización y las reglas del ciclo de vida de la obligación.
-- **Desembolsos**: cada liquidación de desembolso crea una obligación de principal.
-- **Ciclos de devengo de intereses**: cada ciclo completado crea una obligación de interés.
-- **Pagos**: los pagos se asignan a las obligaciones mediante [Asignaciones de pago](payment), reduciendo su saldo pendiente.
-- **Colateralización**: el total de obligaciones pendientes en todas las facilidades activas de un cliente se tiene en cuenta en los cálculos de la relación colateral-valor del préstamo (CVL).
+- **Línea de Crédito**: Cada obligación pertenece exactamente a una línea de crédito. Los términos de la línea rigen los parámetros de temporización y las reglas del ciclo de vida de la obligación.
+- **Desembolsos**: Cada liquidación de desembolso crea una obligación de capital.
+- **Ciclos de Devengo de Intereses**: Cada ciclo completado crea una obligación de intereses.
+- **Pagos**: Los pagos se asignan a las obligaciones mediante [Asignaciones de Pago](payment), reduciendo su saldo pendiente.
+- **Colateralización**: El total de obligaciones pendientes en todas las líneas activas de un cliente influye en los cálculos de la relación colateral-valor del préstamo (CVL).
