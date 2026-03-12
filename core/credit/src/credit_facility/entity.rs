@@ -330,7 +330,7 @@ impl CreditFacility {
         cvl: CVLPct,
     ) -> Result<(), CreditFacilityError> {
         if self.status() != CreditFacilityStatus::Active {
-            return Err(CreditFacilityError::FacilityInactive);
+            return Err(CreditFacilityError::DisbursalOnInactiveFacility);
         }
         if self.terms.is_single_disbursal() {
             return Err(CreditFacilityError::OnlyOneDisbursalAllowed);
@@ -462,7 +462,7 @@ impl CreditFacility {
 
     pub(crate) fn assert_payment_allowed(&self) -> Result<(), CreditFacilityError> {
         if self.status() == CreditFacilityStatus::Closed {
-            return Err(CreditFacilityError::FacilityInactive);
+            return Err(CreditFacilityError::PaymentOnClosedFacility);
         }
         Ok(())
     }
