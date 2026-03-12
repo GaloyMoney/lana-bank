@@ -127,7 +127,7 @@ impl ReportRun {
 
 #[derive(SimpleObject)]
 pub struct ReportRunCreatePayload {
-    pub run_id: Option<String>,
+    pub run_id: String,
 }
 
 #[derive(InputObject)]
