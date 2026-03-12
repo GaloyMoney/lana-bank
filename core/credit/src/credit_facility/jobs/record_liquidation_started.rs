@@ -33,7 +33,6 @@ pub struct RecordLiquidationStartedConfig {
     pub trigger_price: PriceOfOneBTC,
     pub initially_expected_to_receive: UsdCents,
     pub initially_estimated_to_liquidate: Satoshis,
-    pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
 }
 
 pub struct RecordLiquidationStartedJobInitializer<Perms, E>
@@ -47,6 +46,7 @@ where
 {
     collaterals: Arc<Collaterals<Perms, E>>,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
+    liquidation_proceeds_omnibus_account_id: CalaAccountId,
 }
 
 impl<Perms, E> RecordLiquidationStartedJobInitializer<Perms, E>
@@ -61,10 +61,12 @@ where
     pub fn new(
         collaterals: Arc<Collaterals<Perms, E>>,
         liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
     ) -> Self {
         Self {
             collaterals,
             liquidation_payment_job_spawner,
+            liquidation_proceeds_omnibus_account_id,
         }
     }
 }
@@ -99,6 +101,7 @@ where
             config: job.config()?,
             collaterals: self.collaterals.clone(),
             liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
+            liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
         }))
     }
 }
@@ -115,6 +118,7 @@ where
     config: RecordLiquidationStartedConfig,
     collaterals: Arc<Collaterals<Perms, E>>,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
+    liquidation_proceeds_omnibus_account_id: CalaAccountId,
 }
 
 #[async_trait]
@@ -150,7 +154,7 @@ where
                 self.config.trigger_price,
                 self.config.initially_expected_to_receive,
                 self.config.initially_estimated_to_liquidate,
-                self.config.liquidation_proceeds_omnibus_account_id,
+                self.liquidation_proceeds_omnibus_account_id,
             )
             .await?;
 

@@ -216,6 +216,7 @@ where
             jobs::record_liquidation_started::RecordLiquidationStartedJobInitializer::new(
                 collaterals.clone(),
                 liquidation_payment_job_spawner,
+                ledger.liquidation_proceeds_omnibus_account_ids().account_id,
             ),
         );
 
@@ -227,7 +228,6 @@ where
                 ),
                 jobs::collateral_liquidations::CreditFacilityLiquidationsHandler::new(
                     record_liquidation_started_spawner,
-                    ledger.liquidation_proceeds_omnibus_account_ids().account_id,
                 ),
             )
             .await?;

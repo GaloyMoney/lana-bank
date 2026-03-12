@@ -1,6 +1,5 @@
 use tracing::{Span, instrument};
 
-use core_credit_collateral::CalaAccountId;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::{JobId, JobSpawner, JobType};
@@ -14,17 +13,12 @@ pub const CREDIT_FACILITY_LIQUIDATIONS_JOB: JobType =
 
 pub struct CreditFacilityLiquidationsHandler {
     record_liquidation_started: JobSpawner<RecordLiquidationStartedConfig>,
-    liquidation_proceeds_omnibus_account_id: CalaAccountId,
 }
 
 impl CreditFacilityLiquidationsHandler {
-    pub fn new(
-        record_liquidation_started: JobSpawner<RecordLiquidationStartedConfig>,
-        liquidation_proceeds_omnibus_account_id: CalaAccountId,
-    ) -> Self {
+    pub fn new(record_liquidation_started: JobSpawner<RecordLiquidationStartedConfig>) -> Self {
         Self {
             record_liquidation_started,
-            liquidation_proceeds_omnibus_account_id,
         }
     }
 }
@@ -60,8 +54,6 @@ where
                         trigger_price: trigger.trigger_price,
                         initially_expected_to_receive: trigger.initially_expected_to_receive,
                         initially_estimated_to_liquidate: trigger.initially_estimated_to_liquidate,
-                        liquidation_proceeds_omnibus_account_id: self
-                            .liquidation_proceeds_omnibus_account_id,
                     },
                     entity.collateral_id.to_string(),
                 )
