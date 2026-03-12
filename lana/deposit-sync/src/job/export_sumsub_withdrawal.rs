@@ -6,7 +6,7 @@ use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
-    GovernanceAction, GovernanceObject, UsdCents,
+    GovernanceAction, GovernanceObject, UsdCents, WithdrawalId,
 };
 use governance::GovernanceEvent;
 use job::*;
@@ -15,52 +15,18 @@ use obix::out::OutboxEventMarker;
 use sumsub::SumsubClient;
 use tracing_macros::record_error_severity;
 
-pub const EXPORT_SUMSUB_TRANSACTION_COMMAND: JobType =
-    JobType::new("command.deposit-sync.export-sumsub-transaction");
+pub const EXPORT_SUMSUB_WITHDRAWAL_COMMAND: JobType =
+    JobType::new("command.deposit-sync.export-sumsub-withdrawal");
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub enum SumsubTransactionType {
-    Deposit,
-    Withdrawal,
-}
-
-impl SumsubTransactionType {
-    pub fn as_str(&self) -> &str {
-        match self {
-            SumsubTransactionType::Deposit => "Deposit",
-            SumsubTransactionType::Withdrawal => "Withdrawal",
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub enum SumsubTransactionDirection {
-    In,
-    Out,
-}
-
-impl SumsubTransactionDirection {
-    pub fn as_str(&self) -> &str {
-        match self {
-            SumsubTransactionDirection::In => "in",
-            SumsubTransactionDirection::Out => "out",
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct ExportSumsubTransactionConfig {
-    pub transaction_type: SumsubTransactionType,
-    pub direction: SumsubTransactionDirection,
-    pub transaction_id: String,
+pub struct ExportSumsubWithdrawalConfig {
+    pub withdrawal_id: WithdrawalId,
     pub deposit_account_id: DepositAccountId,
     pub amount: UsdCents,
 }
 
-pub struct ExportSumsubTransactionJobInitializer<Perms, E>
+pub struct ExportSumsubWithdrawalJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -74,7 +40,7 @@ where
     customers: Customers<Perms, E>,
 }
 
-impl<Perms, E> ExportSumsubTransactionJobInitializer<Perms, E>
+impl<Perms, E> ExportSumsubWithdrawalJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -96,7 +62,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for ExportSumsubTransactionJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for ExportSumsubWithdrawalJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -109,10 +75,10 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    type Config = ExportSumsubTransactionConfig;
+    type Config = ExportSumsubWithdrawalConfig;
 
     fn job_type(&self) -> JobType {
-        EXPORT_SUMSUB_TRANSACTION_COMMAND
+        EXPORT_SUMSUB_WITHDRAWAL_COMMAND
     }
 
     fn init(
@@ -120,7 +86,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ExportSumsubTransactionJobRunner {
+        Ok(Box::new(ExportSumsubWithdrawalJobRunner {
             config: job.config()?,
             sumsub_client: self.sumsub_client.clone(),
             deposits: self.deposits.clone(),
@@ -129,7 +95,7 @@ where
     }
 }
 
-struct ExportSumsubTransactionJobRunner<Perms, E>
+struct ExportSumsubWithdrawalJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -138,14 +104,14 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    config: ExportSumsubTransactionConfig,
+    config: ExportSumsubWithdrawalConfig,
     sumsub_client: SumsubClient,
     deposits: CoreDeposit<Perms, E>,
     customers: Customers<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for ExportSumsubTransactionJobRunner<Perms, E>
+impl<Perms, E> JobRunner for ExportSumsubWithdrawalJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -160,7 +126,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "deposit_sync.export_sumsub_transaction.process_command",
+        name = "deposit_sync.export_sumsub_withdrawal.process_command",
         skip_all
     )]
     async fn run(
@@ -184,19 +150,19 @@ where
             self.sumsub_client
                 .submit_finance_transaction(
                     account.account_holder_id,
-                    self.config.transaction_id.clone(),
-                    self.config.transaction_type.as_str(),
-                    self.config.direction.as_str(),
+                    self.config.withdrawal_id.to_string(),
+                    "Withdrawal",
+                    "out",
                     amount_usd,
                     "USD",
                 )
                 .await?;
         } else {
             tracing::warn!(
-                transaction_id = %self.config.transaction_id,
+                withdrawal_id = %self.config.withdrawal_id,
                 customer_id = %account.account_holder_id,
                 kyc_level = ?customer.level,
-                "Skipping sync for non verified customer transaction"
+                "Skipping sync for non verified customer withdrawal"
             );
         }
         Ok(JobCompletion::Complete)

@@ -4,18 +4,24 @@ use core_deposit::CoreDepositEvent;
 use job::{JobId, JobSpawner, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use super::{ExportSumsubTransactionConfig, SumsubTransactionDirection, SumsubTransactionType};
+use super::export_sumsub_deposit::ExportSumsubDepositConfig;
+use super::export_sumsub_withdrawal::ExportSumsubWithdrawalConfig;
 
 pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("outbox.sumsub-export");
 
 pub struct SumsubExportHandler {
-    export_sumsub_transaction: JobSpawner<ExportSumsubTransactionConfig>,
+    export_sumsub_deposit: JobSpawner<ExportSumsubDepositConfig>,
+    export_sumsub_withdrawal: JobSpawner<ExportSumsubWithdrawalConfig>,
 }
 
 impl SumsubExportHandler {
-    pub fn new(export_sumsub_transaction: JobSpawner<ExportSumsubTransactionConfig>) -> Self {
+    pub fn new(
+        export_sumsub_deposit: JobSpawner<ExportSumsubDepositConfig>,
+        export_sumsub_withdrawal: JobSpawner<ExportSumsubWithdrawalConfig>,
+    ) -> Self {
         Self {
-            export_sumsub_transaction,
+            export_sumsub_deposit,
+            export_sumsub_withdrawal,
         }
     }
 }
@@ -36,14 +42,12 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", e.as_ref());
 
-                self.export_sumsub_transaction
+                self.export_sumsub_deposit
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
-                        ExportSumsubTransactionConfig {
-                            transaction_type: SumsubTransactionType::Deposit,
-                            direction: SumsubTransactionDirection::In,
-                            transaction_id: entity.id.to_string(),
+                        ExportSumsubDepositConfig {
+                            deposit_id: entity.id,
                             deposit_account_id: entity.deposit_account_id,
                             amount: entity.amount,
                         },
@@ -56,14 +60,12 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", e.as_ref());
 
-                self.export_sumsub_transaction
+                self.export_sumsub_withdrawal
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
-                        ExportSumsubTransactionConfig {
-                            transaction_type: SumsubTransactionType::Withdrawal,
-                            direction: SumsubTransactionDirection::Out,
-                            transaction_id: entity.id.to_string(),
+                        ExportSumsubWithdrawalConfig {
+                            withdrawal_id: entity.id,
                             deposit_account_id: entity.deposit_account_id,
                             amount: entity.amount,
                         },
