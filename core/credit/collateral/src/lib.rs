@@ -305,7 +305,7 @@ where
 
         let mut db = self.repo.begin_op().await?;
 
-        let manual_custodian_enabled = self
+        let manual_custodian_allowed = self
             .domain_configs
             .get_without_audit_in_op::<AllowManualCustodian>(&mut db)
             .await?
@@ -317,7 +317,7 @@ where
             .record_collateral_update_via_manual_input(
                 updated_collateral,
                 effective,
-                manual_custodian_enabled,
+                manual_custodian_allowed,
             )?
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;
