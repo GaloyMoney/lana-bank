@@ -171,7 +171,6 @@ impl CreditFacilityHistory {
                     tx_id: *ledger_tx_id,
                 },
             )),
-            CoreCreditCollateralEvent::LiquidationStarted { .. } => {}
             CoreCreditCollateralEvent::LiquidationCompleted { .. } => {}
         }
     }

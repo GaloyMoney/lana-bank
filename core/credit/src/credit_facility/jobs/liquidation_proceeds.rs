@@ -6,37 +6,40 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::primitives::CreditFacilityId;
 
-use super::liquidation_payment::LiquidationPaymentJobConfig;
+use super::record_liquidation_proceeds::RecordLiquidationProceedsConfig;
 
-pub const SPAWN_LIQUIDATION_PAYMENT_JOB: JobType = JobType::new("outbox.spawn-liquidation-payment");
+pub const LIQUIDATION_PROCEEDS_JOB: JobType = JobType::new("outbox.liquidation-proceeds");
 
-pub struct SpawnLiquidationPaymentHandler<E> {
-    liquidation_payment: JobSpawner<LiquidationPaymentJobConfig<E>>,
+pub struct RecordLiquidationProceedsHandler {
+    record_liquidation_proceeds: JobSpawner<RecordLiquidationProceedsConfig>,
 }
 
-impl<E> SpawnLiquidationPaymentHandler<E> {
-    pub fn new(liquidation_payment: JobSpawner<LiquidationPaymentJobConfig<E>>) -> Self {
+impl RecordLiquidationProceedsHandler {
+    pub fn new(record_liquidation_proceeds: JobSpawner<RecordLiquidationProceedsConfig>) -> Self {
         Self {
-            liquidation_payment,
+            record_liquidation_proceeds,
         }
     }
 }
 
-impl<E> OutboxEventHandler<E> for SpawnLiquidationPaymentHandler<E>
+impl<E> OutboxEventHandler<E> for RecordLiquidationProceedsHandler
 where
     E: OutboxEventMarker<CoreCreditCollateralEvent>,
 {
-    #[instrument(name = "credit.spawn_liquidation_payment.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "credit.liquidation_proceeds.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
         op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(
-            e @ CoreCreditCollateralEvent::LiquidationStarted {
+            e @ CoreCreditCollateralEvent::LiquidationProceedsReceived {
                 liquidation_id,
                 collateral_id,
                 secured_loan_id,
+                amount,
+                payment_id,
+                ..
             },
         ) = event.as_event()
         {
@@ -44,16 +47,18 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
 
-            self.liquidation_payment
-                .spawn_in_op(
+            self.record_liquidation_proceeds
+                .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    LiquidationPaymentJobConfig::<E> {
+                    RecordLiquidationProceedsConfig {
                         liquidation_id: *liquidation_id,
                         collateral_id: *collateral_id,
                         credit_facility_id: CreditFacilityId::from(*secured_loan_id),
-                        _phantom: std::marker::PhantomData,
+                        amount: *amount,
+                        payment_id: *payment_id,
                     },
+                    liquidation_id.to_string(),
                 )
                 .await?;
         }

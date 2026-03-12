@@ -79,6 +79,7 @@ where
                 } => {
                     vec![CoreCreditCollateralEvent::LiquidationProceedsReceived {
                         liquidation_id: *liquidation_id,
+                        collateral_id: entity.id,
                         secured_loan_id: entity.secured_loan_id,
                         amount: *amount,
                         payment_id: *payment_id,
@@ -90,13 +91,6 @@ where
                 LiquidationCompleted { liquidation_id } => {
                     vec![CoreCreditCollateralEvent::LiquidationCompleted {
                         liquidation_id: *liquidation_id,
-                        secured_loan_id: entity.secured_loan_id,
-                    }]
-                }
-                LiquidationStarted { liquidation_id } => {
-                    vec![CoreCreditCollateralEvent::LiquidationStarted {
-                        liquidation_id: *liquidation_id,
-                        collateral_id: entity.id,
                         secured_loan_id: entity.secured_loan_id,
                     }]
                 }

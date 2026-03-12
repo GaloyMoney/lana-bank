@@ -204,14 +204,6 @@ where
             )
             .await?;
 
-        let liquidation_payment_job_spawner =
-            jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(
-                outbox,
-                collections.clone(),
-                collaterals.clone(),
-                repo.clone(),
-            ));
-
         let record_liquidation_started_spawner = jobs.add_initializer(
             jobs::record_liquidation_started::RecordLiquidationStartedJobInitializer::new(
                 collaterals.clone(),
@@ -231,14 +223,20 @@ where
             )
             .await?;
 
+        let record_liquidation_proceeds_spawner = jobs.add_initializer(
+            jobs::record_liquidation_proceeds::RecordLiquidationProceedsJobInitializer::new(
+                collections.clone(),
+                collaterals.clone(),
+                repo.clone(),
+            ),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
-                OutboxEventJobConfig::new(
-                    jobs::spawn_liquidation_payment::SPAWN_LIQUIDATION_PAYMENT_JOB,
-                ),
-                jobs::spawn_liquidation_payment::SpawnLiquidationPaymentHandler::new(
-                    liquidation_payment_job_spawner,
+                OutboxEventJobConfig::new(jobs::liquidation_proceeds::LIQUIDATION_PROCEEDS_JOB),
+                jobs::liquidation_proceeds::RecordLiquidationProceedsHandler::new(
+                    record_liquidation_proceeds_spawner,
                 ),
             )
             .await?;

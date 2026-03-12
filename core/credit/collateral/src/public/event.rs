@@ -16,11 +16,6 @@ pub enum CoreCreditCollateralEvent {
     CollateralUpdated {
         entity: PublicCollateral,
     },
-    LiquidationStarted {
-        liquidation_id: LiquidationId,
-        collateral_id: CollateralId,
-        secured_loan_id: SecuredLoanId,
-    },
     LiquidationCollateralSentOut {
         liquidation_id: LiquidationId,
         secured_loan_id: SecuredLoanId,
@@ -31,6 +26,7 @@ pub enum CoreCreditCollateralEvent {
     },
     LiquidationProceedsReceived {
         liquidation_id: LiquidationId,
+        collateral_id: CollateralId,
         secured_loan_id: SecuredLoanId,
         amount: UsdCents,
         payment_id: PaymentId,
