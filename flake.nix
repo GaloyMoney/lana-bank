@@ -282,6 +282,7 @@
           python313Packages.black
           python313Packages.isort
           python313Packages.sqlfmt
+          python313Packages.sqlglot
           uv
           podman
           podman-compose

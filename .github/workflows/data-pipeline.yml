@@ -21,6 +21,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      - name: Validate dbt source columns against migrations
+        run: |
+          pip install -q sqlglot
+          python3 dev/check-dbt-columns.py
       - name: Validate report columns
         run: ci/tasks/validate-report-columns.sh
       - uses: jlumbroso/free-disk-space@main
