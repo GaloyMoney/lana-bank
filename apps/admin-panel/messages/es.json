@@ -1882,6 +1882,14 @@
       "errors": {
         "failed": "Error al crear el custodio"
       }
+    },
+    "updateConfig": {
+      "title": "Update Custodian Config",
+      "description": "Replace the configuration credentials for this custodian. All fields are required.",
+      "buttons": {
+        "update": "Update Config"
+      },
+      "success": "Custodian configuration updated successfully"
     }
   },
   "DepositAccounts": {
