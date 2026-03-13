@@ -26,7 +26,6 @@ gql`
     createdAt
     name
     provider
-    isManual
   }
 
   query Custodians($first: Int!, $after: String, $sort: CustodiansSort) {

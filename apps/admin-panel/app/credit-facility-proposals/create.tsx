@@ -39,7 +39,6 @@ import {
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
-import { useManualCustodianAllowed } from "@/hooks/use-manual-custodian-allowed"
 import { Satoshis } from "@/types"
 import { DEFAULT_TERMS, TERMS_FIELD_LIMITS, validateTermsFields } from "@/lib/constants/terms"
 
@@ -108,7 +107,6 @@ export const CreateCreditFacilityProposalDialog: React.FC<
   const { data: custodiansData, loading: custodiansLoading } = useCustodiansQuery({
     variables: { first: 50 },
   })
-  const manualCustodianAllowed = useManualCustodianAllowed()
   const [createCreditFacility, { loading, error, reset }] =
     useCreditFacilityProposalCreateMutation()
 
@@ -358,10 +356,6 @@ export const CreateCreditFacilityProposalDialog: React.FC<
               </SelectTrigger>
               <SelectContent>
                 {custodiansData?.custodians.edges
-                  .filter(
-                    ({ node: custodian }) =>
-                      manualCustodianAllowed || !custodian.isManual,
-                  )
                   .map(({ node: custodian }) => (
                     <SelectItem key={custodian.id} value={custodian.custodianId}>
                       {custodian.name}

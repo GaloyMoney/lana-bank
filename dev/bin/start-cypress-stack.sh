@@ -52,7 +52,6 @@ make setup-db
 # Start core server
 echo "Starting core server..."
 export LANA_DOMAIN_CONFIG_ALLOW_MANUAL_CONVERSION=true
-export LANA_DOMAIN_CONFIG_ALLOW_MANUAL_CUSTODIAN=true
 nix build .
 nohup nix run . -- --config ./bats/lana.yml --set time.type=realtime > "$LOG_FILE" 2>&1 &
 echo $! > "$CORE_PID_FILE"

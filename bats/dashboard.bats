@@ -3,7 +3,6 @@
 load "helpers"
 
 setup_file() {
-  export LANA_DOMAIN_CONFIG_ALLOW_MANUAL_CUSTODIAN=true
   start_server
   login_superadmin
 }

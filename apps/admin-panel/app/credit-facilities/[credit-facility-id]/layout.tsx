@@ -134,6 +134,7 @@ gql`
       network
       custodian {
         name
+        provider
       }
     }
     userCanUpdateCollateral

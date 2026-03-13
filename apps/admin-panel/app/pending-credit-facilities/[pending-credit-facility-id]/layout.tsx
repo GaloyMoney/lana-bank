@@ -92,6 +92,7 @@ gql`
       network
       custodian {
         name
+        provider
       }
     }
     approvalProcess {
