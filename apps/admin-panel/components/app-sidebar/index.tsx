@@ -2,7 +2,6 @@
 
 import type { ComponentProps } from "react"
 
-import Link from "next/link"
 import { useTranslations } from "next-intl"
 
 import {
@@ -18,6 +17,7 @@ import {
 import { UserBlock } from "./user-block"
 import { NavSection } from "./nav-section"
 import { useNavItems } from "./nav-items"
+import { SystemInfoDialog } from "./system-info-dialog"
 
 import { Logo } from "@/components/logo"
 
@@ -57,19 +57,21 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild tabIndex={-1}>
-              <Link href="/dashboard">
+            <SystemInfoDialog appVersion={appVersion || "0.0.0-dev"}>
+              <SidebarMenuButton size="lg" tabIndex={-1}>
                 <div className="flex aspect-square size-10 items-center justify-center rounded-lg">
                   <Logo className="size-10" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{t("footer.appName")}</span>
+                  <span className="truncate font-semibold">
+                    {t("footer.appName")}
+                  </span>
                   <span className="truncate text-xs">
                     {t("footer.version", { version: appVersion || "0.0.0-dev" })}
                   </span>
                 </div>
-              </Link>
-            </SidebarMenuButton>
+              </SidebarMenuButton>
+            </SystemInfoDialog>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
