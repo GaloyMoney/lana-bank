@@ -189,6 +189,7 @@ select
     collateral_amount_usd as `valor_garantia_cons`,
 
     cast(null as string) as `distrito_otorgamiento`,
+    reserve_percentage,
     reserve,
     reserve as `reserva_referencia`,
     cast(null as string) as `etapa_judicial`,
