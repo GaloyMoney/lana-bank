@@ -2,6 +2,7 @@
 id: onboarding
 title: Onboarding Process
 sidebar_position: 2
+description: Prospect creation, KYC verification, and customer conversion workflow
 ---
 
 # Customer Onboarding Process
