@@ -58,6 +58,7 @@ gql`
 
 const PendingCreditFacilities = () => {
   const t = useTranslations("PendingCreditFacilities")
+  const tCommon = useTranslations("Common")
   const [sortBy, setSortBy] = useState<PendingCreditFacilitiesSort | null>(null)
   const [filter, setFilter] = useState<PendingCreditFacilitiesFilter | null>(null)
 
@@ -71,7 +72,7 @@ const PendingCreditFacilities = () => {
 
   return (
     <div>
-      {error && <p className="text-destructive text-sm">{error.message}</p>}
+      {error && <p className="text-destructive text-sm">{tCommon("error")}</p>}
       <PaginatedTable<PendingCreditFacility>
         columns={columns(t)}
         data={data?.pendingCreditFacilities as PaginatedData<PendingCreditFacility>}
