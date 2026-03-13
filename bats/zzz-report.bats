@@ -48,7 +48,7 @@ wait_for_report_run_complete() {
   fi
 
   # Trigger a report run
-  local report_definition_id="nrp_51/01_saldo_cuenta"
+  local report_definition_id="nrp_91/01_saldo_cuenta"
   local as_of_date="2024-01-01"
   variables=$(
     jq -n \
