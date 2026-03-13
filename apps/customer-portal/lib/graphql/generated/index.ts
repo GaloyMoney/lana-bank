@@ -18,7 +18,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
-  CVLPct: { input: any; output: any; }
+  CVLPctValue: { input: any; output: any; }
   /** An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represents a business date; timezone-naive by design. */
   Date: { input: string; output: string; }
   OneTimeFeeRatePct: { input: any; output: any; }
@@ -60,7 +60,7 @@ export type CreditFacility = {
   collateralizationState: CollateralizationState;
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
-  currentCvl: Scalars['CVLPct']['output'];
+  currentCvl: CvlPct;
   disbursals: Array<CreditFacilityDisbursal>;
   facilityAmount: Scalars['UsdCents']['output'];
   history: Array<CreditFacilityHistoryEntry>;
@@ -230,6 +230,8 @@ export enum CustomerType {
   PrivateCompany = 'PRIVATE_COMPANY'
 }
 
+export type CvlPct = FiniteCvlPct | InfiniteCvlPct;
+
 export type Deposit = {
   __typename?: 'Deposit';
   accountId: Scalars['UUID']['output'];
@@ -328,11 +330,21 @@ export type FacilityRemaining = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type FiniteCvlPct = {
+  __typename?: 'FiniteCvlPct';
+  value: Scalars['CVLPctValue']['output'];
+};
+
 export type FreezeEntry = {
   __typename?: 'FreezeEntry';
   amount: Scalars['UsdCents']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
+};
+
+export type InfiniteCvlPct = {
+  __typename?: 'InfiniteCvlPct';
+  isInfinite: Scalars['Boolean']['output'];
 };
 
 export type Interest = {
@@ -434,9 +446,9 @@ export type TermValues = {
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['output'];
   duration: Duration;
-  initialCvl: Scalars['CVLPct']['output'];
-  liquidationCvl: Scalars['CVLPct']['output'];
-  marginCallCvl: Scalars['CVLPct']['output'];
+  initialCvl: CvlPct;
+  liquidationCvl: CvlPct;
+  marginCallCvl: CvlPct;
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['output'];
 };
 
@@ -484,12 +496,33 @@ export enum WithdrawalStatus {
   Reverted = 'REVERTED'
 }
 
+type CvlPctData_FiniteCvlPct_Fragment = { __typename: 'FiniteCvlPct', value: any };
+
+type CvlPctData_InfiniteCvlPct_Fragment = { __typename: 'InfiniteCvlPct', isInfinite: boolean };
+
+export type CvlPctDataFragment =
+  | CvlPctData_FiniteCvlPct_Fragment
+  | CvlPctData_InfiniteCvlPct_Fragment
+;
+
 export type GetCreditFacilityQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: string, maturesAt: string, currentCvl: any, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: any, amount: any, status: DisbursalStatus, createdAt: string }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: string, dueAt: string }>, history: Array<
+export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: string, maturesAt: string, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: any, amount: any, status: DisbursalStatus, createdAt: string }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+      , marginCallCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+      , initialCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+       }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, currentCvl:
+      | { __typename: 'FiniteCvlPct', value: any }
+      | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+    , repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: string, dueAt: string }>, history: Array<
       | { __typename?: 'CreditFacilityApproved', cents: any, recordedAt: string, txId: any, effective: string }
       | { __typename?: 'CreditFacilityCollateralSentOut', amount: any, recordedAt: string, txId: any, effective: string }
       | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: string, direction: CollateralDirection, txId: any, effective: string }
@@ -528,7 +561,17 @@ export type GetTransactionHistoryQuery = { __typename?: 'Query', me: { __typenam
               | { __typename?: 'WithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus } }
              }> } } } } };
 
-
+export const CvlPctDataFragmentDoc = gql`
+    fragment CvlPctData on CvlPct {
+  __typename
+  ... on FiniteCvlPct {
+    value
+  }
+  ... on InfiniteCvlPct {
+    isInfinite
+  }
+}
+    `;
 export const GetCreditFacilityDocument = gql`
     query GetCreditFacility($id: UUID!) {
   creditFacility(id: $id) {
@@ -555,9 +598,15 @@ export const GetCreditFacilityDocument = gql`
         period
         units
       }
-      liquidationCvl
-      marginCallCvl
-      initialCvl
+      liquidationCvl {
+        ...CvlPctData
+      }
+      marginCallCvl {
+        ...CvlPctData
+      }
+      initialCvl {
+        ...CvlPctData
+      }
     }
     balance {
       facilityRemaining {
@@ -595,7 +644,9 @@ export const GetCreditFacilityDocument = gql`
         usdBalance
       }
     }
-    currentCvl
+    currentCvl {
+      ...CvlPctData
+    }
     repaymentPlan {
       repaymentType
       status
@@ -668,7 +719,7 @@ export const GetCreditFacilityDocument = gql`
     }
   }
 }
-    `;
+    ${CvlPctDataFragmentDoc}`;
 
 /**
  * __useGetCreditFacilityQuery__

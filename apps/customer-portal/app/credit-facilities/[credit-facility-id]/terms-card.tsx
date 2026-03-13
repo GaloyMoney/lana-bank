@@ -3,7 +3,7 @@ import { DetailItemProps, DetailsCard } from "@lana/web/components/details"
 import React from "react"
 
 import { GetCreditFacilityQuery } from "@/lib/graphql/generated"
-import { formatPeriod, removeUnderscore } from "@/lib/utils"
+import { formatCvl, formatPeriod, removeUnderscore } from "@/lib/utils"
 
 type CreditFacilityData = NonNullable<GetCreditFacilityQuery["creditFacility"]>
 
@@ -25,15 +25,15 @@ function TermsCard({ data }: { data: CreditFacilityData }) {
     },
     {
       label: "Target/initial CVL %",
-      value: `${data.creditFacilityTerms.initialCvl}%`,
+      value: formatCvl(data.creditFacilityTerms.initialCvl),
     },
     {
       label: "Margin call CVL %",
-      value: `${data.creditFacilityTerms.marginCallCvl}%`,
+      value: formatCvl(data.creditFacilityTerms.marginCallCvl),
     },
     {
       label: "Liquidation CVL %",
-      value: `${data.creditFacilityTerms.liquidationCvl}%`,
+      value: formatCvl(data.creditFacilityTerms.liquidationCvl),
     },
     {
       label: "Accrual Interval",

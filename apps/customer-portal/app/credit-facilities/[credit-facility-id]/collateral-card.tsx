@@ -8,6 +8,7 @@ import {
   DisbursalStatus,
 } from "@/lib/graphql/generated"
 import { priceQuery } from "@/lib/graphql/query/price"
+import { formatCvl, getCvlValue } from "@/lib/utils"
 
 type CreditFacilityData = NonNullable<GetCreditFacilityQuery["creditFacility"]>
 
@@ -16,19 +17,20 @@ async function CollateralCard({ data }: { data: CreditFacilityData }) {
   if (!priceData || priceData instanceof Error) return null
 
   const basisAmountInUsd = calculateBaseAmountInCents(data) / CENTS_PER_USD
-  const initialCvlDecimal = data.creditFacilityTerms.initialCvl / 100
+  const initialCvlValue = getCvlValue(data.creditFacilityTerms.initialCvl)
+  const initialCvlDecimal = initialCvlValue / 100
   const requiredCollateralInSats =
     (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) /
     (priceData.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
 
   const basisAmountInCents = calculateBaseAmountInCents(data)
   const MarginCallPrice = calculatePrice({
-    cvlPercentage: data.creditFacilityTerms.marginCallCvl,
+    cvlPercentage: getCvlValue(data.creditFacilityTerms.marginCallCvl),
     basisAmountInCents,
     collateralInSatoshis: data.balance.collateral.btcBalance,
   })
   const LiquidationCallPrice = calculatePrice({
-    cvlPercentage: data.creditFacilityTerms.liquidationCvl,
+    cvlPercentage: getCvlValue(data.creditFacilityTerms.liquidationCvl),
     basisAmountInCents,
     collateralInSatoshis: data.balance.collateral.btcBalance,
   })
@@ -47,7 +49,7 @@ async function CollateralCard({ data }: { data: CreditFacilityData }) {
       value: <Balance amount={LiquidationCallPrice} currency="usd" />,
     },
     {
-      label: `Collateral to reach target (${data.creditFacilityTerms.initialCvl}%)`,
+      label: `Collateral to reach target (${formatCvl(data.creditFacilityTerms.initialCvl)})`,
       value: <Balance amount={requiredCollateralInSats} currency="btc" />,
     },
   ]

@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-import { Period } from "./graphql/generated"
+import { CvlPctDataFragment, Period } from "./graphql/generated"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -78,3 +78,9 @@ export const removeUnderscore = (str: string) => {
 export const formatPeriod = (period: Period) => {
   return period.charAt(0).toUpperCase() + period.slice(1).toLowerCase()
 }
+
+export const formatCvl = (cvl: CvlPctDataFragment): string =>
+  cvl.__typename === "FiniteCvlPct" ? `${Number(cvl.value || 0)}%` : "-"
+
+export const getCvlValue = (cvl: CvlPctDataFragment): number =>
+  cvl.__typename === "FiniteCvlPct" ? Number(cvl.value) : Infinity
