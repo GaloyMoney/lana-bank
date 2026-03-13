@@ -2338,6 +2338,7 @@
         "email": "Email",
         "role": "Role"
       },
+      "noRoleAssigned": "No role assigned",
       "noRolesAssigned": "No roles assigned",
       "updateRole": "Update Role"
     },
@@ -3025,6 +3026,9 @@
     "title": "Transaction Templates",
     "description": "Templates for transactions",
     "code": "Code",
+    "errors": {
+      "general": "An error occurred"
+    },
     "table": {
       "noData": "No transaction templates found"
     }
@@ -3032,6 +3036,9 @@
   "LedgerTransactionsForTemplateCode": {
     "title": "Ledger Transactions for {code}",
     "description": "Ledger transactions associated with this template code",
+    "errors": {
+      "general": "An error occurred"
+    },
     "table": {
       "noData": "No ledger transactions found for this template code",
       "headers": {
