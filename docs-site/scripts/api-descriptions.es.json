@@ -148,7 +148,7 @@
       "fiscalYearConfigure": "Configura los mapeos de codigos de cuenta del modulo de ano fiscal",
       "ledgerAccountCsvCreate": "Crea una exportacion CSV para una cuenta contable",
       "accountingCsvDownloadLinkGenerate": "Genera un enlace de descarga para un documento CSV contable",
-      "loanAgreementGenerate": "Genera un documento de contrato de prestamo para un cliente",
+      "creditFacilityAgreementGenerate": "Genera un documento de contrato de prestamo para un cliente",
       "loanAgreementDownloadLinkGenerate": "Genera un enlace de descarga para un documento de contrato de prestamo",
       "triggerReportRun": "Dispara una ejecucion manual de reportes",
       "reportFileGenerateDownloadLink": "Genera un enlace de descarga para un archivo de reporte",

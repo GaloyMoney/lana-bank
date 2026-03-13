@@ -148,7 +148,7 @@
       "fiscalYearConfigure": "Configures the fiscal year module's account code mappings",
       "ledgerAccountCsvCreate": "Creates a CSV export for a ledger account",
       "accountingCsvDownloadLinkGenerate": "Generates a download link for an accounting CSV document",
-      "loanAgreementGenerate": "Generates a loan agreement document for a customer",
+      "creditFacilityAgreementGenerate": "Generates a loan agreement document for a customer",
       "loanAgreementDownloadLinkGenerate": "Generates a download link for a loan agreement document",
       "triggerReportRun": "Triggers manual generation for a single report definition, with an optional as-of date when the selected report requires one",
       "reportFileGenerateDownloadLink": "Generates a download link for a report file",
