@@ -118,64 +118,66 @@ Después de que se completa el aprovisionamiento, el cliente puede:
 | Convertir prospecto | Convertir manualmente un prospecto a cliente (omite KYC) |
 | Cerrar prospecto | Cerrar un prospecto sin convertir |
 
-## Recorrido del panel de administración: Creación de prospecto y KYC
+## Recorrido en Panel de Administración: Prospect Creation and KYC
 
-Este recorrido refleja el flujo del operador usado en los manuales de Cypress y se alinea con el ciclo de vida del dominio de cliente (crear prospecto -> verificar -> convertir a cliente).
+This walkthrough reflects the operator flow used in Cypress manuals and aligns with the customer
+domain lifecycle (create prospect -> verify -> convert to customer).
 
-### 1) Crear un prospecto
+### 1) Create a prospect
 
-**Paso 1.** Abre la lista de prospectos.
+**Paso 1.** Open the prospects list.
 
-![Lista de prospectos](/img/screenshots/current/es/customers.cy.ts/2_list_all_prospects.png)
+![Prospect list](/img/screenshots/current/es/customers.cy.ts/2_list_all_prospects.png)
 
-**Paso 2.** Haz clic en **Crear**.
+**Paso 2.** Click **Create**.
 
-![Hacer clic en crear prospecto](/img/screenshots/current/es/customers.cy.ts/3_click_create_button.png)
+![Click create prospect](/img/screenshots/current/es/customers.cy.ts/3_click_create_button.png)
 
-**Paso 3.** El formulario de creación de prospecto se abre con el campo de entrada de correo electrónico listo.
+**Paso 3.** The prospect creation form opens with the email input field ready.
 
-![Formulario de creación de prospecto](/img/screenshots/current/es/customers.cy.ts/4_verify_email_input_visible.png)
+![Prospect creation form](/img/screenshots/current/es/customers.cy.ts/4_verify_email_input_visible.png)
 
-**Paso 4.** Introduce un correo electrónico único del prospecto.
+**Paso 4.** Enter a unique prospect email.
 
-![Introducir correo electrónico del prospecto](/img/screenshots/current/es/customers.cy.ts/5_enter_email.png)
+![Enter prospect email](/img/screenshots/current/es/customers.cy.ts/5_enter_email.png)
 
-**Paso 5.** Introduce un ID de Telegram único (si lo usa tu proceso).
+**Paso 5.** Enter a unique Telegram ID (if used by your process).
 
-![Introducir ID de Telegram](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_handle.png)
+![Enter telegram id](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_handle.png)
 
-**Paso 6.** Revisa los detalles antes de enviar.
+**Paso 6.** Review details before submission.
 
-![Revisar detalles del prospecto](/img/screenshots/current/es/customers.cy.ts/7_click_review_details.png)
+![Review prospect details](/img/screenshots/current/es/customers.cy.ts/7_click_review_details.png)
 
-**Paso 7.** Verifica el diálogo de confirmación que muestra los detalles del cliente introducidos.
+**Paso 7.** Verify the confirmation dialog showing the entered customer details.
 
-![Verificar detalles del prospecto antes de enviar](/img/screenshots/current/es/customers.cy.ts/8_verify_details.png)
+![Verify prospect details before submit](/img/screenshots/current/es/customers.cy.ts/8_verify_details.png)
 
-**Paso 8.** Haz clic en **Confirmar** para crear el prospecto.
+**Paso 8.** Click **Confirm** to create the prospect.
 
-![Confirmar creación del prospecto](/img/screenshots/current/es/customers.cy.ts/9_click_confirm_submit.png)
+![Confirm prospect creation](/img/screenshots/current/es/customers.cy.ts/9_click_confirm_submit.png)
 
-**Paso 9.** Confirma la página de detalles del prospecto y los campos de identidad.
+**Paso 9.** Confirm the prospect detail page and identity fields.
 
-![Página de detalles del prospecto](/img/screenshots/current/es/customers.cy.ts/10_verify_email.png)
+![Prospect details page](/img/screenshots/current/es/customers.cy.ts/10_verify_email.png)
 
-**Paso 10.** Verificar que el prospecto aparece en las vistas de lista.
+**Paso 10.** Verify the prospect appears in list views.
 
-![Prospecto visible en la lista](/img/screenshots/current/es/customers.cy.ts/11_verify_prospect_in_list.png)
+![Prospect visible in list](/img/screenshots/current/es/customers.cy.ts/11_verify_prospect_in_list.png)
 
-### 2) Iniciar y monitorear KYC
+### 2) Start and monitor KYC
 
-El sistema se integra con Sumsub. Los operadores generan el enlace de verificación y luego monitorean los cambios de estado impulsados por actualizaciones de webhook.
+The system integrates with Sumsub. Operators generate the verification link, then monitor status
+changes driven by webhook updates.
 
-**Paso 11.** Abrir la sección KYC del prospecto y generar el enlace de verificación.
+**Paso 11.** Open prospect's KYC section and generate verification link.
 
-![Sección de detalles KYC del prospecto](/img/screenshots/current/es/customers.cy.ts/14_prospect_kyc_details_page.png)
+![Prospect KYC detail section](/img/screenshots/current/es/customers.cy.ts/14_prospect_kyc_details_page.png)
 
-**Paso 12.** Confirmar que se creó el enlace KYC.
+**Paso 12.** Confirm KYC link was created.
 
-![Enlace KYC creado](/img/screenshots/current/es/customers.cy.ts/15_kyc_link_created.png)
+![KYC link created](/img/screenshots/current/es/customers.cy.ts/15_kyc_link_created.png)
 
-**Paso 13.** Después de la verificación KYC, verificar que el cliente aparece en las vistas de lista.
+**Paso 13.** After KYC verification, verify the customer appears in list views.
 
-![Cliente visible en la lista](/img/screenshots/current/es/customers.cy.ts/11_verify_customer_in_list.png)
+![Customer visible in list](/img/screenshots/current/es/customers.cy.ts/11_verify_customer_in_list.png)
