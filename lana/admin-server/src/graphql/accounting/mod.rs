@@ -1,3 +1,4 @@
+mod accounting_templates;
 mod balance_sheet;
 mod chart_of_accounts;
 mod csv;
@@ -10,6 +11,7 @@ mod profit_and_loss;
 mod transaction_templates;
 mod trial_balance;
 
+pub use accounting_templates::*;
 pub use balance_sheet::*;
 pub use chart_of_accounts::*;
 pub use csv::*;
