@@ -1398,6 +1398,7 @@ checksums:
     Users/userDetails/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Users/userDetails/fields/email: e7f34943a0c2fb849db1839ff6ef5cb5
     Users/userDetails/fields/role: 53743bbb6ca938f5b893552e839d067f
+    Users/userDetails/noRoleAssigned: fb7a278d127bd228c667c02041d80669
     Users/userDetails/noRolesAssigned: ad1111553e91d0fbd238772ba57e56ab
     Users/userDetails/updateRole: 365448e14f736c954e16abea616d4284
     Users/eventHistory/title: d17179a947e9687dd2338ca524b26b63
@@ -1884,9 +1885,11 @@ checksums:
     TransactionTemplates/title: cdfe1e063b21076f6b5dc06d5c6cce33
     TransactionTemplates/description: 358dbd4472fd63bc311612eaf175ab57
     TransactionTemplates/code: 343bc5386149b97cece2b093c39034b2
+    TransactionTemplates/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     TransactionTemplates/table/noData: cf33d780cb48c9296bbdc2ffc4549092
     LedgerTransactionsForTemplateCode/title: 6ab59e155e4bb73fd7b1aa8df0bc632e
     LedgerTransactionsForTemplateCode/description: d27d874f3cb4d41fc9fa4392ba6fcbec
+    LedgerTransactionsForTemplateCode/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     LedgerTransactionsForTemplateCode/table/noData: 6af4775f34d95b6313e2adeb8f9974a8
     LedgerTransactionsForTemplateCode/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     LedgerTransactionsForTemplateCode/table/headers/description: e17686a22ffad04cc7bb70524ed4478b

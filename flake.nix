@@ -1012,6 +1012,12 @@
             echo "admin-panel codegen is up to date ✓"
           '';
 
+          admin-panel-translation-keys = mkFrontendCheck "admin-panel-translation-keys" ''
+            echo "Checking translation key usage in admin-panel..."
+            node apps/admin-panel/i18n/check-translation-keys.mjs
+            echo "admin-panel translation key check passed ✓"
+          '';
+
           customer-portal-lint = mkFrontendCheck "customer-portal-lint" ''
             echo "Running lint for customer-portal..."
             pnpm --filter customer-portal lint
