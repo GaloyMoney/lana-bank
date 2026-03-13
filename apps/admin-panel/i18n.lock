@@ -1930,6 +1930,15 @@ checksums:
     Auth/IdleSessionDialog/description: 187addc99d1c3cec67cab0b7c32415df
     Auth/IdleSessionDialog/buttons/logout: 9a236bb8f8bec867ec0d0950d38bcc71
     Auth/IdleSessionDialog/buttons/staySignedIn: dced170d3bb1bf1d4c7c0b8db2f597e2
+    SystemInfo/title: 52c3996b6a3f37c8334027372c1d9723
+    SystemInfo/frontend: 64cd32a0bf23670a162c4209b6e7fda9
+    SystemInfo/backend: 3fbd08ffd1724ca0549c7036a5543165
+    SystemInfo/version: 501b826ddd956aae42ef8e3f6865e4a6
+    SystemInfo/buildProfile: 450f969561e804dd932f2ac6f62c241d
+    SystemInfo/buildTarget: 4accf07e06d04aa646cc009654ad878c
+    SystemInfo/enabledFeatures: ba09ab3cc2478701b47b4d7a8486383b
+    SystemInfo/loading: 82b4ea7ed1439094d7c4be13aaba9a66
+    SystemInfo/unavailable: 2f28882ff148efef4167ca553c841341
   aafe99efd8562d4095906d30010fcd19:
     Permissions/access_viewer/description: e47f0f1513dd3c253c5d1f0ed10c2e58
     Permissions/access_viewer/label: 9cf21f792a7ba07d3a092d992600388c
