@@ -59,6 +59,7 @@ gql`
 
 const LiquidationsList = () => {
   const t = useTranslations("Liquidations")
+  const tCommon = useTranslations("Common")
   const [sortBy, setSortBy] = useState<LiquidationsSort | null>(null)
 
   const { data, loading, error, fetchMore } = useLiquidationsQuery({
@@ -107,9 +108,13 @@ const LiquidationsList = () => {
     },
   ]
 
+  if (error)
+    return (
+      <div className="text-destructive text-sm">{tCommon("errors.general")}</div>
+    )
+
   return (
     <div>
-      {error && <p className="text-destructive text-sm">{t("errors.general")}</p>}
       <PaginatedTable<Liquidation>
         columns={columns}
         data={data?.liquidations as PaginatedData<Liquidation>}
