@@ -6,7 +6,9 @@ select
     format('%.8f', `num_criptomonedas`) as `num_criptomonedas`,
     format('%.2f', round(`valor_contractual`, 2)) as `valor_contractual`,
     format('%.2f', round(`valor_mercado`, 2)) as `valor_mercado`,
-    format_date('%Y-%m-%d', cast(`fecha_valuacion_mercado` as date)) as `fecha_valuacion_mercado`,
+    format_date(
+        '%Y-%m-%d', cast(`fecha_valuacion_mercado` as date)
+    ) as `fecha_valuacion_mercado`,
     `hora_valuacion_mercado`,
     format('%.2f', round(`tasas_conversion`, 2)) as `tasas_conversion`,
     format('%.2f', round(`monto_garantizado`, 2)) as `monto_garantizado`,
