@@ -5,6 +5,7 @@ use crate::{
     graphql::{
         event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
         loader::LanaDataLoader,
+        terms::{CVLPct, CVLPctValue},
     },
     primitives::*,
 };
@@ -101,6 +102,22 @@ impl Liquidation {
             .expect("Collateral not found");
         Ok(collateral)
     }
+}
+
+#[derive(InputObject)]
+pub struct LiquidationPaymentCalculateInput {
+    pub liquidation_id: UUID,
+    pub outstanding: UsdCents,
+    pub to_receive: Option<UsdCents>,
+    pub to_liquidate: Option<Satoshis>,
+    pub target_cvl: Option<CVLPctValue>,
+}
+
+#[derive(SimpleObject)]
+pub struct LiquidationPaymentValue {
+    pub to_liquidate: Satoshis,
+    pub to_receive: UsdCents,
+    pub target_cvl: CVLPct,
 }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]

@@ -1983,6 +1983,20 @@ type LiquidationEdge {
 	node: Liquidation!
 }
 
+input LiquidationPaymentCalculateInput {
+	liquidationId: UUID!
+	outstanding: UsdCents!
+	targetCvl: CVLPctValue
+	toLiquidate: Satoshis
+	toReceive: UsdCents
+}
+
+type LiquidationPaymentValue {
+	targetCvl: CvlPct!
+	toLiquidate: Satoshis!
+	toReceive: UsdCents!
+}
+
 type LiquidationProceedsReceived {
 	amount: UsdCents!
 	ledgerTxId: UUID!
@@ -2533,6 +2547,7 @@ type Query {
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(after: String, first: Int!, templateCode: String!): LedgerTransactionConnection!
 	liquidation(id: UUID!): Liquidation
+	liquidationPaymentCalculate(input: LiquidationPaymentCalculateInput!): LiquidationPaymentValue!
 	liquidations(after: String, first: Int!, sort: LiquidationsSort = {by: CREATED_AT, direction: DESC}): LiquidationConnection!
 	loanAgreement(id: UUID!): LoanAgreement
 	me: Me!
