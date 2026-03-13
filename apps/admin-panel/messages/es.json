@@ -23,6 +23,7 @@
     "submit": "Enviar",
     "apply": "Aplicar",
     "set": "Establecer",
+    "reset": "Restablecer",
     "copiedToClipboard": "Copiado al portapapeles",
     "showIds": "Mostrar IDs",
     "hideIds": "Ocultar IDs",
@@ -1433,8 +1434,41 @@
         "buttons": {
           "recordCollateralSent": "Registrar garantía enviada",
           "recordPaymentReceived": "Registrar pago recibido",
-          "viewMoreDetails": "Ver más detalles"
+          "viewMoreDetails": "Ver más detalles",
+          "calculatePayment": "Calcular Pago"
         }
+      },
+      "calculator": {
+        "title": "Calculadora de Pago de Liquidación",
+        "description": "Calcula el tercer valor dados dos cualesquiera de: cantidad a recibir, colateral a liquidar o CVL objetivo",
+        "fields": {
+          "toReceive": "A Recibir",
+          "toReceivePlaceholder": "Ingresa cantidad en USD",
+          "toLiquidate": "A Liquidar",
+          "toLiquidatePlaceholder": "Ingresa cantidad en BTC",
+          "targetCvl": "CVL Objetivo",
+          "targetCvlPlaceholder": "Ingresa porcentaje"
+        },
+        "buttons": {
+          "calculate": "Calcular",
+          "cancel": "Cancelar"
+        },
+        "validation": {
+          "twoFieldsRequired": "Por favor, completa exactamente 2 campos para calcular el tercero",
+          "invalidAmount": "Por favor, ingresa una cantidad positiva válida",
+          "invalidCvl": "Por favor, ingresa un porcentaje de CVL válido"
+        },
+        "results": {
+          "title": "Resultados del Cálculo",
+          "toReceive": "A Recibir",
+          "toLiquidate": "A Liquidar",
+          "targetCvl": "CVL Objetivo",
+          "infinite": "Infinito"
+        },
+        "errors": {
+          "calculationFailed": "Falló el cálculo: {error}"
+        },
+        "success": "Cálculo completado exitosamente"
       },
       "CollateralSent": {
         "title": "Garantía enviada",
