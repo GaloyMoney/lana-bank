@@ -15,71 +15,21 @@ report_jobs:
     outputs:
       - type: csv
 
-  #--- NRP-41 Reports ---
-  - norm: nrp_41
+  #--- NRP-92 Reports ---
+  - norm: nrp_92
     id: "01_persona"
     friendly_name: "persona"
-    source_table: report_nrp_41_01_persona
+    source_table: report_nrp_92_01_persona
     outputs:
-      - type: xml
-        validation_schema_id: ssf_ctri_persona
       - type: csv
 
-  - norm: nrp_41
+  - norm: nrp_92
     id: "02_referencia"
     friendly_name: "referencia"
-    source_table: report_nrp_41_02_referencia
+    source_table: report_nrp_92_02_referencia
     outputs:
-      - type: xml
-        validation_schema_id: ssf_ctri_referencia
       - type: csv
 
-  - norm: nrp_41
-    id: "12_referencia_gasto"
-    friendly_name: "referencia_gasto"
-    source_table: report_nrp_41_12_referencia_gasto
-    outputs:
-      - type: xml
-        validation_schema_id: ssf_ctri_referencia_gasto
-      - type: csv
-
-  - norm: nrp_41
-    id: "13_referencia_unidad"
-    friendly_name: "referencia_unidad"
-    source_table: report_nrp_41_13_referencia_unidad
-    outputs:
-      - type: xml
-        validation_schema_id: ssf_ctri_referencia_unidad
-      - type: csv
-
-  - norm: nrp_41
-    id: "14_referencia_cancelada"
-    friendly_name: "referencia_cancelada"
-    source_table: report_nrp_41_14_referencia_cancelada
-    outputs:
-      - type: xml
-        validation_schema_id: ssf_ctri_referencia_cancelada
-      - type: csv
-
-  - norm: nrp_41
-    id: "15_socios_sociedades"
-    friendly_name: "socios_sociedades"
-    source_table: report_nrp_41_15_socios_sociedades
-    outputs:
-      - type: xml
-        validation_schema_id: ssf_ctri_socios_sociedades
-      - type: csv
-
-  - norm: nrp_41
-    id: "16_junta_directiva"
-    friendly_name: "junta_directiva"
-    source_table: report_nrp_41_16_junta_directiva
-    outputs:
-      - type: xml
-        validation_schema_id: ssf_ctri_junta_directiva
-      - type: csv
-
-  #--- NRP-92 Reports ---
   - norm: nrp_92
     id: "03_referencia_garantia"
     friendly_name: "referencia_garantia"
@@ -133,6 +83,41 @@ report_jobs:
     id: "10_garantia_fondo"
     friendly_name: "garantia_fondo"
     source_table: report_nrp_92_10_garantia_fondo
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "11_referencia_gasto"
+    friendly_name: "referencia_gasto"
+    source_table: report_nrp_92_11_referencia_gasto
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "12_referencia_unidad"
+    friendly_name: "referencia_unidad"
+    source_table: report_nrp_92_12_referencia_unidad
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "13_referencia_cancelada"
+    friendly_name: "referencia_cancelada"
+    source_table: report_nrp_92_13_referencia_cancelada
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "14_socios_sociedades"
+    friendly_name: "socios_sociedades"
+    source_table: report_nrp_92_14_socios_sociedades
+    outputs:
+      - type: csv
+
+  - norm: nrp_92
+    id: "15_junta_directiva"
+    friendly_name: "junta_directiva"
+    source_table: report_nrp_92_15_junta_directiva
     outputs:
       - type: csv
 

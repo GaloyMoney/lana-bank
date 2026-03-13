@@ -12,7 +12,7 @@ with
             greatest(
                 coalesce(dias_mora_k, 0), coalesce(dias_mora_i, 0)
             ) as payment_overdue_days
-        from {{ ref("int_nrp_41_02_referencia") }} as ref
+        from {{ ref("int_nrp_92_02_referencia") }} as ref
         left join
             {{ ref("static_nrp_41_estados_del_prestamo") }}
             on greatest(coalesce(dias_mora_k, 0), coalesce(dias_mora_i, 0))

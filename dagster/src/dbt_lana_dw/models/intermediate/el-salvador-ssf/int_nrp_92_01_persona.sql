@@ -2,9 +2,7 @@
 select
 
     -- use NIU type (`tipo_identificador` = 'N')
-    customer_public_ids.id as `nit_persona`,
-
-    dui,
+    customer_public_ids.id as `numero_documento`,
 
     upper(split(last_name, ' ')[safe_offset(0)]) as `primer_apellido`,
     upper(split(last_name, ' ')[safe_offset(1)]) as `segundo_apellido`,
@@ -22,9 +20,6 @@ select
 
     -- 'U' for non-Salvadoran using the most flexible Unique Identification Number
     'U' as `tipo_identificador`,
-
-    -- NULL for non-Salvadoran
-    cast(null as string) as `nit_desactualizado`,
 
     case
         when country_of_residence_alpha_3_code = 'SLV' then 'Y' else 'N'
@@ -71,10 +66,11 @@ select
     tax_id_number as `id_pais_origen`,
 
     nationality_code as `nacionalidad`,
-    cast(null as string) as `nit_anterior`,
-    cast(null as string) as `tipo_ident_anterior`,
 
-    el_salvador_municipality as `distrito_residencia`
+    el_salvador_municipality as `distrito_residencia`,
+
+    -- for persons who acquire a new NIT/DUI or transition from minor to adult
+    cast(null as string) as `documento_anterior`
 
 from {{ ref("int_core_customer_events_rollup") }}
 inner join {{ ref("int_customer_identities") }} using (customer_id)

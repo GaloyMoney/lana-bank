@@ -87,9 +87,8 @@ select
     customer_public_ids.id as customer_id,
     disbursement_public_ids.id as disbursal_id,
     disbursement_public_ids.id as reference_id,
-    customer_public_ids.id as `nit_deudor`,
-    '{{ npb4_17_01_tipos_de_cartera("Cartera propia Ley Acceso al Crédito (19)") }}'
-    as `cod_cartera`,
+    customer_public_ids.id as `documento_deudor`,
+    '01' as `cod_cartera`,
     '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
     disbursement_public_ids.id as `num_referencia`,
     loan_amount_usd as `monto_referencia`,
@@ -120,7 +119,6 @@ select
     end as `pago_interes`,
     cast(null as int64) as `periodo_gracia_k`,
     cast(null as int64) as `periodo_gracia_i`,
-    cast(null as string) as `garante`,
     cast(null as string) as `emisión`,
 
     -- join to customer identities's country_of_residence_code?
@@ -175,7 +173,7 @@ select
     cast(null as numeric) as `adelanto_capital`,
 
     -- Corresponds to the reference balance[2.6]
-    -- less the proportional value of the guarantees[3.6 / 2.59]
+    -- less the proportional value of the guarantees[3.6 / 2.58]
     -- (saldo_referencia - valor_garantia_proporcional)
     net_risk,
     net_risk as `riesgo_neto`,
@@ -186,7 +184,7 @@ select
     cast(null as string) as `clase_tarjeta_credito`,
     cast(null as string) as `producto_tarjeta_credito`,
 
-    -- Sum of the proportional values ​​of each guarantee[3.6]
+    -- Sum of the proportional values of each guarantee[3.6]
     collateral_amount_usd,
     collateral_amount_usd as `valor_garantia_cons`,
 
@@ -198,20 +196,7 @@ select
     duration_value as `plazo_credito`,
     'SO' as `orden_descuento`,
     risk_category_ref,
-    risk_category_ref as `categoria_riesgo_ref`,
-    cast(null as numeric) as `reserva_constituir`,
-    cast(null as numeric) as `porcentaje_reserva`,
-    cast(null as numeric) as `pago_cuota`,
-    cast(null as date) as `fecha_pago`,
-    cast(null as numeric) as `porcenta_reserva_descon`,
-    cast(null as numeric) as `porcenta_adiciona_descon`,
-    cast(null as string) as `depto_destino_credito`,
-    reserve_percentage,
-    reserve_percentage as `porc_reserva_referencia`,
-    cast(null as numeric) as `calculo_brecha`,
-    cast(null as numeric) as `ajuste_brecha`,
-    cast(null as string) as `programa_asist_cafe`,
-    cast(null as date) as `fecha_cump_cafe`
+    risk_category_ref as `categoria_riesgo_ref`
 
 from final
 left join

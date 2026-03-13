@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: int_nrp_41_02_referencia
+  - name: int_nrp_92_02_referencia
     columns:
       - name: credit_facility_id
         tests:
@@ -15,6 +15,6 @@ models:
       - name: reference_id
         tests:
           - not_null_quoted
-      - name: nit_deudor
+      - name: documento_deudor
         tests:
           - not_null_quoted

@@ -1,9 +1,9 @@
 version: 2
 
 models:
-  - name: int_nrp_41_01_persona
+  - name: int_nrp_92_01_persona
     columns:
-      - name: nit_persona
+      - name: numero_documento
         tests:
           - not_null_quoted
       - name: numero_cliente
