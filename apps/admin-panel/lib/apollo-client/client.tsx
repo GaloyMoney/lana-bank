@@ -184,6 +184,9 @@ export const makeClient = ({
           eventHistory: relayStylePagination(),
         },
       },
+      ReportDefinition: {
+        keyFields: ["reportDefinitionId"],
+      },
       Query: {
         fields: {
           users: {

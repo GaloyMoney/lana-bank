@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: report_nrp_91_05_prestamo_garantizado
+    description: >
+      prestamo_garantizado.xml per NRP-91 (Anexo 1, file 5). Reports the values of loans that are
+      guaranteed by deposits held at first-tier foreign banks, for Bancos de Inversión. Uses the same
+      structure and bank list as deposito_extranjero.xml, but instead of the deposit amount, reports
+      the value of the loan guaranteed by the deposit at the first-tier bank. This information is
+      provided by the SSF and only the loan value (valor) should be updated.
+      Corresponds to XSD ssf_cebi_prestamo_garantizado.xsd.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "char_length(id_codigo_banco) between 1 and 10"
+          config:
+            description: "Bank code must be 1-10 characters (XsString length 10)"
+      - dbt_utils.expression_is_true:
+          expression: "char_length(nom_banco) between 1 and 80"
+          config:
+            description: "Bank name must be 1-80 characters (XsString length 80)"
+      - dbt_utils.expression_is_true:
+          expression: "char_length(Pais) between 1 and 20"
+          config:
+            description: "Country must be 1-20 characters (XsString length 20)"
+      - dbt_utils.expression_is_true:
+          expression: "categoria in ('01', '02')"
+          config:
+            description: "Only first-tier bank categories 01 and 02 are accepted"
+
+    columns:
+      - name: id_codigo_banco
+        description: >
+          Code of the first-tier foreign bank (XsString, length <= 10). Pre-assigned by the SSF
+          in its published first-tier bank list.
+        tests:
+          - not_null
+          - unique
+      - name: nom_banco
+        description: >
+          Name of the first-tier foreign bank (XsString, length <= 80). Corresponds to the
+          SSF-provided description and must not be modified.
+        tests:
+          - not_null
+      - name: Pais
+        description: >
+          Country where the deposit that guarantees the loan is placed (XsString, length <= 20).
+        tests:
+          - not_null
+      - name: categoria
+        description: >
+          Classification category of the first-tier bank (XsString, length 2). Accepts codes
+          '01' and '02' as pre-coded by the SSF.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['01', '02']
+      - name: valor
+        description: >
+          Value of the loan guaranteed by the deposit at the first-tier bank (XsDecimal,
+          totalDigits=17, fractionDigits=2). This is the only field that should be updated.
+        tests:
+          - not_null

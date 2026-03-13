@@ -169,78 +169,78 @@ report_jobs:
         validation_schema_id: ssf_ctri_garantia_prendaria
       - type: csv
 
-  #--- NRP-51 Reports ---
-  - norm: nrp_51
+  #--- NRP-91 Reports ---
+  - norm: nrp_91
     id: "01_saldo_cuenta"
     friendly_name: "saldo_cuenta"
     supports_as_of: true
-    source_table: report_nrp_51_01_saldo_cuenta_daily
+    source_table: report_nrp_91_01_saldo_cuenta_daily
     outputs:
       - type: xml
-        validation_schema_id: ssf_coes_saldo_cuenta
+        validation_schema_id: ssf_cebi_saldo_cuenta
       - type: csv
 
-  - norm: nrp_51
+  - norm: nrp_91
     id: "02_deposito_extranjero"
     friendly_name: "deposito_extranjero"
-    source_table: report_nrp_51_02_deposito_extranjero
+    source_table: report_nrp_91_02_deposito_extranjero
     outputs:
       - type: xml
-        validation_schema_id: ssf_coes_deposito_extranjero
+        validation_schema_id: ssf_cebi_deposito_extranjero
       - type: csv
 
-  - norm: nrp_51
+  - norm: nrp_91
     id: "03_dato_extracontable"
     friendly_name: "dato_extracontable"
-    source_table: report_nrp_51_03_dato_extracontable
+    source_table: report_nrp_91_03_dato_extracontable
     outputs:
       - type: xml
-        validation_schema_id: ssf_coes_dato_extracontable
+        validation_schema_id: ssf_cebi_dato_extracontable
       - type: csv
 
-  - norm: nrp_51
+  - norm: nrp_91
     id: "04_titulo_valor_extranjero"
     friendly_name: "titulo_valor_extranjero"
-    source_table: report_nrp_51_04_titulo_valor_extranjero
+    source_table: report_nrp_91_04_titulo_valor_extranjero
     outputs:
       - type: xml
-        validation_schema_id: ssf_coes_titulo_valor_extranjero
+        validation_schema_id: ssf_cebi_titulo_valor_extranjero
       - type: csv
 
-  - norm: nrp_51
+  - norm: nrp_91
     id: "05_prestamo_garantizado"
     friendly_name: "prestamo_garantizado"
-    source_table: report_nrp_51_05_prestamo_garantizado
+    source_table: report_nrp_91_05_prestamo_garantizado
     outputs:
       - type: xml
-        validation_schema_id: ssf_coes_prestamo_garantizado
+        validation_schema_id: ssf_cebi_prestamo_garantizado
       - type: csv
 
-  - norm: nrp_51
+  - norm: nrp_91
     id: "06_aval_garantizado"
     friendly_name: "aval_garantizado"
-    source_table: report_nrp_51_06_aval_garantizado
+    source_table: report_nrp_91_06_aval_garantizado
     outputs:
       - type: xml
-        validation_schema_id: ssf_coes_aval_garantizado
+        validation_schema_id: ssf_cebi_aval_garantizado
       - type: csv
 
-  - norm: nrp_51
+  - norm: nrp_91
     id: "07_deuda_subordinada"
     friendly_name: "deuda_subordinada"
-    source_table: report_nrp_51_07_deuda_subordinada
+    source_table: report_nrp_91_07_deuda_subordinada
     outputs:
       - type: xml
-        validation_schema_id: ssf_coes_deuda_subordinada
+        validation_schema_id: ssf_cebi_deuda_subordinada
       - type: csv
 
-  - norm: nrp_51
+  - norm: nrp_91
     id: "08_balance_proyectado"
     friendly_name: "balance_proyectado"
-    source_table: report_nrp_51_08_balance_proyectado
+    source_table: report_nrp_91_08_balance_proyectado
     outputs:
       - type: xml
-        validation_schema_id: ssf_coes_balance_proyectado
+        validation_schema_id: ssf_cebi_balance_proyectado
       - type: csv
 
   #--- NRSF-03 Reports ---

@@ -1,0 +1,82 @@
+version: 2
+
+models:
+  - name: report_nrp_91_02_deposito_extranjero
+    description: >
+      deposito_extranjero.xml per NRP-91 (Anexo 1, file 2). Reports deposits held in foreign banks,
+      both first-tier (primera línea) and non-first-tier, for Bancos de Inversión. First-tier banks
+      are those recognized by the SSF per its published list; all others in account 111007 are
+      considered non-first-tier. For first-tier banks only the balance (Valor) needs to be updated;
+      for non-first-tier banks all columns must be populated. Non-first-tier bank codes must follow
+      the format BN+correlativo (e.g. BN1, BN15). Other foreign institutions use NB+correlativo.
+      The sum of all deposit values must match account 111007 in saldo_cuenta.xml.
+      Corresponds to XSD ssf_cebi_deposito_extranjero.xsd.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "char_length(id_codigo_banco) between 1 and 10"
+          config:
+            description: "Bank code must be 1-10 characters (XsString length 10)"
+      - dbt_utils.expression_is_true:
+          expression: "char_length(nom_banco) between 1 and 80"
+          config:
+            description: "Bank name must be 1-80 characters (XsString length 80)"
+      - dbt_utils.expression_is_true:
+          expression: "char_length(Pais) between 1 and 20"
+          config:
+            description: "Country must be 1-20 characters (XsString length 20)"
+      - dbt_utils.expression_is_true:
+          expression: "Categoria in ('00', '01', '02')"
+          config:
+            description: "Validator error 20: Categoria must be 01/02 for first-tier or 00 for non-first-tier"
+      - dbt_utils.expression_is_true:
+          expression: "cast(Valor as numeric) >= 0"
+          config:
+            description: "Validator error 25: deposit value must be >= 0"
+      - dbt_utils.expression_is_true:
+          expression: "nom_banco = upper(nom_banco)"
+          config:
+            description: "Bank name must be uppercase per Anexo 2.B"
+      - dbt_utils.expression_is_true:
+          expression: "Pais = upper(Pais)"
+          config:
+            description: "Country must be uppercase per Anexo 2.B"
+
+    columns:
+      - name: id_codigo_banco
+        description: >
+          Code of the foreign bank, first-tier or non-first-tier (XsString, length <= 10).
+          For first-tier banks, codes are pre-assigned by the SSF. For non-first-tier banks,
+          the format must be BN+correlativo (e.g. BN1, BN15, BN27). For other foreign institutions,
+          the format is NB+correlativo. Validator errors 20, 23 check for invalid or repeated codes.
+        tests:
+          - not_null
+          - unique
+      - name: nom_banco
+        description: >
+          Name of the foreign bank (XsString, length <= 80, uppercase). Must match the SSF-provided
+          description for first-tier banks. For non-first-tier banks, the entity must provide the name.
+          Validator error 21 checks for incorrect descriptions, error 24 checks for duplicates.
+        tests:
+          - not_null
+      - name: Pais
+        description: >
+          Country where the foreign bank resides (XsString, length <= 20, uppercase).
+          Corresponds to the country where the deposit is placed. Validator error 22 checks
+          for incorrect country values.
+        tests:
+          - not_null
+      - name: Categoria
+        description: >
+          Classification category of the foreign bank (XsString, length 2). First-tier banks
+          accept codes '01' and '02'. Non-first-tier banks must use code '00' (double zero).
+          The category for first-tier banks is pre-coded in the SSF's published list.
+        tests:
+          - not_null
+      - name: Valor
+        description: >
+          Deposit balance at the foreign bank (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must be >= 0. This is the only field that must be updated for first-tier banks.
+          The sum of all Valor entries must match account 111007 in saldo_cuenta.xml
+          (validator error 26).
+        tests:
+          - not_null
