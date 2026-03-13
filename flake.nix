@@ -120,7 +120,7 @@
         src = frontendSrc;
         pnpm = pkgs.pnpm;
         fetcherVersion = 3;
-        hash = "sha256-uuNPJjbcL4Vzu6CNGA2OgrQIAWwJCRrH45aW3iXHXLI=";
+        hash = "sha256-Lhqm7j1n4b4LpblrqlAjoz1J1FCBe06R1eKB1XhJWa0=";
       };
 
       mkFrontendCheck = name: buildPhase:

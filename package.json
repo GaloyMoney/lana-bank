@@ -9,10 +9,14 @@
     "overrides": {
       "lodash-es": ">=4.17.23",
       "minimatch@<3.1.4": ">=3.1.4 <4",
-      "storybook": ">=10.2.10",
       "serialize-javascript": ">=7.0.3",
       "immutable": ">=4.3.8",
-      "dompurify": ">=3.3.2"
+      "flatted": ">=3.4.0"
+    },
+    "auditConfig": {
+      "ignoreCves": [
+        "CVE-2025-14505"
+      ]
     }
   }
 }
