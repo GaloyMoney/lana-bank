@@ -2038,7 +2038,6 @@ checksum = "d7a1e2f27636f116493b8b860f5546edb47c8d8f8ea73e1d2a20be88e28d1fea"
 name = "deposit-sync"
 version = "0.0.0"
 dependencies = [
- "async-trait",
  "audit",
  "authz",
  "core-customer",
@@ -2051,7 +2050,6 @@ dependencies = [
  "money",
  "obix",
  "rust_decimal",
- "serde",
  "sumsub",
  "thiserror 2.0.18",
  "tracing",

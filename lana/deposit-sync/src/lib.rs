@@ -86,22 +86,11 @@ where
             )
             .await?;
 
-        let export_sumsub_deposit_spawner = jobs.add_initializer(
-            ExportSumsubDepositJobInitializer::new(sumsub_client.clone(), deposits, customers),
-        );
-
-        let export_sumsub_withdrawal_spawner = jobs.add_initializer(
-            ExportSumsubWithdrawalJobInitializer::new(sumsub_client, deposits, customers),
-        );
-
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(SUMSUB_EXPORT_JOB),
-                SumsubExportHandler::new(
-                    export_sumsub_deposit_spawner,
-                    export_sumsub_withdrawal_spawner,
-                ),
+                SumsubExportHandler::new(sumsub_client, deposits, customers),
             )
             .await?;
 
