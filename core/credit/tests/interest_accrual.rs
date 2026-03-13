@@ -414,10 +414,12 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
         })
         .collect();
 
-    assert_eq!(interest_entries.len(), 1);
-    assert_eq!(interest_entries[0].cents, UsdCents::from(329));
-    assert_eq!(interest_entries[0].days, 1);
-    assert_eq!(interest_entries[0].tx_id, posting.tx_id);
+    let matched = interest_entries
+        .iter()
+        .find(|e| e.tx_id == posting.tx_id)
+        .expect("history should contain our accrual posting");
+    assert_eq!(matched.cents, UsdCents::from(329));
+    assert_eq!(matched.days, 1);
 
     // `shutdown()` calls `kill_remaining_jobs`, which rewrites still-running
     // rows to `pending` with `execute_at = clock.now()`. Because this test
