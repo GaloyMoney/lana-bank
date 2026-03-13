@@ -4553,6 +4553,13 @@ export type CustodiansQueryVariables = Exact<{
 
 export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string, isManual: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type CustodianConfigUpdateMutationVariables = Exact<{
+  input: CustodianConfigUpdateInput;
+}>;
+
+
+export type CustodianConfigUpdateMutation = { __typename?: 'Mutation', custodianConfigUpdate: { __typename?: 'CustodianConfigUpdatePayload', custodian: { __typename?: 'Custodian', id: string, custodianId: string, name: string, provider: string } } };
+
 export type CustomerCloseMutationVariables = Exact<{
   input: CustomerCloseInput;
 }>;
@@ -8962,6 +8969,44 @@ export type CustodiansQueryHookResult = ReturnType<typeof useCustodiansQuery>;
 export type CustodiansLazyQueryHookResult = ReturnType<typeof useCustodiansLazyQuery>;
 export type CustodiansSuspenseQueryHookResult = ReturnType<typeof useCustodiansSuspenseQuery>;
 export type CustodiansQueryResult = Apollo.QueryResult<CustodiansQuery, CustodiansQueryVariables>;
+export const CustodianConfigUpdateDocument = gql`
+    mutation CustodianConfigUpdate($input: CustodianConfigUpdateInput!) {
+  custodianConfigUpdate(input: $input) {
+    custodian {
+      id
+      custodianId
+      name
+      provider
+    }
+  }
+}
+    `;
+export type CustodianConfigUpdateMutationFn = Apollo.MutationFunction<CustodianConfigUpdateMutation, CustodianConfigUpdateMutationVariables>;
+
+/**
+ * __useCustodianConfigUpdateMutation__
+ *
+ * To run a mutation, you first call `useCustodianConfigUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustodianConfigUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [custodianConfigUpdateMutation, { data, loading, error }] = useCustodianConfigUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCustodianConfigUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CustodianConfigUpdateMutation, CustodianConfigUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustodianConfigUpdateMutation, CustodianConfigUpdateMutationVariables>(CustodianConfigUpdateDocument, options);
+      }
+export type CustodianConfigUpdateMutationHookResult = ReturnType<typeof useCustodianConfigUpdateMutation>;
+export type CustodianConfigUpdateMutationResult = Apollo.MutationResult<CustodianConfigUpdateMutation>;
+export type CustodianConfigUpdateMutationOptions = Apollo.BaseMutationOptions<CustodianConfigUpdateMutation, CustodianConfigUpdateMutationVariables>;
 export const CustomerCloseDocument = gql`
     mutation CustomerClose($input: CustomerCloseInput!) {
   customerClose(input: $input) {
