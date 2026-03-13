@@ -19,6 +19,8 @@ import {
   TermsTemplatesQuery,
   useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
+import NotAuthorized from "@/components/not-authorized"
+import { isAuthorizationError } from "@/lib/auth-error"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
 import { formatCvl } from "@/lib/utils"
@@ -125,6 +127,10 @@ function TermPage() {
   const { data, loading, error } = useTermsTemplatesQuery()
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState<TermsTemplateFieldsFragment | null>(null)
+
+  if (isAuthorizationError(error)) {
+    return <NotAuthorized />
+  }
 
   if (error) {
     return (

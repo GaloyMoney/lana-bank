@@ -28,6 +28,10 @@
     "hideIds": "Hide IDs",
     "showUser": "Show user",
     "copyId": "Copy ID",
+    "notAuthorized": {
+      "title": "Not Authorized",
+      "description": "You do not have permission to view this page. Please contact your administrator if you believe this is an error."
+    },
     "formatRule": {
       "noRulesDefined": "No rules defined",
       "allMembersMustApprove": "All members must approve",
