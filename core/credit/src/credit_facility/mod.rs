@@ -234,8 +234,8 @@ where
         outbox
             .register_event_handler(
                 jobs,
-                OutboxEventJobConfig::new(jobs::liquidation_proceeds::LIQUIDATION_PROCEEDS_JOB),
-                jobs::liquidation_proceeds::RecordLiquidationProceedsHandler::new(
+                OutboxEventJobConfig::new(jobs::collateral_liquidations::LIQUIDATION_PROCEEDS_JOB),
+                jobs::collateral_liquidations::RecordLiquidationProceedsHandler::new(
                     record_liquidation_proceeds_spawner,
                 ),
             )
