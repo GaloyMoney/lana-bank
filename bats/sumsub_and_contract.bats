@@ -148,13 +148,13 @@ wait_for_loan_agreement_completion() {
       '{ input: { customerId: $customerId } }'
     )
 
-    exec_admin_graphql 'loan-agreement-generate' "$variables"
+    exec_admin_graphql 'credit-facility-agreement-generate' "$variables"
 
-    loan_agreement_id=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.loanAgreementId')
+    loan_agreement_id=$(graphql_output '.data.creditFacilityAgreementGenerate.loanAgreement.loanAgreementId')
     [[ "$loan_agreement_id" != "null" ]] || exit 1
     [[ "$loan_agreement_id" != "" ]] || exit 1
 
-    status=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.status')
+    status=$(graphql_output '.data.creditFacilityAgreementGenerate.loanAgreement.status')
     [[ "$status" == "PENDING" ]] || exit 1
 
     retry 30 1 wait_for_loan_agreement_completion $loan_agreement_id

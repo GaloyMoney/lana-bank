@@ -1,0 +1,10 @@
+mutation CreditFacilityAgreementGenerate($input: CreditFacilityAgreementGenerateInput!) {
+  creditFacilityAgreementGenerate(input: $input) {
+    loanAgreement {
+      id
+      loanAgreementId
+      status
+      createdAt
+    }
+  }
+}

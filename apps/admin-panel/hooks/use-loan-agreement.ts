@@ -6,15 +6,15 @@ import { useTranslations } from "next-intl"
 import { gql } from "@apollo/client"
 
 import {
-  useLoanAgreementGenerateMutation,
+  useCreditFacilityAgreementGenerateMutation,
   useLoanAgreementDownloadLinkGenerateMutation,
   useLoanAgreementLazyQuery,
   LoanAgreementStatus,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
-    loanAgreementGenerate(input: $input) {
+  mutation CreditFacilityAgreementGenerate($input: CreditFacilityAgreementGenerateInput!) {
+    creditFacilityAgreementGenerate(input: $input) {
       loanAgreement {
         id
         loanAgreementId
@@ -50,7 +50,7 @@ export const useLoanAgreement = () => {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const pollingLoanAgreementIdRef = useRef<string | null>(null)
 
-  const [generateLoanAgreement] = useLoanAgreementGenerateMutation()
+  const [generateLoanAgreement] = useCreditFacilityAgreementGenerateMutation()
   const [generateDownloadLink] = useLoanAgreementDownloadLinkGenerateMutation()
   const [getLoanAgreement] = useLoanAgreementLazyQuery({
     fetchPolicy: "network-only",
@@ -141,7 +141,8 @@ export const useLoanAgreement = () => {
           },
         })
 
-        const loanAgreement = generateResult.data?.loanAgreementGenerate?.loanAgreement
+        const loanAgreement =
+          generateResult.data?.creditFacilityAgreementGenerate?.loanAgreement
         if (!loanAgreement) {
           throw new Error("Failed to generate loan agreement")
         }

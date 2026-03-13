@@ -54,11 +54,11 @@ impl From<lana_app::contract_creation::LoanAgreement> for LoanAgreement {
 }
 
 #[derive(InputObject)]
-pub struct LoanAgreementGenerateInput {
+pub struct CreditFacilityAgreementGenerateInput {
     pub customer_id: UUID,
 }
 
-crate::mutation_payload! { LoanAgreementGeneratePayload, loan_agreement: LoanAgreement }
+crate::mutation_payload! { CreditFacilityAgreementGeneratePayload, loan_agreement: LoanAgreement }
 
 #[derive(InputObject)]
 pub struct LoanAgreementDownloadLinksGenerateInput {
