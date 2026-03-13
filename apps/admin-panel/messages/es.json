@@ -1884,12 +1884,12 @@
       }
     },
     "updateConfig": {
-      "title": "Update Custodian Config",
-      "description": "Replace the configuration credentials for this custodian. All fields are required.",
+      "title": "Actualizar Configuración del Custodio",
+      "description": "Reemplazar las credenciales de configuración para este custodio. Todos los campos son obligatorios.",
       "buttons": {
-        "update": "Update Config"
+        "update": "Actualizar Configuración"
       },
-      "success": "Custodian configuration updated successfully"
+      "success": "Configuración del custodio actualizada exitosamente"
     }
   },
   "DepositAccounts": {
