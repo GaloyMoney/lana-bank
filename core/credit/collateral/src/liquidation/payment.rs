@@ -1,6 +1,6 @@
 use rust_decimal::{Decimal, RoundingStrategy};
 
-use crate::primitives::CVLPct;
+use core_credit_terms::CVLPct;
 use core_price::PriceOfOneBTC;
 use money::{Satoshis, UsdCents};
 
@@ -34,10 +34,11 @@ impl LiquidationPayment {
 
 #[cfg(test)]
 mod test {
+    use core_credit_terms::CVLPct;
     use core_price::PriceOfOneBTC;
     use money::{Satoshis, UsdCents};
 
-    use crate::{CVLPct, LiquidationPayment};
+    use crate::liquidation::LiquidationPayment;
 
     #[test]
     fn calculate() {

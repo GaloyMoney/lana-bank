@@ -38,7 +38,7 @@ pub use {
         FacilityLedgerAccountIdsForLiquidation, FacilityProceedsFromLiquidationAccountId,
         InternalAccountSetDetails, LiquidationProceedsAccountIds,
     },
-    liquidation::Liquidation,
+    liquidation::{Liquidation, LiquidationPayment},
     primitives::*,
     public::CoreCreditCollateralEvent,
     repo::{LiquidationsSortBy, liquidation_cursor},

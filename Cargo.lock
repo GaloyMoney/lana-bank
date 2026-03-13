@@ -1379,6 +1379,7 @@ dependencies = [
  "chrono",
  "core-chart-primitives",
  "core-credit-collection",
+ "core-credit-terms",
  "core-custody",
  "core-price",
  "derive_builder",
