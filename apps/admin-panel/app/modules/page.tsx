@@ -38,16 +38,16 @@ gql`
       chartOfAccountsOmnibusParentCode
       chartOfAccountsIndividualDepositAccountsParentCode
       chartOfAccountsGovernmentEntityDepositAccountsParentCode
-      chartOfAccountPrivateCompanyDepositAccountsParentCode
-      chartOfAccountBankDepositAccountsParentCode
-      chartOfAccountFinancialInstitutionDepositAccountsParentCode
-      chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
+      chartOfAccountsPrivateCompanyDepositAccountsParentCode
+      chartOfAccountsBankDepositAccountsParentCode
+      chartOfAccountsFinancialInstitutionDepositAccountsParentCode
+      chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode
       chartOfAccountsFrozenIndividualDepositAccountsParentCode
       chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode
-      chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode
-      chartOfAccountFrozenBankDepositAccountsParentCode
-      chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode
-      chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode
+      chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode
+      chartOfAccountsFrozenBankDepositAccountsParentCode
+      chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode
+      chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode
     }
   }
 

@@ -34,22 +34,22 @@ export const DEPOSIT_CONFIG_FIELDS: DepositConfigField[] = [
     group: "summary",
   },
   {
-    key: "chartOfAccountPrivateCompanyDepositAccountsParentCode",
+    key: "chartOfAccountsPrivateCompanyDepositAccountsParentCode",
     category: "liability",
     group: "summary",
   },
   {
-    key: "chartOfAccountBankDepositAccountsParentCode",
+    key: "chartOfAccountsBankDepositAccountsParentCode",
     category: "liability",
     group: "summary",
   },
   {
-    key: "chartOfAccountFinancialInstitutionDepositAccountsParentCode",
+    key: "chartOfAccountsFinancialInstitutionDepositAccountsParentCode",
     category: "liability",
     group: "summary",
   },
   {
-    key: "chartOfAccountNonDomiciledCompanyDepositAccountsParentCode",
+    key: "chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode",
     category: "liability",
     group: "summary",
   },
@@ -64,22 +64,22 @@ export const DEPOSIT_CONFIG_FIELDS: DepositConfigField[] = [
     group: "summary",
   },
   {
-    key: "chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode",
+    key: "chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode",
     category: "liability",
     group: "summary",
   },
   {
-    key: "chartOfAccountFrozenBankDepositAccountsParentCode",
+    key: "chartOfAccountsFrozenBankDepositAccountsParentCode",
     category: "liability",
     group: "summary",
   },
   {
-    key: "chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode",
+    key: "chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode",
     category: "liability",
     group: "summary",
   },
   {
-    key: "chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode",
+    key: "chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode",
     category: "liability",
     group: "summary",
   },

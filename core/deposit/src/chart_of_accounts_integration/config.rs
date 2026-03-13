@@ -12,16 +12,16 @@ pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_accounts_omnibus_parent_code: AccountCode,
     pub chart_of_accounts_individual_deposit_accounts_parent_code: AccountCode,
     pub chart_of_accounts_government_entity_deposit_accounts_parent_code: AccountCode,
-    pub chart_of_account_private_company_deposit_accounts_parent_code: AccountCode,
-    pub chart_of_account_bank_deposit_accounts_parent_code: AccountCode,
-    pub chart_of_account_financial_institution_deposit_accounts_parent_code: AccountCode,
-    pub chart_of_account_non_domiciled_company_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_accounts_private_company_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_accounts_bank_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_accounts_financial_institution_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_accounts_non_domiciled_company_deposit_accounts_parent_code: AccountCode,
     pub chart_of_accounts_frozen_individual_deposit_accounts_parent_code: AccountCode,
     pub chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: AccountCode,
-    pub chart_of_account_frozen_private_company_deposit_accounts_parent_code: AccountCode,
-    pub chart_of_account_frozen_bank_deposit_accounts_parent_code: AccountCode,
-    pub chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: AccountCode,
-    pub chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_accounts_frozen_private_company_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_accounts_frozen_bank_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_accounts_frozen_financial_institution_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_accounts_frozen_non_domiciled_company_deposit_accounts_parent_code: AccountCode,
 }
 
 define_internal_config! {
@@ -97,24 +97,24 @@ impl ResolvedChartOfAccountsIntegrationConfig {
 
         let private_company_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
-                &config.chart_of_account_private_company_deposit_accounts_parent_code,
+                &config.chart_of_accounts_private_company_deposit_accounts_parent_code,
                 deposit.private_company.account_category,
             )?;
 
         let bank_deposit_accounts_parent_account_set_id = category_account_set_member_parent_id(
-            &config.chart_of_account_bank_deposit_accounts_parent_code,
+            &config.chart_of_accounts_bank_deposit_accounts_parent_code,
             deposit.bank.account_category,
         )?;
 
         let financial_institution_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
-                &config.chart_of_account_financial_institution_deposit_accounts_parent_code,
+                &config.chart_of_accounts_financial_institution_deposit_accounts_parent_code,
                 deposit.financial_institution.account_category,
             )?;
 
         let non_domiciled_company_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
-                &config.chart_of_account_non_domiciled_company_deposit_accounts_parent_code,
+                &config.chart_of_accounts_non_domiciled_company_deposit_accounts_parent_code,
                 deposit.non_domiciled_company.account_category,
             )?;
 
@@ -132,25 +132,25 @@ impl ResolvedChartOfAccountsIntegrationConfig {
 
         let frozen_private_company_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
-                &config.chart_of_account_frozen_private_company_deposit_accounts_parent_code,
+                &config.chart_of_accounts_frozen_private_company_deposit_accounts_parent_code,
                 frozen.private_company.account_category,
             )?;
 
         let frozen_bank_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
-                &config.chart_of_account_frozen_bank_deposit_accounts_parent_code,
+                &config.chart_of_accounts_frozen_bank_deposit_accounts_parent_code,
                 frozen.bank.account_category,
             )?;
 
         let frozen_financial_institution_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
-                &config.chart_of_account_frozen_financial_institution_deposit_accounts_parent_code,
+                &config.chart_of_accounts_frozen_financial_institution_deposit_accounts_parent_code,
                 frozen.financial_institution.account_category,
             )?;
 
         let frozen_non_domiciled_company_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
-                &config.chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code,
+                &config.chart_of_accounts_frozen_non_domiciled_company_deposit_accounts_parent_code,
                 frozen.non_domiciled_company.account_category,
             )?;
 

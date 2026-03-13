@@ -166,20 +166,22 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         chart_of_accounts_omnibus_parent_code: "11".parse().unwrap(),
         chart_of_accounts_individual_deposit_accounts_parent_code: "21".parse().unwrap(),
         chart_of_accounts_government_entity_deposit_accounts_parent_code: "26".parse().unwrap(),
-        chart_of_account_private_company_deposit_accounts_parent_code: "22".parse().unwrap(),
-        chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
-        chart_of_account_financial_institution_deposit_accounts_parent_code: "24".parse().unwrap(),
-        chart_of_account_non_domiciled_company_deposit_accounts_parent_code: "25".parse().unwrap(),
+        chart_of_accounts_private_company_deposit_accounts_parent_code: "22".parse().unwrap(),
+        chart_of_accounts_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
+        chart_of_accounts_financial_institution_deposit_accounts_parent_code: "24".parse().unwrap(),
+        chart_of_accounts_non_domiciled_company_deposit_accounts_parent_code: "25".parse().unwrap(),
         chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27".parse().unwrap(),
         chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
             .parse()
             .unwrap(),
-        chart_of_account_frozen_private_company_deposit_accounts_parent_code: "27".parse().unwrap(),
-        chart_of_account_frozen_bank_deposit_accounts_parent_code: "27".parse().unwrap(),
-        chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
+        chart_of_accounts_frozen_private_company_deposit_accounts_parent_code: "27"
             .parse()
             .unwrap(),
-        chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code: "27"
+        chart_of_accounts_frozen_bank_deposit_accounts_parent_code: "27".parse().unwrap(),
+        chart_of_accounts_frozen_financial_institution_deposit_accounts_parent_code: "27"
+            .parse()
+            .unwrap(),
+        chart_of_accounts_frozen_non_domiciled_company_deposit_accounts_parent_code: "27"
             .parse()
             .unwrap(),
     };
@@ -217,21 +219,22 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
             deposit_catalog.government_entity,
         ),
         (
-            &chart_of_accounts_config.chart_of_account_private_company_deposit_accounts_parent_code,
+            &chart_of_accounts_config
+                .chart_of_accounts_private_company_deposit_accounts_parent_code,
             deposit_catalog.private_company,
         ),
         (
-            &chart_of_accounts_config.chart_of_account_bank_deposit_accounts_parent_code,
+            &chart_of_accounts_config.chart_of_accounts_bank_deposit_accounts_parent_code,
             deposit_catalog.bank,
         ),
         (
             &chart_of_accounts_config
-                .chart_of_account_financial_institution_deposit_accounts_parent_code,
+                .chart_of_accounts_financial_institution_deposit_accounts_parent_code,
             deposit_catalog.financial_institution,
         ),
         (
             &chart_of_accounts_config
-                .chart_of_account_non_domiciled_company_deposit_accounts_parent_code,
+                .chart_of_accounts_non_domiciled_company_deposit_accounts_parent_code,
             deposit_catalog.non_domiciled_company,
         ),
     ];
@@ -250,21 +253,21 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         ),
         (
             &chart_of_accounts_config
-                .chart_of_account_frozen_private_company_deposit_accounts_parent_code,
+                .chart_of_accounts_frozen_private_company_deposit_accounts_parent_code,
             frozen.private_company,
         ),
         (
-            &chart_of_accounts_config.chart_of_account_frozen_bank_deposit_accounts_parent_code,
+            &chart_of_accounts_config.chart_of_accounts_frozen_bank_deposit_accounts_parent_code,
             frozen.bank,
         ),
         (
             &chart_of_accounts_config
-                .chart_of_account_frozen_financial_institution_deposit_accounts_parent_code,
+                .chart_of_accounts_frozen_financial_institution_deposit_accounts_parent_code,
             frozen.financial_institution,
         ),
         (
             &chart_of_accounts_config
-                .chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code,
+                .chart_of_accounts_frozen_non_domiciled_company_deposit_accounts_parent_code,
             frozen.non_domiciled_company,
         ),
     ];
