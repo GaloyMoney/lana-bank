@@ -64,13 +64,23 @@ where
         self.publisher.publish_in_op(db, entity, new_events).await
     }
 
+    fn cursor_to_id(cursor: prospect_cursor::ProspectsCursor) -> ProspectId {
+        match cursor {
+            prospect_cursor::ProspectsCursor::Byid(c) => c.id,
+            prospect_cursor::ProspectsCursor::Bycreated_at(c) => c.id,
+            prospect_cursor::ProspectsCursor::Bypublic_id(c) => c.id,
+            prospect_cursor::ProspectsCursor::Byparty_id(c) => c.id,
+        }
+    }
+
     pub async fn list_by_party_email(
         &self,
         filter: &ProspectsFilters,
         direction: ListDirection,
-        after_id: Option<ProspectId>,
-        first: usize,
+        query: PaginatedQueryArgs<prospect_cursor::ProspectsCursor>,
     ) -> Result<(Vec<Prospect>, bool), ProspectError> {
+        let first = query.first;
+        let after_id = query.after.map(Self::cursor_to_id);
         let limit = first as i64 + 1;
         let stage = filter.stage.as_ref().map(|s| s.to_string());
         let customer_type = filter.customer_type.as_ref().map(|ct| ct.to_string());
@@ -133,9 +143,10 @@ where
         &self,
         filter: &ProspectsFilters,
         direction: ListDirection,
-        after_id: Option<ProspectId>,
-        first: usize,
+        query: PaginatedQueryArgs<prospect_cursor::ProspectsCursor>,
     ) -> Result<(Vec<Prospect>, bool), ProspectError> {
+        let first = query.first;
+        let after_id = query.after.map(Self::cursor_to_id);
         let limit = first as i64 + 1;
         let stage = filter.stage.as_ref().map(|s| s.to_string());
         let customer_type = filter.customer_type.as_ref().map(|ct| ct.to_string());
@@ -211,24 +222,6 @@ where
             .collect();
 
         Ok((ordered, has_next_page))
-    }
-}
-
-impl From<(ProspectsSortBy, &Prospect)> for prospect_cursor::ProspectsCursor {
-    fn from(prospect_with_sort: (ProspectsSortBy, &Prospect)) -> Self {
-        let (sort, prospect) = prospect_with_sort;
-        match sort {
-            ProspectsSortBy::CreatedAt => {
-                prospect_cursor::ProspectsByCreatedAtCursor::from(prospect).into()
-            }
-            ProspectsSortBy::Id => prospect_cursor::ProspectsByIdCursor::from(prospect).into(),
-            ProspectsSortBy::PublicId => {
-                prospect_cursor::ProspectsByPublicIdCursor::from(prospect).into()
-            }
-            ProspectsSortBy::PartyId => {
-                prospect_cursor::ProspectsByPartyIdCursor::from(prospect).into()
-            }
-        }
     }
 }
 

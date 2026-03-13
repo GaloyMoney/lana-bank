@@ -9,10 +9,13 @@ use lana_app::public_id::PublicId;
 
 use super::{loader::LanaDataLoader, primitives::SortDirection};
 
-use lana_app::customer::{CustomerType, KycLevel, KycStatus, PersonalInfo, ProspectStage};
+use es_entity::Sort;
+use lana_app::customer::{
+    CustomerType, KycLevel, KycStatus, PersonalInfo, ProspectStage,
+    ProspectsSortBy as DomainProspectsSortBy,
+};
 pub use lana_app::customer::{
     Prospect as DomainProspect, ProspectsFilters as DomainProspectsFilters,
-    ProspectsSortBy as DomainProspectsSortBy,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -177,12 +180,37 @@ pub enum ProspectsSortBy {
     TelegramHandle,
 }
 
+impl From<ProspectsSortBy> for DomainProspectsSortBy {
+    fn from(by: ProspectsSortBy) -> Self {
+        match by {
+            ProspectsSortBy::CreatedAt => DomainProspectsSortBy::CreatedAt,
+            ProspectsSortBy::Email => DomainProspectsSortBy::Email,
+            ProspectsSortBy::TelegramHandle => DomainProspectsSortBy::TelegramHandle,
+        }
+    }
+}
+
 #[derive(InputObject, Default, Clone, Copy)]
 pub struct ProspectsSort {
     #[graphql(default)]
     pub by: ProspectsSortBy,
     #[graphql(default)]
     pub direction: SortDirection,
+}
+
+impl From<ProspectsSort> for Sort<DomainProspectsSortBy> {
+    fn from(sort: ProspectsSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<ProspectsSort> for DomainProspectsSortBy {
+    fn from(sort: ProspectsSort) -> Self {
+        sort.by.into()
+    }
 }
 
 #[derive(InputObject)]
