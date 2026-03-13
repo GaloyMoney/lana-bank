@@ -151,8 +151,8 @@
       "title": "Deposit activity escheatable threshold (days)",
       "description": "Number of days without activity before a deposit account is classified as escheatable. This must be greater than the inactive threshold."
     },
-    "enable-manual-custodian": {
-      "title": "Enable manual custodian",
+    "allow-manual-custodian": {
+      "title": "Allow manual custodian",
       "description": "When enabled, allows selecting manual custodian when creating credit facility proposals. Intended for testing purposes only."
     },
     "sumsub-api-key": {
@@ -171,9 +171,9 @@
       "title": "SumSub KYB Flow Name",
       "description": "Name of the SumSub flow used for KYB verification."
     },
-    "require-committee-approval": {
-      "title": "Require committee approval",
-      "description": "When enabled, policies with automatic system approval cannot be created or updated. All policies must use committee approval."
+    "allow-system-auto-approval": {
+      "title": "Allow system auto-approval",
+      "description": "When enabled, policies with automatic system approval can be created or updated. When disabled, all policies must use committee approval."
     }
   },
   "interestInterval": {

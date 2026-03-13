@@ -26,7 +26,7 @@ import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 import { CustomerLabel } from "@/app/customers/customer-label"
 import { mempoolAddressUrl } from "@/app/credit-facilities/[credit-facility-id]/details"
 import { usePublicIdForCreditFacility } from "@/hooks/use-public-id"
-import { useManualCustodianEnabled } from "@/hooks/use-manual-custodian-enabled"
+import { useManualCustodianAllowed } from "@/hooks/use-manual-custodian-allowed"
 
 type PendingCreditFacilityDetailsCardProps = {
   pendingDetails: NonNullable<
@@ -43,7 +43,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
 
-  const manualCustodianEnabled = useManualCustodianEnabled()
+  const manualCustodianAllowed = useManualCustodianAllowed()
 
   const { publicId: facilityPublicId } = usePublicIdForCreditFacility(
     pendingDetails.status === PendingCreditFacilityStatus.Completed
@@ -122,7 +122,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
   const footerContent = (
     <>
       {pendingDetails.status !== PendingCreditFacilityStatus.Completed &&
-        manualCustodianEnabled && (
+        manualCustodianAllowed && (
           <Button
             variant="outline"
             onClick={() => setOpenCollateralUpdateDialog(true)}

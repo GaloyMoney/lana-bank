@@ -164,11 +164,11 @@ where
         op: &mut impl es_entity::AtomicOperation,
     ) -> Result<bool, GovernanceError> {
         if let Some(domain_configs) = &self.domain_configs {
-            let require_committee = domain_configs
-                .get_without_audit_in_op::<RequireCommitteeApproval>(op)
+            let allow_auto_approval = domain_configs
+                .get_without_audit_in_op::<AllowSystemAutoApproval>(op)
                 .await?
                 .value();
-            return Ok(!require_committee);
+            return Ok(allow_auto_approval);
         }
         Ok(true)
     }

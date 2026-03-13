@@ -38,7 +38,7 @@ import {
   CustodiansDocument,
 } from "@/lib/graphql/generated"
 
-import { useManualCustodianEnabled } from "@/hooks/use-manual-custodian-enabled"
+import { useManualCustodianAllowed } from "@/hooks/use-manual-custodian-allowed"
 
 gql`
   mutation CustodianCreate($input: CustodianCreateInput!) {
@@ -67,7 +67,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
   const t = useTranslations("Custodians.create")
   const tCommon = useTranslations("Common")
 
-  const manualCustodianEnabled = useManualCustodianEnabled()
+  const manualCustodianAllowed = useManualCustodianAllowed()
 
   const [selectedType, setSelectedType] = useState<CustodianType>("komainu")
   const [komainuConfig, setKomainuConfig] = useState<KomainuConfig>({
@@ -235,7 +235,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                 <SelectItem value="komainu">Komainu</SelectItem>
                 <SelectItem value="bitgo">BitGo</SelectItem>
                 <SelectItem value="selfCustody">{t("fields.selfCustodyLabel")}</SelectItem>
-                {manualCustodianEnabled && (
+                {manualCustodianAllowed && (
                   <SelectItem value="manual">{t("fields.manualLabel")}</SelectItem>
                 )}
               </SelectContent>

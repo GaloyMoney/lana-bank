@@ -151,9 +151,9 @@
       "title": "Umbral de reversión de actividad de depósitos (días)",
       "description": "Número de días sin actividad antes de que una cuenta de depósito sea clasificada como sujeta a reversión. Debe ser mayor que el umbral de inactividad."
     },
-    "enable-manual-custodian": {
-      "title": "Garantía manual",
-      "description": "Cuando está habilitado, permite actualizaciones manuales de garantía a través del panel de administración. Destinado únicamente para propósitos de prueba. La sincronización del custodio y las actualizaciones de liquidación no se ven afectadas por esta configuración."
+    "allow-manual-custodian": {
+      "title": "Permitir custodio manual",
+      "description": "Cuando está habilitado, permite seleccionar un custodio manual al crear propuestas de facilidades crediticias. Destinado únicamente para fines de prueba."
     },
     "sumsub-api-key": {
       "title": "Clave API de SumSub",
@@ -171,9 +171,9 @@
       "title": "Nombre del flujo KYB de SumSub",
       "description": "Nombre del flujo de SumSub utilizado para la verificación KYB."
     },
-    "require-committee-approval": {
-      "title": "Requerir aprobación de comité",
-      "description": "Cuando está habilitado, no se pueden crear ni actualizar políticas con aprobación automática del sistema. Todas las políticas deben usar aprobación de comité."
+    "allow-system-auto-approval": {
+      "title": "Permitir aprobación automática del sistema",
+      "description": "Cuando está habilitado, se pueden crear o actualizar políticas con aprobación automática del sistema. Cuando está deshabilitado, todas las políticas deben utilizar aprobación por comité."
     }
   },
   "interestInterval": {
