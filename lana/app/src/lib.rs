@@ -124,10 +124,10 @@ pub mod deposit {
 pub mod accounting {
     pub use core_accounting::{
         AccountCategory, AccountCode, AccountCodeSection, AccountInfo, AccountingCsvId,
-        CalaAccountBalance, CalaAccountId, ChartId, CoreAccountingEvent, FiscalYearId,
-        LedgerAccountId, TransactionTemplateId, chart_of_accounts, csv, error, fiscal_year,
-        journal, ledger_account, ledger_transaction, manual_transaction, transaction_templates,
-        {Chart, tree},
+        AccountingTemplateId, CalaAccountBalance, CalaAccountId, ChartId, CoreAccountingEvent,
+        FiscalYearId, LedgerAccountId, TransactionTemplateId, accounting_templates,
+        chart_of_accounts, csv, error, fiscal_year, journal, ledger_account, ledger_transaction,
+        manual_transaction, transaction_templates, {Chart, tree},
     };
 
     pub type Accounting = core_accounting::CoreAccounting<
