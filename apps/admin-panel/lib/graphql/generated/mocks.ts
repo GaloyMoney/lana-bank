@@ -1087,6 +1087,7 @@ export const mockCreditFacilityProposalCustomerApprovalConcludePayload = (overri
     return {
         __typename: 'CreditFacilityProposalCustomerApprovalConcludePayload',
         creditFacilityProposal: overrides && overrides.hasOwnProperty('creditFacilityProposal') ? overrides.creditFacilityProposal! : relationshipsToOmit.has('CreditFacilityProposal') ? {} as CreditFacilityProposal : mockCreditFacilityProposal({}, relationshipsToOmit),
+        pendingCreditFacility: overrides && overrides.hasOwnProperty('pendingCreditFacility') ? overrides.pendingCreditFacility! : relationshipsToOmit.has('PendingCreditFacility') ? {} as PendingCreditFacility : mockPendingCreditFacility({}, relationshipsToOmit),
     };
 };
 

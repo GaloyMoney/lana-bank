@@ -787,6 +787,7 @@ input CreditFacilityProposalCustomerApprovalConcludeInput {
 
 type CreditFacilityProposalCustomerApprovalConcludePayload {
 	creditFacilityProposal: CreditFacilityProposal!
+	pendingCreditFacility: PendingCreditFacility
 }
 
 """

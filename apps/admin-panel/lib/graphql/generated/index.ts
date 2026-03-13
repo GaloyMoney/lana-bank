@@ -865,6 +865,7 @@ export type CreditFacilityProposalCustomerApprovalConcludeInput = {
 export type CreditFacilityProposalCustomerApprovalConcludePayload = {
   __typename?: 'CreditFacilityProposalCustomerApprovalConcludePayload';
   creditFacilityProposal: CreditFacilityProposal;
+  pendingCreditFacility?: Maybe<PendingCreditFacility>;
 };
 
 /** An edge in a connection. */
