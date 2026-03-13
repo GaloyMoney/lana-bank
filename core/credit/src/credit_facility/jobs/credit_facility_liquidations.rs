@@ -17,21 +17,26 @@ pub const CREDIT_FACILITY_LIQUIDATIONS_JOB: JobType =
 
 pub struct CreditFacilityLiquidationsHandler {
     record_liquidation_started: JobSpawner<RecordLiquidationStartedConfig>,
+    record_liquidation_proceeds: JobSpawner<RecordLiquidationProceedsConfig>,
 }
 
 impl CreditFacilityLiquidationsHandler {
-    pub fn new(record_liquidation_started: JobSpawner<RecordLiquidationStartedConfig>) -> Self {
+    pub fn new(
+        record_liquidation_started: JobSpawner<RecordLiquidationStartedConfig>,
+        record_liquidation_proceeds: JobSpawner<RecordLiquidationProceedsConfig>,
+    ) -> Self {
         Self {
             record_liquidation_started,
+            record_liquidation_proceeds,
         }
     }
 }
 
 impl<E> OutboxEventHandler<E> for CreditFacilityLiquidationsHandler
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollateralEvent>,
 {
-    #[instrument(name = "outbox.core_credit.collateral_liquidations.process_message_in_op", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "outbox.core_credit.credit_facility_liquidations.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
         op: &mut DbOp<'_>,
@@ -63,34 +68,7 @@ where
                 )
                 .await?;
         }
-        Ok(())
-    }
-}
 
-pub const LIQUIDATION_PROCEEDS_JOB: JobType = JobType::new("outbox.liquidation-proceeds");
-
-pub struct RecordLiquidationProceedsHandler {
-    record_liquidation_proceeds: JobSpawner<RecordLiquidationProceedsConfig>,
-}
-
-impl RecordLiquidationProceedsHandler {
-    pub fn new(record_liquidation_proceeds: JobSpawner<RecordLiquidationProceedsConfig>) -> Self {
-        Self {
-            record_liquidation_proceeds,
-        }
-    }
-}
-
-impl<E> OutboxEventHandler<E> for RecordLiquidationProceedsHandler
-where
-    E: OutboxEventMarker<CoreCreditCollateralEvent>,
-{
-    #[instrument(name = "credit.liquidation_proceeds.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
-    async fn handle_persistent(
-        &self,
-        op: &mut DbOp<'_>,
-        event: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(
             e @ CoreCreditCollateralEvent::LiquidationProceedsReceived {
                 liquidation_id,
@@ -121,6 +99,7 @@ where
                 )
                 .await?;
         }
+
         Ok(())
     }
 }

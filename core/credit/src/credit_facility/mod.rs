@@ -211,18 +211,6 @@ where
             ),
         );
 
-        outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(
-                    jobs::collateral_liquidations::CREDIT_FACILITY_LIQUIDATIONS_JOB,
-                ),
-                jobs::collateral_liquidations::CreditFacilityLiquidationsHandler::new(
-                    record_liquidation_started_spawner,
-                ),
-            )
-            .await?;
-
         let record_liquidation_proceeds_spawner = jobs.add_initializer(
             jobs::record_liquidation_proceeds::RecordLiquidationProceedsJobInitializer::new(
                 collections.clone(),
@@ -234,8 +222,11 @@ where
         outbox
             .register_event_handler(
                 jobs,
-                OutboxEventJobConfig::new(jobs::collateral_liquidations::LIQUIDATION_PROCEEDS_JOB),
-                jobs::collateral_liquidations::RecordLiquidationProceedsHandler::new(
+                OutboxEventJobConfig::new(
+                    jobs::credit_facility_liquidations::CREDIT_FACILITY_LIQUIDATIONS_JOB,
+                ),
+                jobs::credit_facility_liquidations::CreditFacilityLiquidationsHandler::new(
+                    record_liquidation_started_spawner,
                     record_liquidation_proceeds_spawner,
                 ),
             )
