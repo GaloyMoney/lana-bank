@@ -2,6 +2,8 @@
 id: onboarding
 title: Proceso de Incorporación
 sidebar_position: 2
+description: Flujo de trabajo de creación de prospectos, verificación KYC y
+  conversión de clientes
 ---
 
 # Proceso de Incorporación de Clientes
