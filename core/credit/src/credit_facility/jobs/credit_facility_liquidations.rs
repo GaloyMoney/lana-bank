@@ -64,7 +64,7 @@ where
                         initially_expected_to_receive: trigger.initially_expected_to_receive,
                         initially_estimated_to_liquidate: trigger.initially_estimated_to_liquidate,
                     },
-                    entity.collateral_id.to_string(),
+                    entity.id.to_string(),
                 )
                 .await?;
         }
@@ -95,7 +95,7 @@ where
                         amount: *amount,
                         payment_id: *payment_id,
                     },
-                    liquidation_id.to_string(),
+                    CreditFacilityId::from(*secured_loan_id).to_string(),
                 )
                 .await?;
         }
