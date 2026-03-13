@@ -183,8 +183,8 @@ mod tests {
 
     #[test]
     fn finds_as_of_report_and_builds_asset_selection_paths() {
-        let id = ReportDefinitionId::try_new("nrp_51/01_saldo_cuenta").expect("valid id format");
-        let definition = find_report_definition(&id).expect("nrp_51/01_saldo_cuenta must exist");
+        let id = ReportDefinitionId::try_new("nrp_91/01_saldo_cuenta").expect("valid id format");
+        let definition = find_report_definition(&id).expect("nrp_91/01_saldo_cuenta must exist");
 
         assert!(definition.supports_as_of);
         assert_eq!(
@@ -192,11 +192,11 @@ mod tests {
             vec![
                 vec![
                     "file_report".to_string(),
-                    "report_nrp_51_01_saldo_cuenta_daily_xml".to_string(),
+                    "report_nrp_91_01_saldo_cuenta_daily_xml".to_string(),
                 ],
                 vec![
                     "file_report".to_string(),
-                    "report_nrp_51_01_saldo_cuenta_daily_csv".to_string(),
+                    "report_nrp_91_01_saldo_cuenta_daily_csv".to_string(),
                 ],
             ]
         );
