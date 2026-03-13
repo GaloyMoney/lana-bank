@@ -78,10 +78,14 @@ const AuditLogsList = () => {
   const [objectFilter, setObjectFilter] = useState<string | undefined>(undefined)
   const [actionFilter, setActionFilter] = useState<string | undefined>(undefined)
 
+  const parsedIdFilter = idFilter ? parseInt(idFilter, 10) : null
+  const auditEntryIdVar =
+    parsedIdFilter !== null && !isNaN(parsedIdFilter) ? parsedIdFilter : null
+
   const { data, loading, error, fetchMore } = useAuditLogsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
-      auditEntryId: idFilter ?? null,
+      auditEntryId: auditEntryIdVar,
       subject: subjectFilter ?? null,
       authorized: authorizedFilter ?? null,
       object: objectFilter ?? null,
@@ -203,8 +207,8 @@ const AuditLogsList = () => {
         fetchMore={async (cursor) =>
           fetchMore({
             variables: {
-              after: cursor,
-              auditEntryId: idFilter ?? null,
+              after: auditEntryIdVar ? null : cursor,
+              auditEntryId: auditEntryIdVar,
               subject: subjectFilter ?? null,
               authorized: authorizedFilter ?? null,
               object: objectFilter ?? null,
