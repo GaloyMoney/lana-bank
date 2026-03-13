@@ -1,11 +1,10 @@
 #!/bin/sh
 set -eu
 
-STAGING_PROJECT="galoystaging"
-STAGING_DATASET="galoy_staging_dataset"
-
 : "${DBT_BIGQUERY_PROJECT:?DBT_BIGQUERY_PROJECT not set — run from repo root with direnv}"
 : "${TARGET_BIGQUERY_DATASET:?TARGET_BIGQUERY_DATASET not set — run from repo root with direnv}"
+: "${STAGING_PROJECT:?STAGING_PROJECT not set — set to the staging GCP project ID (e.g. galoystaging)}"
+: "${STAGING_DATASET:?STAGING_DATASET not set — set to the staging BigQuery dataset (e.g. galoy_staging_dataset)}"
 
 DEV_PROJECT="$DBT_BIGQUERY_PROJECT"
 DEV_DATASET="$TARGET_BIGQUERY_DATASET"
