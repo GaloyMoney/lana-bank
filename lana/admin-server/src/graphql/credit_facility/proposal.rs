@@ -11,7 +11,9 @@ use crate::{
     primitives::*,
 };
 
-use super::{ApprovalProcess, CreditFacilityRepaymentPlanEntry, Sort, SortDirection};
+use super::{
+    ApprovalProcess, CreditFacilityRepaymentPlanEntry, PendingCreditFacility, Sort, SortDirection,
+};
 
 pub use lana_app::credit::{
     CreditFacilityProposal as DomainCreditFacilityProposal, CreditFacilityProposalsCursor,
@@ -132,6 +134,22 @@ impl CreditFacilityProposalConcludedPayload {
             .await?
             .expect("credit facility proposal not found");
         Ok(proposal)
+    }
+
+    async fn pending_credit_facility(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<PendingCreditFacility>> {
+        if self.status != CreditFacilityProposalStatus::Approved {
+            return Ok(None);
+        }
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let pending_facility = loader
+            .load_one(PendingCreditFacilityId::from(
+                self.credit_facility_proposal_id,
+            ))
+            .await?;
+        Ok(pending_facility)
     }
 }
 

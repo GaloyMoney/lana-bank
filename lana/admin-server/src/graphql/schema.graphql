@@ -750,6 +750,7 @@ type CreditFacilityProposal {
 
 type CreditFacilityProposalConcludedPayload {
 	creditFacilityProposal: CreditFacilityProposal!
+	pendingCreditFacility: PendingCreditFacility
 	status: CreditFacilityProposalStatus!
 }
 
