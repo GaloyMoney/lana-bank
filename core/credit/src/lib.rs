@@ -241,6 +241,7 @@ where
             outbox,
             jobs,
             domain_configs,
+            price_arc.clone(),
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);

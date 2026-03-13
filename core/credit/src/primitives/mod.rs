@@ -3,7 +3,6 @@ pub use account_sets::{
     CREDIT_ACCOUNT_SET_CATALOG, CreditAccountSetCatalog, CreditOmnibusAccountSetSpec,
     CreditSummaryAccountSetSpec,
 };
-mod liquidation_payment;
 
 use serde::{Deserialize, Serialize};
 
@@ -63,8 +62,6 @@ impl From<FacilityDurationType> for DisbursedReceivableAccountCategory {
         }
     }
 }
-
-pub use liquidation_payment::LiquidationPayment;
 
 es_entity::entity_id! {
     CreditFacilityProposalId,

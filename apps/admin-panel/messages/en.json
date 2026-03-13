@@ -23,6 +23,7 @@
     "submit": "Submit",
     "apply": "Apply",
     "set": "Set",
+    "reset": "Reset",
     "copiedToClipboard": "Copied to clipboard",
     "showIds": "Show IDs",
     "hideIds": "Hide IDs",
@@ -1433,8 +1434,41 @@
         "buttons": {
           "recordCollateralSent": "Record Collateral Sent",
           "recordPaymentReceived": "Record Payment Received",
-          "viewMoreDetails": "View More Details"
+          "viewMoreDetails": "View More Details",
+          "calculatePayment": "Calculate Payment"
         }
+      },
+      "calculator": {
+        "title": "Liquidation Payment Calculator",
+        "description": "Calculate the third value given any two of: amount to receive, collateral to liquidate, or target CVL",
+        "fields": {
+          "toReceive": "To Receive",
+          "toReceivePlaceholder": "Enter USD amount",
+          "toLiquidate": "To Liquidate",
+          "toLiquidatePlaceholder": "Enter BTC amount",
+          "targetCvl": "Target CVL",
+          "targetCvlPlaceholder": "Enter percentage"
+        },
+        "buttons": {
+          "calculate": "Calculate",
+          "cancel": "Cancel"
+        },
+        "validation": {
+          "twoFieldsRequired": "Please fill in exactly 2 fields to calculate the third",
+          "invalidAmount": "Please enter a valid positive amount",
+          "invalidCvl": "Please enter a valid CVL percentage"
+        },
+        "results": {
+          "title": "Calculation Results",
+          "toReceive": "To Receive",
+          "toLiquidate": "To Liquidate",
+          "targetCvl": "Target CVL",
+          "infinite": "Infinite"
+        },
+        "errors": {
+          "calculationFailed": "Calculation failed: {error}"
+        },
+        "success": "Calculation completed successfully"
       },
       "CollateralSent": {
         "title": "Collateral Sent",

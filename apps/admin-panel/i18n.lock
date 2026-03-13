@@ -24,6 +24,7 @@ checksums:
     Common/submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
     Common/apply: 0f03e8e3752eb120bf8ea0b8f8f5d244
     Common/set: 72fc8d871f1d34fd81f0cae5c4505591
+    Common/reset: c19c53a05e21c7f3b395247809a14b51
     Common/copiedToClipboard: 6a3c394a9a51646bad2f72d7311b242d
     Common/showIds: 5045a50490a16d635ee9ddc9ed487973
     Common/hideIds: 294d6648b615496a70e2bf3c589f5402
@@ -896,6 +897,27 @@ checksums:
     Liquidations/LiquidationDetails/DetailsCard/buttons/recordCollateralSent: 4ccb2caa89e295615e642f43999c285f
     Liquidations/LiquidationDetails/DetailsCard/buttons/recordPaymentReceived: 3bd2bb18bcccd58281d50a1c27e2c48e
     Liquidations/LiquidationDetails/DetailsCard/buttons/viewMoreDetails: 8ab63c6de1a1dc0d39f0f1cbdf6db655
+    Liquidations/LiquidationDetails/DetailsCard/buttons/calculatePayment: a8111e79143c80aba0e3a5fc994cf30f
+    Liquidations/LiquidationDetails/calculator/title: 896b9de0a0e976af01bc19afcf492e3e
+    Liquidations/LiquidationDetails/calculator/description: 961e20d5aefff3a8f8942839be31d1e4
+    Liquidations/LiquidationDetails/calculator/fields/toReceive: a5b682f5258fe7eab652e2a0096b773c
+    Liquidations/LiquidationDetails/calculator/fields/toReceivePlaceholder: 5faebc4f3fd2abbdc307ef8fc9366145
+    Liquidations/LiquidationDetails/calculator/fields/toLiquidate: 08a50d7df6ce6106a93d7579164bcfa0
+    Liquidations/LiquidationDetails/calculator/fields/toLiquidatePlaceholder: a4eae9125d108b47f3d4f29a80b283b1
+    Liquidations/LiquidationDetails/calculator/fields/targetCvl: 1c5ca403faf25b31b3336ad39934fa0b
+    Liquidations/LiquidationDetails/calculator/fields/targetCvlPlaceholder: e008adab0655b6b76215ee257020c000
+    Liquidations/LiquidationDetails/calculator/buttons/calculate: c5fcf8d3a38706ae2071b6f78339ec68
+    Liquidations/LiquidationDetails/calculator/buttons/cancel: 2e2a849c2223911717de8caa2c71bade
+    Liquidations/LiquidationDetails/calculator/validation/twoFieldsRequired: a2214a5bfea9bd470063a805071a8398
+    Liquidations/LiquidationDetails/calculator/validation/invalidAmount: 1c7b2c3a8c90b965662ef5217f43ae8d
+    Liquidations/LiquidationDetails/calculator/validation/invalidCvl: 32ad16915fa85f17da305a8d7ae5e41f
+    Liquidations/LiquidationDetails/calculator/results/title: fc39d3a7c5a5fc4fdad24a993ba97b96
+    Liquidations/LiquidationDetails/calculator/results/toReceive: a5b682f5258fe7eab652e2a0096b773c
+    Liquidations/LiquidationDetails/calculator/results/toLiquidate: 08a50d7df6ce6106a93d7579164bcfa0
+    Liquidations/LiquidationDetails/calculator/results/targetCvl: 1c5ca403faf25b31b3336ad39934fa0b
+    Liquidations/LiquidationDetails/calculator/results/infinite: 7bb50c6d5f8c7eab6360f1debc9dff32
+    Liquidations/LiquidationDetails/calculator/errors/calculationFailed: f5945d4b95e91e184e8448faa6f5cb3a
+    Liquidations/LiquidationDetails/calculator/success: c726f2c36e0dd609ccacfc3ccffcea27
     Liquidations/LiquidationDetails/CollateralSent/title: 3ceee0dbfa639450fd55bc2c3278ea82
     Liquidations/LiquidationDetails/CollateralSent/description: f8b19056b82621a57164f50b2ac97e40
     Liquidations/LiquidationDetails/CollateralSent/columns/amount: a0ae9c6ff98b57475cdce56f66066aa4

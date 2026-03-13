@@ -17,6 +17,7 @@ json-schema = [
 [dependencies]
 money = { workspace = true, features = ["sqlx"] }
 core-credit-collection = { path = "../collection" }
+core-credit-terms = { path = "../terms" }
 
 audit = { workspace = true }
 authz = { workspace = true }

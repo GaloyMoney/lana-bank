@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use core_credit_collateral::{
-    CollateralId, FacilityProceedsFromLiquidationAccountId, LiquidationId,
+    CollateralId, FacilityProceedsFromLiquidationAccountId, LiquidationId, LiquidationPayment,
 };
 use core_credit_collection::NewObligation;
 use es_entity::*;
@@ -380,21 +380,19 @@ impl CreditFacility {
 
         let amount = balances.total_outstanding();
 
-        let repay_amount = LiquidationPayment::repay_amount(
+        let payment = LiquidationPayment::calculate_from_target_cvl(
             amount,
             price,
             self.terms.initial_cvl,
             balances.collateral(),
         );
 
-        let liquidate_btc = price.cents_to_sats_round_up(repay_amount);
-
         self.events
             .push(CreditFacilityEvent::PartialLiquidationInitiated {
                 liquidation_id: LiquidationId::new(),
                 trigger_price: price,
-                initially_expected_to_receive: repay_amount,
-                initially_estimated_to_liquidate: liquidate_btc,
+                initially_expected_to_receive: payment.to_receive,
+                initially_estimated_to_liquidate: payment.to_liquidate,
             });
 
         Idempotent::Executed(())
