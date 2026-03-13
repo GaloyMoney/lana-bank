@@ -1,11 +1,11 @@
 version: 2
 
 models:
-  - name: int_nrp_41_07_garantia_pignorada
+  - name: int_nrp_92_01_persona
     columns:
-      - name: identificacion_garantia
+      - name: numero_documento
         tests:
           - not_null_quoted
-      - name: nit_depositante
+      - name: numero_cliente
         tests:
           - not_null_quoted

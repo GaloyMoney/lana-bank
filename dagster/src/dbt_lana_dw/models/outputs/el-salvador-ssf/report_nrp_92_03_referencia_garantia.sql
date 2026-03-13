@@ -8,4 +8,4 @@ select
         '%.2f', round(`valor_garantia_proporcional`, 2)
     ) as valor_garantia_proporcional
 
-from {{ ref("int_nrp_41_03_referencia_garantia") }}
+from {{ ref("int_nrp_92_03_referencia_garantia") }}

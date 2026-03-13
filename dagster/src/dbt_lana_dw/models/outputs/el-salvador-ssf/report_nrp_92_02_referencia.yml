@@ -1,0 +1,233 @@
+version: 2
+models:
+  - name: report_nrp_92_02_referencia
+    description: >
+      Regulatory output model for referencia.xml (Anexo A, Archivo 2) under NRP-92.
+      Each row represents a credit reference (active loan disbursal) for a debtor.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [num_referencia, cod_cartera, cod_activo]
+    columns:
+      - name: documento_deudor
+        description: >
+          Debtor identifier (Archivo 2 field 2.1). NIT without hyphens; links to persona.xml numero_documento.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('report_nrp_92_01_persona')
+              field: numero_documento
+              config:
+                severity: warn
+      - name: cod_cartera
+        description: >
+          Portfolio type code (Archivo 2 field 2.2, Tabla 1). '01' = cartera propia.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['01', '99']
+      - name: cod_activo
+        description: >
+          Risk asset type (Archivo 2 field 2.3, Tabla 2). 'PD' = préstamos.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PD', 'CP', 'CC', 'FA', 'PR', 'SN']
+      - name: num_referencia
+        description: >
+          Reference number for the obligation (Archivo 2 field 2.4). Up to 20 chars.
+        tests:
+          - not_null
+      - name: monto_referencia
+        description: Original granted amount (Archivo 2 field 2.5). Two-decimal string.
+      - name: saldo_referencia
+        description: Total outstanding balance (Archivo 2 field 2.6). Two-decimal string.
+      - name: saldo_vigente_k
+        description: Current principal balance (Archivo 2 field 2.7). Two-decimal string.
+      - name: saldo_vencido_k
+        description: Overdue principal balance (Archivo 2 field 2.8). Two-decimal string.
+      - name: saldo_vigente_i
+        description: Current interest balance (Archivo 2 field 2.9). Two-decimal string.
+      - name: saldo_vencido_i
+        description: Overdue interest balance (Archivo 2 field 2.10). Two-decimal string.
+      - name: abono_deposito
+        description: Unapplied payments or deposits (Archivo 2 field 2.11). Two-decimal string.
+      - name: fecha_otorgamiento
+        description: Original granting date (Archivo 2 field 2.12). YYYY-MM-DD.
+      - name: fecha_vencimiento
+        description: Original maturity date (Archivo 2 field 2.13). YYYY-MM-DD.
+      - name: fecha_castigo
+        description: Write-off date (Archivo 2 field 2.14). YYYY-MM-DD.
+      - name: estado_credito
+        description: >
+          Credit status code (Archivo 2 field 2.15).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['1', '2', '3', '4', '5']
+      - name: saldo_mora_k
+        description: Principal in arrears (Archivo 2 field 2.16). Two-decimal string.
+      - name: saldo_mora_i
+        description: Interest in arrears (Archivo 2 field 2.17). Two-decimal string.
+      - name: dias_mora_k
+        description: Days of delinquency for principal (Archivo 2 field 2.18).
+      - name: dias_mora_i
+        description: Days of delinquency for interest (Archivo 2 field 2.19).
+      - name: fecha_inicio_mora_k
+        description: Start date of principal delinquency (Archivo 2 field 2.20). YYYY-MM-DD.
+      - name: fecha_inicio_mora_i
+        description: Start date of interest delinquency (Archivo 2 field 2.21). YYYY-MM-DD.
+      - name: pago_capital
+        description: >
+          Capital payment frequency code (Archivo 2 field 2.22, Tabla 6).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['A', 'E', 'T', 'B', 'M', 'Q', 'S', 'D', 'V', 'P', 'O']
+      - name: pago_interes
+        description: >
+          Interest payment frequency code (Archivo 2 field 2.23, Tabla 6).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['A', 'E', 'T', 'B', 'M', 'Q', 'S', 'D', 'V', 'P', 'O']
+      - name: periodo_gracia_k
+        description: Grace period for principal in days (Archivo 2 field 2.24).
+      - name: periodo_gracia_i
+        description: Grace period for interest in days (Archivo 2 field 2.25).
+      - name: "emisión"
+        description: Security issuance denomination (Archivo 2 field 2.26).
+      - name: pais_destino_credito
+        description: Country code of credit destination (Archivo 2 field 2.27).
+      - name: destino
+        description: Economic sector destination code (Archivo 2 field 2.28). 6 chars.
+      - name: codigo_moneda
+        description: >
+          Currency code (Archivo 2 field 2.29). '1' = USD, '2' = other.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['1', '2']
+      - name: tasa_interes
+        description: Current interest rate (Archivo 2 field 2.30). Two-decimal string.
+        tests:
+          - not_null
+      - name: tasa_contractual
+        description: Contract (nominal) rate (Archivo 2 field 2.31). Two-decimal string.
+        tests:
+          - not_null
+      - name: tasa_referencia
+        description: Published reference rate (Archivo 2 field 2.32). Two-decimal string.
+        tests:
+          - not_null
+      - name: tasa_efectiva
+        description: Effective rate charged (Archivo 2 field 2.33). Two-decimal string.
+        tests:
+          - not_null
+      - name: tipo_tasa_interes
+        description: >
+          Nominal rate type (Archivo 2 field 2.34). 'A' adjustable, 'F' fixed.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['A', 'F']
+      - name: tipo_prestamo
+        description: Loan subtype (Archivo 2 field 2.35).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['CD', 'CR', 'NR', 'TC', 'CI', 'DI', 'CT', 'NA', 'SA', 'SO', 'CU']
+      - name: codigo_recurso
+        description: Funding source code (Archivo 2 field 2.36).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '99']
+      - name: ultima_fecha_venc
+        description: Latest maturity date if extended (Archivo 2 field 2.37). YYYY-MM-DD.
+      - name: dias_prorroga
+        description: Days of last extension (Archivo 2 field 2.38).
+      - name: monto_desembolsado
+        description: Amount disbursed in the month (Archivo 2 field 2.39). Two-decimal string.
+      - name: tipo_credito
+        description: Credit type for refinancing/restructuring (Archivo 2 field 2.40).
+      - name: fecha_ultimo_pago_k
+        description: Date of last principal payment (Archivo 2 field 2.41). YYYY-MM-DD.
+      - name: fecha_ultimo_pago_i
+        description: Date of last interest payment (Archivo 2 field 2.42). YYYY-MM-DD.
+      - name: dia_pago_k
+        description: Scheduled principal payment day of month (Archivo 2 field 2.43).
+      - name: dia_pago_i
+        description: Scheduled interest payment day of month (Archivo 2 field 2.44).
+      - name: cuota_mora_k
+        description: Number of principal installments in arrears (Archivo 2 field 2.45).
+      - name: cuota_mora_i
+        description: Number of interest installments in arrears (Archivo 2 field 2.46).
+      - name: monto_cuota
+        description: Installment amount capital + interest (Archivo 2 field 2.47). Two-decimal string.
+      - name: cuenta_contable_k
+        description: GL account for principal (Archivo 2 field 2.48). 12 chars.
+      - name: cuenta_contable_i
+        description: GL account for interest (Archivo 2 field 2.49). 12 chars.
+      - name: fecha_cancelacion
+        description: Cancellation date (Archivo 2 field 2.50). YYYY-MM-DD.
+      - name: adelanto_capital
+        description: Prepaid principal (Archivo 2 field 2.51). Two-decimal string.
+      - name: riesgo_neto
+        description: Net risk = saldo_referencia minus proportional guarantees (Archivo 2 field 2.52). Two-decimal string.
+      - name: saldo_seguro
+        description: Credit insurance balance (Archivo 2 field 2.53). Two-decimal string.
+      - name: saldo_costas_procesales
+        description: Legal costs balance (Archivo 2 field 2.54). Two-decimal string.
+      - name: tipo_tarjeta_credito
+        description: Credit card type (Archivo 2 field 2.55).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['1', '2']
+      - name: clase_tarjeta_credito
+        description: Card network/class (Archivo 2 field 2.56).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['1', '2', '3', '4']
+      - name: producto_tarjeta_credito
+        description: Card product name (Archivo 2 field 2.57).
+      - name: valor_garantia_cons
+        description: Consolidated guarantee value (Archivo 2 field 2.58). Two-decimal string.
+      - name: distrito_otorgamiento
+        description: District where credit was granted (Archivo 2 field 2.59, Tabla 10).
+      - name: reserva_referencia
+        description: Loss reserve for the reference (Archivo 2 field 2.60). Two-decimal string.
+      - name: etapa_judicial
+        description: Judicial process stage (Archivo 2 field 2.61).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['1', '2', '3', '4', '5', '6']
+      - name: fecha_demanda
+        description: Lawsuit filing date (Archivo 2 field 2.62). YYYY-MM-DD.
+      - name: plazo_credito
+        description: Credit term in months (Archivo 2 field 2.63).
+      - name: orden_descuento
+        description: >
+          With (CO) or without (SO) payroll discount order (Archivo 2 field 2.64).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['CO', 'SO']
+      - name: categoria_riesgo_ref
+        description: >
+          Risk category for the reference (Archivo 2 field 2.65, Tabla 3).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['A1', 'A2', 'B', 'C1', 'C2', 'D1', 'D2', 'E']
+          - relationships:
+              to: ref('static_ncb_022_porcentaje_reservas_saneamiento')
+              field: category

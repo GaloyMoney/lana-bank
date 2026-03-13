@@ -1,5 +1,5 @@
 select
-    left(replace(nit_deudor, '-', ''), 14) as `nit_deudor`,
+    left(replace(documento_deudor, '-', ''), 14) as `documento_deudor`,
     left(`cod_cartera`, 2) as `cod_cartera`,
     left(`cod_activo`, 2) as `cod_activo`,
     left(`num_referencia`, 20) as `num_referencia`,
@@ -28,7 +28,6 @@ select
     left(`pago_interes`, 1) as `pago_interes`,
     cast(`periodo_gracia_k` as string) as `periodo_gracia_k`,
     cast(`periodo_gracia_i` as string) as `periodo_gracia_i`,
-    left(`garante`, 10) as `garante`,
     left(`emisión`, 15) as `emisión`,
     cast(`pais_destino_credito` as string) as `pais_destino_credito`,
     left(`destino`, 6) as `destino`,
@@ -72,17 +71,5 @@ select
     format_date('%Y-%m-%d', cast(`fecha_demanda` as date)) as `fecha_demanda`,
     cast(`plazo_credito` as string) as `plazo_credito`,
     left(`orden_descuento`, 2) as `orden_descuento`,
-    left(`categoria_riesgo_ref`, 2) as `categoria_riesgo_ref`,
-    format('%.2f', round(`reserva_constituir`, 2)) as `reserva_constituir`,
-    format('%.2f', round(`porcentaje_reserva`, 2)) as `porcentaje_reserva`,
-    format('%.2f', round(`pago_cuota`, 2)) as `pago_cuota`,
-    format_date('%Y-%m-%d', cast(`fecha_pago` as date)) as `fecha_pago`,
-    format('%.2f', round(`porcenta_reserva_descon`, 2)) as `porcenta_reserva_descon`,
-    format('%.2f', round(`porcenta_adiciona_descon`, 2)) as `porcenta_adiciona_descon`,
-    left(`depto_destino_credito`, 2) as `depto_destino_credito`,
-    format('%.2f', round(`porc_reserva_referencia`, 2)) as `porc_reserva_referencia`,
-    format('%.2f', round(`calculo_brecha`, 2)) as `calculo_brecha`,
-    format('%.2f', round(`ajuste_brecha`, 2)) as `ajuste_brecha`,
-    left(`programa_asist_cafe`, 2) as `programa_asist_cafe`,
-    format_date('%Y-%m-%d', cast(`fecha_cump_cafe` as date)) as `fecha_cump_cafe`
-from {{ ref("int_nrp_41_02_referencia") }}
+    left(`categoria_riesgo_ref`, 2) as `categoria_riesgo_ref`
+from {{ ref("int_nrp_92_02_referencia") }}

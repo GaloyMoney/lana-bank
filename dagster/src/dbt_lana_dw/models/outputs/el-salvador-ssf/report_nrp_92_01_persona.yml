@@ -1,0 +1,118 @@
+version: 2
+
+models:
+  - name: report_nrp_92_01_persona
+    description: >
+      Regulatory output model for persona.xml (Anexo A, Archivo 1) under NRP-92.
+      Each row represents a person (natural or juridical) with credit risk exposure.
+    columns:
+      - name: numero_documento
+        description: >
+          Document number identifying the person (Archivo 1 field 1.1). NIT, NIU, or equivalent.
+        tests:
+          - not_null
+      - name: tipo_identificador
+        description: >
+          Identifier type code (Archivo 1 field 1.2). 'U' for NIU.
+        tests:
+          - not_null
+      - name: primer_apellido
+        description: First surname (Archivo 1 field 1.3).
+      - name: segundo_apellido
+        description: Second surname (Archivo 1 field 1.4).
+      - name: apellido_casada
+        description: Married surname (Archivo 1 field 1.5).
+      - name: primer_nombre
+        description: First name (Archivo 1 field 1.6).
+      - name: segundo_nombre
+        description: Second name (Archivo 1 field 1.7).
+      - name: nombre_sociedad
+        description: Legal entity name (Archivo 1 field 1.8).
+      - name: tipo_persona
+        description: >
+          Person type (Archivo 1 field 1.9, Tabla 4). '1' natural, '2' juridical.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['1', '2']
+      - name: tipo_relacion
+        description: >
+          Debtor relationship to the entity (Archivo 1 field 1.10, Tabla 5).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['0', '1', '2']
+      - name: residente
+        description: >
+          Whether the person resides in El Salvador (Archivo 1 field 1.11). 'Y' or 'N'.
+        tests:
+          - not_null
+      - name: giro_persona
+        description: >
+          Economic activity code (Archivo 1 field 1.12). Up to 6 characters.
+      - name: tamano_empresa
+        description: >
+          Enterprise size code (Archivo 1 field 1.13).
+      - name: tipo_empresa
+        description: >
+          Whether the enterprise is new or existing (Archivo 1 field 1.14).
+      - name: reserva
+        description: >
+          Sanitation reserve for the debtor (Archivo 1 field 1.15). Two-decimal string.
+      - name: categoria_riesgo
+        description: >
+          Risk category code (Archivo 1 field 1.16, Tabla 3).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['A1', 'A2', 'B', 'C1', 'C2', 'D1', 'D2', 'E']
+      - name: numero_cliente
+        description: >
+          Unique customer identification number (Archivo 1 field 1.17). Up to 17 characters.
+        tests:
+          - not_null
+      - name: id_alterno
+        description: >
+          Alternate identification number (Archivo 1 field 1.18). Passport, SS, license, or ID card.
+      - name: tipo_id_alterno
+        description: >
+          Alternate ID type (Archivo 1 field 1.19). PS/SS/CI/CR/LI.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['PS', 'SS', 'CI', 'CR', 'LI']
+      - name: fecha_nacimiento
+        description: >
+          Date of birth or constitution (Archivo 1 field 1.20). YYYY-MM-DD.
+      - name: pais_residencia
+        description: >
+          Country of residence code (Archivo 1 field 1.21).
+      - name: riesgo_consolidado
+        description: >
+          Sum of reference balances for the person (Archivo 1 field 1.22). Two-decimal string.
+      - name: sexo_persona
+        description: >
+          Gender (Archivo 1 field 1.23). 'M' or 'F'.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['M', 'F']
+      - name: "ocupación"
+        description: >
+          Occupation code (Archivo 1 field 1.24). Up to 3 characters.
+      - name: id_pais_origen
+        description: >
+          Tax identification from country of origin (Archivo 1 field 1.25).
+      - name: nacionalidad
+        description: >
+          Nationality code (Archivo 1 field 1.26).
+      - name: distrito_residencia
+        description: >
+          Residence district code (Archivo 1 field 1.27, Tabla 10).
+      - name: documento_anterior
+        description: >
+          Previous document number (Archivo 1 field 1.28). For persons who acquire a new
+          NIT/DUI or transition from minor to adult.
