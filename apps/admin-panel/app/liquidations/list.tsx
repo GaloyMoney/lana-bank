@@ -59,6 +59,7 @@ gql`
 
 const LiquidationsList = () => {
   const t = useTranslations("Liquidations")
+  const tCommon = useTranslations("Common")
   const [sortBy, setSortBy] = useState<LiquidationsSort | null>(null)
 
   const { data, loading, error, fetchMore } = useLiquidationsQuery({
@@ -109,7 +110,7 @@ const LiquidationsList = () => {
 
   if (error)
     return (
-      <div className="text-destructive text-sm">{t("errors.general")}</div>
+      <div className="text-destructive text-sm">{tCommon("errors.general")}</div>
     )
 
   return (
