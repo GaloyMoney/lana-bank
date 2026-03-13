@@ -2350,6 +2350,7 @@
         "email": "Correo Electrónico",
         "role": "Rol"
       },
+      "noRoleAssigned": "Sin rol asignado",
       "noRolesAssigned": "Sin roles asignados",
       "updateRole": "Actualizar rol"
     },
@@ -3037,6 +3038,9 @@
     "title": "Plantillas de transacciones",
     "description": "Plantillas para transacciones",
     "code": "Código",
+    "errors": {
+      "general": "Se produjo un error"
+    },
     "table": {
       "noData": "No se encontraron plantillas de transacciones"
     }
@@ -3044,6 +3048,9 @@
   "LedgerTransactionsForTemplateCode": {
     "title": "Transacciones contables para {code}",
     "description": "Transacciones contables asociadas a este código de plantilla",
+    "errors": {
+      "general": "Se produjo un error"
+    },
     "table": {
       "noData": "No se encontraron transacciones contables para este código de plantilla",
       "headers": {

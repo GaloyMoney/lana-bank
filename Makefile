@@ -107,6 +107,9 @@ start-admin:
 start-customer-portal:
 	cd apps/customer-portal && pnpm install --frozen-lockfile && pnpm dev
 
+check-translation-keys:
+	cd apps/admin-panel && node ./i18n/check-translation-keys.mjs
+
 check-code-apps-admin-panel:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm lint && pnpm tsc-check && pnpm build
 
