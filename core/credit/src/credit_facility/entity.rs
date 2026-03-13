@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use core_credit_collateral::{
-    CollateralId, FacilityProceedsFromLiquidationAccountId, LiquidationId,
+    CollateralId, FacilityProceedsFromLiquidationAccountId, LiquidationId, LiquidationPayment,
 };
 use core_credit_collection::NewObligation;
 use es_entity::*;
