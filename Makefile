@@ -70,6 +70,9 @@ seed-data:
 check-code:
 	nix flake check
 
+check-dbt-columns:
+	python3 dev/check-dbt-columns.py
+
 update-schemas:
 	SQLX_OFFLINE=true cargo run --package entity-rollups --all-features -- update-schemas --force-recreate
 
