@@ -16,7 +16,6 @@ with
             public_id,
             reference,
             status,
-            bogus_column_that_does_not_exist,
             ledger_tx_ids,
             _dlt_load_id,
             _dlt_id
