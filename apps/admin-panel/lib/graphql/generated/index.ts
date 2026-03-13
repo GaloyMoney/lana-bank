@@ -5096,6 +5096,16 @@ export type LiquidationEventHistoryQuery = { __typename?: 'Query', liquidation?:
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
+export type LiquidationPaymentCalculateQueryVariables = Exact<{
+  input: LiquidationPaymentCalculateInput;
+}>;
+
+
+export type LiquidationPaymentCalculateQuery = { __typename?: 'Query', liquidationPaymentCalculate: { __typename?: 'LiquidationPaymentValue', toReceive: UsdCents, toLiquidate: Satoshis, targetCvl:
+      | { __typename: 'FiniteCvlPct', value: any }
+      | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+     } };
+
 export type LiquidationCollateralSentFragmentFragment = { __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string };
 
 export type LiquidationProceedsReceivedFragmentFragment = { __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string };
@@ -11475,6 +11485,59 @@ export type LiquidationEventHistoryQueryHookResult = ReturnType<typeof useLiquid
 export type LiquidationEventHistoryLazyQueryHookResult = ReturnType<typeof useLiquidationEventHistoryLazyQuery>;
 export type LiquidationEventHistorySuspenseQueryHookResult = ReturnType<typeof useLiquidationEventHistorySuspenseQuery>;
 export type LiquidationEventHistoryQueryResult = Apollo.QueryResult<LiquidationEventHistoryQuery, LiquidationEventHistoryQueryVariables>;
+export const LiquidationPaymentCalculateDocument = gql`
+    query LiquidationPaymentCalculate($input: LiquidationPaymentCalculateInput!) {
+  liquidationPaymentCalculate(input: $input) {
+    toReceive
+    toLiquidate
+    targetCvl {
+      __typename
+      ... on FiniteCvlPct {
+        value
+      }
+      ... on InfiniteCvlPct {
+        isInfinite
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useLiquidationPaymentCalculateQuery__
+ *
+ * To run a query within a React component, call `useLiquidationPaymentCalculateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLiquidationPaymentCalculateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLiquidationPaymentCalculateQuery({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLiquidationPaymentCalculateQuery(baseOptions: Apollo.QueryHookOptions<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables> & ({ variables: LiquidationPaymentCalculateQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables>(LiquidationPaymentCalculateDocument, options);
+      }
+export function useLiquidationPaymentCalculateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables>(LiquidationPaymentCalculateDocument, options);
+        }
+// @ts-ignore
+export function useLiquidationPaymentCalculateSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables>): Apollo.UseSuspenseQueryResult<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables>;
+export function useLiquidationPaymentCalculateSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables>): Apollo.UseSuspenseQueryResult<LiquidationPaymentCalculateQuery | undefined, LiquidationPaymentCalculateQueryVariables>;
+export function useLiquidationPaymentCalculateSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables>(LiquidationPaymentCalculateDocument, options);
+        }
+export type LiquidationPaymentCalculateQueryHookResult = ReturnType<typeof useLiquidationPaymentCalculateQuery>;
+export type LiquidationPaymentCalculateLazyQueryHookResult = ReturnType<typeof useLiquidationPaymentCalculateLazyQuery>;
+export type LiquidationPaymentCalculateSuspenseQueryHookResult = ReturnType<typeof useLiquidationPaymentCalculateSuspenseQuery>;
+export type LiquidationPaymentCalculateQueryResult = Apollo.QueryResult<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables>;
 export const GetLiquidationDetailsDocument = gql`
     query GetLiquidationDetails($liquidationId: UUID!) {
   liquidation(id: $liquidationId) {
