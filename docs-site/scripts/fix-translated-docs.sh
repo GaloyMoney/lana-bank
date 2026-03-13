@@ -9,8 +9,7 @@ set -euo pipefail
 # Post-processing only needs to:
 #   1) Rewrite leaked /current/en/ screenshot paths to /current/es/
 #   1b) Fix file-path links to generated API docs for i18n
-#   2) Normalize repeated Lingo tail sections
-#   3) Validate: no /en/ paths, no missing screenshots
+#   2) Validate: no /en/ paths, no missing screenshots
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOCS_DIR="$SCRIPT_DIR/../docs"
@@ -21,20 +20,6 @@ ES_DIR="$SCRIPT_DIR/../i18n/es/docusaurus-plugin-content-docs/current"
 
 extract_screenshot_names() {
   grep -o '/img/screenshots/[^)]*\.png' "$1" 2>/dev/null | sed 's|.*/||' | sort -u || true
-}
-
-replace_trailing_section() {
-  local file="$1" heading="$2"
-  local start_line tmp
-
-  [ -f "$file" ] || return 0
-  start_line=$(grep -n -m1 -iF "$heading" "$file" | cut -d: -f1)
-  [ -n "$start_line" ] || return 0
-
-  tmp=$(mktemp)
-  head -n "$((start_line - 1))" "$file" > "$tmp"
-  cat >> "$tmp"
-  mv "$tmp" "$file"
 }
 
 # ── Step 1: Fix /en/ → /es/ screenshot paths ─────────────────────────
@@ -65,48 +50,6 @@ while IFS= read -r es_file; do
   fi
 done < <(find "$ES_DIR" -name '*.md' -type f)
 echo "  Fixed API links in $fix1b_count file(s)"
-
-# ── Step 2: Normalize repeated Lingo tail sections ────────────────────
-echo "Step 2: Normalizing repeated tail sections..."
-
-replace_trailing_section \
-  "$ES_DIR/for-platform-engineers/system-architecture.md" \
-  "### Patrón CQRS" <<'EOF'
-### Patrón CQRS
-
-Segregación de responsabilidad de comandos y consultas:
-- Rutas de lectura optimizadas
-- Operaciones de escritura separadas
-- Consistencia eventual cuando sea apropiado
-EOF
-
-replace_trailing_section \
-  "$ES_DIR/technical-documentation/accounting/fiscal-year.md" \
-  "### Resumen del flujo de trabajo" <<'EOF'
-### Resumen del Flujo de Trabajo
-
-```mermaid
-flowchart LR
-    A[Inicializar primer ejercicio fiscal] --> B[Operar durante el año]
-    B --> C[Cerrar meses 1-12 secuencialmente]
-    C --> D[Cerrar ejercicio fiscal]
-    D --> E[Abrir siguiente ejercicio fiscal]
-    E --> B
-```
-
-Este ciclo se repite anualmente. Cada ejercicio fiscal proporciona un límite claro para la presentación de informes financieros y garantiza que los libros del banco se cierren y trasladen adecuadamente a intervalos regulares.
-EOF
-
-replace_trailing_section \
-  "$ES_DIR/technical-documentation/credit/disbursal.md" \
-  "## Qué verificar después del paso 29" <<'EOF'
-## Qué Verificar Después del Paso 29
-
-- El estado del desembolso es `Confirmed`.
-- El desembolso es visible bajo la facilidad y cliente esperados.
-- El historial de la facilidad refleja la actividad de ejecución/liquidación.
-- Las vistas de repago muestran el impacto de la obligación para el nuevo principal.
-EOF
 
 # ── Validation ────────────────────────────────────────────────────────
 echo "Validation..."
