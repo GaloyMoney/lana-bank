@@ -78,11 +78,13 @@ const ProspectsList = () => {
       key: "email",
       label: t("columns.email"),
       labelClassName: "w-[30%]",
+      sortable: true,
     },
     {
       key: "telegramHandle",
       label: t("columns.telegramHandle"),
       labelClassName: "w-[30%]",
+      sortable: true,
     },
     {
       key: "stage",

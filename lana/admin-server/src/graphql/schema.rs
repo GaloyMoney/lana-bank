@@ -10,7 +10,9 @@ use lana_app::access::role::{RolesSortBy as DomainRolesSortBy, role_cursor::Role
 use lana_app::access::user::{UsersSortBy as DomainUsersSortBy, user_cursor::UsersCursor};
 use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
-use lana_app::customer::{CoreCustomerEvent, prospect_cursor::ProspectsCursor};
+use lana_app::customer::{
+    CoreCustomerEvent, ProspectsSortBy as DomainProspectsSortBy, prospect_cursor::ProspectsCursor,
+};
 use lana_app::deposit::CoreDepositEvent;
 use lana_app::price::CorePriceEvent;
 use lana_app::report::CoreReportEvent;
@@ -224,19 +226,18 @@ impl Query {
             stage: filter.as_ref().and_then(|f| f.stage),
             customer_type: filter.as_ref().and_then(|f| f.customer_type),
         };
-        let sort = Sort {
-            by: DomainProspectsSortBy::from(sort.unwrap_or_default()),
-            direction: ListDirection::Descending,
-        };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             ProspectsCursor,
             Prospect,
-            sort.by,
+            DomainProspectsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.customers().list_prospects(sub, query, filter, sort)
+            |query| app
+                .customers()
+                .list_prospects(sub, query, filter, sort.into())
         )
     }
 

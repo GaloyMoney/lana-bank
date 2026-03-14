@@ -2865,7 +2865,9 @@ export type ProspectsSort = {
 };
 
 export enum ProspectsSortBy {
-  CreatedAt = 'CREATED_AT'
+  CreatedAt = 'CREATED_AT',
+  Email = 'EMAIL',
+  TelegramHandle = 'TELEGRAM_HANDLE'
 }
 
 export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Prospect | Withdrawal;
