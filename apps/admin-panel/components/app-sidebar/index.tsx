@@ -2,6 +2,7 @@
 
 import type { ComponentProps } from "react"
 
+import Link from "next/link"
 import { useTranslations } from "next-intl"
 
 import {
@@ -17,7 +18,6 @@ import {
 import { UserBlock } from "./user-block"
 import { NavSection } from "./nav-section"
 import { useNavItems } from "./nav-items"
-import { SystemInfoDialog } from "./system-info-dialog"
 
 import { Logo } from "@/components/logo"
 
@@ -57,8 +57,8 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SystemInfoDialog appVersion={appVersion || "0.0.0-dev"}>
-              <SidebarMenuButton size="lg" tabIndex={-1}>
+            <SidebarMenuButton size="lg" asChild tabIndex={-1}>
+              <Link href="/system-info">
                 <div className="flex aspect-square size-10 items-center justify-center rounded-lg">
                   <Logo className="size-10" />
                 </div>
@@ -70,8 +70,8 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
                     {t("footer.version", { version: appVersion || "0.0.0-dev" })}
                   </span>
                 </div>
-              </SidebarMenuButton>
-            </SystemInfoDialog>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
