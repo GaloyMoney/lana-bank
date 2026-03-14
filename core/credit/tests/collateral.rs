@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use core_credit_collateral::CoreCreditCollateralEvent;
 use helpers::event::expect_event;
-use money::Satoshis;
+use old_money::Satoshis;
 
 /// `FacilityCollateralUpdated` is published when collateral is manually updated.
 ///

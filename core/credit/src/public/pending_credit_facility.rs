@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 
 use core_credit_terms::TermValues;
-use money::UsdCents;
+use old_money::UsdCents;
 
 use crate::{
     pending_credit_facility::PendingCreditFacility,

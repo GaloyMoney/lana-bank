@@ -7,7 +7,7 @@ edition = "2024"
 fail-on-warnings = []
 
 [dependencies]
-money = { workspace = true }
+old-money = { workspace = true }
 
 bitcoin = { workspace = true }
 rand = { workspace = true }

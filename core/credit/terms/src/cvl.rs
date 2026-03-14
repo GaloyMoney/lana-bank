@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use money::UsdCents;
+use old_money::UsdCents;
 
 use std::fmt;
 

@@ -6,11 +6,11 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
-json-schema = ["dep:schemars", "money/json-schema"]
+json-schema = ["dep:schemars", "old-money/json-schema"]
 
 [dependencies]
 bfx-client = { workspace = true }
-money = { workspace = true }
+old-money = { workspace = true }
 
 job = { workspace = true }
 obix = { workspace = true }

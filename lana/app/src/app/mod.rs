@@ -463,7 +463,7 @@ impl LanaApp {
         &self,
         sub: &Subject,
         customer_id: impl Into<crate::primitives::CustomerId> + std::fmt::Debug + Copy,
-        amount: money::UsdCents,
+        amount: old_money::UsdCents,
         terms: core_credit::TermValues,
         custodian_id: impl Into<crate::primitives::CustodianId> + std::fmt::Debug + Copy,
     ) -> Result<crate::credit::CreditFacilityProposal, ApplicationError> {
@@ -498,7 +498,7 @@ impl LanaApp {
         &self,
         sub: &Subject,
         credit_facility_id: impl Into<crate::primitives::CreditFacilityId> + std::fmt::Debug + Copy,
-        amount: money::UsdCents,
+        amount: old_money::UsdCents,
     ) -> Result<crate::credit::CreditFacility, ApplicationError> {
         let facility = self
             .credit()
@@ -528,7 +528,7 @@ impl LanaApp {
         &self,
         sub: &Subject,
         credit_facility_id: impl Into<crate::primitives::CreditFacilityId> + std::fmt::Debug + Copy,
-        amount: money::UsdCents,
+        amount: old_money::UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<crate::credit::CreditFacility, ApplicationError> {
         let facility = self

@@ -12,13 +12,13 @@ json-schema = [
     "es-entity/json-schema",
     "cala-ledger/json-schema",
     "job/json-schema",
-    "money/json-schema",
+    "old-money/json-schema",
     "public-id/json-schema",
     "core-customer/json-schema",
 ]
 
 [dependencies]
-money = { workspace = true, features = ["sqlx"] }
+old-money = { workspace = true, features = ["sqlx"] }
 permission-sets-macro = { workspace = true }
 governance = { workspace = true }
 core-customer = { workspace = true }

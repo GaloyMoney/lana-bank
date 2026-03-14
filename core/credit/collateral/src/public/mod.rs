@@ -2,7 +2,7 @@ mod event;
 
 use serde::{Deserialize, Serialize};
 
-use money::Satoshis;
+use old_money::Satoshis;
 
 pub use event::CoreCreditCollateralEvent;
 

@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use core_credit::*;
 use helpers::event::expect_event;
-use money::Satoshis;
+use old_money::Satoshis;
 
 /// `PendingCreditFacilityCompleted` is published when a pending facility is
 /// completed as part of activation.

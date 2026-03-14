@@ -21,7 +21,7 @@ use core_custody::{CoreCustodyEvent, WalletId as CustodyWalletId};
 use core_price::PriceOfOneBTC;
 use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
-use money::{Satoshis, UsdCents};
+use old_money::{Satoshis, UsdCents};
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use es_entity::Idempotent;
@@ -265,7 +265,7 @@ where
         db: &mut es_entity::DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
-        updated_collateral: money::Satoshis,
+        updated_collateral: old_money::Satoshis,
         effective: chrono::NaiveDate,
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
@@ -289,7 +289,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
-        updated_collateral: money::Satoshis,
+        updated_collateral: old_money::Satoshis,
         effective: chrono::NaiveDate,
     ) -> Result<Collateral, CollateralError> {
         self.subject_can_update_collateral(sub, true)
@@ -325,7 +325,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
-        amount_sent: money::Satoshis,
+        amount_sent: old_money::Satoshis,
     ) -> Result<Collateral, CollateralError> {
         self.authz
             .enforce_permission(

@@ -21,7 +21,7 @@ pub enum LedgerAccountLedgerError {
     #[error("LedgerAccountLedgerError - JournalError: {0}")]
     JournalError(#[from] crate::journal_error::JournalError),
     #[error("LedgerAccountError - ConversionError: {0}")]
-    ConversionError(#[from] money::ConversionError),
+    ConversionError(#[from] old_money::ConversionError),
 }
 
 impl ErrorSeverity for LedgerAccountLedgerError {

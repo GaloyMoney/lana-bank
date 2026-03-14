@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use money::Satoshis;
+use old_money::Satoshis;
 
 pub enum CustodianNotification {
     WalletBalanceChanged {

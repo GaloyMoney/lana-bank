@@ -9,7 +9,7 @@ use core_custody::{
     WalletRepo,
 };
 use helpers::event;
-use money::Satoshis;
+use old_money::Satoshis;
 
 async fn setup() -> anyhow::Result<(
     WalletRepo<event::DummyEvent>,

@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use bytes::Bytes;
 use chrono::Utc;
 
-use money::Satoshis;
+use old_money::Satoshis;
 
 use error::CustodianClientError;
 

@@ -4,7 +4,7 @@ license = "BUSL-1.1"
 edition = "2024"
 
 [dependencies]
-money = { workspace = true }
+old-money = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 

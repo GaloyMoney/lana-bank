@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use cala_ledger::TransactionId as LedgerTxId;
 use core_price::PriceOfOneBTC;
-use money::{Satoshis, UsdCents};
+use old_money::{Satoshis, UsdCents};
 
 use es_entity::*;
 

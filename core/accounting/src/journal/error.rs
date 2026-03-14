@@ -15,7 +15,7 @@ pub enum JournalError {
     #[error("JournalError - UnexpectedCurrency")]
     UnexpectedCurrency,
     #[error("JournalError - ConversionError: {0}")]
-    ConversionError(#[from] money::ConversionError),
+    ConversionError(#[from] old_money::ConversionError),
     #[error("JournalError - ParseCurrencyError: {0}")]
     ParseCurrencyError(#[from] cala_ledger::ParseCurrencyError),
 }

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use money::Satoshis;
+use old_money::Satoshis;
 
 use crate::primitives::{CustodianId, WalletId, WalletNetwork};
 

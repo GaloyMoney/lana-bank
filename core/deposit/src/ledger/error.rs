@@ -25,7 +25,7 @@ pub enum DepositLedgerError {
     #[error("DepositLedgerError - CalaVelocityError: {0}")]
     CalaVelocity(#[from] cala_ledger::velocity::error::VelocityError),
     #[error("DepositLedgerError - ConversionError: {0}")]
-    ConversionError(#[from] money::ConversionError),
+    ConversionError(#[from] old_money::ConversionError),
     #[error("DepositLedgerError - MissingTxMetadata")]
     MissingTxMetadata,
     #[error("DepositLedgerError - MismatchedTxMetadata: {0}")]

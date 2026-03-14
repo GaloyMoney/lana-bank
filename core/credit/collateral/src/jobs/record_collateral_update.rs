@@ -15,7 +15,7 @@ use crate::{ledger::CollateralLedger, public::CoreCreditCollateralEvent, repo::C
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RecordCollateralUpdateConfig {
     pub custody_wallet_id: CustodyWalletId,
-    pub updated_collateral: money::Satoshis,
+    pub updated_collateral: old_money::Satoshis,
     pub effective: chrono::NaiveDate,
 }
 

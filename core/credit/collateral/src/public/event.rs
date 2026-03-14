@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use cala_ledger::TransactionId as LedgerTxId;
 use core_credit_collection::PaymentId;
-use money::{Satoshis, UsdCents};
+use old_money::{Satoshis, UsdCents};
 
 use crate::{CollateralId, LiquidationId, SecuredLoanId};
 

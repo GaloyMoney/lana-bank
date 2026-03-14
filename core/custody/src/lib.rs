@@ -28,7 +28,7 @@ pub use publisher::CustodyPublisher;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use encryption::{EncryptionConfig, EncryptionKey};
-use money::Satoshis;
+use old_money::Satoshis;
 
 pub use custodian::*;
 pub use wallet::*;

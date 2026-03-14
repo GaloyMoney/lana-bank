@@ -17,7 +17,7 @@ pub use cala_ledger::{
     balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
 };
 
-pub use money::{Satoshis, UsdCents};
+pub use old_money::{Satoshis, UsdCents};
 
 es_entity::entity_id! {
     ChartNodeId,

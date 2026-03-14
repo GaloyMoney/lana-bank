@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
-use money::UsdCents;
+use old_money::UsdCents;
 
 use crate::{
     primitives::{ApprovalProcessId, CalaTransactionId, DepositAccountId, PublicId, WithdrawalId},

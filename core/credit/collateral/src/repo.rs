@@ -3,7 +3,7 @@ use sqlx::PgPool;
 
 use core_custody::WalletId as CustodyWalletId;
 use es_entity::*;
-use money::{Satoshis, UsdCents};
+use old_money::{Satoshis, UsdCents};
 use obix::out::OutboxEventMarker;
 
 use crate::{

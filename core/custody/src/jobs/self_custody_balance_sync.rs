@@ -185,7 +185,7 @@ where
     async fn record_balance(
         &self,
         wallet_id: WalletId,
-        new_balance: money::Satoshis,
+        new_balance: old_money::Satoshis,
         update_time: DateTime<Utc>,
     ) -> Result<(), CoreCustodyError> {
         let mut op = self.wallets.begin_op().await?;

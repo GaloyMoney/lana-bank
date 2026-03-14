@@ -28,7 +28,7 @@ async fn disbursal_settled_event_on_activation() -> anyhow::Result<()> {
 
     let state = helpers::create_pending_facility(&ctx, helpers::test_terms()).await?;
 
-    let collateral_satoshis = money::Satoshis::from(50_000_000); // 0.5 BTC
+    let collateral_satoshis = old_money::Satoshis::from(50_000_000); // 0.5 BTC
     let effective = chrono::Utc::now().date_naive();
 
     let collaterals = ctx.credit.collaterals().clone();

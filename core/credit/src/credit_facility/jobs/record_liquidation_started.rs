@@ -9,7 +9,7 @@ use core_credit_collateral::{self, CalaAccountId, CollateralId, Collaterals, Liq
 use core_custody::CoreCustodyEvent;
 use governance::GovernanceEvent;
 use job::*;
-use money::{Satoshis, UsdCents};
+use old_money::{Satoshis, UsdCents};
 
 use crate::PriceOfOneBTC;
 use obix::out::OutboxEventMarker;

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use money::UsdCents;
+use old_money::UsdCents;
 
 pub use crate::disbursal::DisbursalSettlement;
 use crate::{

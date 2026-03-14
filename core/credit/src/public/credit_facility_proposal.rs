@@ -9,7 +9,7 @@ use crate::{
     primitives::{CreditFacilityProposalId, CreditFacilityProposalStatus, CustomerId},
 };
 use core_credit_terms::TermValues;
-use money::UsdCents;
+use old_money::UsdCents;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

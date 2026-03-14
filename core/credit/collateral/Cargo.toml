@@ -9,13 +9,13 @@ graphql = ["es-entity/graphql", "cala-ledger/graphql", "dep:async-graphql"]
 json-schema = [
     "dep:schemars",
     "es-entity/json-schema",
-    "money/json-schema",
+    "old-money/json-schema",
     "job/json-schema",
     "cala-ledger/json-schema",
 ]
 
 [dependencies]
-money = { workspace = true, features = ["sqlx"] }
+old-money = { workspace = true, features = ["sqlx"] }
 core-credit-collection = { path = "../collection" }
 
 audit = { workspace = true }

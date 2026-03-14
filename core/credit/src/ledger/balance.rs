@@ -4,7 +4,7 @@ use rust_decimal::Decimal;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use money::{Satoshis, UsdCents};
+use old_money::{Satoshis, UsdCents};
 
 use crate::{CVLPct, CollateralizationRatio};
 

@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use es_entity::*;
-use money::UsdCents;
+use old_money::UsdCents;
 
 use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId, DepositStatus, PublicId};
 

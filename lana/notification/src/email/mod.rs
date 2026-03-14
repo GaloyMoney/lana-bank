@@ -87,7 +87,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         obligation_id: &ObligationId,
         credit_facility_id: &CreditFacilityId,
-        amount: &money::UsdCents,
+        amount: &old_money::UsdCents,
     ) -> Result<(), EmailError> {
         let obligation = self
             .credit
@@ -156,8 +156,8 @@ where
         credit_facility_id: &CreditFacilityId,
         customer_id: &CustomerId,
         trigger_price: &PriceOfOneBTC,
-        initially_estimated_to_liquidate: &money::Satoshis,
-        initially_expected_to_receive: &money::UsdCents,
+        initially_estimated_to_liquidate: &old_money::Satoshis,
+        initially_expected_to_receive: &old_money::UsdCents,
     ) -> Result<(), EmailError> {
         let party = self
             .customers
@@ -215,9 +215,9 @@ where
         credit_facility_id: &CreditFacilityId,
         customer_id: &CustomerId,
         effective: &chrono::NaiveDate,
-        collateral: &money::Satoshis,
-        outstanding_disbursed: &money::UsdCents,
-        outstanding_interest: &money::UsdCents,
+        collateral: &old_money::Satoshis,
+        outstanding_disbursed: &old_money::UsdCents,
+        outstanding_interest: &old_money::UsdCents,
         price: &PriceOfOneBTC,
     ) -> Result<(), EmailError> {
         let party = self

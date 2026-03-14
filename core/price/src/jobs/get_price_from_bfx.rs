@@ -17,7 +17,7 @@ pub async fn fetch_price(
     client: std::sync::Arc<bfx_client::BfxClient>,
 ) -> Result<PriceOfOneBTC, bfx_client::BfxClientError> {
     let tick = client.btc_usd_tick().await?;
-    let usd_cents = money::UsdCents::try_from_usd(tick.last_price)
+    let usd_cents = old_money::UsdCents::try_from_usd(tick.last_price)
         .map_err(bfx_client::BfxClientError::ConversionError)?;
     Ok(PriceOfOneBTC::new(usd_cents))
 }

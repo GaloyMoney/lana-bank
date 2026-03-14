@@ -15,7 +15,7 @@ use bitcoin::{
     key::Secp256k1,
     network::NetworkKind,
 };
-use money::Satoshis;
+use old_money::Satoshis;
 use rand::{TryRng as _, rngs::SysRng};
 use reqwest::Client;
 use serde::Deserialize;

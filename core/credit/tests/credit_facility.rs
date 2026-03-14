@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use core_credit::*;
 use helpers::event::expect_event;
-use money::{Satoshis, UsdCents};
+use old_money::{Satoshis, UsdCents};
 use rust_decimal_macros::dec;
 use std::time::Duration;
 
@@ -162,7 +162,7 @@ async fn facility_collateralization_changed_event_on_price_change() -> anyhow::R
     // - At $55,000/BTC: 0.5 BTC ≈ $27,500; with ~$10,000 outstanding => ~275% CVL.
     //   This is below 280% (so it transitions to UnderMarginCallThreshold) but above 200%.
     // - Facilities with default terms (margin_call=125%) remain fully collateralized.
-    let low_price = core_price::PriceOfOneBTC::new(money::UsdCents::from(5_500_000));
+    let low_price = core_price::PriceOfOneBTC::new(old_money::UsdCents::from(5_500_000));
 
     let outbox = ctx.outbox.clone();
     let facility_id = state.facility_id;
