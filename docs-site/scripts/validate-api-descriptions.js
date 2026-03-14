@@ -53,6 +53,10 @@ function extractFieldNames(schemaContent, typeName) {
     pos++;
   }
 
+  // Strip triple-quoted descriptions so metadata lines like `requires:` or
+  // `produces:` are not mistaken for actual root fields.
+  block = block.replace(/"""[\s\S]*?"""/g, "");
+
   // Each field line looks like: `  fieldName(args): ReturnType`
   for (const line of block.split("\n")) {
     const fieldMatch = line.match(/^\s+(\w+)\s*[:(]/);

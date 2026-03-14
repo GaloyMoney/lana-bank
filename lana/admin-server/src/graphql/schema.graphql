@@ -2062,16 +2062,69 @@ type Mutation {
 	chartOfAccountsCsvImportWithBaseConfig(input: ChartOfAccountsCsvImportWithBaseConfigInput!): ChartOfAccountsCsvImportWithBaseConfigPayload!
 	collateralRecordProceedsFromLiquidation(input: CollateralRecordProceedsFromLiquidationInput!): CollateralRecordProceedsFromLiquidationPayload!
 	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
+	"""
+	Update collateral for a pending or active facility.
+	
+	requires:
+	- collateralId
+	"""
 	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
+	"""
+	Generate a loan agreement for a customer.
+	
+	requires:
+	- customerId
+	produces:
+	- loanAgreement.loanAgreementId
+	"""
 	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
+	"""
+	Initiate a disbursal for an active credit facility.
+	
+	This is only needed when the facility has not already disbursed during
+	activation. Facilities using `SINGLE_DISBURSAL` may already have a
+	disbursal by the time they become active, in which case this mutation can
+	fail with `OnlyOneDisbursalAllowed`.
+	
+	requires:
+	- creditFacilityId
+	produces:
+	- disbursal.creditFacilityDisbursalId
+	"""
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
+	"""
+	Create a credit facility proposal.
+	
+	The requested facility amount uses `UsdCents`, so pass the number of
+	cents as a JSON number, not a dollar amount string. For example,
+	`1000000` means USD 10,000.00.
+	
+	If the selected terms use `SINGLE_DISBURSAL`, the resulting facility may
+	disburse automatically as part of activation after approval and
+	collateralization. In that case, a later
+	`creditFacilityDisbursalInitiate` call can fail with
+	`OnlyOneDisbursalAllowed`.
+	
+	requires:
+	- customerId
+	produces:
+	- creditFacilityProposal.creditFacilityProposalId
+	"""
 	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
+	"""
+	Conclude customer approval for a credit facility proposal.
+	
+	requires:
+	- creditFacilityProposalId
+	produces:
+	- creditFacilityProposal.approvalProcessId
+	"""
 	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
@@ -2086,10 +2139,26 @@ type Mutation {
 	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
 	customerUnfreeze(input: CustomerUnfreezeInput!): CustomerUnfreezePayload!
 	depositAccountClose(input: DepositAccountCloseInput!): DepositAccountClosePayload!
+	"""
+	Create a deposit account for a customer.
+	
+	requires:
+	- customerId
+	produces:
+	- account.depositAccountId
+	"""
 	depositAccountCreate(input: DepositAccountCreateInput!): DepositAccountCreatePayload!
 	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
 	depositAccountUnfreeze(input: DepositAccountUnfreezeInput!): DepositAccountUnfreezePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
+	"""
+	Record a deposit on an account.
+	
+	requires:
+	- depositAccountId
+	produces:
+	- deposit.depositId
+	"""
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
@@ -2098,24 +2167,65 @@ type Mutation {
 	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
 	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
+	"""
+	Generate a download link for an existing loan agreement.
+	
+	requires:
+	- loanAgreementId
+	"""
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
+	"""
+	Convert a prospect into a customer.
+	
+	requires:
+	- prospectId
+	produces:
+	- customer.customerId
+	"""
 	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
+	"""
+	Create a prospect.
+	
+	produces:
+	- prospect.prospectId
+	"""
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
 	prospectKycLinkCreate(input: ProspectKycLinkCreateInput!): ProspectKycLinkCreatePayload!
 	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
 	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
 	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
+	"""
+	Create a terms template.
+	
+	produces:
+	- termsTemplate.termsTemplateId
+	"""
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	triggerReportRun(input: TriggerReportRunInput!): ReportRunCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
+	"""
+	Confirm a pending withdrawal.
+	
+	requires:
+	- withdrawalId
+	"""
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
+	"""
+	Initiate a withdrawal from a deposit account.
+	
+	requires:
+	- depositAccountId
+	produces:
+	- withdrawal.withdrawalId
+	- withdrawal.approvalProcessId
+	"""
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
 }
@@ -2536,6 +2646,17 @@ type Query {
 	loanAgreement(id: UUID!): LoanAgreement
 	me: Me!
 	pendingCreditFacilities(after: String, filter: PendingCreditFacilitiesFilter, first: Int!, sort: PendingCreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): PendingCreditFacilityConnection!
+	"""
+	Get a pending credit facility.
+	
+	requires:
+	- creditFacilityProposalId
+	- creditFacilityProposal.approvalProcessId
+	produces:
+	- pendingCreditFacility.pendingCreditFacilityId
+	- pendingCreditFacility.creditFacilityId
+	- pendingCreditFacility.collateralId
+	"""
 	pendingCreditFacility(id: UUID!): PendingCreditFacility
 	permissionSets(after: String, first: Int!): PermissionSetConnection!
 	policies(after: String, first: Int!): PolicyConnection!

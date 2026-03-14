@@ -1,0 +1,55 @@
+mutation CustomerDocumentCreate($file: Upload!, $customerId: UUID!) {
+  customerDocumentCreate(input: { file: $file, customerId: $customerId }) {
+    document {
+      customerDocumentId
+      customerId
+      filename
+    }
+  }
+}
+
+query CustomerDocumentGet($id: UUID!) {
+  customerDocument(id: $id) {
+    customerDocumentId
+    customerId
+    filename
+    status
+  }
+}
+
+query CustomerDocumentsList($customerId: UUID!) {
+  customer(id: $customerId) {
+    customerId
+    email
+    documents {
+      customerDocumentId
+      customerId
+      filename
+      status
+    }
+  }
+}
+
+mutation CustomerDocumentDownloadLinkGenerate($input: CustomerDocumentDownloadLinksGenerateInput!) {
+  customerDocumentDownloadLinkGenerate(input: $input) {
+    documentId
+    link
+  }
+}
+
+mutation CustomerDocumentArchive($input: CustomerDocumentArchiveInput!) {
+  customerDocumentArchive(input: $input) {
+    document {
+      customerDocumentId
+      customerId
+      filename
+      status
+    }
+  }
+}
+
+mutation CustomerDocumentDelete($input: CustomerDocumentDeleteInput!) {
+  customerDocumentDelete(input: $input) {
+    deletedDocumentId
+  }
+}
