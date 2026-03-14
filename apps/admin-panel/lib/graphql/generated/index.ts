@@ -2934,6 +2934,7 @@ export type Query = {
   reportRuns: ReportRunConnection;
   role?: Maybe<Role>;
   roles: RoleConnection;
+  serverTime: ServerTime;
   termsTemplate?: Maybe<TermsTemplate>;
   termsTemplates: Array<TermsTemplate>;
   transactionTemplates: TransactionTemplateConnection;
@@ -3522,6 +3523,12 @@ export enum SelfCustodyNetwork {
   Testnet3 = 'TESTNET3',
   Testnet4 = 'TESTNET4'
 }
+
+export type ServerTime = {
+  __typename?: 'ServerTime';
+  currentTime: Scalars['Timestamp']['output'];
+  isArtificial: Scalars['Boolean']['output'];
+};
 
 export enum SortDirection {
   Asc = 'ASC',
@@ -5495,6 +5502,11 @@ export type GetBuildInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetBuildInfoQuery = { __typename?: 'Query', buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
+
+export type GetServerTimeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetServerTimeQuery = { __typename?: 'Query', serverTime: { __typename?: 'ServerTime', currentTime: string, isArtificial: boolean } };
 
 export type TermsTemplateEventHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -13604,6 +13616,49 @@ export type GetBuildInfoQueryHookResult = ReturnType<typeof useGetBuildInfoQuery
 export type GetBuildInfoLazyQueryHookResult = ReturnType<typeof useGetBuildInfoLazyQuery>;
 export type GetBuildInfoSuspenseQueryHookResult = ReturnType<typeof useGetBuildInfoSuspenseQuery>;
 export type GetBuildInfoQueryResult = Apollo.QueryResult<GetBuildInfoQuery, GetBuildInfoQueryVariables>;
+export const GetServerTimeDocument = gql`
+    query GetServerTime {
+  serverTime {
+    currentTime
+    isArtificial
+  }
+}
+    `;
+
+/**
+ * __useGetServerTimeQuery__
+ *
+ * To run a query within a React component, call `useGetServerTimeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServerTimeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServerTimeQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetServerTimeQuery(baseOptions?: Apollo.QueryHookOptions<GetServerTimeQuery, GetServerTimeQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetServerTimeQuery, GetServerTimeQueryVariables>(GetServerTimeDocument, options);
+      }
+export function useGetServerTimeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetServerTimeQuery, GetServerTimeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetServerTimeQuery, GetServerTimeQueryVariables>(GetServerTimeDocument, options);
+        }
+// @ts-ignore
+export function useGetServerTimeSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetServerTimeQuery, GetServerTimeQueryVariables>): Apollo.UseSuspenseQueryResult<GetServerTimeQuery, GetServerTimeQueryVariables>;
+export function useGetServerTimeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetServerTimeQuery, GetServerTimeQueryVariables>): Apollo.UseSuspenseQueryResult<GetServerTimeQuery | undefined, GetServerTimeQueryVariables>;
+export function useGetServerTimeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetServerTimeQuery, GetServerTimeQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetServerTimeQuery, GetServerTimeQueryVariables>(GetServerTimeDocument, options);
+        }
+export type GetServerTimeQueryHookResult = ReturnType<typeof useGetServerTimeQuery>;
+export type GetServerTimeLazyQueryHookResult = ReturnType<typeof useGetServerTimeLazyQuery>;
+export type GetServerTimeSuspenseQueryHookResult = ReturnType<typeof useGetServerTimeSuspenseQuery>;
+export type GetServerTimeQueryResult = Apollo.QueryResult<GetServerTimeQuery, GetServerTimeQueryVariables>;
 export const TermsTemplateEventHistoryDocument = gql`
     query TermsTemplateEventHistory($id: UUID!, $first: Int!, $after: String) {
   termsTemplate(id: $id) {

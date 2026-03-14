@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 
-import { useGetBuildInfoQuery } from "@/lib/graphql/generated"
+import { useGetBuildInfoQuery, useGetServerTimeQuery } from "@/lib/graphql/generated"
 import { env } from "@/env"
 
 gql`
@@ -25,6 +25,15 @@ gql`
   }
 `
 
+gql`
+  query GetServerTime {
+    serverTime {
+      currentTime
+      isArtificial
+    }
+  }
+`
+
 export default function SystemInfoPage() {
   const t = useTranslations("SystemInfo")
   const appVersion = env.NEXT_PUBLIC_APP_VERSION
@@ -32,8 +41,34 @@ export default function SystemInfoPage() {
   const { data, loading } = useGetBuildInfoQuery()
   const buildInfo = data?.buildInfo
 
+  const { data: serverTimeData, loading: serverTimeLoading } = useGetServerTimeQuery({
+    pollInterval: 5000,
+  })
+  const serverTime = serverTimeData?.serverTime
+
   return (
     <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("serverTime")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {serverTimeLoading ? (
+            <LoaderCircle className="animate-spin" />
+          ) : serverTime ? (
+            <div className="space-y-2">
+              <InfoRow label={t("currentTime")} value={serverTime.currentTime} />
+              <InfoRow
+                label={t("timeMode")}
+                value={serverTime.isArtificial ? t("artificial") : t("realtime")}
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{t("unavailable")}</p>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>{t("frontend")}</CardTitle>

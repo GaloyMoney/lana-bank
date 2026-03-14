@@ -24,6 +24,7 @@ mod primitives;
 mod prospect;
 mod public_id;
 mod reports;
+mod server_time;
 mod sumsub;
 mod terms;
 mod terms_template;

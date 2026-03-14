@@ -6,6 +6,7 @@
   "admin": {
     "queries": {
       "buildInfo": "Returns build version, profile, and target information for the running server",
+      "serverTime": "Returns the current backend server time and whether the clock is artificial or realtime",
       "me": "Returns the current authenticated user's information and visible navigation items",
       "dashboard": "Retrieves dashboard statistics including active facilities, pending facilities, total disbursed amount, and total collateral",
       "user": "Fetches a specific user by their unique identifier",

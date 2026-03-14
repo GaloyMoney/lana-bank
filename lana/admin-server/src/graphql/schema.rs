@@ -32,8 +32,8 @@ use super::{
     access::*, accounting::*, approval_process::*, audit::*, build_info::BuildInfo, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
     dashboard::*, deposit::*, deposit_config::*, document::*, domain_config::*, loader::*, me::*,
-    policy::*, price::*, prospect::*, public_id::*, reports::*, sumsub::*, terms_template::*,
-    withdrawal::*,
+    policy::*, price::*, prospect::*, public_id::*, reports::*, server_time::ServerTime, sumsub::*,
+    terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -42,6 +42,11 @@ pub struct Query;
 impl Query {
     async fn build_info(&self, ctx: &Context<'_>) -> BuildInfo {
         ctx.data_unchecked::<BuildInfo>().clone()
+    }
+
+    async fn server_time(&self, ctx: &Context<'_>) -> ServerTime {
+        let app = ctx.data_unchecked::<LanaApp>();
+        ServerTime::new(app.clock().now().into(), app.clock().is_artificial())
     }
 
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<MeUser> {
