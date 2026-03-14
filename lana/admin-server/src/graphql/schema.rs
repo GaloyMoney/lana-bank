@@ -1053,12 +1053,14 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        audit_entry_id: Option<AuditEntryId>,
         subject: Option<AuditSubjectId>,
         authorized: Option<bool>,
         object: Option<String>,
         action: Option<String>,
     ) -> async_graphql::Result<Connection<AuditCursor, AuditEntry>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let id_filter: Option<audit::AuditEntryId> = audit_entry_id.map(audit::AuditEntryId::from);
         let subject_filter: Option<String> = subject.map(String::from);
         let authorized_filter = authorized;
         let object_filter = object;
@@ -1077,6 +1079,7 @@ impl Query {
                             first,
                             after: after.map(lana_app::audit::AuditCursor::from),
                         },
+                        id_filter,
                         subject_filter.clone(),
                         authorized_filter,
                         object_filter.clone(),

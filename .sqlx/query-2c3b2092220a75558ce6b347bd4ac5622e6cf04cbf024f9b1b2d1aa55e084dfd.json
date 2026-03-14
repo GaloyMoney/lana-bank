@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT id AS \"id: AuditEntryId\", subject, object, action, authorized, recorded_at\n                FROM audit_entries\n                WHERE COALESCE(id < $1, true)\n                  AND COALESCE(id = $2, true)\n                  AND COALESCE(subject = $3, true)\n                  AND COALESCE(authorized = $4, true)\n                  AND COALESCE(object = $5, true)\n                  AND COALESCE(action = $6, true)\n                ORDER BY id DESC\n                LIMIT $7\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: AuditEntryId",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "subject",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "object",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "action",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "authorized",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8",
+        "Text",
+        "Bool",
+        "Text",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "2c3b2092220a75558ce6b347bd4ac5622e6cf04cbf024f9b1b2d1aa55e084dfd"
+}

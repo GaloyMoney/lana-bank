@@ -2374,6 +2374,7 @@
         "recordedAt": "Registrado El"
       },
       "filters": {
+        "idPlaceholder": "ID de entrada",
         "allSubjects": "Todos los Sujetos",
         "allAuthorized": "Todas las autorizaciones",
         "authorizedOnly": "Autorizado",

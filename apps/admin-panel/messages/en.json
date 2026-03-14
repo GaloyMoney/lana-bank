@@ -2374,6 +2374,7 @@
         "recordedAt": "Recorded At"
       },
       "filters": {
+        "idPlaceholder": "Entry ID",
         "allSubjects": "All Subjects",
         "allAuthorized": "All Authorizations",
         "authorizedOnly": "Authorized",
