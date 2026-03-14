@@ -53,7 +53,6 @@ struct AutomationToken {
 #[serde(rename_all = "camelCase")]
 struct WorkflowDeps<'a> {
     target_step: &'a str,
-    include_read_only: bool,
     steps: Vec<WorkflowStepView<'a>>,
 }
 
@@ -103,7 +102,7 @@ struct WorkflowVerifyReport {
 pub fn execute(action: WorkflowAction, json: bool) -> anyhow::Result<()> {
     match action {
         WorkflowAction::List { yaml } => workflow_list(json, yaml),
-        WorkflowAction::Deps { step, all } => workflow_deps(&step, all, json),
+        WorkflowAction::Deps { step } => workflow_deps(&step, json),
         WorkflowAction::Verify => workflow_verify(json),
     }
 }
@@ -156,32 +155,20 @@ fn workflow_list(json: bool, yaml: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn workflow_deps(target_step: &str, include_read_only: bool, json: bool) -> anyhow::Result<()> {
+fn workflow_deps(target_step: &str, json: bool) -> anyhow::Result<()> {
     let workflow = load_workflow()?;
-    let steps = collect_step_views(&workflow, Some(target_step), include_read_only)?;
-    let deps = WorkflowDeps {
-        target_step,
-        include_read_only,
-        steps,
-    };
+    let steps = collect_step_views(&workflow, Some(target_step))?;
+    let deps = WorkflowDeps { target_step, steps };
 
     if json {
         return output::print_json(&deps);
     }
 
     println!("Target Step: {}", deps.target_step);
-    println!(
-        "Include Read Only: {}",
-        if deps.include_read_only {
-            "true"
-        } else {
-            "false"
-        }
-    );
     println!("Required Steps:");
 
     if deps.steps.is_empty() {
-        println!("  (no matching steps after filtering)");
+        println!("  (no matching steps)");
         return Ok(());
     }
 
@@ -756,7 +743,6 @@ fn operation_to_command(operation: &str) -> anyhow::Result<String> {
 fn collect_step_views<'a>(
     workflow: &'a WorkflowDefinition,
     target_step: Option<&str>,
-    include_read_only: bool,
 ) -> anyhow::Result<Vec<WorkflowStepView<'a>>> {
     let step_by_id: BTreeMap<&str, &WorkflowStep> = workflow
         .steps
@@ -788,10 +774,7 @@ fn collect_step_views<'a>(
     let included_ids: BTreeSet<&str> = workflow
         .steps
         .iter()
-        .filter(|step| {
-            needed.contains(step.id.as_str())
-                && (include_read_only || step.mutating || target_step == Some(step.id.as_str()))
-        })
+        .filter(|step| needed.contains(step.id.as_str()))
         .map(|step| step.id.as_str())
         .collect();
 

@@ -260,9 +260,6 @@ pub enum WorkflowAction {
         /// Target workflow step id
         #[arg(long)]
         step: String,
-        /// Include read-only steps in the output
-        #[arg(long)]
-        all: bool,
     },
     /// Verify workflow metadata against lana-admin command output contracts
     Verify,
