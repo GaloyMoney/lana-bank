@@ -1055,7 +1055,6 @@ export type Custodian = {
   createdAt: Scalars['Timestamp']['output'];
   custodianId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
-  isManual: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   provider: Scalars['String']['output'];
 };
@@ -4542,7 +4541,7 @@ export type CustodianCreateMutationVariables = Exact<{
 
 export type CustodianCreateMutation = { __typename?: 'Mutation', custodianCreate: { __typename?: 'CustodianCreatePayload', custodian: { __typename?: 'Custodian', id: string, custodianId: string, name: string, createdAt: string } } };
 
-export type CustodianFieldsFragment = { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string, isManual: boolean };
+export type CustodianFieldsFragment = { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string };
 
 export type CustodiansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4551,7 +4550,7 @@ export type CustodiansQueryVariables = Exact<{
 }>;
 
 
-export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string, isManual: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CustodianConfigUpdateMutationVariables = Exact<{
   input: CustodianConfigUpdateInput;
@@ -6267,7 +6266,6 @@ export const CustodianFieldsFragmentDoc = gql`
   createdAt
   name
   provider
-  isManual
 }
     `;
 export const CustomerDetailsFragmentFragmentDoc = gql`

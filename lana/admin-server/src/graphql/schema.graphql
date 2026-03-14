@@ -977,7 +977,6 @@ type Custodian {
 	createdAt: Timestamp!
 	custodianId: UUID!
 	id: ID!
-	isManual: Boolean!
 	name: String!
 	provider: String!
 }

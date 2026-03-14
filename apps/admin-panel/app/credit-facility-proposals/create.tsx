@@ -360,7 +360,8 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                 {custodiansData?.custodians.edges
                   .filter(
                     ({ node: custodian }) =>
-                      manualCustodianEnabled || !custodian.isManual,
+                      manualCustodianEnabled ||
+                        custodian.provider.toLowerCase() !== "manual",
                   )
                   .map(({ node: custodian }) => (
                     <SelectItem key={custodian.id} value={custodian.custodianId}>
