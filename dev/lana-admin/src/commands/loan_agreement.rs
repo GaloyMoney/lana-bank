@@ -36,11 +36,13 @@ pub async fn execute(
         }
         LoanAgreementAction::Generate { customer_id } => {
             let requested_customer_id = customer_id.clone();
-            let vars = loan_agreement_generate::Variables {
-                input: loan_agreement_generate::LoanAgreementGenerateInput { customer_id },
+            let vars = credit_facility_agreement_generate::Variables {
+                input: credit_facility_agreement_generate::CreditFacilityAgreementGenerateInput {
+                    customer_id,
+                },
             };
-            let data = client.execute::<LoanAgreementGenerate>(vars).await?;
-            let la = data.loan_agreement_generate.loan_agreement;
+            let data = client.execute::<CreditFacilityAgreementGenerate>(vars).await?;
+            let la = data.credit_facility_agreement_generate.loan_agreement;
             if json {
                 output::print_json(&json!({
                     "loanAgreementId": la.loan_agreement_id,

@@ -690,7 +690,7 @@ pub struct FindLoanAgreement;
     query_path = "src/graphql/loan_agreement.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
-pub struct LoanAgreementGenerate;
+pub struct CreditFacilityAgreementGenerate;
 
 #[derive(GraphQLQuery)]
 #[graphql(

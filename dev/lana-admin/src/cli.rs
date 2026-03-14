@@ -553,7 +553,7 @@ pub enum CreditFacilityAction {
         #[arg(long)]
         facility_amount: String,
         #[arg(long, value_parser = parse_uuid_arg)]
-        custodian_id: Option<String>,
+        custodian_id: String,
         #[arg(long)]
         annual_rate: String,
         #[arg(long, default_value = "END_OF_MONTH")]

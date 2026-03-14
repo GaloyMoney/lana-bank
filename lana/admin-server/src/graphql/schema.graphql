@@ -2072,6 +2072,14 @@ type Mutation {
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
+	"""
+	Generate a loan agreement for a customer.
+	
+	requires:
+	- customerId
+	produces:
+	- loanAgreement.loanAgreementId
+	"""
 	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	"""
@@ -2166,15 +2174,6 @@ type Mutation {
 	- loanAgreementId
 	"""
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
-	"""
-	Generate a loan agreement for a customer.
-	
-	requires:
-	- customerId
-	produces:
-	- loanAgreement.loanAgreementId
-	"""
-	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!

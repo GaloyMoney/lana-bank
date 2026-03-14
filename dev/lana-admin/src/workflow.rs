@@ -745,7 +745,7 @@ fn operation_to_command(operation: &str) -> anyhow::Result<String> {
         "pendingCreditFacility" => "credit facility pending-get",
         "collateralUpdate" => "credit collateral update",
         "creditFacilityDisbursalInitiate" => "credit facility disbursal-initiate",
-        "loanAgreementGenerate" => "credit loan-agreement generate",
+        "creditFacilityAgreementGenerate" => "credit loan-agreement generate",
         "loanAgreementDownloadLinkGenerate" => "credit loan-agreement download-link",
         _ => bail!("unknown workflow command mapping"),
     };

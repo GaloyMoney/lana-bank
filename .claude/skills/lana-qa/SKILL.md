@@ -74,7 +74,7 @@ Use the CLI as the source of truth for dependency sequencing:
 
 - Treat `workflow deps` as the execution plan for any deep stateful action. Do not invent the order manually.
 - For a target step, run `workflow deps --step <STEP> --all` first, then execute the returned steps in order.
-- Existing customer fast path: if you already have a valid `customerId`, you can skip `prospect_create` and `prospect_convert` and start from the first step that requires `customerId` such as `deposit_account_create`, `credit_facility_proposal_create`, or `loan_agreement_generate`.
+- Existing customer fast path: if you already have a valid `customerId`, you can skip `prospect_create` and `prospect_convert` and start from the first step that requires `customerId` such as `deposit_account_create`, `credit_facility_proposal_create`, or `credit_facility_agreement_generate`.
 - Only use the fast path when the reused customer is in the correct state for the downstream flow and you already have the required IDs for any earlier prerequisites you are skipping.
 - If you reuse an existing entity instead of creating a fresh one, verify that it already satisfies the missing prerequisite step before skipping it.
 - `workflow deps` omits read-only bridge steps by default. Use `--all` when you need the full path, including query steps such as `pending_credit_facility`.
