@@ -12,7 +12,7 @@ Una política define las reglas de aprobación para un tipo específico de opera
 
 Cada política contiene:
 
-- **Tipo de Proceso**: La categoría de operación que esta política gobierna. Existe una restricción de unicidad: solo puede existir una política por tipo de proceso.
+- **Tipo de Proceso**: La categoría de operación que esta política regula. Existe una restricción de unicidad: solo puede existir una política por tipo de proceso.
 - **Reglas de Aprobación**: Ya sea `AutoApprove` (las operaciones se aprueban instantáneamente) o `CommitteeThreshold` (las operaciones requieren votos del comité). Consulte los detalles a continuación.
 
 ## Tipos de Proceso
@@ -31,12 +31,12 @@ La inicialización de políticas es idempotente: si la política para un tipo de
 
 ### Aprobación Automática del Sistema (Predeterminada)
 
-Cada política se crea con reglas `AutoApprove` de forma predeterminada. Bajo este modo, cualquier proceso de aprobación iniciado contra esta política concluye inmediatamente con un resultado aprobado. No se requiere revisión humana.
+Cada política se crea con reglas `AutoApprove` por defecto. Bajo este modo, cualquier proceso de aprobación iniciado contra esta política concluye inmediatamente con un resultado aprobado. No se requiere revisión humana.
 
 Esta es la configuración apropiada cuando:
 - El tipo de operación es de bajo riesgo y no requiere supervisión.
 - El banco está en configuración inicial y aún no ha configurado comités.
-- Entornos de prueba o desarrollo donde la fricción de aprobación es indeseable.
+- Entornos de prueba o desarrollo donde la fricción de aprobación no es deseable.
 
 ### Umbral del Comité
 
@@ -46,12 +46,12 @@ Cuando un administrador asigna un comité y un umbral a una política, las regla
 - El umbral especifica el número mínimo de votos de aprobación necesarios de los miembros elegibles.
 - Un solo voto de rechazo de cualquier miembro elegible rechaza inmediatamente el proceso.
 
-**Reglas de validación para la asignación del umbral:**
-- El umbral debe ser al menos 1 (no se permite cero).
-- El umbral no debe exceder el número actual de miembros del comité.
+**Reglas de validación para la asignación de umbral:**
+- El umbral debe ser al menos 1 (cero no está permitido).
+- El umbral no debe exceder el número actual de miembros en el comité.
 - Si el comité tiene 0 miembros, no se puede asignar un umbral.
 
-Cambiar las reglas de la política solo afecta a los futuros procesos de aprobación. Cualquier proceso ya en curso continúa bajo las reglas con las que fue creado (las reglas se capturan en cada proceso en el momento de su creación).
+Cambiar las reglas de la política solo afecta los procesos de aprobación futuros. Cualquier proceso ya en curso continúa bajo las reglas con las que fue creado (las reglas se guardan en cada proceso al momento de la creación).
 
 ## Configuración de Políticas
 

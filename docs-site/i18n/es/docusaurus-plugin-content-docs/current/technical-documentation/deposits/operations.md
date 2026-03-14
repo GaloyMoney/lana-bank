@@ -72,24 +72,24 @@ stateDiagram-v2
 ### Flujo de Retiro Paso a Paso
 
 **1. Iniciación** - Un operador inicia un retiro especificando el monto y una referencia opcional. El sistema:
-- Valida que la cuenta esté activa y que el monto sea distinto de cero.
+- Valida que la cuenta esté activa y que el monto no sea cero.
 - Crea un proceso de aprobación de gobernanza (tipo: `withdraw`).
-- Registra una transacción de libro mayor `INITIATE_WITHDRAW` que mueve los fondos de liquidados a pendientes.
+- Registra una transacción contable `INITIATE_WITHDRAW` que mueve fondos de liquidado a pendiente.
 - El saldo liquidado del cliente disminuye inmediatamente, evitando que los fondos se utilicen para otras operaciones.
 
 **2. Aprobación** - El sistema de gobernanza procesa el retiro según la política configurada:
 - Si la política es `AutoApprove`, el retiro se aprueba instantáneamente.
 - Si la política utiliza `CommitteeThreshold`, los miembros del comité deben votar para aprobar o denegar.
 - Una sola denegación de cualquier miembro del comité rechaza inmediatamente el retiro.
-- Este paso ocurre de forma asíncrona a través del sistema de trabajos impulsado por eventos.
+- Este paso ocurre de forma asíncrona a través del sistema de trabajos basado en eventos.
 
-**3a. Confirmación** - Después de la aprobación, un operador confirma el retiro, indicando que el desembolso real de fondos ha ocurrido externamente. Una transacción de libro mayor `CONFIRM_WITHDRAW` elimina el saldo pendiente.
+**3a. Confirmación** - Después de la aprobación, un operador confirma el retiro, indicando que el desembolso real de fondos ha ocurrido externamente. Una transacción contable `CONFIRM_WITHDRAW` elimina el saldo pendiente.
 
-**3b. Cancelación** - En cualquier momento antes de la confirmación (incluso antes de que concluya la aprobación), un operador puede cancelar el retiro. Una transacción de libro mayor `CANCEL_WITHDRAW` revierte el compromiso, restaurando el saldo liquidado.
+**3b. Cancelación** - En cualquier momento antes de la confirmación (incluso antes de que concluya la aprobación), un operador puede cancelar el retiro. Una transacción contable `CANCEL_WITHDRAW` revierte el gravamen, restaurando el saldo liquidado.
 
-**3c. Denegación** - Si la gobernanza deniega el retiro, una transacción de libro mayor `DENY_WITHDRAW` revierte automáticamente el compromiso, idéntico en efecto a la cancelación.
+**3c. Denegación** - Si la gobernanza deniega el retiro, una transacción contable `DENY_WITHDRAW` revierte automáticamente el gravamen, idéntica en efecto a la cancelación.
 
-**4. Reversión (opcional)** - Un retiro confirmado puede revertirse si el movimiento externo de fondos falló o fue devuelto. Una transacción de libro mayor `REVERT_WITHDRAW` restaura el saldo liquidado.
+**4. Reversión (opcional)** - Un retiro confirmado puede revertirse si el movimiento de fondos externo falló o fue devuelto. Una transacción contable `REVERT_WITHDRAW` restaura el saldo liquidado.
 
 ### Asientos contables de retiro
 
