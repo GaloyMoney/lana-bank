@@ -3099,5 +3099,16 @@
         "staySignedIn": "Mantener sesión iniciada"
       }
     }
+  },
+  "SystemInfo": {
+    "title": "Información del Sistema",
+    "frontend": "Frontend",
+    "backend": "Backend",
+    "version": "Versión",
+    "buildProfile": "Perfil de Compilación",
+    "buildTarget": "Objetivo de Compilación",
+    "enabledFeatures": "Funciones Habilitadas",
+    "loading": "Cargando...",
+    "unavailable": "No se pudo obtener la información del servidor"
   }
 }

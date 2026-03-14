@@ -58,12 +58,14 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild tabIndex={-1}>
-              <Link href="/dashboard">
+              <Link href="/system-info">
                 <div className="flex aspect-square size-10 items-center justify-center rounded-lg">
                   <Logo className="size-10" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{t("footer.appName")}</span>
+                  <span className="truncate font-semibold">
+                    {t("footer.appName")}
+                  </span>
                   <span className="truncate text-xs">
                     {t("footer.version", { version: appVersion || "0.0.0-dev" })}
                   </span>

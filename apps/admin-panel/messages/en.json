@@ -3099,5 +3099,16 @@
         "staySignedIn": "Stay signed in"
       }
     }
+  },
+  "SystemInfo": {
+    "title": "System Information",
+    "frontend": "Frontend",
+    "backend": "Backend",
+    "version": "Version",
+    "buildProfile": "Build Profile",
+    "buildTarget": "Build Target",
+    "enabledFeatures": "Enabled Features",
+    "loading": "Loading...",
+    "unavailable": "Unable to fetch server info"
   }
 }

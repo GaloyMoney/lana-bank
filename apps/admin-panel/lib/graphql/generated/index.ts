@@ -5491,6 +5491,11 @@ export type RolesQueryVariables = Exact<{
 
 export type RolesQuery = { __typename?: 'Query', roles: { __typename?: 'RoleConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'RoleEdge', cursor: string, node: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } };
 
+export type GetBuildInfoQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetBuildInfoQuery = { __typename?: 'Query', buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
+
 export type TermsTemplateEventHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
   first: Scalars['Int']['input'];
@@ -13554,6 +13559,51 @@ export type RolesQueryHookResult = ReturnType<typeof useRolesQuery>;
 export type RolesLazyQueryHookResult = ReturnType<typeof useRolesLazyQuery>;
 export type RolesSuspenseQueryHookResult = ReturnType<typeof useRolesSuspenseQuery>;
 export type RolesQueryResult = Apollo.QueryResult<RolesQuery, RolesQueryVariables>;
+export const GetBuildInfoDocument = gql`
+    query GetBuildInfo {
+  buildInfo {
+    version
+    buildProfile
+    buildTarget
+    enabledFeatures
+  }
+}
+    `;
+
+/**
+ * __useGetBuildInfoQuery__
+ *
+ * To run a query within a React component, call `useGetBuildInfoQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBuildInfoQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBuildInfoQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetBuildInfoQuery(baseOptions?: Apollo.QueryHookOptions<GetBuildInfoQuery, GetBuildInfoQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetBuildInfoQuery, GetBuildInfoQueryVariables>(GetBuildInfoDocument, options);
+      }
+export function useGetBuildInfoLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBuildInfoQuery, GetBuildInfoQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetBuildInfoQuery, GetBuildInfoQueryVariables>(GetBuildInfoDocument, options);
+        }
+// @ts-ignore
+export function useGetBuildInfoSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetBuildInfoQuery, GetBuildInfoQueryVariables>): Apollo.UseSuspenseQueryResult<GetBuildInfoQuery, GetBuildInfoQueryVariables>;
+export function useGetBuildInfoSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetBuildInfoQuery, GetBuildInfoQueryVariables>): Apollo.UseSuspenseQueryResult<GetBuildInfoQuery | undefined, GetBuildInfoQueryVariables>;
+export function useGetBuildInfoSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetBuildInfoQuery, GetBuildInfoQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetBuildInfoQuery, GetBuildInfoQueryVariables>(GetBuildInfoDocument, options);
+        }
+export type GetBuildInfoQueryHookResult = ReturnType<typeof useGetBuildInfoQuery>;
+export type GetBuildInfoLazyQueryHookResult = ReturnType<typeof useGetBuildInfoLazyQuery>;
+export type GetBuildInfoSuspenseQueryHookResult = ReturnType<typeof useGetBuildInfoSuspenseQuery>;
+export type GetBuildInfoQueryResult = Apollo.QueryResult<GetBuildInfoQuery, GetBuildInfoQueryVariables>;
 export const TermsTemplateEventHistoryDocument = gql`
     query TermsTemplateEventHistory($id: UUID!, $first: Int!, $after: String) {
   termsTemplate(id: $id) {
