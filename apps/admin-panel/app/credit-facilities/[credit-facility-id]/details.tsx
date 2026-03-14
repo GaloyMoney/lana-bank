@@ -9,7 +9,7 @@ import { formatDate } from "@lana/web/utils"
 
 import { toast } from "sonner"
 
-import { ExternalLinkIcon, FileText, Download, RefreshCw } from "lucide-react"
+import { ExternalLinkIcon, FileText, Download, RefreshCw, CheckCircle } from "lucide-react"
 
 import { Label } from "@lana/web/ui/label"
 
@@ -18,9 +18,11 @@ import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 import { CollateralizationStateLabel } from "../label"
 
 import { CreditFacilityTermsDialog } from "./terms-dialog"
+import { CompleteCreditFacilityDialog } from "./complete-credit-facility"
 
 import {
   GetCreditFacilityLayoutDetailsQuery,
+  CreditFacilityStatus,
   WalletNetwork,
 } from "@/lib/graphql/generated"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
@@ -42,6 +44,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
+  const [openCompleteDialog, setOpenCompleteDialog] = React.useState(false)
 
   const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()
 
@@ -152,6 +155,17 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
           {t("buttons.updateCollateral")}
         </Button>
       )}
+      {creditFacilityDetails.userCanComplete &&
+        creditFacilityDetails.status === CreditFacilityStatus.Active && (
+          <Button
+            variant="destructive"
+            data-testid="complete-credit-facility-button"
+            onClick={() => setOpenCompleteDialog(true)}
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            {t("buttons.complete")}
+          </Button>
+        )}
     </>
   )
 
@@ -175,6 +189,11 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         collateralToMatchInitialCvl={creditFacilityDetails.collateralToMatchInitialCvl}
         openDialog={openCollateralUpdateDialog}
         setOpenDialog={setOpenCollateralUpdateDialog}
+      />
+      <CompleteCreditFacilityDialog
+        creditFacilityId={creditFacilityDetails.creditFacilityId}
+        openCompleteDialog={openCompleteDialog}
+        setOpenCompleteDialog={setOpenCompleteDialog}
       />
     </>
   )

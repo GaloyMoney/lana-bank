@@ -4135,6 +4135,13 @@ export type CreatePermissionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type CreatePermissionsQuery = { __typename?: 'Query', me: { __typename?: 'Me', userCanCreateUser: boolean, userCanCreateTermsTemplate: boolean, userCanCreateCustodian: boolean } };
 
+export type CreditFacilityCompleteMutationVariables = Exact<{
+  input: CreditFacilityCompleteInput;
+}>;
+
+
+export type CreditFacilityCompleteMutation = { __typename?: 'Mutation', creditFacilityComplete: { __typename?: 'CreditFacilityCompletePayload', creditFacility: { __typename?: 'CreditFacility', id: string, status: CreditFacilityStatus } } };
+
 export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: string };
 
 export type GetCreditFacilityDisbursalsQueryVariables = Exact<{
@@ -7944,6 +7951,42 @@ export type CreatePermissionsQueryHookResult = ReturnType<typeof useCreatePermis
 export type CreatePermissionsLazyQueryHookResult = ReturnType<typeof useCreatePermissionsLazyQuery>;
 export type CreatePermissionsSuspenseQueryHookResult = ReturnType<typeof useCreatePermissionsSuspenseQuery>;
 export type CreatePermissionsQueryResult = Apollo.QueryResult<CreatePermissionsQuery, CreatePermissionsQueryVariables>;
+export const CreditFacilityCompleteDocument = gql`
+    mutation CreditFacilityComplete($input: CreditFacilityCompleteInput!) {
+  creditFacilityComplete(input: $input) {
+    creditFacility {
+      id
+      status
+    }
+  }
+}
+    `;
+export type CreditFacilityCompleteMutationFn = Apollo.MutationFunction<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>;
+
+/**
+ * __useCreditFacilityCompleteMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityCompleteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityCompleteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityCompleteMutation, { data, loading, error }] = useCreditFacilityCompleteMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityCompleteMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>(CreditFacilityCompleteDocument, options);
+      }
+export type CreditFacilityCompleteMutationHookResult = ReturnType<typeof useCreditFacilityCompleteMutation>;
+export type CreditFacilityCompleteMutationResult = Apollo.MutationResult<CreditFacilityCompleteMutation>;
+export type CreditFacilityCompleteMutationOptions = Apollo.BaseMutationOptions<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>;
 export const GetCreditFacilityDisbursalsDocument = gql`
     query GetCreditFacilityDisbursals($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {

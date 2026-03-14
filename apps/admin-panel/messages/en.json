@@ -1100,12 +1100,21 @@
           "loanAgreement": "Loan Agreement",
           "updateCollateral": "Update Collateral",
           "approve": "Approve",
-          "deny": "Deny"
+          "deny": "Deny",
+          "complete": "Complete"
         },
         "loanAgreement": {
           "success": "Loan agreement generated successfully",
           "error": "Failed to generate loan agreement"
         }
+      },
+      "completeCreditFacility": {
+        "title": "Complete Credit Facility",
+        "description": "Are you sure you want to complete this credit facility? This action cannot be undone.",
+        "buttons": {
+          "complete": "Complete"
+        },
+        "success": "Credit facility completed successfully"
       },
       "Layout": {
         "tabs": {

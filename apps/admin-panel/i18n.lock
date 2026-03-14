@@ -721,8 +721,13 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/updateCollateral: b515a49f68419c34c213866ac50fb4b5
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
+    CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/complete: d3e36d723de0cfdea51c5b4171d30b4d
     CreditFacilities/CreditFacilityDetails/DetailsCard/loanAgreement/success: 62cfb0cfd632a91991a1300597f37751
     CreditFacilities/CreditFacilityDetails/DetailsCard/loanAgreement/error: 888ad57aa228cb9a409d22468bb3f9ba
+    CreditFacilities/CreditFacilityDetails/completeCreditFacility/title: 618359ca5c1cee9990a65fd6ef59f95f
+    CreditFacilities/CreditFacilityDetails/completeCreditFacility/description: 532688b238502b36589bb68f4624bce0
+    CreditFacilities/CreditFacilityDetails/completeCreditFacility/buttons/complete: d3e36d723de0cfdea51c5b4171d30b4d
+    CreditFacilities/CreditFacilityDetails/completeCreditFacility/success: 61f23cf4b3ab84248db1065fd612f38e
     CreditFacilities/CreditFacilityDetails/Layout/tabs/history: b0578d6d225f512e42f823fbca2e3c32
     CreditFacilities/CreditFacilityDetails/Layout/tabs/disbursals: a926d10544d2ae0fd17a6e5f19a97080
     CreditFacilities/CreditFacilityDetails/Layout/tabs/liquidations: d5e225f5b3204b60ff0dea79c7cc89f3

@@ -1100,12 +1100,21 @@
           "loanAgreement": "Contrato de Préstamo",
           "updateCollateral": "Actualizar Garantía",
           "approve": "Aprobar",
-          "deny": "Rechazar"
+          "deny": "Rechazar",
+          "complete": "Completar"
         },
         "loanAgreement": {
           "success": "Contrato de préstamo generado exitosamente",
           "error": "Error al generar el contrato de préstamo"
         }
+      },
+      "completeCreditFacility": {
+        "title": "Completar Línea de Crédito",
+        "description": "¿Está seguro de que desea completar esta línea de crédito? Esta acción no se puede deshacer.",
+        "buttons": {
+          "complete": "Completar"
+        },
+        "success": "Línea de crédito completada exitosamente"
       },
       "Layout": {
         "tabs": {
