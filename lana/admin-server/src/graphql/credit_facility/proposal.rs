@@ -11,7 +11,9 @@ use crate::{
     primitives::*,
 };
 
-use super::{ApprovalProcess, CreditFacilityRepaymentPlanEntry, Sort, SortDirection};
+use super::{
+    ApprovalProcess, CreditFacilityRepaymentPlanEntry, PendingCreditFacility, Sort, SortDirection,
+};
 
 pub use lana_app::credit::{
     CreditFacilityProposal as DomainCreditFacilityProposal, CreditFacilityProposalsCursor,
@@ -133,6 +135,22 @@ impl CreditFacilityProposalConcludedPayload {
             .expect("credit facility proposal not found");
         Ok(proposal)
     }
+
+    async fn pending_credit_facility(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<PendingCreditFacility>> {
+        if self.status != CreditFacilityProposalStatus::Approved {
+            return Ok(None);
+        }
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let pending_facility = loader
+            .load_one(PendingCreditFacilityId::from(
+                self.credit_facility_proposal_id,
+            ))
+            .await?;
+        Ok(pending_facility)
+    }
 }
 
 #[derive(InputObject)]
@@ -198,4 +216,35 @@ pub struct CreditFacilityProposalCustomerApprovalConcludeInput {
     pub approved: bool,
 }
 
-crate::mutation_payload! { CreditFacilityProposalCustomerApprovalConcludePayload, credit_facility_proposal: CreditFacilityProposal }
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct CreditFacilityProposalCustomerApprovalConcludePayload {
+    credit_facility_proposal: CreditFacilityProposal,
+}
+
+impl From<CreditFacilityProposal> for CreditFacilityProposalCustomerApprovalConcludePayload {
+    fn from(credit_facility_proposal: CreditFacilityProposal) -> Self {
+        Self {
+            credit_facility_proposal,
+        }
+    }
+}
+
+#[ComplexObject]
+impl CreditFacilityProposalCustomerApprovalConcludePayload {
+    async fn pending_credit_facility(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<PendingCreditFacility>> {
+        if self.credit_facility_proposal.status != CreditFacilityProposalStatus::Approved {
+            return Ok(None);
+        }
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let pending_facility = loader
+            .load_one(PendingCreditFacilityId::from(
+                self.credit_facility_proposal.entity.id,
+            ))
+            .await?;
+        Ok(pending_facility)
+    }
+}

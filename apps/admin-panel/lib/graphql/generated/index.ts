@@ -831,6 +831,7 @@ export type CreditFacilityProposalEventHistoryArgs = {
 export type CreditFacilityProposalConcludedPayload = {
   __typename?: 'CreditFacilityProposalConcludedPayload';
   creditFacilityProposal: CreditFacilityProposal;
+  pendingCreditFacility?: Maybe<PendingCreditFacility>;
   status: CreditFacilityProposalStatus;
 };
 
@@ -864,6 +865,7 @@ export type CreditFacilityProposalCustomerApprovalConcludeInput = {
 export type CreditFacilityProposalCustomerApprovalConcludePayload = {
   __typename?: 'CreditFacilityProposalCustomerApprovalConcludePayload';
   creditFacilityProposal: CreditFacilityProposal;
+  pendingCreditFacility?: Maybe<PendingCreditFacility>;
 };
 
 /** An edge in a connection. */
@@ -4508,7 +4510,7 @@ export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscr
          }, approvalProcess?: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
           | { __typename?: 'SystemApproval', autoApprove: boolean }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } | null } } };
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } | null }, pendingCreditFacility?: { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string } | null } };
 
 export type GetCreditFacilityProposalRepaymentPlanQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -8688,6 +8690,9 @@ export const CreditFacilityProposalConcludedDocument = gql`
     status
     creditFacilityProposal {
       ...CreditFacilityProposalLayoutFragment
+    }
+    pendingCreditFacility {
+      pendingCreditFacilityId
     }
   }
 }

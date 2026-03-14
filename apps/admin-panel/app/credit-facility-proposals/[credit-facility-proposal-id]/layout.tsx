@@ -94,6 +94,9 @@ gql`
       creditFacilityProposal {
         ...CreditFacilityProposalLayoutFragment
       }
+      pendingCreditFacility {
+        pendingCreditFacilityId
+      }
     }
   }
 `
