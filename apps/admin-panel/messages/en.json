@@ -31,8 +31,7 @@
     "formatRule": {
       "noRulesDefined": "No rules defined",
       "allMembersMustApprove": "All members must approve",
-      "systemAutoApproval": "System Auto Approval",
-      "systemManualApproval": "System Manual Approval",
+      "autoApproval": "Auto Approval",
       "unknownRuleType": "Unknown rule type"
     },
     "formatProcessType": {

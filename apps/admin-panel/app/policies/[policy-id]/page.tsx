@@ -32,7 +32,7 @@ gql`
           }
         }
         ... on AutoApproval {
-          autoApprove
+          __typename
         }
       }
     }

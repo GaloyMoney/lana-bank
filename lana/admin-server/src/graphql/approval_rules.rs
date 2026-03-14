@@ -16,16 +16,19 @@ impl From<DomainApprovalRules> for ApprovalRules {
             DomainApprovalRules::Committee { committee_id } => {
                 ApprovalRules::CommitteeApproval(CommitteeApproval { committee_id })
             }
-            DomainApprovalRules::AutoApprove => {
-                ApprovalRules::AutoApproval(AutoApproval { auto_approve: true })
-            }
+            DomainApprovalRules::AutoApprove => ApprovalRules::AutoApproval(AutoApproval),
         }
     }
 }
 
-#[derive(SimpleObject)]
-pub(super) struct AutoApproval {
-    auto_approve: bool,
+pub(super) struct AutoApproval;
+
+#[Object]
+impl AutoApproval {
+    /// Placeholder field — the type name itself indicates auto-approval.
+    async fn auto_approve(&self) -> bool {
+        true
+    }
 }
 
 pub(super) struct CommitteeApproval {
