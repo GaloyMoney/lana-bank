@@ -18,7 +18,7 @@ use domain_config::{
 };
 use encryption::EncryptionConfig;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
-use old_money::Satoshis;
+use money::Satoshis;
 use public_id::PublicIds;
 use rand::RngExt;
 use rust_decimal_macros::dec;
@@ -94,7 +94,7 @@ pub async fn init_domain_configs(
 }
 
 pub fn test_btc_price() -> core_price::PriceOfOneBTC {
-    core_price::PriceOfOneBTC::new(old_money::UsdCents::from(7_000_000))
+    core_price::PriceOfOneBTC::new(money::UsdCents::from(7_000_000))
 }
 
 pub async fn seed_price<E>(
@@ -688,7 +688,7 @@ pub struct PendingFacilityState {
     pub pending_facility_id: PendingCreditFacilityId,
     pub collateral_id: CollateralId,
     pub deposit_account_id: core_deposit::DepositAccountId,
-    pub amount: old_money::UsdCents,
+    pub amount: money::UsdCents,
     pub terms: TermValues,
 }
 
@@ -711,7 +711,7 @@ pub async fn create_pending_facility(
         .create_account(&DummySubject, customer.id)
         .await?;
 
-    let amount = old_money::UsdCents::from(1_000_000);
+    let amount = money::UsdCents::from(1_000_000);
     let proposal = ctx
         .credit
         .create_facility_proposal(
@@ -769,7 +769,7 @@ pub struct ActiveFacilityState {
     pub collateral_id: CollateralId,
     pub deposit_account_id: core_deposit::DepositAccountId,
     pub customer_id: CustomerId,
-    pub amount: old_money::UsdCents,
+    pub amount: money::UsdCents,
 }
 
 /// Creates a pending facility and triggers activation by updating collateral.

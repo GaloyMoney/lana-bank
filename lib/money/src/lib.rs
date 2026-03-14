@@ -1,7 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-use std::{borrow::Cow, fmt, marker::PhantomData};
+use std::{fmt, marker::PhantomData};
 
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -24,7 +24,7 @@ pub trait Currency:
     const MINOR_UNITS_PER_MAJOR: u64;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Usd;
 
 impl Currency for Usd {
@@ -32,7 +32,7 @@ impl Currency for Usd {
     const MINOR_UNITS_PER_MAJOR: u64 = 100;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Btc;
 
 impl Currency for Btc {
@@ -152,7 +152,7 @@ impl<'de, C: Currency> Deserialize<'de> for MinorUnits<C> {
 
 #[cfg(feature = "json-schema")]
 impl<C: Currency> JsonSchema for MinorUnits<C> {
-    fn schema_name() -> Cow<'static, str> {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
         format!("MinorUnits_{}", C::CODE).into()
     }
 
@@ -303,7 +303,7 @@ impl<'de, C: Currency> Deserialize<'de> for SignedMinorUnits<C> {
 
 #[cfg(feature = "json-schema")]
 impl<C: Currency> JsonSchema for SignedMinorUnits<C> {
-    fn schema_name() -> Cow<'static, str> {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
         format!("SignedMinorUnits_{}", C::CODE).into()
     }
 

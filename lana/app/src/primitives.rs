@@ -19,7 +19,7 @@ pub use document_storage::{DocumentId, ReferenceId};
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
 pub use lana_ids::*;
-pub use old_money::*;
+pub use money::*;
 pub use rbac_types::Subject;
 
 pub use cala_ledger::primitives::{

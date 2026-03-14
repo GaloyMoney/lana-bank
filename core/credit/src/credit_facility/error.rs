@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-use old_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 
 use super::repo::{
     CreditFacilityCreateError, CreditFacilityFindError, CreditFacilityModifyError,

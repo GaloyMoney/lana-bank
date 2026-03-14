@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use lana_events::*;
-use old_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 
 #[derive(Clone, Default, Serialize, Deserialize, Debug)]
 pub struct DashboardValues {

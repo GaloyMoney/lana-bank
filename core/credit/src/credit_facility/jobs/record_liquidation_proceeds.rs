@@ -16,7 +16,7 @@ use core_credit_collection::{
 use core_custody::CoreCustodyEvent;
 use governance::GovernanceEvent;
 use job::*;
-use old_money::UsdCents;
+use money::UsdCents;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 

@@ -9,7 +9,7 @@ use document_storage::DocumentStorage;
 use es_entity::DbOp;
 use es_entity::clock::{ArtificialClockConfig, ClockController, ClockHandle};
 use futures::StreamExt;
-use old_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 use public_id::PublicIds;
 use rust_decimal_macros::dec;
 use std::time::Duration;

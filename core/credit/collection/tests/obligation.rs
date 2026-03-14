@@ -12,7 +12,7 @@ use core_credit_terms::EffectiveDate;
 use core_time_events::CoreTimeEvent;
 use es_entity::DbOp;
 use helpers::event::{DummyEvent, expect_event};
-use old_money::UsdCents;
+use money::UsdCents;
 use obix::Outbox;
 
 use helpers::TestContext;

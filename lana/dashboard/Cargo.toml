@@ -13,7 +13,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema"]
 [dependencies]
 permission-sets-macro = { workspace = true }
 lana-events = { workspace = true }
-old-money = { workspace = true }
+money = { workspace = true }
 
 authz = { workspace = true }
 audit = { workspace = true }

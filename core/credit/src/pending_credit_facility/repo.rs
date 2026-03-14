@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
-use old_money::UsdCents;
+use money::UsdCents;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::*};
 use core_credit_collateral::CollateralId;

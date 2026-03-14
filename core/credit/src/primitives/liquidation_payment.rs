@@ -2,7 +2,7 @@ use rust_decimal::{Decimal, RoundingStrategy};
 
 use crate::primitives::CVLPct;
 use core_price::PriceOfOneBTC;
-use old_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 
 pub struct LiquidationPayment;
 
@@ -35,7 +35,7 @@ impl LiquidationPayment {
 #[cfg(test)]
 mod test {
     use core_price::PriceOfOneBTC;
-    use old_money::{Satoshis, UsdCents};
+    use money::{Satoshis, UsdCents};
 
     use crate::{CVLPct, LiquidationPayment};
 

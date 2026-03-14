@@ -2,7 +2,7 @@ use rust_decimal::RoundingStrategy;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-use old_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]

@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use core_credit::*;
 use helpers::event::expect_event;
-use old_money::UsdCents;
+use money::UsdCents;
 
 /// `FacilityProposalCreated` is published when a new credit facility proposal
 /// is created via `CoreCredit::create_facility_proposal()`.

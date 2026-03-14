@@ -1,6 +1,6 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use handlebars::Handlebars;
-use old_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use url::Url;

@@ -20,7 +20,7 @@ core-deposit = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 domain-config = { workspace = true }
-old-money = { workspace = true }
+money = { workspace = true }
 governance = { workspace = true }
 core-custody = { workspace = true }
 

@@ -41,7 +41,7 @@ es_entity::entity_id! {
     WithdrawalId => ApprovalProcessId
 }
 
-pub use old_money::UsdCents;
+pub use money::UsdCents;
 
 #[derive(
     Debug,

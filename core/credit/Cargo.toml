@@ -11,7 +11,7 @@ json-schema = [
     "dep:schemars",
     "cala-ledger/json-schema",
     "es-entity/json-schema",
-    "old-money/json-schema",
+    "money/json-schema",
     "job/json-schema",
     "core-price/json-schema",
     "public-id/json-schema",
@@ -22,7 +22,7 @@ json-schema = [
 mock-custodian = ["core-custody/mock-custodian"]
 
 [dependencies]
-old-money = { workspace = true, features = ["sqlx"] }
+money = { workspace = true, features = ["sqlx"] }
 permission-sets-macro = { workspace = true }
 core-price = { workspace = true }
 core-customer = { workspace = true }

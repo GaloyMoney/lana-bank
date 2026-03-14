@@ -7,7 +7,7 @@ use core_credit_collection::{
     PaymentSourceAccountId,
 };
 use helpers::event::{DummyEvent, expect_event};
-use old_money::UsdCents;
+use money::UsdCents;
 
 /// `PaymentCreated` is published when a payment is recorded.
 ///

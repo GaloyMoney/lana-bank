@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 
 use core_credit_collateral::CollateralId;
-use old_money::UsdCents;
+use money::UsdCents;
 
 pub use crate::credit_facility::{FacilityCollateralization, LiquidationTrigger};
 use crate::{

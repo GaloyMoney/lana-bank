@@ -12,7 +12,7 @@ pub const OBLIGATION_SYNC: audit::SystemActor = audit::SystemActor::new("obligat
 
 pub use cala_ledger::primitives::{AccountId as CalaAccountId, TransactionId as LedgerTxId};
 pub use core_credit_terms::EffectiveDate;
-pub use old_money::*;
+pub use money::*;
 
 es_entity::entity_id! {
     BeneficiaryId,

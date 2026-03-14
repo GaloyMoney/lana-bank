@@ -12,7 +12,7 @@ use cala_ledger::{
 };
 use chart_primitives::EntityRef;
 use es_entity::clock::ClockHandle;
-use old_money::Satoshis;
+use money::Satoshis;
 
 pub use accounts::{
     CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,

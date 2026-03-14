@@ -8,7 +8,7 @@ use core_credit_collection::PaymentId;
 use core_custody::WalletId as CustodyWalletId;
 use core_price::PriceOfOneBTC;
 use es_entity::*;
-use old_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 
 use crate::{
     CalaAccountId, CollateralDirection, CollateralId, CollateralUpdate, Liquidation, LiquidationId,

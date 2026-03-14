@@ -10,7 +10,7 @@ use core_credit_collection::{
 use core_credit_terms::EffectiveDate;
 use es_entity::DbOp;
 use helpers::event::{DummyEvent, expect_event};
-use old_money::UsdCents;
+use money::UsdCents;
 
 use helpers::TestContext;
 

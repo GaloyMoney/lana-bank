@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 pub use cala_ledger::{AccountId as CalaAccountId, TransactionId as CalaTransactionId};
-use old_money::Satoshis;
+use money::Satoshis;
 
 es_entity::entity_id! {
     CollateralId,

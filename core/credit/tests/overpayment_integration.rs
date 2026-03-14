@@ -6,7 +6,7 @@ use core_credit::*;
 use core_credit_collection::{CollectionLedgerError, PaymentError};
 
 use core_credit::error::CoreCreditError;
-use old_money::UsdCents;
+use money::UsdCents;
 
 /// Test that attempting to pay more than the outstanding obligations returns
 /// the `PaymentAmountGreaterThanOutstandingObligations` error.
