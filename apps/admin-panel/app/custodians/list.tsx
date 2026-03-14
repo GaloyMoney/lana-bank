@@ -135,6 +135,7 @@ const columns = (
             e.stopPropagation()
             onUpdateConfig(record)
           }}
+          data-testid="custodian-update-config-button"
         >
           {tUpdate("buttons.update")}
         </Button>
