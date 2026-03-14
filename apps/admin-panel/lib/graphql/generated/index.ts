@@ -3640,19 +3640,8 @@ export type TermsTemplateEventHistoryArgs = {
 };
 
 export type TermsTemplateCreateInput = {
-  accrualCycleInterval: InterestInterval;
-  accrualInterval: InterestInterval;
-  annualRate: Scalars['AnnualRatePct']['input'];
-  disbursalPolicy: DisbursalPolicy;
-  duration: DurationInput;
-  initialCvl: Scalars['CVLPctValue']['input'];
-  interestDueDurationFromAccrual: DurationInput;
-  liquidationCvl: Scalars['CVLPctValue']['input'];
-  marginCallCvl: Scalars['CVLPctValue']['input'];
   name: Scalars['String']['input'];
-  obligationLiquidationDurationFromDue: DurationInput;
-  obligationOverdueDurationFromDue: DurationInput;
-  oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
+  terms: TermsInput;
 };
 
 export type TermsTemplateCreatePayload = {
@@ -3661,18 +3650,7 @@ export type TermsTemplateCreatePayload = {
 };
 
 export type TermsTemplateUpdateInput = {
-  accrualCycleInterval: InterestInterval;
-  accrualInterval: InterestInterval;
-  annualRate: Scalars['AnnualRatePct']['input'];
-  disbursalPolicy: DisbursalPolicy;
-  duration: DurationInput;
-  initialCvl: Scalars['CVLPctValue']['input'];
-  interestDueDurationFromAccrual: DurationInput;
-  liquidationCvl: Scalars['CVLPctValue']['input'];
-  marginCallCvl: Scalars['CVLPctValue']['input'];
-  obligationLiquidationDurationFromDue: DurationInput;
-  obligationOverdueDurationFromDue: DurationInput;
-  oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
+  terms: TermsInput;
   termsTemplateId: Scalars['UUID']['input'];
 };
 

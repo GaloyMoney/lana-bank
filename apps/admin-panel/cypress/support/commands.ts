@@ -231,30 +231,7 @@ Cypress.Commands.add(
       .graphqlRequest<TermsTemplateResponse>(mutation, {
         input: {
           name: input.name,
-          annualRate: input.annualRate,
-          accrualCycleInterval: input.accrualCycleInterval,
-          accrualInterval: input.accrualInterval,
-          duration: {
-            period: input.duration.period,
-            units: input.duration.units,
-          },
-          interestDueDurationFromAccrual: {
-            period: input.interestDueDurationFromAccrual.period,
-            units: input.interestDueDurationFromAccrual.units,
-          },
-          obligationOverdueDurationFromDue: {
-            period: input.obligationOverdueDurationFromDue.period,
-            units: input.obligationOverdueDurationFromDue.units,
-          },
-          obligationLiquidationDurationFromDue: {
-            period: input.obligationLiquidationDurationFromDue.period,
-            units: input.obligationLiquidationDurationFromDue.units,
-          },
-          liquidationCvl: input.liquidationCvl,
-          marginCallCvl: input.marginCallCvl,
-          initialCvl: input.initialCvl,
-          oneTimeFeeRate: input.oneTimeFeeRate,
-          disbursalPolicy: input.disbursalPolicy,
+          terms: input.terms,
         },
       })
       .then((response) => response.data.termsTemplateCreate.termsTemplate.termsTemplateId)
