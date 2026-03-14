@@ -31,8 +31,7 @@ checksums:
     Common/copyId: b05ed1f0745e7f8ce758658681f61707
     Common/formatRule/noRulesDefined: c2fa3d9395c5cc7c85dde610f5b5b0aa
     Common/formatRule/allMembersMustApprove: c828e90335daa1fb324ee374d0b3936b
-    Common/formatRule/systemAutoApproval: 7080937d79641fb6d9d8c30b5b2f0f38
-    Common/formatRule/systemManualApproval: 87122f4fd41b9c9dd4389fe733711996
+    Common/formatRule/autoApproval: 1530b34dc2a1e5759def441c686cbb7d
     Common/formatRule/unknownRuleType: 928526b3cbf6d0b248366853dd1893dc
     Common/formatProcessType/creditFacilityProposal: 062cd96fc0ef418286ef0edddf72b3e7
     Common/formatProcessType/withdrawal: 90991ef39c923572c15cac977346ee77
@@ -122,8 +121,8 @@ checksums:
     Configurations/sumsub-kyc-flow-name/description: 0c7b6fc98ad0173d78299bb5240756f1
     Configurations/sumsub-kyb-flow-name/title: 2276544d137de16a2dc19ed4747bc1de
     Configurations/sumsub-kyb-flow-name/description: 1ab1a3f640cab64eca47b33deba920d9
-    Configurations/allow-system-auto-approval/title: 46f81f637f5785adbb9dfa8753420c00
-    Configurations/allow-system-auto-approval/description: e46d2e6dbd649c9f4fcf059ebce011d5
+    Configurations/allow-auto-approval/title: 646305a9eace8c28af1829a826ad3843
+    Configurations/allow-auto-approval/description: 85f9cbbce57f58f832b44e9c6ab7617e
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675

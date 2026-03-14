@@ -248,7 +248,7 @@ impl NewApprovalProcess {
 
 impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
     fn into_events(self) -> EntityEvents<ApprovalProcessEvent> {
-        let auto_approve = matches!(self.rules, ApprovalRules::SystemAutoApprove);
+        let auto_approve = matches!(self.rules, ApprovalRules::AutoApprove);
         let mut events = vec![ApprovalProcessEvent::Initialized {
             id: self.id,
             policy_id: self.policy_id,
@@ -269,7 +269,7 @@ mod tests {
 
     fn init_events(rules: ApprovalRules) -> EntityEvents<ApprovalProcessEvent> {
         let id = ApprovalProcessId::new();
-        let auto_approve = matches!(rules, ApprovalRules::SystemAutoApprove);
+        let auto_approve = matches!(rules, ApprovalRules::AutoApprove);
         let mut events = vec![ApprovalProcessEvent::Initialized {
             id,
             policy_id: PolicyId::new(),
@@ -324,9 +324,8 @@ mod tests {
 
     #[test]
     fn approve_already_concluded() {
-        let mut process =
-            ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
-                .expect("Could not build approval process");
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::AutoApprove))
+            .expect("Could not build approval process");
         assert_eq!(process.status(), ApprovalProcessStatus::Approved);
         let approver = CommitteeMemberId::new();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
@@ -392,9 +391,8 @@ mod tests {
 
     #[test]
     fn deny_already_concluded() {
-        let mut process =
-            ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
-                .expect("Could not build approval process");
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::AutoApprove))
+            .expect("Could not build approval process");
         assert_eq!(process.status(), ApprovalProcessStatus::Approved);
         let denier = CommitteeMemberId::new();
         let eligible: HashSet<_> = [denier].iter().copied().collect();

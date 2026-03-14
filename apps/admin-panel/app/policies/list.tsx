@@ -29,8 +29,8 @@ gql`
                 name
               }
             }
-            ... on SystemApproval {
-              autoApprove
+            ... on AutoApproval {
+              __typename
             }
           }
         }
@@ -88,7 +88,7 @@ const columns = (
       if (rules.__typename === "CommitteeApproval") {
         return t("rules.committeeThreshold", { committeeName: rules.committee.name })
       }
-      if (rules.__typename === "SystemApproval") {
+      if (rules.__typename === "AutoApproval") {
         return <span className="text-textColor-secondary">{t("rules.autoApprove")}</span>
       }
       return ""

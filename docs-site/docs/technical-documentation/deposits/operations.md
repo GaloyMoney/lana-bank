@@ -78,7 +78,7 @@ stateDiagram-v2
 - The customer's settled balance decreases immediately, preventing the funds from being used for other operations.
 
 **2. Approval** - The governance system processes the withdrawal according to the configured policy:
-- If the policy is `SystemAutoApprove`, the withdrawal is approved instantly.
+- If the policy is `AutoApprove`, the withdrawal is approved instantly.
 - If the policy uses `CommitteeThreshold`, committee members must vote to approve or deny.
 - A single denial from any committee member immediately rejects the withdrawal.
 - This step happens asynchronously via the event-driven job system.

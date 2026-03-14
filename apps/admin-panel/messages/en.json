@@ -31,8 +31,7 @@
     "formatRule": {
       "noRulesDefined": "No rules defined",
       "allMembersMustApprove": "All members must approve",
-      "systemAutoApproval": "System Auto Approval",
-      "systemManualApproval": "System Manual Approval",
+      "autoApproval": "Auto Approval",
       "unknownRuleType": "Unknown rule type"
     },
     "formatProcessType": {
@@ -167,9 +166,9 @@
       "title": "SumSub KYB Flow Name",
       "description": "Name of the SumSub flow used for KYB verification."
     },
-    "allow-system-auto-approval": {
-      "title": "Allow system auto-approval",
-      "description": "When enabled, policies with automatic system approval can be created or updated. When disabled, all policies must use committee approval."
+    "allow-auto-approval": {
+      "title": "Allow auto-approval",
+      "description": "When enabled, policies with automatic approval can be created or updated. When disabled, all policies must use committee approval."
     }
   },
   "interestInterval": {

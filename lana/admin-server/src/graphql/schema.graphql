@@ -152,7 +152,7 @@ type ApprovalProcessVoter {
 	votedAt: Timestamp
 }
 
-union ApprovalRules = SystemApproval | CommitteeApproval
+union ApprovalRules = AutoApproval | CommitteeApproval
 
 type AuditEntry {
 	action: String!
@@ -198,6 +198,13 @@ scalar AuditEntryId
 union AuditSubject = User | System
 
 scalar AuditSubjectId
+
+type AutoApproval {
+	"""
+	Placeholder field — the type name itself indicates auto-approval.
+	"""
+	autoApprove: Boolean!
+}
 
 type BalanceSheet {
 	assetsBalance: LedgerAccountBalanceByCurrency!
@@ -2799,10 +2806,6 @@ type Subscription {
 
 type System {
 	actor: String!
-}
-
-type SystemApproval {
-	autoApprove: Boolean!
 }
 
 type TermValues {

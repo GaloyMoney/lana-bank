@@ -32,7 +32,7 @@ pub enum GovernanceError {
     #[error("GovernanceError - SubjectIsNotCommitteeMember")]
     SubjectIsNotCommitteeMember,
     #[error(
-        "GovernanceError - DefaultCommitteeNotFound: the default committee must be bootstrapped before policies can be created when AllowSystemAutoApproval is disabled"
+        "GovernanceError - DefaultCommitteeNotFound: the default committee must be bootstrapped before policies can be created when AllowAutoApproval is disabled"
     )]
     DefaultCommitteeNotFound,
 }

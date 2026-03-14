@@ -9,7 +9,7 @@ use crate::primitives::CommitteeId;
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ApprovalRules {
     #[default]
-    SystemAutoApprove,
+    AutoApprove,
     Committee {
         committee_id: CommitteeId,
     },
@@ -19,7 +19,7 @@ impl ApprovalRules {
     pub fn committee_id(&self) -> Option<CommitteeId> {
         match self {
             ApprovalRules::Committee { committee_id } => Some(*committee_id),
-            ApprovalRules::SystemAutoApprove => None,
+            ApprovalRules::AutoApprove => None,
         }
     }
 
@@ -33,7 +33,7 @@ impl ApprovalRules {
             return Some(false);
         }
         match self {
-            ApprovalRules::SystemAutoApprove => Some(true),
+            ApprovalRules::AutoApprove => Some(true),
             ApprovalRules::Committee { .. } if eligible_members.is_empty() => Some(false),
             ApprovalRules::Committee { .. }
                 if eligible_members.intersection(approving_members).count()
@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn test_automatic() {
-        let rules = ApprovalRules::SystemAutoApprove;
+        let rules = ApprovalRules::AutoApprove;
 
         assert_eq!(
             rules.is_approved_or_denied(&make_set(&[1, 2, 3]), &HashSet::new(), &HashSet::new()),

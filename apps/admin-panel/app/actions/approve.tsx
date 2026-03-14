@@ -46,8 +46,8 @@ gql`
           }
         }
       }
-      ... on SystemApproval {
-        autoApprove
+      ... on AutoApproval {
+        __typename
       }
     }
     voters {

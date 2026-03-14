@@ -21,7 +21,7 @@ pub enum PolicyError {
     #[error("PolicyError - DuplicateApprovalProcessType")]
     DuplicateApprovalProcessType,
     #[error(
-        "PolicyError - AutoApproveNotAllowed: cannot create or update policy with SystemAutoApprove when AllowSystemAutoApproval is disabled"
+        "PolicyError - AutoApproveNotAllowed: cannot create or update policy with AutoApprove when AllowAutoApproval is disabled"
     )]
     AutoApproveNotAllowed,
 }

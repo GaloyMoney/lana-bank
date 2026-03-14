@@ -43,7 +43,7 @@ Three operation types are governed by the approval system:
 | **Disbursal** | `disbursal` | Operator creates a disbursal | Disbursal is settled, funds credited | Disbursal is cancelled, no funds released |
 | **Withdrawal** | `withdraw` | Operator initiates a withdrawal | Withdrawal proceeds to confirmation | Withdrawal is denied, held funds restored |
 
-Each operation type has exactly one policy. By default, all policies start with `SystemAutoApprove` rules, meaning operations are approved instantly without human intervention. An administrator can then assign a committee and threshold to any policy, switching it to require manual approval.
+Each operation type has exactly one policy. By default, all policies start with `AutoApprove` rules, meaning operations are approved instantly without human intervention. An administrator can then assign a committee and threshold to any policy, switching it to require manual approval.
 
 ## Approval Rules
 
@@ -51,7 +51,7 @@ The rules determine how an approval process reaches its conclusion. There are tw
 
 ### System Auto-Approve
 
-The default mode for all policies. When an approval process is created under a `SystemAutoApprove` policy, it concludes immediately with an approved result. No human intervention is needed.
+The default mode for all policies. When an approval process is created under a `AutoApprove` policy, it concludes immediately with an approved result. No human intervention is needed.
 
 This is appropriate for low-risk operations or during initial system setup before governance committees are configured.
 

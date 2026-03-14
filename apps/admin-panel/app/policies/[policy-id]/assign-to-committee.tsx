@@ -41,8 +41,8 @@ gql`
               ...CommitteeFields
             }
           }
-          ... on SystemApproval {
-            autoApprove
+          ... on AutoApproval {
+            __typename
           }
         }
       }

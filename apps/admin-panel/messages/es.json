@@ -31,8 +31,7 @@
     "formatRule": {
       "noRulesDefined": "No hay reglas definidas",
       "allMembersMustApprove": "Todos los miembros deben aprobar",
-      "systemAutoApproval": "Aprobación automática del sistema",
-      "systemManualApproval": "Aprobación manual del sistema",
+      "autoApproval": "Aprobación automática",
       "unknownRuleType": "Tipo de regla desconocido"
     },
     "formatProcessType": {
@@ -167,9 +166,9 @@
       "title": "Nombre del flujo KYB de SumSub",
       "description": "Nombre del flujo de SumSub utilizado para la verificación KYB."
     },
-    "allow-system-auto-approval": {
-      "title": "Permitir aprobación automática del sistema",
-      "description": "Cuando está habilitado, se pueden crear o actualizar políticas con aprobación automática del sistema. Cuando está deshabilitado, todas las políticas deben utilizar aprobación por comité."
+    "allow-auto-approval": {
+      "title": "Permitir aprobación automática",
+      "description": "Cuando está habilitado, se pueden crear o actualizar políticas con aprobación automática. Cuando está deshabilitado, todas las políticas deben usar aprobación por comité."
     }
   },
   "interestInterval": {

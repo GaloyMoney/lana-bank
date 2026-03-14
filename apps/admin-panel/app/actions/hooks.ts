@@ -31,8 +31,8 @@ export const useRuleLabel = () => {
     switch (__typename) {
       case "CommitteeApproval":
         return t("allMembersMustApprove")
-      case "SystemApproval":
-        return rule.autoApprove ? t("systemAutoApproval") : t("systemManualApproval")
+      case "AutoApproval":
+        return t("autoApproval")
       default: {
         const exhaustiveCheck: never = __typename
         return exhaustiveCheck

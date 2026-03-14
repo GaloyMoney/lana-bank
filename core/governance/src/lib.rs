@@ -165,7 +165,7 @@ where
     ) -> Result<bool, GovernanceError> {
         if let Some(domain_configs) = &self.domain_configs {
             let allow_auto_approval = domain_configs
-                .get_without_audit_in_op::<AllowSystemAutoApproval>(op)
+                .get_without_audit_in_op::<AllowAutoApproval>(op)
                 .await?
                 .value();
             return Ok(allow_auto_approval);
