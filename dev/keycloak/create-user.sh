@@ -6,3 +6,9 @@ USER_ID=$(
   | awk -F/ '/^Location: /{print $NF}' | tr -d "\r"
 )
 echo "New user id: $USER_ID"
+
+curl -s -X PUT "$KC_BASE/admin/realms/$KC_REALM/users/$USER_ID/reset-password" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"password","value":"password","temporary":false}'
+echo "Password set for user $USER_ID"

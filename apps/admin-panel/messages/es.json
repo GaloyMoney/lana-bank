@@ -2228,12 +2228,18 @@
         "title": "Aprobar Proceso",
         "fields": {
           "processType": "Tipo de Proceso",
-          "createdAt": "Fecha de registro"
+          "createdAt": "Fecha de registro",
+          "passwordLabel": "Contraseña"
+        },
+        "placeholders": {
+          "password": "Ingrese su contraseña para confirmar"
         },
         "buttons": {
           "approve": "Aprobar"
         },
         "errors": {
+          "passwordRequired": "La contraseña es obligatoria",
+          "invalidPassword": "Contraseña inválida",
           "unknown": "Ocurrió un error desconocido"
         },
         "success": {
@@ -2245,16 +2251,20 @@
         "fields": {
           "processType": "Tipo de Proceso",
           "createdAt": "Fecha de registro",
-          "reasonLabel": "Razón del Rechazo"
+          "reasonLabel": "Razón del Rechazo",
+          "passwordLabel": "Contraseña"
         },
         "placeholders": {
-          "reason": "Por favor proporcione un motivo para rechazar este proceso"
+          "reason": "Por favor proporcione un motivo para rechazar este proceso",
+          "password": "Ingrese su contraseña para confirmar"
         },
         "buttons": {
           "deny": "Rechazar"
         },
         "errors": {
           "reasonRequired": "Por favor proporcione un motivo para el rechazo",
+          "passwordRequired": "La contraseña es obligatoria",
+          "invalidPassword": "Contraseña inválida",
           "unknown": "Ocurrió un error desconocido"
         },
         "success": {
