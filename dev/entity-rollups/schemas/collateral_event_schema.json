@@ -87,6 +87,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "manual_custody": {
+          "default": false,
+          "type": "boolean"
+        },
         "secured_loan_id": {
           "format": "uuid",
           "type": "string"

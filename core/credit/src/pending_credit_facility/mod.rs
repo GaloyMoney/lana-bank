@@ -193,7 +193,7 @@ where
                     self.custody.ensure_mock_custodian_in_op(db).await?;
                 }
 
-                let wallet = self
+                let result = self
                     .custody
                     .create_wallet_in_op(
                         db,
@@ -202,7 +202,7 @@ where
                     )
                     .await?;
 
-                let wallet_id = wallet.map(|w| w.id);
+                let wallet_id = result.wallet.as_ref().map(|w| w.id);
 
                 self.collaterals
                     .create_in_op(
@@ -210,6 +210,7 @@ where
                         new_pending_facility.collateral_id,
                         new_pending_facility.id.into(),
                         wallet_id,
+                        result.is_manual,
                         CollateralLedgerAccountIds::new(),
                         new_pending_facility.account_ids.into(),
                     )
