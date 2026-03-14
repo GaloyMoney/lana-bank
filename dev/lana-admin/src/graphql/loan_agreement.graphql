@@ -6,8 +6,8 @@ query FindLoanAgreement($id: UUID!) {
   }
 }
 
-mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
-  loanAgreementGenerate(input: $input) {
+mutation CreditFacilityAgreementGenerate($input: CreditFacilityAgreementGenerateInput!) {
+  creditFacilityAgreementGenerate(input: $input) {
     loanAgreement {
       loanAgreementId
       status

@@ -190,7 +190,9 @@ fn lookup_query(path: &[&str]) -> Option<QuerySpec> {
         }
 
         ["credit", "loan-agreement", "find"] => q("FindLoanAgreement", LOAN_AGREEMENT_DOC),
-        ["credit", "loan-agreement", "generate"] => q("LoanAgreementGenerate", LOAN_AGREEMENT_DOC),
+        ["credit", "loan-agreement", "generate"] => {
+            q("CreditFacilityAgreementGenerate", LOAN_AGREEMENT_DOC)
+        }
         ["credit", "loan-agreement", "download-link"] => {
             q("LoanAgreementDownloadLinkGenerate", LOAN_AGREEMENT_DOC)
         }
