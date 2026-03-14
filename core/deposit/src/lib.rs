@@ -232,6 +232,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + Copy + std::fmt::Debug,
+        currency: impl Into<String> + std::fmt::Debug,
     ) -> Result<DepositAccount, CoreDepositError> {
         self.authz
             .enforce_permission(
@@ -263,6 +264,7 @@ where
             .account_holder_id(holder_id)
             .account_ids(account_ids)
             .public_id(public_id.id)
+            .currency(currency)
             .build()
             .expect("Could not build new account");
 

@@ -13,6 +13,7 @@ use crate::{
 pub struct PublicDepositAccount {
     pub id: DepositAccountId,
     pub account_holder_id: DepositAccountHolderId,
+    pub currency: String,
 }
 
 impl From<&DepositAccount> for PublicDepositAccount {
@@ -20,6 +21,7 @@ impl From<&DepositAccount> for PublicDepositAccount {
         PublicDepositAccount {
             id: entity.id,
             account_holder_id: entity.account_holder_id,
+            currency: entity.currency.clone(),
         }
     }
 }
