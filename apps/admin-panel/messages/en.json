@@ -3109,6 +3109,11 @@
     "buildTarget": "Build Target",
     "enabledFeatures": "Enabled Features",
     "loading": "Loading...",
-    "unavailable": "Unable to fetch server info"
+    "unavailable": "Unable to fetch server info",
+    "serverTime": "Server Time",
+    "currentTime": "Current Time",
+    "timeMode": "Time Mode",
+    "realtime": "Realtime",
+    "artificial": "Artificial"
   }
 }

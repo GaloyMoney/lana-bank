@@ -2550,6 +2550,7 @@ type Query {
 	reportRuns(after: String, first: Int!, sort: ReportRunsSort = {by: START_TIME, direction: DESC}): ReportRunConnection!
 	role(id: UUID!): Role
 	roles(after: String, first: Int!, sort: RolesSort = {by: CREATED_AT, direction: DESC}): RoleConnection!
+	serverTime: ServerTime!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	transactionTemplates(after: String, first: Int!): TransactionTemplateConnection!
@@ -2773,6 +2774,11 @@ enum SelfCustodyNetwork {
 	SIGNET
 	TESTNET3
 	TESTNET4
+}
+
+type ServerTime {
+	currentTime: Timestamp!
+	isArtificial: Boolean!
 }
 
 scalar SignedSatoshis

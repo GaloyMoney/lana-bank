@@ -47,6 +47,7 @@ use error::ApplicationError;
 #[derive(Clone)]
 pub struct LanaApp {
     _pool: PgPool,
+    clock: es_entity::clock::ClockHandle,
     exposed_domain_configs: ExposedDomainConfigs<Authorization>,
     jobs: Jobs,
     audit: Audit,
@@ -285,6 +286,7 @@ impl LanaApp {
 
         Ok(Self {
             _pool: pool,
+            clock,
             exposed_domain_configs,
             jobs,
             audit,
@@ -310,6 +312,10 @@ impl LanaApp {
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,
         })
+    }
+
+    pub fn clock(&self) -> &es_entity::clock::ClockHandle {
+        &self.clock
     }
 
     pub fn dashboard(&self) -> &Dashboard {
