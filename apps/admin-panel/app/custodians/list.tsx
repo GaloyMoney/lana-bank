@@ -124,10 +124,10 @@ const columns = (
     sortable: true,
   },
   {
-    key: "isManual",
+    key: "id",
     label: "",
-    render: (isManual, record) =>
-      !isManual ? (
+    render: (_id, record) =>
+      !record.isManual ? (
         <Button
           variant="outline"
           size="sm"
