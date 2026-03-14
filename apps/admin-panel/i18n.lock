@@ -1156,6 +1156,10 @@ checksums:
     Custodians/create/buttons/create: a8e359b8fcfb691a7c1bf2eb7129938b
     Custodians/create/success: a6348d2405bc7dfa8597367278236a8b
     Custodians/create/errors/failed: 1765dc3618214436855b4af47c0af4a0
+    Custodians/updateConfig/title: 6835c22deb1c8c5be5169e1e1909ee36
+    Custodians/updateConfig/description: 9112987b73c86ffb2509087a02dc47df
+    Custodians/updateConfig/buttons/update: 4faf748015eaf8ff2134b6ea3a1110ed
+    Custodians/updateConfig/success: c13e4d98dae773c0d4da64dfc2ab6048
     DepositAccounts/title: 152a03fb9acdc8943bb3c0d0d8d93ae5
     DepositAccounts/description: 6c02daebe9aff13d8acaf0271a35950a
     DepositAccounts/table/headers/depositAccountId: e795343893c6a1e18fba01dcabfcf920
