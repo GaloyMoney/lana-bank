@@ -30,7 +30,7 @@ jobs:
       - name: Run docs translation
         env:
           LINGODOTDEV_API_KEY: ${{ secrets.LINGODOTDEV_API_KEY }}
-        run: bash docs-site/scripts/translate-docs.sh --full-run
+        run: bash docs-site/scripts/translate-docs.sh
 
       - name: Commit translations
         run: |
