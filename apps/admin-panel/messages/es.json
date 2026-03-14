@@ -3110,10 +3110,10 @@
     "enabledFeatures": "Funciones Habilitadas",
     "loading": "Cargando...",
     "unavailable": "No se pudo obtener la información del servidor",
-    "serverTime": "",
-    "currentTime": "",
-    "timeMode": "",
-    "realtime": "",
-    "artificial": ""
+    "serverTime": "Hora del servidor",
+    "currentTime": "Hora actual",
+    "timeMode": "Modo de hora",
+    "realtime": "Tiempo real",
+    "artificial": "Artificial"
   }
 }
