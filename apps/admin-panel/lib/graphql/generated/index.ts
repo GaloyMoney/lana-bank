@@ -26,6 +26,7 @@ export type Scalars = {
   AuditEntryId: { input: any; output: any; }
   AuditSubjectId: { input: string; output: string; }
   CVLPctValue: { input: any; output: any; }
+  CurrencyCode: { input: any; output: any; }
   /** An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represents a business date; timezone-naive by design. */
   Date: { input: string; output: string; }
   Decimal: { input: any; output: any; }
@@ -1341,6 +1342,7 @@ export type DepositAccount = {
   activity: Activity;
   balance: DepositAccountBalance;
   createdAt: Scalars['Timestamp']['output'];
+  currency: Scalars['CurrencyCode']['output'];
   customer: Customer;
   customerId: Scalars['UUID']['output'];
   depositAccountId: Scalars['UUID']['output'];

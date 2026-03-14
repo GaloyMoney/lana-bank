@@ -980,6 +980,8 @@ type CreditModuleConfigurePayload {
 	creditConfig: CreditModuleConfig!
 }
 
+scalar CurrencyCode
+
 type Custodian {
 	createdAt: Timestamp!
 	custodianId: UUID!
@@ -1258,6 +1260,7 @@ type DepositAccount {
 	activity: Activity!
 	balance: DepositAccountBalance!
 	createdAt: Timestamp!
+	currency: CurrencyCode!
 	customer: Customer!
 	customerId: UUID!
 	depositAccountId: UUID!

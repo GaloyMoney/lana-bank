@@ -1760,7 +1760,7 @@ impl Mutation {
             DepositAccountCreatePayload,
             DepositAccount,
             ctx,
-            app.deposits().create_account(sub, input.customer_id)
+            app.deposits().create_account(sub, input.customer_id, "USD")
         )
     }
 

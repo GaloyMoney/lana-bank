@@ -1641,6 +1641,7 @@ export const mockDepositAccount = (overrides?: Partial<DepositAccount>, _relatio
         activity: overrides && overrides.hasOwnProperty('activity') ? overrides.activity! : Activity.Active,
         balance: overrides && overrides.hasOwnProperty('balance') ? overrides.balance! : relationshipsToOmit.has('DepositAccountBalance') ? {} as DepositAccountBalance : mockDepositAccountBalance({}, relationshipsToOmit),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        currency: overrides && overrides.hasOwnProperty('currency') ? overrides.currency! : faker.lorem.word(),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
         customerId: overrides && overrides.hasOwnProperty('customerId') ? overrides.customerId! : generateMockValue.uuid(),
         depositAccountId: overrides && overrides.hasOwnProperty('depositAccountId') ? overrides.depositAccountId! : generateMockValue.uuid(),
