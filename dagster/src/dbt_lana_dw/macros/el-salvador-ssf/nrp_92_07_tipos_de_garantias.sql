@@ -1,4 +1,4 @@
-{% macro npb4_17_09_tipos_de_garantias(key) %}
+{% macro nrp_92_07_tipos_de_garantias(key) %}
 {{ return({
 	"Hipoteca abierta": "HA",
 	"Hipoteca cerrada": "HC",
@@ -11,8 +11,9 @@
 	"Avales": "AV",
 	"Bonos de prenda": "BP",
 	"Prenda de documentos": "PD",
-	"Valores de rescate de seguros de vida": "VR",
-	"Póliza de seguro": "PO",
 	"Prenda sobre valores de renta fija": "PV",
+	"Prenda sobre Criptomonedas": "PC",
+	"Prenda sobre Stablecoins": "ST",
+	"Prenda Activos de Fácil Liquidación": "AF",
 }.get(key)) }}
 {% endmacro %}

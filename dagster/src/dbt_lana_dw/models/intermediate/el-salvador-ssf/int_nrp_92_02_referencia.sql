@@ -88,8 +88,9 @@ select
     disbursement_public_ids.id as disbursal_id,
     disbursement_public_ids.id as reference_id,
     customer_public_ids.id as `documento_deudor`,
+    -- NRP-92 Tabla 1: these loans belong to the bank's own portfolio.
     '01' as `cod_cartera`,
-    '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
+    '{{ nrp_92_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
     disbursement_public_ids.id as `num_referencia`,
     loan_amount_usd as `monto_referencia`,
     remaining_balance_usd,
@@ -111,11 +112,11 @@ select
     interest_overdue_date as `fecha_inicio_mora_i`,
     case
         when accrual_cycle_interval = 'end_of_month'
-        then '{{ npb4_17_08_formas_de_pago("Anual") }}'
+        then '{{ nrp_92_06_formas_de_pago("Anual") }}'
     end as `pago_capital`,
     case
         when accrual_cycle_interval = 'end_of_month'
-        then '{{ npb4_17_08_formas_de_pago("Mensual") }}'
+        then '{{ nrp_92_06_formas_de_pago("Mensual") }}'
     end as `pago_interes`,
     cast(null as int64) as `periodo_gracia_k`,
     cast(null as int64) as `periodo_gracia_i`,
@@ -148,7 +149,7 @@ select
     -- "A" for adjustable, "F" for fixed
     'F' as `tipo_tasa_interes`,
 
-    '{{ npb4_17_18_tipos_de_prestamos("Crédito decreciente") }}' as `tipo_prestamo`,
+    '{{ nrp_92_12_tipos_de_prestamos("Crédito decreciente") }}' as `tipo_prestamo`,
     '{{ npb4_17_21_fuentes_de_recursos("Recursos propios de la entidad") }}'
     as `codigo_recurso`,
     cast(null as date) as `ultima_fecha_venc`,

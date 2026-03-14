@@ -1,9 +1,10 @@
 select
     disbursement_public_ids.id as `num_referencia`,
 
+    -- NRP-92 Tabla 1: these loans belong to the bank's own portfolio.
     '01' as `cod_cartera`,
 
-    '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
+    '{{ nrp_92_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
 
     disbursement_public_ids.id as `identificacion_garantia`,
 

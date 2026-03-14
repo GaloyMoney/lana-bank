@@ -1,7 +1,7 @@
 -- TODO: business onboarding
 select
 
-    -- use NIU type (`tipo_identificador` = 'N')
+    -- use NIU type (`tipo_identificador` = 'U')
     customer_public_ids.id as `numero_documento`,
 
     upper(split(last_name, ' ')[safe_offset(0)]) as `primer_apellido`,
@@ -38,7 +38,7 @@ select
     0.0 as `reserva`,
 
     -- codified risk category assigned to the debtor depending of the status of the loan
-    '{{ npb4_17_03_tipos_de_categorias_de_riesgo("Deudores normales") }}'
+    '{{ nrp_92_03_tipos_de_categorias_de_riesgo("Deudores normales") }}'
     as `categoria_riesgo`,
 
     customer_public_ids.id as `numero_cliente`,

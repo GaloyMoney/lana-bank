@@ -13,10 +13,12 @@ with
 
 select
     disbursement_public_ids.id as `num_referencia`,
+    -- NRP-92 Tabla 1: these loans belong to the bank's own portfolio.
     '01' as `cod_cartera`,
-    '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
+    '{{ nrp_92_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
     disbursement_public_ids.id as `identificacion_garantia`,
-    'PC' as `tipo_garantia`,
+    '{{ nrp_92_07_tipos_de_garantias("Prenda sobre Criptomonedas") }}'
+    as `tipo_garantia`,
     coalesce(
         safe_divide(collateral_amount_usd, loan_amount_usd) * 100, 1
     ) as `valor_garantia_proporcional`

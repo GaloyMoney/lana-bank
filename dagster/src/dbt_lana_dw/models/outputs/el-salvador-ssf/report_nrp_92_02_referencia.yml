@@ -141,7 +141,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: ['CD', 'CR', 'NR', 'TC', 'CI', 'DI', 'CT', 'NA', 'SA', 'SO', 'CU']
+                values: ['CD', 'CR', 'NR', 'TC', 'CI', 'DI', 'CT', 'SA', 'SO', 'CU']
       - name: codigo_recurso
         description: Funding source code (Archivo 2 field 2.36).
         tests:
