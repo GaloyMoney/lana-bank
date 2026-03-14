@@ -54,6 +54,23 @@ pub struct TermsInput {
     pub liquidation_cvl: CVLPctValue,
 }
 
+pub fn build_term_values(terms: TermsInput) -> async_graphql::Result<DomainTermValues> {
+    Ok(DomainTermValues::builder()
+        .annual_rate(terms.annual_rate)
+        .accrual_interval(terms.accrual_interval)
+        .accrual_cycle_interval(terms.accrual_cycle_interval)
+        .one_time_fee_rate(terms.one_time_fee_rate)
+        .disbursal_policy(terms.disbursal_policy)
+        .duration(terms.duration)
+        .interest_due_duration_from_accrual(terms.interest_due_duration_from_accrual)
+        .obligation_overdue_duration_from_due(terms.obligation_overdue_duration_from_due)
+        .obligation_liquidation_duration_from_due(terms.obligation_liquidation_duration_from_due)
+        .liquidation_cvl(terms.liquidation_cvl)
+        .margin_call_cvl(terms.margin_call_cvl)
+        .initial_cvl(terms.initial_cvl)
+        .build()?)
+}
+
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum Period {
     Months,

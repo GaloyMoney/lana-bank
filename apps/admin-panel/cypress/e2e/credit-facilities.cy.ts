@@ -26,29 +26,31 @@ describe("credit facility", () => {
     Cypress.env("creditFacilityProposalId", null)
     cy.createTermsTemplate({
       name: termsTemplateName,
-      annualRate: "5.5",
-      accrualCycleInterval: InterestInterval.EndOfMonth,
-      accrualInterval: InterestInterval.EndOfDay,
-      oneTimeFeeRate: "5",
-      liquidationCvl: "110",
-      marginCallCvl: "120",
-      initialCvl: "140",
-      disbursalPolicy: DisbursalPolicy.MultipleDisbursal,
-      duration: {
-        units: 12 * 100,
-        period: Period.Months,
-      },
-      interestDueDurationFromAccrual: {
-        units: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.UNITS,
-        period: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.PERIOD,
-      },
-      obligationOverdueDurationFromDue: {
-        units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.UNITS,
-        period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.PERIOD,
-      },
-      obligationLiquidationDurationFromDue: {
-        period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.PERIOD,
-        units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.UNITS,
+      terms: {
+        annualRate: "5.5",
+        accrualCycleInterval: InterestInterval.EndOfMonth,
+        accrualInterval: InterestInterval.EndOfDay,
+        oneTimeFeeRate: "5",
+        liquidationCvl: "110",
+        marginCallCvl: "120",
+        initialCvl: "140",
+        disbursalPolicy: DisbursalPolicy.MultipleDisbursal,
+        duration: {
+          units: 12 * 100,
+          period: Period.Months,
+        },
+        interestDueDurationFromAccrual: {
+          units: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.UNITS,
+          period: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.PERIOD,
+        },
+        obligationOverdueDurationFromDue: {
+          units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.UNITS,
+          period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.PERIOD,
+        },
+        obligationLiquidationDurationFromDue: {
+          period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.PERIOD,
+          units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.UNITS,
+        },
       },
     }).then((id) => {
       cy.log(`Created terms template with ID: ${id}`)
