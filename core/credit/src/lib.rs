@@ -240,7 +240,6 @@ where
             ledger_arc.collateral_account_sets(),
             outbox,
             jobs,
-            domain_configs,
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);

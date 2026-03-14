@@ -151,10 +151,6 @@
       "title": "Umbral de reversión de actividad de depósitos (días)",
       "description": "Número de días sin actividad antes de que una cuenta de depósito sea clasificada como sujeta a reversión. Debe ser mayor que el umbral de inactividad."
     },
-    "allow-manual-custodian": {
-      "title": "Permitir custodio manual",
-      "description": "Cuando está habilitado, permite seleccionar un custodio manual al crear propuestas de facilidades crediticias. Destinado únicamente para fines de prueba."
-    },
     "sumsub-api-key": {
       "title": "Clave API de SumSub",
       "description": "Clave API para el servicio de verificación KYC de SumSub."

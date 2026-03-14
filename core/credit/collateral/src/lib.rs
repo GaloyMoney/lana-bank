@@ -1,4 +1,3 @@
-pub mod config;
 mod entity;
 pub mod error;
 mod jobs;
@@ -20,7 +19,6 @@ use cala_ledger::TransactionId as LedgerTxId;
 use core_credit_collection::CoreCreditCollectionEvent;
 use core_custody::{CoreCustodyEvent, WalletId as CustodyWalletId};
 use core_price::PriceOfOneBTC;
-use domain_config::ExposedDomainConfigsReadOnly;
 use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
 use money::{Satoshis, UsdCents};
@@ -33,7 +31,6 @@ use repo::CollateralRepo;
 
 use ledger::CollateralLedger;
 
-pub use config::AllowManualCustodian;
 pub use {
     entity::{Collateral, CollateralAdjustment, NewCollateral},
     ledger::{
@@ -65,7 +62,6 @@ where
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
     clock: ClockHandle,
-    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 impl<Perms, E> Clone for Collaterals<Perms, E>
@@ -82,7 +78,6 @@ where
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
             clock: self.clock.clone(),
-            domain_configs: self.domain_configs.clone(),
         }
     }
 }
@@ -109,7 +104,6 @@ where
         account_sets: ledger::CollateralAccountSets,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
-        domain_configs: &ExposedDomainConfigsReadOnly,
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
 
@@ -149,7 +143,6 @@ where
             repo,
             ledger,
             clock,
-            domain_configs: domain_configs.clone(),
         })
     }
 
@@ -277,8 +270,8 @@ where
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
-        if let es_entity::Idempotent::Executed(collateral_update) = collateral
-            .record_collateral_update_via_manual_input(updated_collateral, effective, true)?
+        if let es_entity::Idempotent::Executed(collateral_update) =
+            collateral.record_collateral_update_via_manual_input(updated_collateral, effective)?
         {
             self.repo.update_in_op(db, &mut collateral).await?;
 
@@ -305,20 +298,10 @@ where
 
         let mut db = self.repo.begin_op().await?;
 
-        let manual_custodian_allowed = self
-            .domain_configs
-            .get_without_audit_in_op::<AllowManualCustodian>(&mut db)
-            .await?
-            .value();
-
         let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
 
-        if let es_entity::Idempotent::Executed(collateral_update) = collateral
-            .record_collateral_update_via_manual_input(
-                updated_collateral,
-                effective,
-                manual_custodian_allowed,
-            )?
+        if let es_entity::Idempotent::Executed(collateral_update) =
+            collateral.record_collateral_update_via_manual_input(updated_collateral, effective)?
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;
 

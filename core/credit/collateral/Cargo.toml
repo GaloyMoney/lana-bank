@@ -20,7 +20,6 @@ core-credit-collection = { path = "../collection" }
 
 audit = { workspace = true }
 authz = { workspace = true }
-domain-config = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
 
