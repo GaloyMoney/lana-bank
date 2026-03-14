@@ -46,7 +46,7 @@ gql`
           }
         }
       }
-      ... on SystemApproval {
+      ... on AutoApproval {
         autoApprove
       }
     }

@@ -63,7 +63,7 @@ impl Policy {
         rules: ApprovalRules,
         auto_approval_allowed: bool,
     ) -> Result<Idempotent<()>, PolicyError> {
-        if matches!(rules, ApprovalRules::SystemAutoApprove) && !auto_approval_allowed {
+        if matches!(rules, ApprovalRules::AutoApprove) && !auto_approval_allowed {
             return Err(PolicyError::AutoApproveNotAllowed);
         }
 
@@ -127,7 +127,7 @@ impl NewPolicy {
         auto_approval_allowed: bool,
     ) -> Result<Self, PolicyError> {
         let rules = rules.unwrap_or_default();
-        if matches!(rules, ApprovalRules::SystemAutoApprove) && !auto_approval_allowed {
+        if matches!(rules, ApprovalRules::AutoApprove) && !auto_approval_allowed {
             return Err(PolicyError::AutoApproveNotAllowed);
         }
         Ok(Self {
@@ -166,7 +166,7 @@ mod test {
             [PolicyEvent::Initialized {
                 id: PolicyId::new(),
                 process_type: ApprovalProcessType::new("test"),
-                rules: ApprovalRules::SystemAutoApprove,
+                rules: ApprovalRules::AutoApprove,
             }],
         )
     }
@@ -183,14 +183,14 @@ mod test {
     #[test]
     fn update_rules_rejects_auto_approve_when_not_allowed() {
         let mut policy = Policy::try_from_events(init_events()).unwrap();
-        let result = policy.update_rules(ApprovalRules::SystemAutoApprove, false);
+        let result = policy.update_rules(ApprovalRules::AutoApprove, false);
         assert!(matches!(result, Err(PolicyError::AutoApproveNotAllowed)));
     }
 
     #[test]
     fn update_rules_allows_auto_approve_when_allowed() {
         let mut policy = Policy::try_from_events(init_events()).unwrap();
-        let result = policy.update_rules(ApprovalRules::SystemAutoApprove, true);
+        let result = policy.update_rules(ApprovalRules::AutoApprove, true);
         assert!(matches!(result, Ok(Idempotent::AlreadyApplied)));
     }
 

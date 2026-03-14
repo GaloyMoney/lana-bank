@@ -6,7 +6,7 @@ use lana_app::governance::{ApprovalRules as DomainApprovalRules, CommitteeId};
 
 #[derive(async_graphql::Union)]
 pub(super) enum ApprovalRules {
-    System(SystemApproval),
+    AutoApproval(AutoApproval),
     CommitteeApproval(CommitteeApproval),
 }
 
@@ -16,15 +16,15 @@ impl From<DomainApprovalRules> for ApprovalRules {
             DomainApprovalRules::Committee { committee_id } => {
                 ApprovalRules::CommitteeApproval(CommitteeApproval { committee_id })
             }
-            DomainApprovalRules::SystemAutoApprove => {
-                ApprovalRules::System(SystemApproval { auto_approve: true })
+            DomainApprovalRules::AutoApprove => {
+                ApprovalRules::AutoApproval(AutoApproval { auto_approve: true })
             }
         }
     }
 }
 
 #[derive(SimpleObject)]
-pub(super) struct SystemApproval {
+pub(super) struct AutoApproval {
     auto_approve: bool,
 }
 

@@ -5,7 +5,7 @@
         {
           "properties": {
             "type": {
-              "const": "system_auto_approve",
+              "const": "auto_approve",
               "type": "string"
             }
           },

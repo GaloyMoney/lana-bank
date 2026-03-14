@@ -55,7 +55,7 @@ mod tests {
         let new_policy = NewPolicy::builder()
             .id(PolicyId::new())
             .process_type(process_type.clone())
-            .rules(crate::ApprovalRules::SystemAutoApprove)
+            .rules(crate::ApprovalRules::AutoApprove)
             .build()
             .expect("Could not build new policy");
         repo.create(new_policy).await?;
@@ -63,7 +63,7 @@ mod tests {
         let new_policy = NewPolicy::builder()
             .id(PolicyId::new())
             .process_type(process_type)
-            .rules(crate::ApprovalRules::SystemAutoApprove)
+            .rules(crate::ApprovalRules::AutoApprove)
             .build()
             .expect("Could not build new policy");
         let res = repo.create(new_policy).await;
