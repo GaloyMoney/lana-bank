@@ -88,16 +88,16 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     },
     {
       label: t("details.custodian"),
-      value: creditFacilityDetails.wallet?.custodian.name ?? t("details.manual"),
+      value: creditFacilityDetails.wallet.custodian.name,
     },
-    creditFacilityDetails.wallet?.address && {
+    creditFacilityDetails.wallet.address && {
       label: (
         <Label className="inline-flex items-center">
           {t("details.walletAddress")}
           <a
             href={mempoolAddressUrl(
-              creditFacilityDetails.wallet!.address,
-              creditFacilityDetails.wallet!.network,
+              creditFacilityDetails.wallet.address,
+              creditFacilityDetails.wallet.network,
             )}
             target="_blank"
             className="ml-2 inline-flex items-center gap-1 text-xs text-blue-500 whitespace-nowrap leading-none"
@@ -111,7 +111,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       value: (
         <span
           onClick={() => {
-            navigator.clipboard.writeText(creditFacilityDetails.wallet!.address)
+            navigator.clipboard.writeText(creditFacilityDetails.wallet.address)
             toast.success(commonT("copiedToClipboard"))
           }}
           className="cursor-pointer hover:bg-secondary font-mono text-sm"
@@ -142,7 +142,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         <Download className="h-4 w-4 mr-2" />
         {t("buttons.loanAgreement")}
       </Button>
-      {creditFacilityDetails.userCanUpdateCollateral && (creditFacilityDetails.wallet?.custodian.provider ?? "manual") === "manual" && (
+      {creditFacilityDetails.userCanUpdateCollateral && creditFacilityDetails.wallet.custodian.provider === "manual" && (
         <Button
           variant="outline"
           data-testid="update-collateral-button"
