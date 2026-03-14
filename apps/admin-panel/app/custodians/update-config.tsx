@@ -125,7 +125,12 @@ export const UpdateCustodianConfigDialog: React.FC<UpdateCustodianConfigDialogPr
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <ProviderConfigFields type={providerType} form={form} loading={loading} />
+          <ProviderConfigFields
+            type={providerType}
+            form={form}
+            loading={loading}
+            testIdPrefix="custodian-update"
+          />
 
           {error && <div className="text-destructive text-sm">{error}</div>}
           <DialogFooter>
