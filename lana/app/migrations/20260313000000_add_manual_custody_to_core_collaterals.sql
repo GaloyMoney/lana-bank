@@ -1,1 +1,0 @@
-ALTER TABLE core_collaterals ADD COLUMN IF NOT EXISTS manual_custody BOOLEAN NOT NULL DEFAULT false;
