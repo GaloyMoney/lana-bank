@@ -17,6 +17,7 @@ pub const CONFIRM_DISBURSAL_CODE: &str = "CONFIRM_DISBURSAL";
 pub struct ConfirmDisbursalParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
+    pub currency: Currency,
     pub facility_uncovered_outstanding_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub facility_disbursed_receivable_account: CalaAccountId,
@@ -33,6 +34,11 @@ impl<S: std::fmt::Display> ConfirmDisbursalParams<S> {
             NewParamDefinition::builder()
                 .name("journal_id")
                 .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
@@ -84,6 +90,7 @@ impl<S: std::fmt::Display> From<ConfirmDisbursalParams<S>> for Params {
         ConfirmDisbursalParams {
             entity_id,
             journal_id,
+            currency,
             facility_uncovered_outstanding_account,
             credit_facility_account,
             facility_disbursed_receivable_account,
@@ -96,6 +103,7 @@ impl<S: std::fmt::Display> From<ConfirmDisbursalParams<S>> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
+        params.insert("currency", currency);
         params.insert(
             "facility_uncovered_outstanding_account",
             facility_uncovered_outstanding_account,
@@ -140,7 +148,7 @@ impl ConfirmDisbursal {
             // Reverse pending facility entries
             NewTxTemplateEntry::builder()
                 .entry_type("'CONFIRM_DISBURSAL_DRAWDOWN_PENDING_DR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.credit_facility_account")
                 .direction("DEBIT")
                 .layer("PENDING")
@@ -149,7 +157,7 @@ impl ConfirmDisbursal {
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .entry_type("'CONFIRM_DISBURSAL_DRAWDOWN_PENDING_CR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.facility_uncovered_outstanding_account")
                 .direction("CREDIT")
                 .layer("PENDING")
@@ -160,7 +168,7 @@ impl ConfirmDisbursal {
             NewTxTemplateEntry::builder()
                 .account_id("params.facility_disbursed_receivable_account")
                 .units("params.disbursed_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'CONFIRM_DISBURSAL_SETTLED_DR'")
                 .direction("DEBIT")
                 .layer("SETTLED")
@@ -169,7 +177,7 @@ impl ConfirmDisbursal {
             NewTxTemplateEntry::builder()
                 .account_id("params.disbursed_into_account_id")
                 .units("params.disbursed_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'CONFIRM_DISBURSAL_SETTLED_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")

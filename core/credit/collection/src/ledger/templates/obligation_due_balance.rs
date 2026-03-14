@@ -16,6 +16,7 @@ pub const RECORD_OBLIGATION_DUE_BALANCE_CODE: &str = "RECORD_OBLIGATION_DUE_BALA
 #[derive(Debug)]
 pub struct RecordObligationDueBalanceParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
+    pub currency: Currency,
     pub amount: Decimal,
     pub receivable_not_yet_due_account_id: CalaAccountId,
     pub receivable_due_account_id: CalaAccountId,
@@ -29,6 +30,11 @@ impl<S: std::fmt::Display> RecordObligationDueBalanceParams<S> {
             NewParamDefinition::builder()
                 .name("journal_id")
                 .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
@@ -63,6 +69,7 @@ impl<S: std::fmt::Display> From<RecordObligationDueBalanceParams<S>> for Params 
     fn from(
         RecordObligationDueBalanceParams {
             journal_id,
+            currency,
             amount,
             receivable_not_yet_due_account_id,
             receivable_due_account_id,
@@ -72,6 +79,7 @@ impl<S: std::fmt::Display> From<RecordObligationDueBalanceParams<S>> for Params 
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
+        params.insert("currency", currency);
         params.insert("amount", amount);
         params.insert(
             "receivable_not_yet_due_account_id",
@@ -109,7 +117,7 @@ impl RecordObligationDueBalance {
         let entries = vec![
             NewTxTemplateEntry::builder()
                 .entry_type("'RECORD_OBLIGATION_DUE_BALANCE_CR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.receivable_not_yet_due_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
@@ -118,7 +126,7 @@ impl RecordObligationDueBalance {
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .entry_type("'RECORD_OBLIGATION_DUE_BALANCE_DR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.receivable_due_account_id")
                 .direction("DEBIT")
                 .layer("SETTLED")

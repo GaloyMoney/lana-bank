@@ -989,7 +989,7 @@ impl CreditLedger {
                 templates::CREDIT_FACILITY_ACCRUE_INTEREST_CODE,
                 templates::CreditFacilityAccrueInterestParams {
                     journal_id: self.journal_id,
-
+                    currency: self.usd,
                     credit_facility_interest_receivable_account: receivable_not_yet_due,
                     credit_facility_interest_income_account: income,
                     interest_amount: interest.to_usd(),
@@ -1026,7 +1026,7 @@ impl CreditLedger {
                 templates::CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE,
                 templates::CreditFacilityPostAccruedInterestParams {
                     journal_id: self.journal_id,
-
+                    currency: self.usd,
                     credit_facility_interest_receivable_account: receivable_not_yet_due,
                     credit_facility_interest_income_account: income,
                     interest_added_to_obligations_omnibus_account: self
@@ -1060,6 +1060,7 @@ impl CreditLedger {
                 templates::InitiateDisbursalParams {
                     entity_id: entity_id.into(),
                     journal_id: self.journal_id,
+                    currency: self.usd,
                     facility_uncovered_outstanding_account: account_ids
                         .uncovered_outstanding_account_id,
                     credit_facility_account: account_ids.facility_account_id,
@@ -1089,6 +1090,7 @@ impl CreditLedger {
                 templates::CancelDisbursalParams {
                     entity_id: entity_id.into(),
                     journal_id: self.journal_id,
+                    currency: self.usd,
                     facility_uncovered_outstanding_account: account_ids
                         .uncovered_outstanding_account_id,
                     credit_facility_account: account_ids.facility_account_id,
@@ -1126,6 +1128,7 @@ impl CreditLedger {
                 templates::ConfirmDisbursalParams {
                     entity_id: entity_id.into(),
                     journal_id: self.journal_id,
+                    currency: self.usd,
                     facility_uncovered_outstanding_account: account_ids
                         .uncovered_outstanding_account_id,
                     credit_facility_account: account_ids.facility_account_id,
