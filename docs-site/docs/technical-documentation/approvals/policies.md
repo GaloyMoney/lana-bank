@@ -13,7 +13,7 @@ A policy defines the approval rules for a specific type of operation. Each opera
 Each policy contains:
 
 - **Process Type**: The operation category this policy governs. There is a uniqueness constraint: only one policy can exist per process type.
-- **Approval Rules**: Either `SystemAutoApprove` (operations are approved instantly) or `CommitteeThreshold` (operations require committee votes). See below for details.
+- **Approval Rules**: Either `AutoApprove` (operations are approved instantly) or `CommitteeThreshold` (operations require committee votes). See below for details.
 
 ## Process Types
 
@@ -31,7 +31,7 @@ Policy initialization is idempotent: if the policy for a process type already ex
 
 ### System Auto-Approve (Default)
 
-Every policy is created with `SystemAutoApprove` rules by default. Under this mode, any approval process started against this policy concludes immediately with an approved result. No human review is required.
+Every policy is created with `AutoApprove` rules by default. Under this mode, any approval process started against this policy concludes immediately with an approved result. No human review is required.
 
 This is the appropriate setting when:
 - The operation type is low-risk and does not require oversight.
@@ -40,7 +40,7 @@ This is the appropriate setting when:
 
 ### Committee Threshold
 
-When an administrator assigns a committee and threshold to a policy, the rules change from `SystemAutoApprove` to `CommitteeThreshold`. Under this mode:
+When an administrator assigns a committee and threshold to a policy, the rules change from `AutoApprove` to `CommitteeThreshold`. Under this mode:
 
 - Every new approval process requires votes from the assigned committee.
 - The threshold specifies the minimum number of approve votes needed from eligible members.
@@ -57,7 +57,7 @@ Changing the policy rules only affects future approval processes. Any processes 
 
 ### Initial State
 
-After deployment, all three policies exist with `SystemAutoApprove` rules. All operations are approved automatically.
+After deployment, all three policies exist with `AutoApprove` rules. All operations are approved automatically.
 
 ### Assigning a Committee
 

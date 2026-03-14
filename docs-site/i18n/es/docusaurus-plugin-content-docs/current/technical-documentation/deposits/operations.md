@@ -78,7 +78,7 @@ stateDiagram-v2
 - El saldo liquidado del cliente disminuye inmediatamente, evitando que los fondos se utilicen para otras operaciones.
 
 **2. Aprobación** - El sistema de gobernanza procesa el retiro según la política configurada:
-- Si la política es `SystemAutoApprove`, el retiro se aprueba instantáneamente.
+- Si la política es `AutoApprove`, el retiro se aprueba instantáneamente.
 - Si la política utiliza `CommitteeThreshold`, los miembros del comité deben votar para aprobar o denegar.
 - Una sola denegación de cualquier miembro del comité rechaza inmediatamente el retiro.
 - Este paso ocurre de forma asíncrona a través del sistema de trabajos impulsado por eventos.

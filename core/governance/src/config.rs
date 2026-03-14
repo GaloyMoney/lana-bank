@@ -6,7 +6,7 @@ define_exposed_config! {
     /// When disabled, all policies must use committee approval.
     pub struct AllowAutoApproval(bool);
     spec {
-        key: "allow-system-auto-approval";
+        key: "allow-auto-approval";
         default: || Some(true);
     }
 }

@@ -43,7 +43,7 @@ Tres tipos de operaciones son gobernados por el sistema de aprobación:
 | **Desembolso** | `disbursal` | El operador crea un desembolso | El desembolso se liquida, los fondos se acreditan | El desembolso se cancela, no se liberan fondos |
 | **Retiro** | `withdraw` | El operador inicia un retiro | El retiro procede a confirmación | El retiro es denegado, los fondos retenidos se restauran |
 
-Cada tipo de operación tiene exactamente una política. Por defecto, todas las políticas comienzan con reglas `SystemAutoApprove`, lo que significa que las operaciones se aprueban instantáneamente sin intervención humana. Un administrador puede entonces asignar un comité y umbral a cualquier política, cambiándola para requerir aprobación manual.
+Cada tipo de operación tiene exactamente una política. Por defecto, todas las políticas comienzan con reglas `AutoApprove`, lo que significa que las operaciones se aprueban instantáneamente sin intervención humana. Un administrador puede entonces asignar un comité y umbral a cualquier política, cambiándola para requerir aprobación manual.
 
 ## Reglas de Aprobación
 
@@ -51,7 +51,7 @@ Las reglas determinan cómo un proceso de aprobación llega a su conclusión. Ex
 
 ### Aprobación Automática del Sistema
 
-El modo predeterminado para todas las políticas. Cuando se crea un proceso de aprobación bajo una política `SystemAutoApprove`, concluye inmediatamente con un resultado aprobado. No se necesita intervención humana.
+El modo predeterminado para todas las políticas. Cuando se crea un proceso de aprobación bajo una política `AutoApprove`, concluye inmediatamente con un resultado aprobado. No se necesita intervención humana.
 
 Esto es apropiado para operaciones de bajo riesgo o durante la configuración inicial del sistema antes de que se configuren los comités de gobernanza.
 

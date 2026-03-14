@@ -122,8 +122,8 @@ checksums:
     Configurations/sumsub-kyc-flow-name/description: 0c7b6fc98ad0173d78299bb5240756f1
     Configurations/sumsub-kyb-flow-name/title: 2276544d137de16a2dc19ed4747bc1de
     Configurations/sumsub-kyb-flow-name/description: 1ab1a3f640cab64eca47b33deba920d9
-    Configurations/allow-system-auto-approval/title: 46f81f637f5785adbb9dfa8753420c00
-    Configurations/allow-system-auto-approval/description: e46d2e6dbd649c9f4fcf059ebce011d5
+    Configurations/allow-auto-approval/title: 46f81f637f5785adbb9dfa8753420c00
+    Configurations/allow-auto-approval/description: e46d2e6dbd649c9f4fcf059ebce011d5
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675

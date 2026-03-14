@@ -104,7 +104,7 @@ async fn init_policy_uses_default_committee_when_require_committee_enabled() -> 
 
     // Initialize domain configs with AllowAutoApproval=false (committee approval required)
     let startup_configs = vec![(
-        "allow-system-auto-approval".to_string(),
+        "allow-auto-approval".to_string(),
         serde_json::Value::Bool(false),
     )];
     let (_, _, exposed_readonly) = domain_config::init(
@@ -159,7 +159,7 @@ async fn init_policy_fails_without_default_committee_when_require_committee_enab
     .await?;
 
     let startup_configs = vec![(
-        "allow-system-auto-approval".to_string(),
+        "allow-auto-approval".to_string(),
         serde_json::Value::Bool(false),
     )];
     let (_, _, exposed_readonly) = domain_config::init(
@@ -226,7 +226,7 @@ async fn init_policy_returns_existing_policy_when_require_committee_enabled() ->
 
     // Step 2: Disable AllowAutoApproval and recreate governance
     let startup_configs = vec![(
-        "allow-system-auto-approval".to_string(),
+        "allow-auto-approval".to_string(),
         serde_json::Value::Bool(false),
     )];
     let (_, _, exposed_readonly) = domain_config::init(
