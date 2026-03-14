@@ -60,6 +60,21 @@ type AccountingCsvDownloadLinkGeneratePayload {
 	link: AccountingCsvDownloadLink!
 }
 
+type AccountingTemplate {
+	id: UUID!
+	code: String!
+	name: String!
+	chartRef: String
+	descriptionTemplate: String!
+	entries: [AccountingTemplateEntry!]!
+}
+
+type AccountingTemplateEntry {
+	accountIdOrCode: String!
+	direction: DebitOrCredit!
+	descriptionTemplate: String
+}
+
 enum Activity {
 	INACTIVE
 	ACTIVE
@@ -2263,6 +2278,7 @@ type Query {
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
 	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
+	accountingTemplates: [AccountingTemplate!]!
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(templateCode: String!, first: Int!, after: String): LedgerTransactionConnection!
 	journalEntries(first: Int!, after: String): JournalEntryConnection!

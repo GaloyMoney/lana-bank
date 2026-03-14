@@ -748,6 +748,18 @@ impl Query {
         )
     }
 
+    async fn accounting_templates(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<AccountingTemplate>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let templates = app.accounting().accounting_templates().list(sub).await?;
+        Ok(templates
+            .into_iter()
+            .map(AccountingTemplate::from)
+            .collect())
+    }
+
     async fn ledger_transaction(
         &self,
         ctx: &Context<'_>,
