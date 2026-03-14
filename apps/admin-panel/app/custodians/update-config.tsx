@@ -134,10 +134,15 @@ export const UpdateCustodianConfigDialog: React.FC<UpdateCustodianConfigDialogPr
               variant="outline"
               onClick={closeDialog}
               loading={loading}
+              data-testid="custodian-update-config-cancel-button"
             >
               {tCommon("cancel")}
             </Button>
-            <Button type="submit" loading={loading}>
+            <Button
+              type="submit"
+              loading={loading}
+              data-testid="custodian-update-config-submit-button"
+            >
               {t("buttons.update")}
             </Button>
           </DialogFooter>

@@ -460,5 +460,6 @@ export const ProviderConfigFields: React.FC<ProviderConfigFieldsProps> = ({
     )
   }
 
-  return null
+  const _exhaustiveCheck: never = type
+  return _exhaustiveCheck
 }
