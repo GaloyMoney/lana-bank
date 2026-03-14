@@ -118,4 +118,4 @@ For detailed patterns on `Idempotent<T>`, `idempotency_guard!`, and infallible q
 - For anything related to traces, spans, performance, latency, errors, jobs, or runtime behavior — whether asked by the user or needed during your own investigation — delegate to the `lana-trace-analyzer` subagent. Do not query tracing backends directly.
 
 ## Frontend
-- Do not edit es.json, let lingo.dev github action do it.
+- Do not edit es.json, let lingo.dev github action do it. When adding new keys to en.json, the TypeScript type check (`cypress/support/translation.ts`) will fail because es.json must have the same shape. Do NOT work around this by adding English placeholders to es.json — lingo.dev will skip keys that already exist and they will remain untranslated. Instead, just push your en.json changes; lingo.dev will add the Spanish translations automatically, then push an empty commit to re-trigger CI.
