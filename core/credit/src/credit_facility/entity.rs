@@ -329,6 +329,9 @@ impl CreditFacility {
         initiated_at: DateTime<Utc>,
         cvl: CVLPct,
     ) -> Result<(), CreditFacilityError> {
+        if self.status() != CreditFacilityStatus::Active {
+            return Err(CreditFacilityError::DisbursalOnInactiveFacility);
+        }
         if self.terms.is_single_disbursal() {
             return Err(CreditFacilityError::OnlyOneDisbursalAllowed);
         }
@@ -457,10 +460,18 @@ impl CreditFacility {
         Idempotent::Executed(())
     }
 
+    pub(crate) fn assert_payment_allowed(&self) -> Result<(), CreditFacilityError> {
+        if self.status() == CreditFacilityStatus::Closed {
+            return Err(CreditFacilityError::PaymentOnClosedFacility);
+        }
+        Ok(())
+    }
+
     pub(crate) fn assert_payment_date_allowed(
         &self,
         effective: chrono::NaiveDate,
     ) -> Result<(), CreditFacilityError> {
+        self.assert_payment_allowed()?;
         if effective < self.activated_at.date_naive() {
             return Err(CreditFacilityError::PaymentBeforeFacilityActivation);
         }

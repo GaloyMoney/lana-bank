@@ -97,6 +97,10 @@ pub enum CreditFacilityError {
     CollateralError(#[from] core_credit_collateral::error::CollateralError),
     #[error("CreditFacilityError - NoAccrualCycleInProgress")]
     NoAccrualCycleInProgress,
+    #[error("CreditFacilityError - DisbursalOnInactiveFacility")]
+    DisbursalOnInactiveFacility,
+    #[error("CreditFacilityError - PaymentOnClosedFacility")]
+    PaymentOnClosedFacility,
 }
 
 impl CreditFacilityError {
@@ -159,6 +163,8 @@ impl ErrorSeverity for CreditFacilityError {
             Self::CreditFacilityProposalError(e) => e.severity(),
             Self::CollateralError(e) => e.severity(),
             Self::NoAccrualCycleInProgress => Level::WARN,
+            Self::DisbursalOnInactiveFacility => Level::WARN,
+            Self::PaymentOnClosedFacility => Level::WARN,
         }
     }
 }
