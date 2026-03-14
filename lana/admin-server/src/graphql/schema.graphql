@@ -200,6 +200,9 @@ union AuditSubject = User | System
 scalar AuditSubjectId
 
 type AutoApproval {
+	"""
+	Placeholder field — the type name itself indicates auto-approval.
+	"""
 	autoApprove: Boolean!
 }
 
