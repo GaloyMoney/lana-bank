@@ -38,6 +38,11 @@ use error::CoreCustodyError;
 use jobs::self_custody_balance_sync;
 pub use primitives::*;
 
+pub struct WalletCreationResult {
+    pub wallet: Option<Wallet>,
+    pub is_manual: bool,
+}
+
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::custodian::CustodianEvent;
@@ -550,13 +555,15 @@ where
         db: &mut DbOp<'_>,
         custodian_id: CustodianId,
         wallet_label: &str,
-    ) -> Result<Option<Wallet>, CoreCustodyError> {
+    ) -> Result<WalletCreationResult, CoreCustodyError> {
         self.lock_custodian_in_op(db, custodian_id).await?;
 
         let mut custodian = self
             .custodians
             .find_by_id_in_op(&mut *db, &custodian_id)
             .await?;
+
+        let is_manual = custodian.provider == CustodianConfigDiscriminants::Manual.to_string();
 
         let receive_index = custodian
             .prepare_wallet_creation()
@@ -587,9 +594,15 @@ where
                 .expect("all fields for new wallet provided");
 
             let wallet = self.wallets.create_in_op(db, new_wallet).await?;
-            Ok(Some(wallet))
+            Ok(WalletCreationResult {
+                wallet: Some(wallet),
+                is_manual,
+            })
         } else {
-            Ok(None)
+            Ok(WalletCreationResult {
+                wallet: None,
+                is_manual,
+            })
         }
     }
 
@@ -813,14 +826,16 @@ mod tests {
             .await?;
 
         let mut op = custody.custodians.begin_op().await?;
-        let first = custody
+        let first_result = custody
             .create_wallet_in_op(&mut op, custodian.id, "Loan 1")
-            .await?
-            .unwrap();
-        let second = custody
+            .await?;
+        assert!(!first_result.is_manual);
+        let first = first_result.wallet.unwrap();
+        let second_result = custody
             .create_wallet_in_op(&mut op, custodian.id, "Loan 2")
-            .await?
-            .unwrap();
+            .await?;
+        assert!(!second_result.is_manual);
+        let second = second_result.wallet.unwrap();
         op.commit().await?;
 
         assert_ne!(first.address, second.address);

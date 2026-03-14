@@ -32,6 +32,8 @@ pub enum CollateralEvent {
         account_ids: CollateralLedgerAccountIds,
         facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
         custody_wallet_id: Option<CustodyWalletId>,
+        #[serde(default)]
+        manual_custody: bool,
     },
     UpdatedViaManualInput {
         ledger_tx_id: LedgerTxId,
@@ -74,6 +76,7 @@ pub struct Collateral {
     pub account_ids: CollateralLedgerAccountIds,
     pub facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
     pub custody_wallet_id: Option<CustodyWalletId>,
+    pub manual_custody: bool,
     pub amount: Satoshis,
 
     #[es_entity(nested)]
@@ -168,7 +171,7 @@ impl Collateral {
         new_amount: Satoshis,
         effective: chrono::NaiveDate,
     ) -> Result<Idempotent<CollateralUpdate>, CollateralError> {
-        if self.custody_wallet_id.is_some() {
+        if !self.manual_custody {
             return Err(CollateralError::ManualUpdateError);
         }
 
@@ -345,6 +348,8 @@ pub struct NewCollateral {
     pub(super) secured_loan_id: SecuredLoanId,
     #[builder(default)]
     pub(super) custody_wallet_id: Option<CustodyWalletId>,
+    #[builder(default)]
+    pub(super) manual_custody: bool,
     pub(super) account_ids: CollateralLedgerAccountIds,
     pub(super) facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
 }
@@ -369,6 +374,7 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     custody_wallet_id,
                     account_ids,
                     facility_ledger_account_ids_for_liquidation,
+                    manual_custody,
                 } => {
                     builder = builder
                         .id(*id)
@@ -378,6 +384,7 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                         )
                         .amount(Satoshis::ZERO)
                         .custody_wallet_id(*custody_wallet_id)
+                        .manual_custody(*manual_custody || custody_wallet_id.is_none())
                         .secured_loan_id(*secured_loan_id)
                 }
                 CollateralEvent::UpdatedViaManualInput {
@@ -414,6 +421,7 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
                 facility_ledger_account_ids_for_liquidation: self
                     .facility_ledger_account_ids_for_liquidation,
                 custody_wallet_id: self.custody_wallet_id,
+                manual_custody: self.manual_custody,
             }],
         )
     }
@@ -620,6 +628,81 @@ mod tests {
             let result =
                 collateral.record_proceeds_received_and_liquidation_completed(UsdCents::from(500));
             assert!(matches!(result, Err(CollateralError::NoActiveLiquidation)));
+        }
+    }
+
+    mod manual_custody {
+        use super::*;
+
+        #[test]
+        fn manual_custody_with_wallet_allows_manual_update() {
+            let new_collateral = NewCollateral::builder()
+                .id(CollateralId::new())
+                .account_ids(default_account_ids())
+                .secured_loan_id(SecuredLoanId::new())
+                .facility_ledger_account_ids_for_liquidation(
+                    default_facility_ledger_account_ids_for_liquidation(),
+                )
+                .custody_wallet_id(Some(CustodyWalletId::new()))
+                .manual_custody(true)
+                .build()
+                .unwrap();
+            let mut collateral = collateral_from(new_collateral);
+
+            assert!(collateral.custody_wallet_id.is_some());
+            assert!(collateral.manual_custody);
+
+            let result = collateral.record_collateral_update_via_manual_input(
+                Satoshis::from(100000),
+                chrono::Utc::now().date_naive(),
+            );
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn non_manual_custody_with_wallet_rejects_manual_update() {
+            let new_collateral = NewCollateral::builder()
+                .id(CollateralId::new())
+                .account_ids(default_account_ids())
+                .secured_loan_id(SecuredLoanId::new())
+                .facility_ledger_account_ids_for_liquidation(
+                    default_facility_ledger_account_ids_for_liquidation(),
+                )
+                .custody_wallet_id(Some(CustodyWalletId::new()))
+                .build()
+                .unwrap();
+            let mut collateral = collateral_from(new_collateral);
+
+            let result = collateral.record_collateral_update_via_manual_input(
+                Satoshis::from(100000),
+                chrono::Utc::now().date_naive(),
+            );
+            assert!(matches!(result, Err(CollateralError::ManualUpdateError)));
+        }
+
+        #[test]
+        fn legacy_manual_collateral_without_wallet_allows_manual_update() {
+            // Old manual collaterals have custody_wallet_id=None and manual_custody=false
+            // in their events, but TryFromEvents derives manual_custody=true from wallet_id.is_none()
+            let new_collateral = NewCollateral::builder()
+                .id(CollateralId::new())
+                .account_ids(default_account_ids())
+                .secured_loan_id(SecuredLoanId::new())
+                .facility_ledger_account_ids_for_liquidation(
+                    default_facility_ledger_account_ids_for_liquidation(),
+                )
+                .build()
+                .unwrap();
+            let mut collateral = collateral_from(new_collateral);
+
+            assert!(collateral.custody_wallet_id.is_none());
+            assert!(collateral.manual_custody);
+
+            let result = collateral.record_collateral_update_via_manual_input(
+                Satoshis::from(100000),
+                chrono::Utc::now().date_naive(),
+            );
+            assert!(result.is_ok());
         }
     }
 }

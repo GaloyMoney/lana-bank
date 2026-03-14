@@ -218,6 +218,7 @@ where
         collateral_id: CollateralId,
         secured_loan_id: SecuredLoanId,
         custody_wallet_id: Option<CustodyWalletId>,
+        manual_custody: bool,
         account_ids: CollateralLedgerAccountIds,
         facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
     ) -> Result<Collateral, CollateralError> {
@@ -229,6 +230,7 @@ where
             .id(collateral_id)
             .secured_loan_id(secured_loan_id)
             .custody_wallet_id(custody_wallet_id)
+            .manual_custody(manual_custody)
             .account_ids(account_ids)
             .facility_ledger_account_ids_for_liquidation(
                 facility_ledger_account_ids_for_liquidation,

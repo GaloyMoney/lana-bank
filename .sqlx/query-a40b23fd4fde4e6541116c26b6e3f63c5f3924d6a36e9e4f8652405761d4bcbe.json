@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_collaterals (id, custody_wallet_id, manual_custody, created_at) VALUES ($1, $2, $3, COALESCE($4, NOW()))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Bool",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a40b23fd4fde4e6541116c26b6e3f63c5f3924d6a36e9e4f8652405761d4bcbe"
+}

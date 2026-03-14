@@ -312,7 +312,12 @@ impl CustodianClient for ManualCustodian {
         _label: &str,
         _receive_index: Option<u32>,
     ) -> Result<Option<ExternalWallet>, CustodianClientError> {
-        Ok(None)
+        Ok(Some(ExternalWallet {
+            external_id: format!("manual:{}", uuid::Uuid::new_v4()),
+            address: String::new(),
+            network: WalletNetwork::Mainnet,
+            full_response: serde_json::json!({"type": "manual"}),
+        }))
     }
 
     async fn process_webhook(

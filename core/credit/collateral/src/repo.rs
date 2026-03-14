@@ -18,7 +18,10 @@ use super::{
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Collateral",
-    columns(custody_wallet_id(ty = "Option<CustodyWalletId>", update(persist = false))),
+    columns(
+        custody_wallet_id(ty = "Option<CustodyWalletId>", update(persist = false)),
+        manual_custody(ty = "bool", update(persist = false))
+    ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
