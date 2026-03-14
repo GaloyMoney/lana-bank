@@ -16,6 +16,7 @@ pub const RECORD_OBLIGATION_OVERDUE_BALANCE_CODE: &str = "RECORD_OBLIGATION_OVER
 #[derive(Debug)]
 pub struct RecordObligationOverdueBalanceParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
+    pub currency: Currency,
     pub amount: Decimal,
     pub receivable_due_account_id: CalaAccountId,
     pub receivable_overdue_account_id: CalaAccountId,
@@ -29,6 +30,11 @@ impl<S: std::fmt::Display> RecordObligationOverdueBalanceParams<S> {
             NewParamDefinition::builder()
                 .name("journal_id")
                 .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
@@ -63,6 +69,7 @@ impl<S: std::fmt::Display> From<RecordObligationOverdueBalanceParams<S>> for Par
     fn from(
         RecordObligationOverdueBalanceParams {
             journal_id,
+            currency,
             amount,
             receivable_due_account_id,
             receivable_overdue_account_id,
@@ -72,6 +79,7 @@ impl<S: std::fmt::Display> From<RecordObligationOverdueBalanceParams<S>> for Par
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
+        params.insert("currency", currency);
         params.insert("amount", amount);
         params.insert("receivable_due_account_id", receivable_due_account_id);
         params.insert(
@@ -109,7 +117,7 @@ impl RecordObligationOverdueBalance {
         let entries = vec![
             NewTxTemplateEntry::builder()
                 .entry_type("'RECORD_OBLIGATION_OVERDUE_BALANCE_CR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.receivable_due_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
@@ -118,7 +126,7 @@ impl RecordObligationOverdueBalance {
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .entry_type("'RECORD_OBLIGATION_OVERDUE_BALANCE_DR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.receivable_overdue_account_id")
                 .direction("DEBIT")
                 .layer("SETTLED")

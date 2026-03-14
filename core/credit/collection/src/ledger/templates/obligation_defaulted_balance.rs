@@ -16,6 +16,7 @@ pub const RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE: &str = "RECORD_OBLIGATION_DE
 #[derive(Debug)]
 pub struct RecordObligationDefaultedBalanceParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
+    pub currency: Currency,
     pub amount: Decimal,
     pub receivable_account_id: CalaAccountId,
     pub defaulted_account_id: CalaAccountId,
@@ -29,6 +30,11 @@ impl<S: std::fmt::Display> RecordObligationDefaultedBalanceParams<S> {
             NewParamDefinition::builder()
                 .name("journal_id")
                 .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
@@ -63,6 +69,7 @@ impl<S: std::fmt::Display> From<RecordObligationDefaultedBalanceParams<S>> for P
     fn from(
         RecordObligationDefaultedBalanceParams {
             journal_id,
+            currency,
             amount,
             receivable_account_id,
             defaulted_account_id,
@@ -72,6 +79,7 @@ impl<S: std::fmt::Display> From<RecordObligationDefaultedBalanceParams<S>> for P
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
+        params.insert("currency", currency);
         params.insert("amount", amount);
         params.insert("receivable_account_id", receivable_account_id);
         params.insert("defaulted_account_id", defaulted_account_id);
@@ -106,7 +114,7 @@ impl RecordObligationDefaultedBalance {
         let entries = vec![
             NewTxTemplateEntry::builder()
                 .entry_type("'RECORD_OBLIGATION_DEFAULTED_BALANCE_CR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.receivable_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
@@ -115,7 +123,7 @@ impl RecordObligationDefaultedBalance {
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .entry_type("'RECORD_OBLIGATION_DEFAULTED_BALANCE_DR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.defaulted_account_id")
                 .direction("DEBIT")
                 .layer("SETTLED")

@@ -15,6 +15,7 @@ pub const CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE: &str =
 #[derive(Debug)]
 pub struct CreditFacilityPostAccruedInterestParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
+    pub currency: Currency,
     pub credit_facility_interest_receivable_account: CalaAccountId,
     pub credit_facility_interest_income_account: CalaAccountId,
     pub interest_added_to_obligations_omnibus_account: CalaAccountId,
@@ -31,6 +32,11 @@ impl<S: std::fmt::Display> CreditFacilityPostAccruedInterestParams<S> {
             NewParamDefinition::builder()
                 .name("journal_id")
                 .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
@@ -81,6 +87,7 @@ impl<S: std::fmt::Display> From<CreditFacilityPostAccruedInterestParams<S>> for 
     fn from(
         CreditFacilityPostAccruedInterestParams {
             journal_id,
+            currency,
             credit_facility_interest_receivable_account,
             credit_facility_interest_income_account,
             interest_added_to_obligations_omnibus_account,
@@ -93,6 +100,7 @@ impl<S: std::fmt::Display> From<CreditFacilityPostAccruedInterestParams<S>> for 
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
+        params.insert("currency", currency);
         params.insert(
             "credit_facility_interest_receivable_account",
             credit_facility_interest_receivable_account,
@@ -142,7 +150,7 @@ impl CreditFacilityPostAccruedInterest {
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_income_account")
                 .units("params.interest_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'POST_ACCRUED_INTEREST_PENDING_DR'")
                 .direction("DEBIT")
                 .layer("PENDING")
@@ -151,7 +159,7 @@ impl CreditFacilityPostAccruedInterest {
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_receivable_account")
                 .units("params.interest_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'POST_ACCRUED_INTEREST_PENDING_CR'")
                 .direction("CREDIT")
                 .layer("PENDING")
@@ -161,7 +169,7 @@ impl CreditFacilityPostAccruedInterest {
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_receivable_account")
                 .units("params.interest_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'POST_ACCRUED_INTEREST_SETTLED_DR'")
                 .direction("DEBIT")
                 .layer("SETTLED")
@@ -170,7 +178,7 @@ impl CreditFacilityPostAccruedInterest {
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_income_account")
                 .units("params.interest_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'POST_ACCRUED_INTEREST_SETTLED_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
@@ -179,7 +187,7 @@ impl CreditFacilityPostAccruedInterest {
             NewTxTemplateEntry::builder()
                 .account_id("params.interest_added_to_obligations_omnibus_account")
                 .units("params.interest_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'RECORD_INTEREST_UNCOVERED_OBLIGATION_SETTLED_DR'")
                 .direction("DEBIT")
                 .layer("SETTLED")
@@ -188,7 +196,7 @@ impl CreditFacilityPostAccruedInterest {
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_uncovered_outstanding_account")
                 .units("params.interest_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'RECORD_INTEREST_UNCOVERED_OBLIGATION_SETTLED_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
