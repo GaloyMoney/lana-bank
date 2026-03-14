@@ -215,6 +215,7 @@ get_user_access_token() {
       -H "Content-Type: application/x-www-form-urlencoded" \
       -d "client_id=admin-panel" \
       -d "username=${email}" \
+      -d "password=password" \
       -d "grant_type=password" \
       -d "scope=openid profile email")
     

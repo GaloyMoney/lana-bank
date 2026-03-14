@@ -50,6 +50,7 @@ Cypress.Commands.add(
           client_id: "admin-panel",
           grant_type: "password",
           username: userEmail,
+          password: "password",
         },
       })
       .then(({ body: tokenBody }) => {
@@ -452,6 +453,7 @@ Cypress.Commands.add("waitForKeycloak", () => {
                 client_id: "admin-panel",
                 username: "admin@galoy.io",
                 grant_type: "password",
+                password: "password",
               },
               failOnStatusCode: false,
             }).then((tokenResponse) => {
