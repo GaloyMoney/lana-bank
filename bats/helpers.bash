@@ -34,15 +34,46 @@ server_cmd() {
     SQLX_OFFLINE=true make run-server
   fi
 }
+set_keycloak_user_password() {
+  local email=$1
+  local password=${2:-password}
+  local admin_token
+  admin_token=$(curl -s -X POST \
+    "http://localhost:8081/realms/master/protocol/openid-connect/token" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "client_id=admin-cli" \
+    -d "username=admin" \
+    -d "password=admin" \
+    -d "grant_type=password" | jq -r '.access_token')
+
+  local user_id
+  user_id=$(curl -s \
+    "http://localhost:8081/admin/realms/internal/users?search=${email}" \
+    -H "Authorization: Bearer ${admin_token}" | jq -r '.[0].id')
+
+  if [[ -n "$user_id" && "$user_id" != "null" ]]; then
+    curl -s -X PUT \
+      "http://localhost:8081/admin/realms/internal/users/${user_id}/reset-password" \
+      -H "Authorization: Bearer ${admin_token}" \
+      -H "Content-Type: application/json" \
+      -d "{\"type\":\"password\",\"value\":\"${password}\",\"temporary\":false}"
+    return 0
+  fi
+  return 1
+}
+
 wait_for_keycloak_user_ready() {
   local email="admin@galoy.io"
 
   wait4x http http://localhost:8081/realms/master   --timeout 60s --interval 1s
   wait4x http http://localhost:8081/realms/internal --timeout 10s --interval 1s
 
+  # Wait for user to exist, then set password and verify token
   for i in {1..60}; do
-    access_token=$(get_user_access_token "$email" 2>/dev/null || true)
-    [[ -n "$access_token" && "$access_token" != "null" ]] && { echo "✅ User ready"; return 0; }
+    if set_keycloak_user_password "$email" "password" 2>/dev/null; then
+      access_token=$(get_user_access_token "$email" 2>/dev/null || true)
+      [[ -n "$access_token" && "$access_token" != "null" ]] && { echo "✅ User ready"; return 0; }
+    fi
     sleep 1
   done
 
