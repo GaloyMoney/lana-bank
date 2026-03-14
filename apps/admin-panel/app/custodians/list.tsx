@@ -126,7 +126,7 @@ const columns = (
     key: "id",
     label: "",
     render: (_id, record) =>
-      !record.isManual ? (
+      record.provider.toLowerCase() !== "manual" ? (
         <Button
           variant="outline"
           size="sm"
