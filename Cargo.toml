@@ -37,7 +37,6 @@ self-custody = { path = "lib/self-custody" }
 encryption = { path = "lib/encryption" }
 gotenberg = { path = "lib/gotenberg" }
 money = { path = "lib/money" }
-old-money = { path = "lib/old-money" }
 permission-sets-macro = { path = "lib/permission-sets-macro" }
 rendering = { path = "lib/rendering" }
 smtp-client = { path = "lib/smtp-client" }
