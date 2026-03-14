@@ -168,7 +168,7 @@
     },
     "allow-auto-approval": {
       "title": "Permitir aprobación automática",
-      "description": "Cuando está habilitado, se pueden crear o actualizar políticas con aprobación automática. Cuando está deshabilitado, todas las políticas deben utilizar aprobación por comité."
+      "description": "Cuando está habilitado, se pueden crear o actualizar políticas con aprobación automática. Cuando está deshabilitado, todas las políticas deben usar aprobación por comité."
     }
   },
   "interestInterval": {
