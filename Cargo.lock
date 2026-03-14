@@ -3934,6 +3934,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "money"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "schemars 1.2.1",
+ "serde",
+ "sqlx",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-utils",
+]
+
+[[package]]
 name = "multer"
 version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
