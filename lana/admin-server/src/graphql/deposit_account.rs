@@ -29,6 +29,7 @@ pub struct DepositAccount {
     created_at: Timestamp,
     status: DepositAccountStatus,
     activity: Activity,
+    currency: String,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainDepositAccount>,
@@ -36,6 +37,7 @@ pub struct DepositAccount {
 
 impl From<DomainDepositAccount> for DepositAccount {
     fn from(account: DomainDepositAccount) -> Self {
+        let currency = account.currency.clone();
         DepositAccount {
             id: account.id.to_global_id(),
             deposit_account_id: account.id.into(),
@@ -43,6 +45,7 @@ impl From<DomainDepositAccount> for DepositAccount {
             created_at: account.created_at().into(),
             status: account.status,
             activity: account.activity,
+            currency,
 
             entity: Arc::new(account),
         }

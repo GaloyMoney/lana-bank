@@ -1335,6 +1335,7 @@ export type DepositAccount = {
   activity: Activity;
   balance: DepositAccountBalance;
   createdAt: Scalars['Timestamp']['output'];
+  currency: Scalars['String']['output'];
   customer: Customer;
   customerId: Scalars['UUID']['output'];
   depositAccountId: Scalars['UUID']['output'];
@@ -1386,6 +1387,7 @@ export type DepositAccountConnection = {
 };
 
 export type DepositAccountCreateInput = {
+  currency?: Scalars['String']['input'];
   customerId: Scalars['UUID']['input'];
 };
 

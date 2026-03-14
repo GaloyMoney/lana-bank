@@ -1251,6 +1251,7 @@ type DepositAccount {
 	activity: Activity!
 	balance: DepositAccountBalance!
 	createdAt: Timestamp!
+	currency: String!
 	customer: Customer!
 	customerId: UUID!
 	depositAccountId: UUID!
@@ -1293,6 +1294,7 @@ type DepositAccountConnection {
 }
 
 input DepositAccountCreateInput {
+	currency: String! = "USD"
 	customerId: UUID!
 }
 

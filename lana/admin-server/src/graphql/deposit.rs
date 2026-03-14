@@ -105,6 +105,8 @@ crate::mutation_payload! { DepositRecordPayload, deposit: Deposit }
 #[derive(InputObject)]
 pub struct DepositAccountCreateInput {
     pub customer_id: UUID,
+    #[graphql(default_with = "String::from(\"USD\")")]
+    pub currency: String,
 }
 crate::mutation_payload! { DepositAccountCreatePayload, account: DepositAccount }
 
