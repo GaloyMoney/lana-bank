@@ -23,7 +23,6 @@ use es_entity::clock::ClockHandle;
 use error::PriceError;
 
 pub use event::*;
-pub use jobs::get_price_from_bfx;
 pub use primitives::*;
 pub use provider::{
     PriceProvider, PriceProviderConfig, PriceProvidersSortBy, price_provider_cursor,
