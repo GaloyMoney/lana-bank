@@ -12,8 +12,6 @@ use crate::{CoreReportEvent, ReportDefinitionId, find_report_definition};
 
 use super::{SyncReportsJobConfig, SyncReportsJobSpawner};
 
-const SYNC_REPORTS_DELAY_SECS: u64 = 10;
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TriggerReportRunJobConfig<E>
 where
@@ -126,11 +124,11 @@ where
     #[record_error_severity]
     #[tracing::instrument(
         name = "core_reports.job.trigger_report_run.run",
-        skip(self, current_job)
+        skip(self, _current_job)
     )]
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let report_definition = find_report_definition(&self.config.report_definition_id)
             .ok_or_else(|| {
@@ -147,15 +145,12 @@ where
 
         tracing::info!("Successfully triggered file report run: {}", dagster_run_id);
 
-        let schedule_at =
-            current_job.clock().now() + chrono::Duration::seconds(SYNC_REPORTS_DELAY_SECS as i64);
         let mut db = self.report_runs.begin_op().await?;
         self.sync_reports_spawner
-            .spawn_at_in_op(
+            .spawn_in_op(
                 &mut db,
                 JobId::new(),
                 SyncReportsJobConfig::<E>::new(Some(dagster_run_id)),
-                schedule_at,
             )
             .await?;
         db.commit().await?;
