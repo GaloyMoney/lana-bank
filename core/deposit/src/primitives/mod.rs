@@ -43,6 +43,41 @@ es_entity::entity_id! {
 
 pub use money::UsdCents;
 
+#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize)]
+#[serde(transparent)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct CurrencyCode(String);
+
+impl CurrencyCode {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl From<String> for CurrencyCode {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
+impl From<CurrencyCode> for String {
+    fn from(value: CurrencyCode) -> Self {
+        value.0
+    }
+}
+
+impl From<&str> for CurrencyCode {
+    fn from(value: &str) -> Self {
+        Self(value.to_string())
+    }
+}
+
+impl std::fmt::Display for CurrencyCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 #[derive(
     Debug,
     Copy,

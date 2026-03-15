@@ -66,3 +66,8 @@ impl From<CurrencyCode> for String {
         value.0
     }
 }
+impl From<lana_app::deposit::CurrencyCode> for CurrencyCode {
+    fn from(value: lana_app::deposit::CurrencyCode) -> Self {
+        Self(String::from(value))
+    }
+}

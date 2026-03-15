@@ -21,7 +21,7 @@ pub enum DepositAccountEvent {
         #[serde(default = "default_account_activity")]
         activity: Activity,
         public_id: PublicId,
-        currency: String,
+        currency: CurrencyCode,
     },
     ActivityUpdated {
         activity: Activity,
@@ -46,7 +46,7 @@ pub struct DepositAccount {
     pub status: DepositAccountStatus,
     pub activity: Activity,
     pub public_id: PublicId,
-    pub currency: String,
+    pub currency: CurrencyCode,
 
     events: EntityEvents<DepositAccountEvent>,
 }
@@ -184,7 +184,7 @@ pub struct NewDepositAccount {
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
     #[builder(setter(into))]
-    pub(super) currency: String,
+    pub(super) currency: CurrencyCode,
     #[builder(setter(skip), default = "Activity::Active")]
     pub(super) activity: Activity,
     #[builder(setter(skip), default)]
@@ -223,7 +223,9 @@ mod tests {
     use es_entity::{EntityEvents, TryFromEvents as _};
     use public_id::PublicId;
 
-    use crate::{Activity, DepositAccountHolderId, DepositAccountId, DepositAccountStatus};
+    use crate::{
+        Activity, CurrencyCode, DepositAccountHolderId, DepositAccountId, DepositAccountStatus,
+    };
 
     use super::{
         DepositAccount, DepositAccountError, DepositAccountEvent, DepositAccountLedgerAccountIds,
@@ -238,7 +240,7 @@ mod tests {
             status: DepositAccountStatus::Active,
             activity: Activity::Active,
             public_id: PublicId::new("1"),
-            currency: "USD".to_string(),
+            currency: CurrencyCode::from("USD"),
         }]
     }
 
