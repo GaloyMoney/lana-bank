@@ -20,6 +20,7 @@ core-credit-collateral = { workspace = true }
 core-credit-collection = { workspace = true }
 core-credit-terms = { workspace = true }
 core-custody = { workspace = true }
+core-price = { workspace = true }
 core-deposit = { workspace = true }
 core-accounting = { workspace = true }
 core-report = { workspace = true }

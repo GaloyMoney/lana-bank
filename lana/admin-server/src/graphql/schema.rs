@@ -24,6 +24,10 @@ use lana_app::{
     },
     custody::{CustodiansSortBy as DomainCustodiansSortBy, custodian_cursor::CustodiansCursor},
     governance::{CommitteesSortBy as DomainCommitteesSortBy, committee_cursor::CommitteesCursor},
+    price::{
+        PriceProvidersSortBy as DomainPriceProvidersSortBy,
+        price_provider_cursor::PriceProvidersCursor,
+    },
 };
 
 use crate::primitives::*;
@@ -32,7 +36,7 @@ use super::{
     access::*, accounting::*, approval_process::*, audit::*, build_info::BuildInfo, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
     dashboard::*, deposit::*, deposit_config::*, document::*, domain_config::*, loader::*, me::*,
-    policy::*, price::*, prospect::*, public_id::*, reports::*, sumsub::*,
+    policy::*, price::*, price_provider::*, prospect::*, public_id::*, reports::*, sumsub::*,
     terms::build_term_values, terms_template::*, withdrawal::*,
 };
 
@@ -688,6 +692,32 @@ impl Query {
             after,
             first,
             |query| app.custody().list_custodians(sub, query, Sort::from(sort))
+        )
+    }
+
+    async fn price_providers(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+        #[graphql(default_with = "Some(PriceProvidersSort::default())")] sort: Option<
+            PriceProvidersSort,
+        >,
+    ) -> async_graphql::Result<
+        Connection<PriceProvidersCursor, PriceProvider, EmptyFields, EmptyFields>,
+    > {
+        let sort = sort.unwrap_or_default();
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_combo_cursor!(
+            PriceProvidersCursor,
+            PriceProvider,
+            DomainPriceProvidersSortBy::from(sort),
+            ctx,
+            after,
+            first,
+            |query| app
+                .core_price()
+                .list_providers(sub, query, Sort::from(sort))
         )
     }
 
@@ -2270,6 +2300,39 @@ impl Mutation {
             ctx,
             app.custody()
                 .update_config(sub, input.custodian_id, input.config.into())
+        )
+    }
+
+    async fn price_provider_create(
+        &self,
+        ctx: &Context<'_>,
+        input: PriceProviderCreateInput,
+    ) -> async_graphql::Result<PriceProviderCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            PriceProviderCreatePayload,
+            PriceProvider,
+            ctx,
+            app.core_price()
+                .create_provider(sub, input.name().to_owned(), input.into())
+        )
+    }
+
+    async fn price_provider_config_update(
+        &self,
+        ctx: &Context<'_>,
+        input: PriceProviderConfigUpdateInput,
+    ) -> async_graphql::Result<PriceProviderConfigUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            PriceProviderConfigUpdatePayload,
+            PriceProvider,
+            ctx,
+            app.core_price().update_provider_config(
+                sub,
+                input.price_provider_id,
+                input.config.into()
+            )
         )
     }
 

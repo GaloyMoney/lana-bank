@@ -1,0 +1,40 @@
+use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
+
+pub use super::repo::{
+    PriceProviderCreateError, PriceProviderFindError, PriceProviderModifyError,
+    PriceProviderQueryError,
+};
+
+#[derive(Error, Debug)]
+pub enum PriceProviderError {
+    #[error("PriceProviderError - Sqlx: {0}")]
+    Sqlx(#[from] sqlx::Error),
+    #[error("PriceProviderError - Create: {0}")]
+    Create(#[from] PriceProviderCreateError),
+    #[error("PriceProviderError - Modify: {0}")]
+    Modify(#[from] PriceProviderModifyError),
+    #[error("PriceProviderError - Find: {0}")]
+    Find(#[from] PriceProviderFindError),
+    #[error("PriceProviderError - Query: {0}")]
+    Query(#[from] PriceProviderQueryError),
+    #[error("PriceProviderError - Serde: {0}")]
+    Serde(#[from] serde_json::Error),
+    #[error("PriceProviderError - BfxClientError: {0}")]
+    BfxClientError(#[from] bfx_client::BfxClientError),
+}
+
+impl ErrorSeverity for PriceProviderError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
+            Self::Serde(_) => Level::ERROR,
+            Self::BfxClientError(e) => e.severity(),
+        }
+    }
+}

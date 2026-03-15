@@ -223,6 +223,10 @@ type BalanceSheetAccount {
 	name: String!
 }
 
+input BitfinexCreateInput {
+	name: String!
+}
+
 input BitgoConfig {
 	enterpriseId: String!
 	longLivedToken: String!
@@ -2108,6 +2112,8 @@ type Mutation {
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
+	priceProviderConfigUpdate(input: PriceProviderConfigUpdateInput!): PriceProviderConfigUpdatePayload!
+	priceProviderCreate(input: PriceProviderCreateInput!): PriceProviderCreatePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
 	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
@@ -2363,6 +2369,74 @@ type PolicyEdge {
 	node: Policy!
 }
 
+type PriceProvider {
+	createdAt: Timestamp!
+	id: ID!
+	name: String!
+	priceProviderId: UUID!
+	provider: String!
+}
+
+input PriceProviderConfigInput @oneOf {
+	bitfinex: BitfinexCreateInput
+}
+
+input PriceProviderConfigUpdateInput {
+	config: PriceProviderConfigInput!
+	priceProviderId: UUID!
+}
+
+type PriceProviderConfigUpdatePayload {
+	priceProvider: PriceProvider!
+}
+
+type PriceProviderConnection {
+	"""
+	A list of edges.
+	"""
+	edges: [PriceProviderEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [PriceProvider!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+}
+
+input PriceProviderCreateInput @oneOf {
+	bitfinex: BitfinexCreateInput
+}
+
+type PriceProviderCreatePayload {
+	priceProvider: PriceProvider!
+}
+
+"""
+An edge in a connection.
+"""
+type PriceProviderEdge {
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: PriceProvider!
+}
+
+input PriceProvidersSort {
+	by: PriceProvidersSortBy! = CREATED_AT
+	direction: SortDirection! = DESC
+}
+
+enum PriceProvidersSortBy {
+	CREATED_AT
+	NAME
+}
+
 type ProfitAndLossAccount {
 	balanceRange: LedgerAccountBalanceRangeByCurrency!
 	children: [ProfitAndLossAccount!]!
@@ -2547,6 +2621,7 @@ type Query {
 	permissionSets(after: String, first: Int!): PermissionSetConnection!
 	policies(after: String, first: Int!): PolicyConnection!
 	policy(id: UUID!): Policy
+	priceProviders(after: String, first: Int!, sort: PriceProvidersSort = {by: CREATED_AT, direction: DESC}): PriceProviderConnection!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	prospect(id: UUID!): Prospect
 	prospectByPublicId(id: PublicId!): Prospect

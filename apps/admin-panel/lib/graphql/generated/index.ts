@@ -257,6 +257,10 @@ export type BalanceSheetAccount = {
   name: Scalars['String']['output'];
 };
 
+export type BitfinexCreateInput = {
+  name: Scalars['String']['input'];
+};
+
 export type BitgoConfig = {
   enterpriseId: Scalars['String']['input'];
   longLivedToken: Scalars['String']['input'];
@@ -2179,6 +2183,8 @@ export type Mutation = {
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
+  priceProviderConfigUpdate: PriceProviderConfigUpdatePayload;
+  priceProviderCreate: PriceProviderCreatePayload;
   prospectClose: ProspectClosePayload;
   prospectConvert: ProspectConvertPayload;
   prospectCreate: ProspectCreatePayload;
@@ -2431,6 +2437,16 @@ export type MutationManualTransactionExecuteArgs = {
 
 export type MutationPolicyAssignCommitteeArgs = {
   input: PolicyAssignCommitteeInput;
+};
+
+
+export type MutationPriceProviderConfigUpdateArgs = {
+  input: PriceProviderConfigUpdateInput;
+};
+
+
+export type MutationPriceProviderCreateArgs = {
+  input: PriceProviderCreateInput;
 };
 
 
@@ -2743,6 +2759,65 @@ export type PolicyEdge = {
   node: Policy;
 };
 
+export type PriceProvider = {
+  __typename?: 'PriceProvider';
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  priceProviderId: Scalars['UUID']['output'];
+  provider: Scalars['String']['output'];
+};
+
+export type PriceProviderConfigInput =
+  { bitfinex: BitfinexCreateInput; };
+
+export type PriceProviderConfigUpdateInput = {
+  config: PriceProviderConfigInput;
+  priceProviderId: Scalars['UUID']['input'];
+};
+
+export type PriceProviderConfigUpdatePayload = {
+  __typename?: 'PriceProviderConfigUpdatePayload';
+  priceProvider: PriceProvider;
+};
+
+export type PriceProviderConnection = {
+  __typename?: 'PriceProviderConnection';
+  /** A list of edges. */
+  edges: Array<PriceProviderEdge>;
+  /** A list of nodes. */
+  nodes: Array<PriceProvider>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+export type PriceProviderCreateInput =
+  { bitfinex: BitfinexCreateInput; };
+
+export type PriceProviderCreatePayload = {
+  __typename?: 'PriceProviderCreatePayload';
+  priceProvider: PriceProvider;
+};
+
+/** An edge in a connection. */
+export type PriceProviderEdge = {
+  __typename?: 'PriceProviderEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: PriceProvider;
+};
+
+export type PriceProvidersSort = {
+  by?: PriceProvidersSortBy;
+  direction?: SortDirection;
+};
+
+export enum PriceProvidersSortBy {
+  CreatedAt = 'CREATED_AT',
+  Name = 'NAME'
+}
+
 export type ProfitAndLossAccount = {
   __typename?: 'ProfitAndLossAccount';
   balanceRange: LedgerAccountBalanceRangeByCurrency;
@@ -2930,6 +3005,7 @@ export type Query = {
   permissionSets: PermissionSetConnection;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
+  priceProviders: PriceProviderConnection;
   profitAndLossStatement: ProfitAndLossStatement;
   prospect?: Maybe<Prospect>;
   prospectByPublicId?: Maybe<Prospect>;
@@ -3215,6 +3291,13 @@ export type QueryPoliciesArgs = {
 
 export type QueryPolicyArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryPriceProvidersArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+  sort?: InputMaybe<PriceProvidersSort>;
 };
 
 
