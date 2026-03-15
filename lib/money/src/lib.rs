@@ -4,7 +4,6 @@
 use std::{fmt, marker::PhantomData};
 
 use rust_decimal::Decimal;
-use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tracing::Level;
@@ -22,10 +21,6 @@ pub trait Currency:
 {
     const CODE: &'static str;
     const MINOR_UNITS_PER_MAJOR: u64;
-    /// Schema name for unsigned minor units (used by JsonSchema).
-    const UNSIGNED_SCHEMA_NAME: &'static str;
-    /// Schema name for signed minor units (used by JsonSchema).
-    const SIGNED_SCHEMA_NAME: &'static str;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -34,8 +29,6 @@ pub struct Usd;
 impl Currency for Usd {
     const CODE: &'static str = "USD";
     const MINOR_UNITS_PER_MAJOR: u64 = 100;
-    const UNSIGNED_SCHEMA_NAME: &'static str = "UsdCents";
-    const SIGNED_SCHEMA_NAME: &'static str = "SignedUsdCents";
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -44,16 +37,7 @@ pub struct Btc;
 impl Currency for Btc {
     const CODE: &'static str = "BTC";
     const MINOR_UNITS_PER_MAJOR: u64 = 100_000_000;
-    const UNSIGNED_SCHEMA_NAME: &'static str = "Satoshis";
-    const SIGNED_SCHEMA_NAME: &'static str = "SignedSatoshis";
 }
-
-// ---------------------------------------------------------------------------
-// Constants (backward compat)
-// ---------------------------------------------------------------------------
-
-pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
-pub const CENTS_PER_USD: Decimal = dec!(100);
 
 // ---------------------------------------------------------------------------
 // ConversionError
@@ -160,8 +144,12 @@ impl<'de, C: Currency> Deserialize<'de> for MinorUnits<C> {
 
 #[cfg(feature = "json-schema")]
 impl<C: Currency> JsonSchema for MinorUnits<C> {
+    fn inline_schema() -> bool {
+        true
+    }
+
     fn schema_name() -> std::borrow::Cow<'static, str> {
-        C::UNSIGNED_SCHEMA_NAME.into()
+        u64::schema_name()
     }
 
     fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
@@ -311,8 +299,12 @@ impl<'de, C: Currency> Deserialize<'de> for SignedMinorUnits<C> {
 
 #[cfg(feature = "json-schema")]
 impl<C: Currency> JsonSchema for SignedMinorUnits<C> {
+    fn inline_schema() -> bool {
+        true
+    }
+
     fn schema_name() -> std::borrow::Cow<'static, str> {
-        C::SIGNED_SCHEMA_NAME.into()
+        i64::schema_name()
     }
 
     fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
