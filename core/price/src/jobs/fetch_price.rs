@@ -90,7 +90,7 @@ async fn fetch_price_from_provider(
         .into_iter()
         .next()
         .ok_or(PriceProviderError::Sqlx(sqlx::Error::RowNotFound))?;
-    let config = provider.config()?;
+    let config = provider.config();
     config.fetch_price().await
 }
 

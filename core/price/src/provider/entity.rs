@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::PriceProviderId;
 
-use super::{config::*, error::*};
+use super::config::*;
 
 #[derive(EsEvent, Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -59,8 +59,9 @@ impl PriceProvider {
         Idempotent::Executed(())
     }
 
-    pub fn config(&self) -> Result<PriceProviderConfig, PriceProviderError> {
-        serde_json::from_value(self.provider_config.clone()).map_err(PriceProviderError::Serde)
+    pub fn config(&self) -> PriceProviderConfig {
+        serde_json::from_value(self.provider_config.clone())
+            .expect("provider_config is always valid — we serialized it ourselves")
     }
 }
 

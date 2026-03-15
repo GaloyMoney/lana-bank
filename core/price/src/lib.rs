@@ -161,8 +161,9 @@ where
             jobs.add_initializer(fetch_price::FetchPriceJobInit::new(&providers, outbox));
 
         // Auto-bootstrap: if no providers exist, create a default Bitfinex provider
+        let mut db = providers.begin_op().await?;
         let existing = providers
-            .list_by_id(Default::default(), Default::default())
+            .list_by_id_in_op(&mut db, Default::default(), Default::default())
             .await?;
         if existing.entities.is_empty() {
             let config = PriceProviderConfig::Bitfinex;
@@ -177,8 +178,6 @@ where
                 .build()
                 .expect("should always build a new price provider");
 
-            let mut db = providers.begin_op().await?;
-
             authz
                 .audit()
                 .record_system_entry_in_op(
@@ -190,8 +189,8 @@ where
                 .await?;
 
             providers.create_in_op(&mut db, new_provider).await?;
-            db.commit().await?;
         }
+        db.commit().await?;
 
         // Spawn a single fetch job (the runner loads the active provider from the repo)
         fetch_job_spawner
