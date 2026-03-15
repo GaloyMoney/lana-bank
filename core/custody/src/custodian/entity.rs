@@ -232,7 +232,21 @@ impl IntoEvents<CustodianEvent> for NewCustodian {
 
 #[cfg(test)]
 mod tests {
+    use strum::IntoDiscriminant as _;
+
     use super::*;
+
+    fn make_custodian(config: CustodianConfig, key: &EncryptionKey) -> Custodian {
+        let provider = config.discriminant().to_string();
+        let new_custodian = NewCustodian::builder()
+            .id(CustodianId::new())
+            .name(provider.clone())
+            .provider(provider)
+            .encrypted_custodian_config(config, key)
+            .build()
+            .expect("builds");
+        Custodian::try_from_events(new_custodian.into_events()).expect("hydrates")
+    }
 
     #[test]
     fn only_self_custody_custodians_require_balance_polling() {
@@ -279,24 +293,78 @@ mod tests {
     }
 
     #[test]
+    fn rotate_encryption_key_re_encrypts_so_new_key_is_required() {
+        let old_key = EncryptionKey::new([1u8; 32]);
+        let new_key = EncryptionKey::new([2u8; 32]);
+
+        let mut custodian = make_custodian(CustodianConfig::Manual, &old_key);
+
+        assert!(
+            custodian
+                .rotate_encryption_key(&new_key, &old_key)
+                .unwrap()
+                .did_execute()
+        );
+
+        assert!(matches!(
+            custodian.update_custodian_config(&old_key, CustodianConfig::Manual),
+            Err(CustodianError::StaleEncryptionKey)
+        ));
+
+        assert!(
+            custodian
+                .update_custodian_config(&new_key, CustodianConfig::Manual)
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn rotate_encryption_key_is_idempotent() {
+        let old_key = EncryptionKey::new([1u8; 32]);
+        let new_key = EncryptionKey::new([2u8; 32]);
+
+        let mut custodian = make_custodian(CustodianConfig::Manual, &old_key);
+
+        assert!(
+            custodian
+                .rotate_encryption_key(&new_key, &old_key)
+                .unwrap()
+                .did_execute()
+        );
+
+        assert!(
+            custodian
+                .rotate_encryption_key(&new_key, &old_key)
+                .unwrap()
+                .was_already_applied()
+        );
+    }
+
+    #[test]
+    fn update_config_rejects_stale_key() {
+        let old_key = EncryptionKey::new([1u8; 32]);
+        let new_key = EncryptionKey::new([2u8; 32]);
+
+        let mut custodian = make_custodian(CustodianConfig::Manual, &old_key);
+
+        assert!(matches!(
+            custodian.update_custodian_config(&new_key, CustodianConfig::Manual),
+            Err(CustodianError::StaleEncryptionKey)
+        ));
+    }
+
+    #[test]
     fn allocate_receive_index_advances_sequentially() {
         let key = EncryptionKey::new([7u8; 32]);
         let generated =
             self_custody::generate_account_keys(SelfCustodyNetwork::Testnet4).expect("keys");
-        let config = CustodianConfig::SelfCustody(SelfCustodyConfig {
-            account_xpub: generated.account_xpub,
-            network: SelfCustodyNetwork::Testnet4,
-        });
-        let new_custodian = NewCustodian::builder()
-            .id(CustodianId::new())
-            .name("Self Custody".to_string())
-            .provider("self-custody".to_string())
-            .encrypted_custodian_config(config, &key)
-            .build()
-            .expect("new custodian builds");
-
-        let mut custodian =
-            Custodian::try_from_events(new_custodian.into_events()).expect("custodian hydrates");
+        let mut custodian = make_custodian(
+            CustodianConfig::SelfCustody(SelfCustodyConfig {
+                account_xpub: generated.account_xpub,
+                network: SelfCustodyNetwork::Testnet4,
+            }),
+            &key,
+        );
 
         assert_eq!(custodian.allocate_receive_index().expect("first"), 0);
         assert_eq!(custodian.allocate_receive_index().expect("second"), 1);

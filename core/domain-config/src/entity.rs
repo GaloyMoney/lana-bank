@@ -927,116 +927,135 @@ mod tests {
     fn assert_decryptable_passes_when_value_matches_key() {
         let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
         let key = EncryptionKey::default();
-        let _ = config
-            .update_value_encrypted::<SampleEncryptedConfig>(
-                &key,
-                SampleEncryptedConfig { secret: "s".into() },
-            )
-            .unwrap();
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &key,
+                    SampleEncryptedConfig { secret: "s".into() },
+                )
+                .unwrap()
+                .did_execute()
+        );
 
         assert!(config.assert_decryptable(&key, None).is_ok());
     }
 
     #[test]
     fn assert_decryptable_passes_after_key_rotation_with_old_key() {
-        // Updated(old) → KeyRotated(new)
-        // Old-key instance can still read from the Updated event.
         let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
         let old_key = EncryptionKey::default();
         let new_key = EncryptionKey::new([1; 32]);
 
-        let _ = config
-            .update_value_encrypted::<SampleEncryptedConfig>(
-                &old_key,
-                SampleEncryptedConfig { secret: "s".into() },
-            )
-            .unwrap();
-        let _ = config.rotate_encryption_key(&new_key, &old_key).unwrap();
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &old_key,
+                    SampleEncryptedConfig { secret: "s".into() },
+                )
+                .unwrap()
+                .did_execute()
+        );
+        assert!(
+            config
+                .rotate_encryption_key(&new_key, &old_key)
+                .unwrap()
+                .did_execute()
+        );
 
-        // Old key should still pass — no new business update after rotation.
         assert!(config.assert_decryptable(&old_key, None).is_ok());
-        // New key should also pass.
         assert!(config.assert_decryptable(&new_key, None).is_ok());
     }
 
     #[test]
     fn assert_decryptable_fails_after_update_with_new_key() {
-        // Updated(old) → KeyRotated(new) → Updated(new)
-        // Old-key instance cannot read the latest business value.
         let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
         let old_key = EncryptionKey::default();
         let new_key = EncryptionKey::new([1; 32]);
 
-        let _ = config
-            .update_value_encrypted::<SampleEncryptedConfig>(
-                &old_key,
-                SampleEncryptedConfig { secret: "s".into() },
-            )
-            .unwrap();
-        let _ = config.rotate_encryption_key(&new_key, &old_key).unwrap();
-        let _ = config
-            .update_value_encrypted::<SampleEncryptedConfig>(
-                &new_key,
-                SampleEncryptedConfig {
-                    secret: "new-secret".into(),
-                },
-            )
-            .unwrap();
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &old_key,
+                    SampleEncryptedConfig { secret: "s".into() },
+                )
+                .unwrap()
+                .did_execute()
+        );
+        assert!(
+            config
+                .rotate_encryption_key(&new_key, &old_key)
+                .unwrap()
+                .did_execute()
+        );
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &new_key,
+                    SampleEncryptedConfig {
+                        secret: "new-secret".into(),
+                    },
+                )
+                .unwrap()
+                .did_execute()
+        );
 
-        // Old key alone should fail — there's a newer Updated event it can't read.
         assert!(config.assert_decryptable(&old_key, None).is_err());
-        // New key should pass.
         assert!(config.assert_decryptable(&new_key, None).is_ok());
     }
 
     #[test]
     fn assert_decryptable_passes_with_deprecated_key() {
-        // Updated(old) → KeyRotated(new) → Updated(new)
-        // When the old key is provided as deprecated_key alongside the new
-        // key, all events are readable — should pass.
         let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
         let old_key = EncryptionKey::default();
         let new_key = EncryptionKey::new([1; 32]);
 
-        let _ = config
-            .update_value_encrypted::<SampleEncryptedConfig>(
-                &old_key,
-                SampleEncryptedConfig { secret: "s".into() },
-            )
-            .unwrap();
-        let _ = config.rotate_encryption_key(&new_key, &old_key).unwrap();
-        let _ = config
-            .update_value_encrypted::<SampleEncryptedConfig>(
-                &new_key,
-                SampleEncryptedConfig {
-                    secret: "new-secret".into(),
-                },
-            )
-            .unwrap();
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &old_key,
+                    SampleEncryptedConfig { secret: "s".into() },
+                )
+                .unwrap()
+                .did_execute()
+        );
+        assert!(
+            config
+                .rotate_encryption_key(&new_key, &old_key)
+                .unwrap()
+                .did_execute()
+        );
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &new_key,
+                    SampleEncryptedConfig {
+                        secret: "new-secret".into(),
+                    },
+                )
+                .unwrap()
+                .did_execute()
+        );
 
-        // With deprecated key, the new key can read Updated(new) directly.
         assert!(config.assert_decryptable(&new_key, Some(&old_key)).is_ok());
     }
 
     #[test]
     fn assert_decryptable_passes_with_deprecated_key_before_rotation() {
-        // Updated(old) only — value was written with old key, which is now
-        // the deprecated key.  The new primary key can't read it, but the
-        // deprecated key can.
         let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
         let old_key = EncryptionKey::default();
         let new_key = EncryptionKey::new([1; 32]);
 
-        let _ = config
-            .update_value_encrypted::<SampleEncryptedConfig>(
-                &old_key,
-                SampleEncryptedConfig { secret: "s".into() },
-            )
-            .unwrap();
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &old_key,
+                    SampleEncryptedConfig { secret: "s".into() },
+                )
+                .unwrap()
+                .did_execute()
+        );
 
-        // new_key alone can't read it.
         assert!(config.assert_decryptable(&new_key, None).is_err());
-        // But with the old key as deprecated, it passes.
         assert!(config.assert_decryptable(&new_key, Some(&old_key)).is_ok());
     }
 
@@ -1046,12 +1065,15 @@ mod tests {
         let key = EncryptionKey::default();
         let unknown_key = EncryptionKey::new([99; 32]);
 
-        let _ = config
-            .update_value_encrypted::<SampleEncryptedConfig>(
-                &key,
-                SampleEncryptedConfig { secret: "s".into() },
-            )
-            .unwrap();
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &key,
+                    SampleEncryptedConfig { secret: "s".into() },
+                )
+                .unwrap()
+                .did_execute()
+        );
 
         assert!(config.assert_decryptable(&unknown_key, None).is_err());
     }
@@ -1086,6 +1108,84 @@ mod tests {
         assert_eq!(
             config.current_stored_value().unwrap().as_plain(),
             Some(&expected)
+        );
+    }
+
+    #[test]
+    fn write_fails_with_stale_key_after_rotation() {
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let old_key = EncryptionKey::default();
+        let new_key = EncryptionKey::new([1; 32]);
+
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &old_key,
+                    SampleEncryptedConfig { secret: "s".into() },
+                )
+                .unwrap()
+                .did_execute()
+        );
+        assert!(
+            config
+                .rotate_encryption_key(&new_key, &old_key)
+                .unwrap()
+                .did_execute()
+        );
+
+        assert!(matches!(
+            config.update_value_encrypted::<SampleEncryptedConfig>(
+                &old_key,
+                SampleEncryptedConfig {
+                    secret: "new".into()
+                },
+            ),
+            Err(DomainConfigError::StaleEncryptionKey)
+        ));
+    }
+
+    #[test]
+    fn read_after_rotation_and_update_returns_new_value() {
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let old_key = EncryptionKey::default();
+        let new_key = EncryptionKey::new([1; 32]);
+
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &old_key,
+                    SampleEncryptedConfig {
+                        secret: "original".into(),
+                    },
+                )
+                .unwrap()
+                .did_execute()
+        );
+        assert!(
+            config
+                .rotate_encryption_key(&new_key, &old_key)
+                .unwrap()
+                .did_execute()
+        );
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &new_key,
+                    SampleEncryptedConfig {
+                        secret: "updated".into(),
+                    },
+                )
+                .unwrap()
+                .did_execute()
+        );
+
+        assert_eq!(
+            config
+                .current_value_encrypted::<SampleEncryptedConfig>(&new_key)
+                .unwrap(),
+            SampleEncryptedConfig {
+                secret: "updated".into()
+            }
         );
     }
 }
