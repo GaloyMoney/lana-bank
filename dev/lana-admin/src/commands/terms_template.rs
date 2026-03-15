@@ -26,34 +26,36 @@ pub async fn execute(
             overdue_days,
             liquidation_days,
         } => {
+            let terms = terms_template_create::TermsInput {
+                annual_rate: sval(annual_rate),
+                accrual_interval: parse_interest_interval(&accrual_interval)?,
+                accrual_cycle_interval: parse_interest_interval(&accrual_cycle_interval)?,
+                one_time_fee_rate: sval(one_time_fee_rate),
+                disbursal_policy: parse_disbursal_policy(&disbursal_policy)?,
+                duration: terms_template_create::DurationInput {
+                    period: terms_template_create::Period::MONTHS,
+                    units: duration_months,
+                },
+                initial_cvl: sval(initial_cvl),
+                margin_call_cvl: sval(margin_call_cvl),
+                liquidation_cvl: sval(liquidation_cvl),
+                interest_due_duration_from_accrual: terms_template_create::DurationInput {
+                    period: terms_template_create::Period::DAYS,
+                    units: interest_due_days,
+                },
+                obligation_overdue_duration_from_due: terms_template_create::DurationInput {
+                    period: terms_template_create::Period::DAYS,
+                    units: overdue_days,
+                },
+                obligation_liquidation_duration_from_due: terms_template_create::DurationInput {
+                    period: terms_template_create::Period::DAYS,
+                    units: liquidation_days,
+                },
+            };
             let vars = terms_template_create::Variables {
                 input: terms_template_create::TermsTemplateCreateInput {
                     name,
-                    annual_rate: sval(annual_rate),
-                    accrual_interval: parse_interest_interval(&accrual_interval)?,
-                    accrual_cycle_interval: parse_interest_interval(&accrual_cycle_interval)?,
-                    one_time_fee_rate: sval(one_time_fee_rate),
-                    disbursal_policy: parse_disbursal_policy(&disbursal_policy)?,
-                    duration: terms_template_create::DurationInput {
-                        period: terms_template_create::Period::MONTHS,
-                        units: duration_months,
-                    },
-                    initial_cvl: sval(initial_cvl),
-                    margin_call_cvl: sval(margin_call_cvl),
-                    liquidation_cvl: sval(liquidation_cvl),
-                    interest_due_duration_from_accrual: terms_template_create::DurationInput {
-                        period: terms_template_create::Period::DAYS,
-                        units: interest_due_days,
-                    },
-                    obligation_overdue_duration_from_due: terms_template_create::DurationInput {
-                        period: terms_template_create::Period::DAYS,
-                        units: overdue_days,
-                    },
-                    obligation_liquidation_duration_from_due:
-                        terms_template_create::DurationInput {
-                            period: terms_template_create::Period::DAYS,
-                            units: liquidation_days,
-                        },
+                    terms,
                 },
             };
             let data = client.execute::<TermsTemplateCreate>(vars).await?;
@@ -142,36 +144,36 @@ pub async fn execute(
             overdue_days,
             liquidation_days,
         } => {
+            let terms = terms_template_update::TermsInput {
+                annual_rate: sval(annual_rate),
+                accrual_interval: parse_update_interest_interval(&accrual_interval)?,
+                accrual_cycle_interval: parse_update_interest_interval(&accrual_cycle_interval)?,
+                one_time_fee_rate: sval(one_time_fee_rate),
+                disbursal_policy: parse_update_disbursal_policy(&disbursal_policy)?,
+                duration: terms_template_update::DurationInput {
+                    period: terms_template_update::Period::MONTHS,
+                    units: duration_months,
+                },
+                initial_cvl: sval(initial_cvl),
+                margin_call_cvl: sval(margin_call_cvl),
+                liquidation_cvl: sval(liquidation_cvl),
+                interest_due_duration_from_accrual: terms_template_update::DurationInput {
+                    period: terms_template_update::Period::DAYS,
+                    units: interest_due_days,
+                },
+                obligation_overdue_duration_from_due: terms_template_update::DurationInput {
+                    period: terms_template_update::Period::DAYS,
+                    units: overdue_days,
+                },
+                obligation_liquidation_duration_from_due: terms_template_update::DurationInput {
+                    period: terms_template_update::Period::DAYS,
+                    units: liquidation_days,
+                },
+            };
             let vars = terms_template_update::Variables {
                 input: terms_template_update::TermsTemplateUpdateInput {
                     terms_template_id: id,
-                    annual_rate: sval(annual_rate),
-                    accrual_interval: parse_update_interest_interval(&accrual_interval)?,
-                    accrual_cycle_interval: parse_update_interest_interval(
-                        &accrual_cycle_interval,
-                    )?,
-                    one_time_fee_rate: sval(one_time_fee_rate),
-                    disbursal_policy: parse_update_disbursal_policy(&disbursal_policy)?,
-                    duration: terms_template_update::DurationInput {
-                        period: terms_template_update::Period::MONTHS,
-                        units: duration_months,
-                    },
-                    initial_cvl: sval(initial_cvl),
-                    margin_call_cvl: sval(margin_call_cvl),
-                    liquidation_cvl: sval(liquidation_cvl),
-                    interest_due_duration_from_accrual: terms_template_update::DurationInput {
-                        period: terms_template_update::Period::DAYS,
-                        units: interest_due_days,
-                    },
-                    obligation_overdue_duration_from_due: terms_template_update::DurationInput {
-                        period: terms_template_update::Period::DAYS,
-                        units: overdue_days,
-                    },
-                    obligation_liquidation_duration_from_due:
-                        terms_template_update::DurationInput {
-                            period: terms_template_update::Period::DAYS,
-                            units: liquidation_days,
-                        },
+                    terms,
                 },
             };
             let data = client.execute::<TermsTemplateUpdate>(vars).await?;
