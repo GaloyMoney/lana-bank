@@ -8,7 +8,7 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     CorePriceEvent, PRICE_UPDATED_EVENT_TYPE, PriceOfOneBTC,
-    provider::{PriceProviderRepo, error::PriceProviderError},
+    provider::{PriceProviderConfig, PriceProviderRepo, error::PriceProviderError},
 };
 
 const PRICE_UPDATE_INTERVAL: Duration = Duration::from_secs(60);
@@ -91,7 +91,14 @@ async fn fetch_price_from_provider(
         .next()
         .ok_or(PriceProviderError::Sqlx(sqlx::Error::RowNotFound))?;
     let config = provider.config();
-    config.fetch_price().await
+    match config {
+        PriceProviderConfig::Bitfinex => {
+            let client = bfx_client::BfxClient::new();
+            let tick = client.btc_usd_tick().await?;
+            let usd_cents = money::UsdCents::try_from_usd(tick.last_price)?;
+            Ok(PriceOfOneBTC::new(usd_cents))
+        }
+    }
 }
 
 #[async_trait]

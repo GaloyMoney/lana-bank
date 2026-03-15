@@ -23,6 +23,8 @@ pub enum PriceProviderError {
     Serde(#[from] serde_json::Error),
     #[error("PriceProviderError - BfxClientError: {0}")]
     BfxClientError(#[from] bfx_client::BfxClientError),
+    #[error("PriceProviderError - ConversionError: {0}")]
+    ConversionError(#[from] money::ConversionError),
 }
 
 impl ErrorSeverity for PriceProviderError {
@@ -35,6 +37,7 @@ impl ErrorSeverity for PriceProviderError {
             Self::Query(_) => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::BfxClientError(e) => e.severity(),
+            Self::ConversionError(e) => e.severity(),
         }
     }
 }
