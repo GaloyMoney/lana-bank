@@ -26,13 +26,36 @@ pub use std::sync::Arc;
 #[derive(Debug, Clone)]
 pub struct AdminAuthContext {
     pub sub: Subject,
+    pub auth_time: Option<chrono::DateTime<chrono::Utc>>,
 }
 
+const STEP_UP_AUTH_MAX_AGE_SECS: i64 = 60;
+
 impl AdminAuthContext {
-    pub fn new(sub: impl Into<UserId>) -> Self {
+    pub fn new(sub: impl Into<UserId>, auth_time: Option<i64>) -> Self {
         Self {
             sub: Subject::User(sub.into()),
+            auth_time: auth_time.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
         }
+    }
+
+    pub fn enforce_step_up_auth(&self) -> async_graphql::Result<()> {
+        let auth_time = self.auth_time.ok_or_else(|| {
+            async_graphql::Error::new("Step-up authentication required: auth_time claim missing")
+        })?;
+
+        let age = chrono::Utc::now()
+            .signed_duration_since(auth_time)
+            .num_seconds();
+
+        if age > STEP_UP_AUTH_MAX_AGE_SECS {
+            return Err(async_graphql::Error::new(format!(
+                "Step-up authentication required: token too old ({}s > {}s)",
+                age, STEP_UP_AUTH_MAX_AGE_SECS
+            )));
+        }
+
+        Ok(())
     }
 }
 

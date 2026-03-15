@@ -2386,7 +2386,7 @@ impl Mutation {
         ctx: &Context<'_>,
         input: ApprovalProcessApproveInput,
     ) -> async_graphql::Result<ApprovalProcessApprovePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let (app, sub) = app_and_sub_with_step_up_from_ctx!(ctx);
         exec_mutation!(
             ApprovalProcessApprovePayload,
             ApprovalProcess,
@@ -2401,7 +2401,7 @@ impl Mutation {
         ctx: &Context<'_>,
         input: ApprovalProcessDenyInput,
     ) -> async_graphql::Result<ApprovalProcessDenyPayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let (app, sub) = app_and_sub_with_step_up_from_ctx!(ctx);
         exec_mutation!(
             ApprovalProcessDenyPayload,
             ApprovalProcess,
