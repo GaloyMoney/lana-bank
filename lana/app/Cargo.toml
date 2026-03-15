@@ -10,7 +10,6 @@ ignored = ["schemars"]
 
 fail-on-warnings = []
 mock-custodian = ["core-custody/mock-custodian", "core-credit/mock-custodian"]
-sumsub-testing = ["core-customer/sumsub-testing"]
 
 [dependencies]
 rbac-types = { workspace = true }

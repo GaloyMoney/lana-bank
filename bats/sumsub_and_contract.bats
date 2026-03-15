@@ -68,16 +68,9 @@ wait_for_loan_agreement_completion() {
   [[ "$url" != "null" ]] || exit 1
   echo "Created KYC link: $url"
 
-  # Test complete KYC flow via GraphQL mutation
-  echo "Testing complete KYC flow via sumsubTestApplicantCreate..."
-  exec_admin_graphql 'sumsub-test-applicant-create' "$variables"
-  echo "graphql_output: $(graphql_output)"
-
-  test_applicant_id=$(graphql_output .data.sumsubTestApplicantCreate.applicantId)
-
-  echo "Created test applicant_id: $test_applicant_id"
-  [[ "$test_applicant_id" != "null" ]] || exit 1
-  [[ -n "$test_applicant_id" ]] || exit 1
+  # Use a synthetic applicant ID for webhook simulation
+  test_applicant_id="test-applicant-$(uuidgen)"
+  echo "Using synthetic test applicant_id: $test_applicant_id"
 
   # Simulate Sumsub webhook callbacks since Sumsub can't reach our local server
   echo "Simulating applicantCreated webhook..."

@@ -53,21 +53,21 @@ gotenberg-down:
 	docker compose -f docker-compose.gotenberg.yml down
 
 run-server-normal:
-	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml \
+	cargo run --features mock-custodian --bin lana-cli -- --config ./bats/lana.yml \
 		--set time.type=realtime \
 		> >(tee .e2e-logs) 2>&1
 
 run-server:
-	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml > >(tee .e2e-logs) 2>&1
+	cargo run --features mock-custodian --bin lana-cli -- --config ./bats/lana.yml > >(tee .e2e-logs) 2>&1
 
 run-server-nix:
 	nix run . -- --config ./bats/lana.yml 2>&1 | tee .e2e-logs
 
 run-server-with-bootstrap:
-	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana-bootstrap.yml | tee .e2e-logs
+	cargo run --features mock-custodian --bin lana-cli -- --config ./bats/lana-bootstrap.yml | tee .e2e-logs
 
 seed-data:
-	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana-bootstrap.yml --set bootstrap.seed_only=true
+	cargo run --features mock-custodian --bin lana-cli -- --config ./bats/lana-bootstrap.yml --set bootstrap.seed_only=true
 
 check-code:
 	nix flake check
@@ -85,7 +85,7 @@ sdl-rust:
 
 # Generate default configuration file
 generate-default-config:
-	SQLX_OFFLINE=true cargo run -p lana-cli --features mock-custodian,sumsub-testing -- dump-default-config > dev/lana.default.yml
+	SQLX_OFFLINE=true cargo run -p lana-cli --features mock-custodian -- dump-default-config > dev/lana.default.yml
 
 sdl-js:
 	cd apps/admin-panel && pnpm install && pnpm codegen
@@ -234,7 +234,7 @@ test-in-ci-cargo: start-deps setup-db
 	cargo nextest run --verbose --locked
 
 build-x86_64-unknown-linux-musl-release:
-	SQLX_OFFLINE=true cargo build --release --features mock-custodian,sumsub-testing --locked --bin lana-cli --target x86_64-unknown-linux-musl
+	SQLX_OFFLINE=true cargo build --release --features mock-custodian --locked --bin lana-cli --target x86_64-unknown-linux-musl
 
 auth-kcadm:
 	kcadm.sh config credentials --server "$$KC_URL" --realm "$$REALM" --user "$$ADMIN_USER" --password "$$ADMIN_PASS"

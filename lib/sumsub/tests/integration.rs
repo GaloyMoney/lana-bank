@@ -1,8 +1,6 @@
-#[cfg(feature = "sumsub-testing")]
 use sumsub::testing_utils;
 
 /// Creates a real Sumsub applicant via API (requires environment setup)
-#[cfg(feature = "sumsub-testing")]
 #[tokio::test]
 async fn test_create_real_applicant() {
     use sumsub::{SumsubClient, testing::*};
@@ -60,7 +58,6 @@ async fn test_create_real_applicant() {
 }
 
 /// Creates a permalink for KYC flow (requires environment setup)
-#[cfg(feature = "sumsub-testing")]
 #[tokio::test]
 async fn test_create_permalink() {
     use sumsub::SumsubClient;
@@ -88,7 +85,6 @@ async fn test_create_permalink() {
 }
 
 /// Creates a test applicant, approves it, then rejects it via the production reject endpoint
-#[cfg(feature = "sumsub-testing")]
 #[tokio::test]
 async fn test_reject_applicant() {
     use sumsub::{SumsubClient, testing::*};
@@ -135,7 +131,6 @@ async fn test_reject_applicant() {
 }
 
 /// Rejects a test applicant, then restores it via the production approve endpoint.
-#[cfg(feature = "sumsub-testing")]
 #[tokio::test]
 async fn test_approve_applicant() {
     use sumsub::{SumsubClient, testing::*};
