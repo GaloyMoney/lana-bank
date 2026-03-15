@@ -126,11 +126,11 @@ where
     #[record_error_severity]
     #[tracing::instrument(
         name = "core_reports.job.trigger_report_run.run",
-        skip(self, _current_job)
+        skip(self, current_job)
     )]
     async fn run(
         &self,
-        mut _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let report_definition = find_report_definition(&self.config.report_definition_id)
             .ok_or_else(|| {
@@ -148,7 +148,7 @@ where
         tracing::info!("Successfully triggered file report run: {}", dagster_run_id);
 
         let schedule_at =
-            chrono::Utc::now() + chrono::Duration::seconds(SYNC_REPORTS_DELAY_SECS as i64);
+            current_job.clock().now() + chrono::Duration::seconds(SYNC_REPORTS_DELAY_SECS as i64);
         let mut db = self.report_runs.begin_op().await?;
         self.sync_reports_spawner
             .spawn_at_in_op(
