@@ -66,35 +66,13 @@ impl TermsTemplate {
 #[derive(InputObject)]
 pub(super) struct TermsTemplateCreateInput {
     pub name: String,
-    pub annual_rate: AnnualRatePct,
-    pub accrual_interval: InterestInterval,
-    pub accrual_cycle_interval: InterestInterval,
-    pub one_time_fee_rate: OneTimeFeeRatePct,
-    pub disbursal_policy: DisbursalPolicy,
-    pub duration: DurationInput,
-    pub interest_due_duration_from_accrual: DurationInput,
-    pub obligation_overdue_duration_from_due: DurationInput,
-    pub obligation_liquidation_duration_from_due: DurationInput,
-    pub liquidation_cvl: CVLPctValue,
-    pub margin_call_cvl: CVLPctValue,
-    pub initial_cvl: CVLPctValue,
+    pub terms: TermsInput,
 }
 crate::mutation_payload! { TermsTemplateCreatePayload, terms_template: TermsTemplate }
 
 #[derive(InputObject)]
 pub(super) struct TermsTemplateUpdateInput {
     pub terms_template_id: UUID,
-    pub annual_rate: AnnualRatePct,
-    pub accrual_interval: InterestInterval,
-    pub accrual_cycle_interval: InterestInterval,
-    pub one_time_fee_rate: OneTimeFeeRatePct,
-    pub disbursal_policy: DisbursalPolicy,
-    pub liquidation_cvl: CVLPctValue,
-    pub duration: DurationInput,
-    pub interest_due_duration_from_accrual: DurationInput,
-    pub obligation_overdue_duration_from_due: DurationInput,
-    pub obligation_liquidation_duration_from_due: DurationInput,
-    pub margin_call_cvl: CVLPctValue,
-    pub initial_cvl: CVLPctValue,
+    pub terms: TermsInput,
 }
 crate::mutation_payload! { TermsTemplateUpdatePayload, terms_template: TermsTemplate }

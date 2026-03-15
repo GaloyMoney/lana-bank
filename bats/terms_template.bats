@@ -18,21 +18,23 @@ teardown_file() {
     '{
       input: {
         name: $name,
-        annualRate: 5.5,
-        accrualCycleInterval: "END_OF_MONTH",
-        accrualInterval: "END_OF_DAY",
-        oneTimeFeeRate: "5",
-        disbursalPolicy: "SINGLE_DISBURSAL",
-        duration: {
-          period: "MONTHS",
-          units: 12
-        },
-        interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
-        obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
-        obligationLiquidationDurationFromDue: { period: "DAYS", units: 60 },
-        liquidationCvl: 80,
-        marginCallCvl: 90,
-        initialCvl: 100
+        terms: {
+          annualRate: 5.5,
+          accrualCycleInterval: "END_OF_MONTH",
+          accrualInterval: "END_OF_DAY",
+          oneTimeFeeRate: "5",
+          disbursalPolicy: "SINGLE_DISBURSAL",
+          duration: {
+            period: "MONTHS",
+            units: 12
+          },
+          interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
+          obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
+          obligationLiquidationDurationFromDue: { period: "DAYS", units: 60 },
+          liquidationCvl: 80,
+          marginCallCvl: 90,
+          initialCvl: 100
+        }
       }
     }'
   )
@@ -54,21 +56,23 @@ teardown_file() {
     '{
       input: {
         termsTemplateId: $termsTemplateId,
-        annualRate: 6.5,
-        accrualCycleInterval: "END_OF_MONTH",
-        accrualInterval: "END_OF_DAY",
-        oneTimeFeeRate: "5",
-        disbursalPolicy: "SINGLE_DISBURSAL",
-        duration: {
-          period: "MONTHS",
-          units: 24
-        },
-        interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
-        obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
-        obligationLiquidationDurationFromDue: { period: "DAYS", units: 60 },
-        liquidationCvl: 75,
-        marginCallCvl: 85,
-        initialCvl: 95
+        terms: {
+          annualRate: 6.5,
+          accrualCycleInterval: "END_OF_MONTH",
+          accrualInterval: "END_OF_DAY",
+          oneTimeFeeRate: "5",
+          disbursalPolicy: "SINGLE_DISBURSAL",
+          duration: {
+            period: "MONTHS",
+            units: 24
+          },
+          interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
+          obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
+          obligationLiquidationDurationFromDue: { period: "DAYS", units: 60 },
+          liquidationCvl: 75,
+          marginCallCvl: 85,
+          initialCvl: 95
+        }
       }
     }'
   )

@@ -115,30 +115,32 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
         variables: {
           input: {
             termsTemplateId: termsTemplate.termsTemplateId,
-            annualRate: formValues.annualRate,
-            accrualCycleInterval: DEFAULT_TERMS.ACCRUAL_CYCLE_INTERVAL,
-            accrualInterval: DEFAULT_TERMS.ACCRUAL_INTERVAL,
-            duration: {
-              period: DEFAULT_TERMS.DURATION_PERIOD,
-              units: parseInt(formValues.durationUnits),
+            terms: {
+              annualRate: formValues.annualRate,
+              accrualCycleInterval: DEFAULT_TERMS.ACCRUAL_CYCLE_INTERVAL,
+              accrualInterval: DEFAULT_TERMS.ACCRUAL_INTERVAL,
+              duration: {
+                period: DEFAULT_TERMS.DURATION_PERIOD,
+                units: parseInt(formValues.durationUnits),
+              },
+              interestDueDurationFromAccrual: {
+                period: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.PERIOD,
+                units: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.UNITS,
+              },
+              obligationOverdueDurationFromDue: {
+                period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.PERIOD,
+                units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.UNITS,
+              },
+              obligationLiquidationDurationFromDue: {
+                period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.PERIOD,
+                units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.UNITS,
+              },
+              liquidationCvl: formValues.liquidationCvl,
+              marginCallCvl: formValues.marginCallCvl,
+              initialCvl: formValues.initialCvl,
+              oneTimeFeeRate: formValues.oneTimeFeeRate,
+              disbursalPolicy: formValues.disbursalPolicy,
             },
-            interestDueDurationFromAccrual: {
-              period: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.PERIOD,
-              units: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.UNITS,
-            },
-            obligationOverdueDurationFromDue: {
-              period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.PERIOD,
-              units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.UNITS,
-            },
-            obligationLiquidationDurationFromDue: {
-              period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.PERIOD,
-              units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.UNITS,
-            },
-            liquidationCvl: formValues.liquidationCvl,
-            marginCallCvl: formValues.marginCallCvl,
-            initialCvl: formValues.initialCvl,
-            oneTimeFeeRate: formValues.oneTimeFeeRate,
-            disbursalPolicy: formValues.disbursalPolicy,
           },
         },
       })

@@ -2847,19 +2847,8 @@ type TermsTemplate {
 }
 
 input TermsTemplateCreateInput {
-	accrualCycleInterval: InterestInterval!
-	accrualInterval: InterestInterval!
-	annualRate: AnnualRatePct!
-	disbursalPolicy: DisbursalPolicy!
-	duration: DurationInput!
-	initialCvl: CVLPctValue!
-	interestDueDurationFromAccrual: DurationInput!
-	liquidationCvl: CVLPctValue!
-	marginCallCvl: CVLPctValue!
 	name: String!
-	obligationLiquidationDurationFromDue: DurationInput!
-	obligationOverdueDurationFromDue: DurationInput!
-	oneTimeFeeRate: OneTimeFeeRatePct!
+	terms: TermsInput!
 }
 
 type TermsTemplateCreatePayload {
@@ -2867,18 +2856,7 @@ type TermsTemplateCreatePayload {
 }
 
 input TermsTemplateUpdateInput {
-	accrualCycleInterval: InterestInterval!
-	accrualInterval: InterestInterval!
-	annualRate: AnnualRatePct!
-	disbursalPolicy: DisbursalPolicy!
-	duration: DurationInput!
-	initialCvl: CVLPctValue!
-	interestDueDurationFromAccrual: DurationInput!
-	liquidationCvl: CVLPctValue!
-	marginCallCvl: CVLPctValue!
-	obligationLiquidationDurationFromDue: DurationInput!
-	obligationOverdueDurationFromDue: DurationInput!
-	oneTimeFeeRate: OneTimeFeeRatePct!
+	terms: TermsInput!
 	termsTemplateId: UUID!
 }
 
