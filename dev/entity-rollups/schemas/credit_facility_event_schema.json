@@ -305,6 +305,12 @@
         "initial_cvl": {
           "$ref": "#/$defs/CVLPct"
         },
+        "interest_calculation_precision": {
+          "default": 2,
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
         "interest_due_duration_from_accrual": {
           "$ref": "#/$defs/ObligationDuration"
         },

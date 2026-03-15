@@ -26,6 +26,11 @@
         }
       ]
     },
+    "CalculationUsdCents": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
     "DisbursalPolicy": {
       "enum": [
         "SingleDisbursal",
@@ -191,6 +196,12 @@
         "initial_cvl": {
           "$ref": "#/$defs/CVLPct"
         },
+        "interest_calculation_precision": {
+          "default": 2,
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
         "interest_due_duration_from_accrual": {
           "$ref": "#/$defs/ObligationDuration"
         },
@@ -300,7 +311,7 @@
           "type": "string"
         },
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "$ref": "#/$defs/CalculationUsdCents"
         },
         "ledger_tx_id": {
           "format": "uuid",
