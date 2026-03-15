@@ -53,7 +53,9 @@ gotenberg-down:
 	docker compose -f docker-compose.gotenberg.yml down
 
 run-server-normal:
-	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana-normal.yml > >(tee .e2e-logs) 2>&1
+	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml \
+		--set time.type=realtime \
+		> >(tee .e2e-logs) 2>&1
 
 run-server:
 	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml > >(tee .e2e-logs) 2>&1
