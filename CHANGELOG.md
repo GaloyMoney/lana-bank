@@ -1,3 +1,62 @@
+## [0.48.0] - 2026-03-15
+
+### 🚀 Features
+
+- *(admin-panel)* Show custodian provider type in list page (#4283)
+- *(admin-panel)* Add createdAt column to customers and prospects (#4289)
+- Sql models, seeds and yml files for nrp91 (#4293)
+- *(admin-panel)* Add system info dialog on version click (#4327)
+- *(admin-panel)* Add creditFacilityComplete mutation UI (#4318)
+
+### 🐛 Bug Fixes
+
+- *(collateral)* Default manual collateral update config to false (#4279)
+- Data pipeline out of date fields (#4288)
+- *(admin-panel)* Translate customer page strings to Spanish (#4294)
+- *(admin-panel)* Translate configurations page strings to Spanish (#4295)
+- *(admin-panel)* Translate miscellaneous admin panel strings to Spanish (#4296)
+- *(profit-and-loss)* Compute NET client-side and use currency-aware balance access (#4284)
+- *(admin-panel)* Fix Spanish text truncation in audit filter and tables (#4298)
+- *(bats)* Move flaky accruals test to integration layer (#4257)
+- *(ci)* Cap outbox-dependent test parallelism to fix flaky test-integration (#4299)
+- *(docs)* Lingo.dev producing hallucinated outputs (#4313)
+- *(admin-panel)* Display error on liquidations page when unauthorized (#4287)
+- *(customer-server)* Use CvlPct union type instead of scalar for CVL percentages (#4291)
+- *(admin-panel)* Use generic error message on pending credit facilities page (#4286)
+- Resolve pnpm audit vulnerabilities (#4328)
+- *(deposit)* Standardize chartOfAccounts field naming in deposit config (#4292)
+- *(test)* Make accrual history assertion resilient to stale job interference (#4333)
+
+### 🚜 Refactor
+
+- *(governance)* Extract publisher for approval process conclusion (#4290)
+- *(cli)* Remove sim-bootstrap compile-time feature flag (#4285)
+- *(credit)* Liquidation flow — thin handler + command jobs (#4316)
+- Rename loanAgreementGenerate to creditFacilityAgreementGenerate (#4325)
+- *(config)* Rename domain config keys for consistency (#4317)
+- Remove allow-manual-custodian config (#4322)
+- *(governance)* Rename SystemAutoApprove to AutoApprove (#4347)
+- *(graphql)* Use TermsInput in TermsTemplateCreate/UpdateInput for consistency (#4356)
+- Remove bats/lana-normal.yml in favor of --set override (#4367)
+
+### 📚 Documentation
+
+- Frontend-skills for claude (#4314)
+
+### 🧪 Testing
+
+- Create manual custodian only once in cypress (#4300)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.47.0 [ci skip] (#4281)
+- Turn manual custodian into regular custodian (#4268)
+- *(docs)* Remove code coverage documentation (#4309)
+- Upgrade quinn-proto (#4323)
+
+### ◀️ Revert
+
+- "fix(ci): cap outbox-dependent test parallelism to fix flaky test-integration" (#4299) (#4303)
 ## [0.47.0] - 2026-03-10
 
 ### 🚀 Features
