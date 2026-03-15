@@ -77,11 +77,12 @@ export const makeClient = ({
     credentials: "include",
   })
 
-  const authLink = setContext(() => {
+  const authLink = setContext((_, previousContext) => {
     const token = getToken()
     return {
       headers: {
         Authorization: token ? `Bearer ${token}` : "",
+        ...previousContext.headers,
       },
     }
   })
