@@ -2081,6 +2081,10 @@ checksums:
     Permissions/governance_viewer/label: bfcc6123d91209cf8ca012200b6cd556
     Permissions/governance_writer/description: 56c0335d078338288795e0cd66062197
     Permissions/governance_writer/label: b9dd0624ee128d1ece7da289d0c28eb5
+    Permissions/price_viewer/description: 7188a79e0dbbdf1bac49e74c001c17f4
+    Permissions/price_viewer/label: 6bd1a6a915c56210aad0752ce58b669e
+    Permissions/price_writer/description: 999bf119309abb14d03e035660e7afc6
+    Permissions/price_writer/label: 90b66552e338d4f928e6882b899954bc
     Permissions/report_viewer/description: b9a52307adee71b1c818d70ac5160696
     Permissions/report_viewer/label: a66689c6ed940e3e6a26e703a04851e6
     Permissions/report_writer/description: d0bb9b9ba3824a2e4c9fadb87d926881
