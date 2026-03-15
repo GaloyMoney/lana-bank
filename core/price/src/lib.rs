@@ -1,6 +1,5 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
-mod config;
 pub mod error;
 mod event;
 pub mod jobs;
@@ -21,7 +20,6 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::clock::ClockHandle;
 
-pub use config::*;
 use error::PriceError;
 
 pub use event::*;
