@@ -27,7 +27,7 @@ import {
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { useProcessTypeLabel } from "@/app/actions/hooks"
-import { authenticateWithPassword } from "@/app/auth/step-up"
+import { authenticateWithPassword, InvalidPasswordError } from "@/app/auth/step-up"
 
 gql`
   mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
@@ -59,6 +59,17 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
   const [reason, setReason] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [authenticating, setAuthenticating] = React.useState(false)
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setPassword("")
+      setReason("")
+      setError(null)
+      setAuthenticating(false)
+    }
+    setOpenDenialDialog(open)
+  }
+
   const [denyProcess, { loading }] = useApprovalProcessDenyMutation({
     update: (cache) => {
       cache.modify({
@@ -87,8 +98,12 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
     let freshToken: string
     try {
       freshToken = await authenticateWithPassword(password)
-    } catch {
-      setError(t("errors.invalidPassword"))
+    } catch (err) {
+      setError(
+        err instanceof InvalidPasswordError
+          ? t("errors.invalidPassword")
+          : t("errors.unknown"),
+      )
       setAuthenticating(false)
       return
     }
@@ -119,7 +134,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           toast.success(t("success.processDenied"))
         },
       })
-      setOpenDenialDialog(false)
+      handleOpenChange(false)
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message)
@@ -130,7 +145,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
   }
 
   return (
-    <Dialog open={openDenialDialog} onOpenChange={setOpenDenialDialog}>
+    <Dialog open={openDenialDialog} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
@@ -171,7 +186,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
         </div>
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter className="flex gap-2 sm:gap-0">
-          <Button variant="ghost" onClick={() => setOpenDenialDialog(false)}>
+          <Button variant="ghost" onClick={() => handleOpenChange(false)}>
             {tCommon("cancel")}
           </Button>
           <Button

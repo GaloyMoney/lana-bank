@@ -25,7 +25,7 @@ import {
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { useProcessTypeLabel } from "@/app/actions/hooks"
-import { authenticateWithPassword } from "@/app/auth/step-up"
+import { authenticateWithPassword, InvalidPasswordError } from "@/app/auth/step-up"
 
 gql`
   fragment ApprovalProcessFields on ApprovalProcess {
@@ -96,6 +96,16 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   const [error, setError] = React.useState<string | null>(null)
   const [password, setPassword] = React.useState("")
   const [authenticating, setAuthenticating] = React.useState(false)
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setPassword("")
+      setError(null)
+      setAuthenticating(false)
+    }
+    setOpenApprovalDialog(open)
+  }
+
   const [approveProcess, { loading }] = useApprovalProcessApproveMutation({
     update: (cache) => {
       cache.modify({
@@ -122,8 +132,12 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
     let freshToken: string
     try {
       freshToken = await authenticateWithPassword(password)
-    } catch {
-      setError(t("errors.invalidPassword"))
+    } catch (err) {
+      setError(
+        err instanceof InvalidPasswordError
+          ? t("errors.invalidPassword")
+          : t("errors.unknown"),
+      )
       setAuthenticating(false)
       return
     }
@@ -153,7 +167,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
           toast.success(t("success.processApproved"))
         },
       })
-      setOpenApprovalDialog(false)
+      handleOpenChange(false)
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message)
@@ -164,7 +178,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   }
 
   return (
-    <Dialog open={openApprovalDialog} onOpenChange={setOpenApprovalDialog}>
+    <Dialog open={openApprovalDialog} onOpenChange={handleOpenChange}>
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -201,7 +215,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setOpenApprovalDialog(false)}
+              onClick={() => handleOpenChange(false)}
               data-testid="approval-process-dialog-cancel-button"
             >
               {tCommon("cancel")}
