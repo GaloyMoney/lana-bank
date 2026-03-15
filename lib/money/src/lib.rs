@@ -3,7 +3,8 @@
 
 use std::{fmt, marker::PhantomData};
 
-use rust_decimal::Decimal;
+use rust_decimal::prelude::ToPrimitive;
+use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -494,6 +495,79 @@ mod graphql_scalars {
         fn to_value(&self) -> Value {
             Value::Number(self.into_inner().into())
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// CalculationDecimal — higher-precision intermediate type
+// ---------------------------------------------------------------------------
+
+/// Higher-precision intermediate type for calculations (e.g. interest accrual).
+/// Accumulates at configurable precision, rounds once at booking boundary.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CalculationDecimal {
+    value: Decimal,
+    precision: u32,
+}
+
+impl CalculationDecimal {
+    pub fn new(value: Decimal, precision: u32) -> Self {
+        Self {
+            value: value.round_dp_with_strategy(precision, RoundingStrategy::AwayFromZero),
+            precision,
+        }
+    }
+
+    pub fn zero(precision: u32) -> Self {
+        Self {
+            value: Decimal::ZERO,
+            precision,
+        }
+    }
+
+    pub fn value(&self) -> Decimal {
+        self.value
+    }
+
+    pub fn precision(&self) -> u32 {
+        self.precision
+    }
+
+    /// Final rounding for booking to ledger — uses banker's rounding (MidpointNearestEven)
+    pub fn round_to_minor_units<C: Currency>(&self) -> MinorUnits<C> {
+        let minor_per_major = Decimal::from(C::MINOR_UNITS_PER_MAJOR);
+        let minor = (self.value * minor_per_major)
+            .round_dp_with_strategy(0, RoundingStrategy::MidpointNearestEven);
+        MinorUnits::from(minor.to_u64().unwrap_or(0))
+    }
+}
+
+impl std::ops::Add for CalculationDecimal {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self {
+        Self::new(self.value + rhs.value, self.precision.max(rhs.precision))
+    }
+}
+
+impl std::ops::AddAssign for CalculationDecimal {
+    fn add_assign(&mut self, rhs: Self) {
+        let precision = self.precision.max(rhs.precision);
+        self.value = (self.value + rhs.value)
+            .round_dp_with_strategy(precision, RoundingStrategy::AwayFromZero);
+        self.precision = precision;
+    }
+}
+
+impl std::ops::Sub for CalculationDecimal {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self {
+        Self::new(self.value - rhs.value, self.precision.max(rhs.precision))
+    }
+}
+
+impl fmt::Display for CalculationDecimal {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.value)
     }
 }
 
