@@ -224,6 +224,7 @@ describe("credit facility", () => {
     cy.get('[data-testid="approval-process-dialog-approve-button"]')
       .should("be.visible")
       .click()
+    cy.contains(t("Actions.ApprovalProcess.Approve.title")).should("not.exist")
   })
 
   it("should verify proposal approved status", () => {
@@ -387,6 +388,7 @@ describe("credit facility", () => {
     cy.get('[data-testid="approval-process-dialog-approve-button"]')
       .should("be.visible")
       .click()
+    cy.contains(t("Actions.ApprovalProcess.Approve.title")).should("not.exist")
 
     cy.get('[data-testid="disbursal-status-badge"]')
       .should("be.visible")

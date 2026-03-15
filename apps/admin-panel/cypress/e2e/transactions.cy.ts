@@ -115,6 +115,7 @@ describe("Transactions Deposit and Withdraw", () => {
               )
               cy.get('[data-testid="approval-process-dialog-deny-password"]').type("password")
               cy.get('[data-testid="approval-process-dialog-deny-button"]').click()
+              cy.contains(t("Actions.ApprovalProcess.Deny.title")).should("not.exist")
             } else {
               // expected flow
               cy.get('[data-testid="withdraw-cancel-button"]')
@@ -152,6 +153,7 @@ describe("Transactions Deposit and Withdraw", () => {
                 cy.get('[data-testid="approval-process-approve-button"]').click()
                 cy.get('[data-testid="approval-process-dialog-password"]').type("password")
                 cy.get('[data-testid="approval-process-dialog-approve-button"]').click()
+                cy.contains(t("Actions.ApprovalProcess.Approve.title")).should("not.exist")
               }
             })
             .then(() => {
