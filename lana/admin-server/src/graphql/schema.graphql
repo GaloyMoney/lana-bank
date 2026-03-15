@@ -1203,6 +1203,8 @@ input CustomersSort {
 
 enum CustomersSortBy {
 	CREATED_AT
+	EMAIL
+	TELEGRAM_HANDLE
 }
 
 union CvlPct = FiniteCvlPct | InfiniteCvlPct

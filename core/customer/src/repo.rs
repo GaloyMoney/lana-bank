@@ -6,7 +6,7 @@ use es_entity::*;
 use obix::out::OutboxEventMarker;
 
 use crate::primitives::*;
-use crate::{public::CoreCustomerEvent, publisher::*};
+use crate::{error::CustomerError, public::CoreCustomerEvent, publisher::*};
 
 use super::entity::*;
 
@@ -63,6 +63,166 @@ where
         new_events: es_entity::LastPersisted<'_, CustomerEvent>,
     ) -> Result<(), sqlx::Error> {
         self.publisher.publish_in_op(db, entity, new_events).await
+    }
+
+    fn cursor_to_id(cursor: customer_cursor::CustomersCursor) -> CustomerId {
+        match cursor {
+            customer_cursor::CustomersCursor::Byid(c) => c.id,
+            customer_cursor::CustomersCursor::Bycreated_at(c) => c.id,
+            customer_cursor::CustomersCursor::Bypublic_id(c) => c.id,
+            customer_cursor::CustomersCursor::Byparty_id(c) => c.id,
+        }
+    }
+
+    pub async fn list_by_party_email(
+        &self,
+        filter: &CustomersFilters,
+        direction: ListDirection,
+        query: PaginatedQueryArgs<customer_cursor::CustomersCursor>,
+    ) -> Result<(Vec<Customer>, bool), CustomerError> {
+        let first = query.first;
+        let after_id = query.after.map(Self::cursor_to_id);
+        let limit = first as i64 + 1;
+        let status = filter.status.as_ref().map(|s| s.to_string());
+        let customer_type = filter.customer_type.as_ref().map(|ct| ct.to_string());
+
+        let ids = match direction {
+            ListDirection::Ascending => {
+                sqlx::query_scalar!(
+                    r#"SELECT c.id AS "id: CustomerId"
+                       FROM core_customers c
+                       JOIN core_parties pa ON pa.id = c.party_id
+                       WHERE ($1::text IS NULL OR c.status = $1)
+                         AND ($2::text IS NULL OR c.customer_type = $2)
+                         AND (
+                           $3::uuid IS NULL
+                           OR (pa.email, c.id) > (
+                             (SELECT pa2.email FROM core_customers c2 JOIN core_parties pa2 ON pa2.id = c2.party_id WHERE c2.id = $3),
+                             $3
+                           )
+                         )
+                       ORDER BY pa.email ASC, c.id ASC
+                       LIMIT $4"#,
+                    status,
+                    customer_type,
+                    after_id as Option<CustomerId>,
+                    limit,
+                )
+                .fetch_all(self.pool())
+                .await?
+            }
+            ListDirection::Descending => {
+                sqlx::query_scalar!(
+                    r#"SELECT c.id AS "id: CustomerId"
+                       FROM core_customers c
+                       JOIN core_parties pa ON pa.id = c.party_id
+                       WHERE ($1::text IS NULL OR c.status = $1)
+                         AND ($2::text IS NULL OR c.customer_type = $2)
+                         AND (
+                           $3::uuid IS NULL
+                           OR (pa.email, c.id) < (
+                             (SELECT pa2.email FROM core_customers c2 JOIN core_parties pa2 ON pa2.id = c2.party_id WHERE c2.id = $3),
+                             $3
+                           )
+                         )
+                       ORDER BY pa.email DESC, c.id DESC
+                       LIMIT $4"#,
+                    status,
+                    customer_type,
+                    after_id as Option<CustomerId>,
+                    limit,
+                )
+                .fetch_all(self.pool())
+                .await?
+            }
+        };
+
+        self.hydrate_ordered(ids, first).await
+    }
+
+    pub async fn list_by_party_telegram(
+        &self,
+        filter: &CustomersFilters,
+        direction: ListDirection,
+        query: PaginatedQueryArgs<customer_cursor::CustomersCursor>,
+    ) -> Result<(Vec<Customer>, bool), CustomerError> {
+        let first = query.first;
+        let after_id = query.after.map(Self::cursor_to_id);
+        let limit = first as i64 + 1;
+        let status = filter.status.as_ref().map(|s| s.to_string());
+        let customer_type = filter.customer_type.as_ref().map(|ct| ct.to_string());
+
+        let ids = match direction {
+            ListDirection::Ascending => {
+                sqlx::query_scalar!(
+                    r#"SELECT c.id AS "id: CustomerId"
+                       FROM core_customers c
+                       JOIN core_parties pa ON pa.id = c.party_id
+                       WHERE ($1::text IS NULL OR c.status = $1)
+                         AND ($2::text IS NULL OR c.customer_type = $2)
+                         AND (
+                           $3::uuid IS NULL
+                           OR (pa.telegram_handle, c.id) > (
+                             (SELECT pa2.telegram_handle FROM core_customers c2 JOIN core_parties pa2 ON pa2.id = c2.party_id WHERE c2.id = $3),
+                             $3
+                           )
+                         )
+                       ORDER BY pa.telegram_handle ASC, c.id ASC
+                       LIMIT $4"#,
+                    status,
+                    customer_type,
+                    after_id as Option<CustomerId>,
+                    limit,
+                )
+                .fetch_all(self.pool())
+                .await?
+            }
+            ListDirection::Descending => {
+                sqlx::query_scalar!(
+                    r#"SELECT c.id AS "id: CustomerId"
+                       FROM core_customers c
+                       JOIN core_parties pa ON pa.id = c.party_id
+                       WHERE ($1::text IS NULL OR c.status = $1)
+                         AND ($2::text IS NULL OR c.customer_type = $2)
+                         AND (
+                           $3::uuid IS NULL
+                           OR (pa.telegram_handle, c.id) < (
+                             (SELECT pa2.telegram_handle FROM core_customers c2 JOIN core_parties pa2 ON pa2.id = c2.party_id WHERE c2.id = $3),
+                             $3
+                           )
+                         )
+                       ORDER BY pa.telegram_handle DESC, c.id DESC
+                       LIMIT $4"#,
+                    status,
+                    customer_type,
+                    after_id as Option<CustomerId>,
+                    limit,
+                )
+                .fetch_all(self.pool())
+                .await?
+            }
+        };
+
+        self.hydrate_ordered(ids, first).await
+    }
+
+    async fn hydrate_ordered(
+        &self,
+        ids: Vec<CustomerId>,
+        first: usize,
+    ) -> Result<(Vec<Customer>, bool), CustomerError> {
+        let has_next_page = ids.len() > first;
+        let ids: Vec<CustomerId> = ids.into_iter().take(first).collect();
+
+        let mut entities_map: std::collections::HashMap<CustomerId, Customer> =
+            self.find_all(&ids).await?;
+
+        let ordered: Vec<Customer> = ids
+            .iter()
+            .filter_map(|id| entities_map.remove(id))
+            .collect();
+
+        Ok((ordered, has_next_page))
     }
 }
 

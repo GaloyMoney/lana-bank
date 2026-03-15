@@ -170,19 +170,16 @@ impl Query {
             status: filter.as_ref().and_then(|f| f.status),
         };
 
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let sort = Sort {
-            by: DomainCustomersSortBy::from(sort.unwrap_or_default()),
-            direction: ListDirection::Descending,
-        };
         list_with_combo_cursor!(
             CustomersCursor,
             Customer,
-            sort.by,
+            DomainCustomersSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.customers().list(sub, query, filter, sort)
+            |query| app.customers().list(sub, query, filter, sort.into())
         )
     }
 
