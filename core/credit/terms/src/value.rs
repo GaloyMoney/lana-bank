@@ -10,7 +10,7 @@ use schemars::JsonSchema;
 use crate::{collateralization::*, cvl::CVLPct, effective_date::*};
 
 use core_price::PriceOfOneBTC;
-use money::{Satoshis, UsdCents};
+use money::{CalculationDecimal, Satoshis, UsdCents};
 
 use super::error::TermsError;
 
@@ -35,6 +35,22 @@ impl AnnualRatePct {
                 .to_u64()
                 .expect("should return a valid integer"),
         )
+    }
+
+    /// Higher-precision interest calculation that returns a CalculationDecimal
+    /// in major units (e.g. USD). Callers should accumulate these values and
+    /// call `round_to_minor_units()` once at the booking boundary.
+    pub fn interest_for_time_period_precise(
+        &self,
+        principal: UsdCents,
+        days: u32,
+        precision: u32,
+    ) -> CalculationDecimal {
+        let major = principal.to_usd();
+        let rate_fraction = self.0 / dec!(100);
+        let result =
+            major * rate_fraction * Decimal::from(days) / Decimal::from(NUMBER_OF_DAYS_IN_YEAR);
+        CalculationDecimal::new(result, precision)
     }
 }
 
@@ -211,6 +227,10 @@ pub enum DisbursalPolicy {
     MultipleDisbursal,
 }
 
+fn default_interest_calculation_precision() -> u32 {
+    2
+}
+
 #[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[builder(build_fn(validate = "Self::validate", error = "TermsError"))]
@@ -239,6 +259,9 @@ pub struct TermValues {
     pub initial_cvl: CVLPct,
     #[builder(setter(into))]
     pub disbursal_policy: DisbursalPolicy,
+    #[builder(default = "default_interest_calculation_precision()")]
+    #[serde(default = "default_interest_calculation_precision")]
+    pub interest_calculation_precision: u32,
 }
 
 impl TermValues {
