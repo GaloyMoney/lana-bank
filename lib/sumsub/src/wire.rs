@@ -134,8 +134,6 @@ pub(crate) enum SumsubResponse<T> {
     Error(ApiError),
 }
 
-// Testing constants (only available with sumsub-testing feature)
-#[cfg(feature = "sumsub-testing")]
 pub mod testing {
     // Document types
     pub const DOC_TYPE_PASSPORT: &str = "PASSPORT";

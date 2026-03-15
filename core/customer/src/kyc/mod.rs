@@ -2,7 +2,6 @@ pub mod callback;
 pub mod config;
 pub mod error;
 
-#[cfg(feature = "sumsub-testing")]
 pub use sumsub::testing_utils as sumsub_testing_utils;
 
 use sqlx::PgPool;
@@ -541,7 +540,6 @@ where
 
     /// Creates a complete test applicant with documents and approval for testing purposes
     /// This method executes the full KYC flow automatically using predefined test data
-    #[cfg(feature = "sumsub-testing")]
     #[record_error_severity]
     #[instrument(name = "kyc.create_complete_test_applicant", skip(self))]
     pub async fn create_complete_test_applicant(

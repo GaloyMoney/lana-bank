@@ -11,15 +11,3 @@ pub struct ProspectKycLinkCreateInput {
 pub struct ProspectKycLinkCreatePayload {
     pub url: String,
 }
-
-#[cfg(feature = "sumsub-testing")]
-#[derive(InputObject)]
-pub struct SumsubTestApplicantCreateInput {
-    pub prospect_id: UUID,
-}
-
-#[cfg(feature = "sumsub-testing")]
-#[derive(SimpleObject)]
-pub struct SumsubTestApplicantCreatePayload {
-    pub applicant_id: String,
-}

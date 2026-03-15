@@ -180,7 +180,7 @@
         individualCrateArgs
         // {
           pname = "lana-cli-debug";
-          cargoExtraArgs = "-p lana-cli --features mock-custodian,sumsub-testing";
+          cargoExtraArgs = "-p lana-cli --features mock-custodian";
           src = rustSource;
         }
       );

@@ -5,7 +5,6 @@ mod config;
 mod error;
 mod wire;
 
-#[cfg(feature = "sumsub-testing")]
 pub mod testing_utils;
 
 use chrono::Utc;
@@ -296,8 +295,6 @@ impl SumsubClient {
             .await
     }
 
-    // Testing methods (only available with sumsub-testing feature)
-    #[cfg(feature = "sumsub-testing")]
     pub async fn create_applicant<T>(
         &self,
         external_user_id: T,
@@ -345,7 +342,6 @@ impl SumsubClient {
         }
     }
 
-    #[cfg(feature = "sumsub-testing")]
     pub async fn update_applicant_info(
         &self,
         applicant_id: &str,
@@ -380,7 +376,6 @@ impl SumsubClient {
             .await
     }
 
-    #[cfg(feature = "sumsub-testing")]
     pub async fn simulate_review_response(
         &self,
         applicant_id: &str,
@@ -432,7 +427,6 @@ impl SumsubClient {
     }
 
     /// Uploads document with manual multipart body construction for proper HMAC signature calculation
-    #[cfg(feature = "sumsub-testing")]
     pub async fn upload_document(
         &self,
         applicant_id: &str,
@@ -516,7 +510,6 @@ impl SumsubClient {
     }
 
     /// Helper method to create document metadata
-    #[cfg(feature = "sumsub-testing")]
     fn create_document_metadata(
         doc_type: &str,
         doc_sub_type: &str,
@@ -538,7 +531,6 @@ impl SumsubClient {
         }
     }
 
-    #[cfg(feature = "sumsub-testing")]
     pub async fn submit_questionnaire_direct(
         &self,
         applicant_id: &str,
@@ -587,7 +579,6 @@ impl SumsubClient {
     }
 
     /// Alternative approach: Update applicant with questionnaire data
-    #[cfg(feature = "sumsub-testing")]
     async fn update_applicant_questionnaire(
         &self,
         applicant_id: &str,
@@ -633,7 +624,6 @@ impl SumsubClient {
         }
     }
 
-    #[cfg(feature = "sumsub-testing")]
     pub async fn request_check(&self, applicant_id: &str) -> Result<(), SumsubError> {
         let method = "POST";
         let url_path = format!("/resources/applicants/{applicant_id}/status/pending");

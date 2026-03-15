@@ -7,7 +7,6 @@ build = "build.rs"
 [features]
 
 mock-custodian = ["admin-server/mock-custodian"]
-sumsub-testing = ["lana-app/sumsub-testing", "admin-server/sumsub-testing"]
 
 fail-on-warnings = []
 
