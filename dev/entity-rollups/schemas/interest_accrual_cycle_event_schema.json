@@ -26,6 +26,11 @@
         }
       ]
     },
+    "CalculationUsdCents": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
     "DisbursalPolicy": {
       "enum": [
         "SingleDisbursal",
@@ -306,11 +311,7 @@
           "type": "string"
         },
         "amount": {
-          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
-          "type": [
-            "string",
-            "number"
-          ]
+          "$ref": "#/$defs/CalculationUsdCents"
         },
         "ledger_tx_id": {
           "format": "uuid",

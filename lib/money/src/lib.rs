@@ -572,6 +572,129 @@ impl fmt::Display for CalculationDecimal {
 }
 
 // ---------------------------------------------------------------------------
+// CalculationMinorUnits<C> — high-precision event storage as u64
+// ---------------------------------------------------------------------------
+
+/// Fixed scale for calculation minor units — 10^8 (matches Bitcoin satoshi scale).
+pub const CALCULATION_SCALE: u64 = 100_000_000;
+
+/// Stores amounts at fixed high-precision scale for cross-event accumulation.
+/// Serializes as u64 → produces BIGINT in rollup schemas.
+///
+/// Scale: value = amount_in_major × CALCULATION_SCALE
+/// e.g., $3.28767123 → 328_767_123 (at CALCULATION_SCALE = 10^8)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct CalculationMinorUnits<C: Currency> {
+    value: u64,
+    _currency: PhantomData<C>,
+}
+
+impl<C: Currency> CalculationMinorUnits<C> {
+    pub fn from_calculation_decimal(calc: &CalculationDecimal) -> Self {
+        let scaled = calc.value() * Decimal::from(CALCULATION_SCALE);
+        Self {
+            value: scaled.to_u64().unwrap_or(0),
+            _currency: PhantomData,
+        }
+    }
+
+    pub fn round_to_minor_units(&self) -> MinorUnits<C> {
+        // (self.value * MINOR_UNITS_PER_MAJOR) / CALCULATION_SCALE with rounding
+        let numerator = u128::from(self.value) * u128::from(C::MINOR_UNITS_PER_MAJOR);
+        let scale = u128::from(CALCULATION_SCALE);
+        let result = (numerator + scale / 2) / scale;
+        MinorUnits::from(result as u64)
+    }
+
+    pub fn to_calculation_decimal(&self, precision: u32) -> CalculationDecimal {
+        CalculationDecimal::new(
+            Decimal::from(self.value) / Decimal::from(CALCULATION_SCALE),
+            precision,
+        )
+    }
+
+    pub fn into_inner(self) -> u64 {
+        self.value
+    }
+}
+
+// --- Serde ---
+
+impl<C: Currency> Serialize for CalculationMinorUnits<C> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.value.serialize(serializer)
+    }
+}
+
+impl<'de, C: Currency> Deserialize<'de> for CalculationMinorUnits<C> {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        u64::deserialize(deserializer).map(|v| Self {
+            value: v,
+            _currency: PhantomData,
+        })
+    }
+}
+
+// --- JsonSchema ---
+
+#[cfg(feature = "json-schema")]
+impl<C: Currency> JsonSchema for CalculationMinorUnits<C> {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        format!("Calculation{}", C::UNSIGNED_SCHEMA_NAME).into()
+    }
+
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        u64::json_schema(generator)
+    }
+}
+
+// --- Display / Default ---
+
+impl<C: Currency> fmt::Display for CalculationMinorUnits<C> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
+impl<C: Currency> Default for CalculationMinorUnits<C> {
+    fn default() -> Self {
+        Self {
+            value: 0,
+            _currency: PhantomData,
+        }
+    }
+}
+
+// --- Arithmetic ---
+
+impl<C: Currency> std::ops::Add for CalculationMinorUnits<C> {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        Self {
+            value: self.value + other.value,
+            _currency: PhantomData,
+        }
+    }
+}
+
+impl<C: Currency> std::ops::AddAssign for CalculationMinorUnits<C> {
+    fn add_assign(&mut self, other: Self) {
+        self.value += other.value;
+    }
+}
+
+// --- From conversions ---
+
+impl<C: Currency> From<u64> for CalculationMinorUnits<C> {
+    fn from(value: u64) -> Self {
+        Self {
+            value,
+            _currency: PhantomData,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Type aliases — backward-compatible public API
 // ---------------------------------------------------------------------------
 
@@ -579,3 +702,4 @@ pub type UsdCents = MinorUnits<Usd>;
 pub type Satoshis = MinorUnits<Btc>;
 pub type SignedUsdCents = SignedMinorUnits<Usd>;
 pub type SignedSatoshis = SignedMinorUnits<Btc>;
+pub type CalculationUsdCents = CalculationMinorUnits<Usd>;
