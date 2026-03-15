@@ -191,6 +191,12 @@
         "initial_cvl": {
           "$ref": "#/$defs/CVLPct"
         },
+        "interest_calculation_precision": {
+          "default": 2,
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
         "interest_due_duration_from_accrual": {
           "$ref": "#/$defs/ObligationDuration"
         },
@@ -300,7 +306,11 @@
           "type": "string"
         },
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "ledger_tx_id": {
           "format": "uuid",
