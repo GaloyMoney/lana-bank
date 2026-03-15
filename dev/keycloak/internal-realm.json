@@ -73,6 +73,11 @@
           "authenticator": "direct-grant-validate-username",
           "requirement": "REQUIRED",
           "priority": 10
+        },
+        {
+          "authenticator": "direct-grant-validate-password",
+          "requirement": "REQUIRED",
+          "priority": 20
         }
       ]
     }

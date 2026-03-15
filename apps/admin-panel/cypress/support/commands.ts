@@ -50,6 +50,7 @@ Cypress.Commands.add(
           client_id: "admin-panel",
           grant_type: "password",
           username: userEmail,
+          password: "password",
         },
       })
       .then(({ body: tokenBody }) => {
@@ -435,6 +436,44 @@ Cypress.Commands.add("waitForKeycloak", () => {
   const root = "http://localhost:8081"
   const maxAttempts = 30
 
+  const setAdminPassword = () => {
+    cy.request({
+      method: "POST",
+      url: `${root}/realms/master/protocol/openid-connect/token`,
+      form: true,
+      body: {
+        client_id: "admin-cli",
+        username: "admin",
+        password: "admin",
+        grant_type: "password",
+      },
+      failOnStatusCode: false,
+    }).then((adminTokenResponse) => {
+      if (adminTokenResponse.status !== 200) return
+      const adminToken = adminTokenResponse.body.access_token
+      cy.request({
+        method: "GET",
+        url: `${root}/admin/realms/internal/users`,
+        qs: { search: "admin@galoy.io" },
+        headers: { Authorization: `Bearer ${adminToken}` },
+        failOnStatusCode: false,
+      }).then((usersResponse) => {
+        if (usersResponse.status !== 200 || !usersResponse.body.length) return
+        const userId = usersResponse.body[0].id
+        cy.request({
+          method: "PUT",
+          url: `${root}/admin/realms/internal/users/${userId}/reset-password`,
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            "Content-Type": "application/json",
+          },
+          body: { type: "password", value: "password", temporary: false },
+          failOnStatusCode: false,
+        })
+      })
+    })
+  }
+
   const checkKeycloak = (attempt: number) => {
     if (attempt > maxAttempts) {
       throw new Error(`Keycloak not ready after ${maxAttempts} attempts`)
@@ -444,6 +483,7 @@ Cypress.Commands.add("waitForKeycloak", () => {
       if (masterReady) {
         cy.task("checkUrl", `${root}/realms/internal`).then((adminReady) => {
           if (adminReady) {
+            setAdminPassword()
             cy.request({
               method: "POST",
               url: `${root}/realms/internal/protocol/openid-connect/token`,
@@ -452,6 +492,7 @@ Cypress.Commands.add("waitForKeycloak", () => {
                 client_id: "admin-panel",
                 username: "admin@galoy.io",
                 grant_type: "password",
+                password: "password",
               },
               failOnStatusCode: false,
             }).then((tokenResponse) => {

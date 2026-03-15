@@ -1345,16 +1345,24 @@ checksums:
     Actions/ApprovalProcess/Approve/title: c10563268655d4adbbc0e2d46fa559e4
     Actions/ApprovalProcess/Approve/fields/processType: 010f7d654190a93f0f175a9ec31fc4ad
     Actions/ApprovalProcess/Approve/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Actions/ApprovalProcess/Approve/fields/passwordLabel: 223a61cf906ab9c40d22612c588dff48
+    Actions/ApprovalProcess/Approve/placeholders/password: f4b34174cf9794358d7598c72c14644e
     Actions/ApprovalProcess/Approve/buttons/approve: df82197ab4899a770b4677fbea82abbb
+    Actions/ApprovalProcess/Approve/errors/passwordRequired: 19ff103c40080105aaaee40e2689e257
+    Actions/ApprovalProcess/Approve/errors/invalidPassword: 096c27988af5320f2ee229f70781ad5b
     Actions/ApprovalProcess/Approve/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
     Actions/ApprovalProcess/Approve/success/processApproved: c7012ccfe1a8477e7dc5ba6798973a12
     Actions/ApprovalProcess/Deny/title: 5869d6db0088aa21656a9a77451e46bf
     Actions/ApprovalProcess/Deny/fields/processType: 010f7d654190a93f0f175a9ec31fc4ad
     Actions/ApprovalProcess/Deny/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Actions/ApprovalProcess/Deny/fields/reasonLabel: e31c7c92f3b43118df92b1e410238aac
+    Actions/ApprovalProcess/Deny/fields/passwordLabel: 223a61cf906ab9c40d22612c588dff48
     Actions/ApprovalProcess/Deny/placeholders/reason: 1fb3216b19ff4d41cc22ebf11ad41cbc
+    Actions/ApprovalProcess/Deny/placeholders/password: f4b34174cf9794358d7598c72c14644e
     Actions/ApprovalProcess/Deny/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
     Actions/ApprovalProcess/Deny/errors/reasonRequired: 909857e90161a46fdc0968ef8393bbad
+    Actions/ApprovalProcess/Deny/errors/passwordRequired: 19ff103c40080105aaaee40e2689e257
+    Actions/ApprovalProcess/Deny/errors/invalidPassword: 096c27988af5320f2ee229f70781ad5b
     Actions/ApprovalProcess/Deny/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
     Actions/ApprovalProcess/Deny/success/processDenied: b3e9de3d376c5426fbaf9c534fa980e6
     Actions/table/title: 4edfe86475a806ff06de8f382f5485d2

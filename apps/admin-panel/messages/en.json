@@ -2228,12 +2228,18 @@
         "title": "Approve Process",
         "fields": {
           "processType": "Process Type",
-          "createdAt": "Created At"
+          "createdAt": "Created At",
+          "passwordLabel": "Password"
+        },
+        "placeholders": {
+          "password": "Enter your password to confirm"
         },
         "buttons": {
           "approve": "Approve"
         },
         "errors": {
+          "passwordRequired": "Password is required",
+          "invalidPassword": "Invalid password",
           "unknown": "An unknown error occurred"
         },
         "success": {
@@ -2245,16 +2251,20 @@
         "fields": {
           "processType": "Process Type",
           "createdAt": "Created At",
-          "reasonLabel": "Reason for Denial"
+          "reasonLabel": "Reason for Denial",
+          "passwordLabel": "Password"
         },
         "placeholders": {
-          "reason": "Please provide a reason for denying this process"
+          "reason": "Please provide a reason for denying this process",
+          "password": "Enter your password to confirm"
         },
         "buttons": {
           "deny": "Deny"
         },
         "errors": {
           "reasonRequired": "Please provide a reason for denial",
+          "passwordRequired": "Password is required",
+          "invalidPassword": "Invalid password",
           "unknown": "An unknown error occurred"
         },
         "success": {

@@ -11,7 +11,8 @@ import {
   DialogTitle,
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
-
+import { Input } from "@lana/web/ui/input"
+import { Label } from "@lana/web/ui/label"
 import { Textarea } from "@lana/web/ui/textarea"
 
 import { formatDate } from "@lana/web/utils"
@@ -26,6 +27,7 @@ import {
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { useProcessTypeLabel } from "@/app/actions/hooks"
+import { authenticateWithPassword } from "@/app/auth/step-up"
 
 gql`
   mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
@@ -55,6 +57,8 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
   const client = useApolloClient()
   const [error, setError] = React.useState<string | null>(null)
   const [reason, setReason] = React.useState("")
+  const [password, setPassword] = React.useState("")
+  const [authenticating, setAuthenticating] = React.useState(false)
   const [denyProcess, { loading }] = useApprovalProcessDenyMutation({
     update: (cache) => {
       cache.modify({
@@ -74,6 +78,21 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
       setError(t("errors.reasonRequired"))
       return
     }
+    if (!password.trim()) {
+      setError(t("errors.passwordRequired"))
+      return
+    }
+
+    setAuthenticating(true)
+    let freshToken: string
+    try {
+      freshToken = await authenticateWithPassword(password)
+    } catch {
+      setError(t("errors.invalidPassword"))
+      setAuthenticating(false)
+      return
+    }
+    setAuthenticating(false)
 
     try {
       await denyProcess({
@@ -81,6 +100,11 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           input: {
             approvalProcessId: approvalProcess.approvalProcessId,
             reason: reason.trim(),
+          },
+        },
+        context: {
+          headers: {
+            Authorization: `Bearer ${freshToken}`,
           },
         },
         onCompleted: async () => {
@@ -134,6 +158,17 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
             className="min-h-[100px]"
           />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="step-up-password-deny">{t("fields.passwordLabel")}</Label>
+          <Input
+            id="step-up-password-deny"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("placeholders.password")}
+            data-testid="approval-process-dialog-deny-password"
+          />
+        </div>
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter className="flex gap-2 sm:gap-0">
           <Button variant="ghost" onClick={() => setOpenDenialDialog(false)}>
@@ -141,7 +176,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           </Button>
           <Button
             onClick={handleDeny}
-            loading={loading}
+            loading={loading || authenticating}
             data-testid="approval-process-dialog-deny-button"
           >
             {t("buttons.deny")}
