@@ -23,8 +23,8 @@ wait_for_loan_agreement_completion() {
 }
 
 @test "sumsub: integrate with gql" {
-  if [[ -z "${SUMSUB_KEY}" || -z "${SUMSUB_SECRET}" ]]; then
-    skip "Skipping test because SUMSUB_KEY or SUMSUB_SECRET is not defined"
+  if [[ -z "${LANA_DOMAIN_CONFIG_SUMSUB_API_KEY}" || -z "${LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET}" ]]; then
+    skip "Skipping test because LANA_DOMAIN_CONFIG_SUMSUB_API_KEY or LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET is not defined"
   fi
 
   customer_email=$(generate_email)

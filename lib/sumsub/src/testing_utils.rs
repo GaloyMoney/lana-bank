@@ -46,12 +46,12 @@ pub async fn load_test_document(
 /// Load Sumsub configuration from environment variables
 /// Returns None if required environment variables are not set
 pub fn load_config_from_env() -> Option<crate::SumsubConfig> {
-    let sumsub_key = std::env::var("SUMSUB_KEY").ok()?;
-    let sumsub_secret = std::env::var("SUMSUB_SECRET").ok()?;
+    let sumsub_key = std::env::var("LANA_DOMAIN_CONFIG_SUMSUB_API_KEY").ok()?;
+    let sumsub_secret = std::env::var("LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET").ok()?;
 
     if sumsub_key.trim().is_empty() || sumsub_secret.trim().is_empty() {
         tracing::warn!(
-            "SUMSUB_KEY and/or SUMSUB_SECRET are set environment variables but have an empty value"
+            "LANA_DOMAIN_CONFIG_SUMSUB_API_KEY and/or LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET are set but have an empty value"
         );
         return None;
     }

@@ -10,7 +10,7 @@ has_bigquery_credentials() {
 
 # Helper to check if Sumsub credentials are available
 has_sumsub_credentials() {
-  [[ -n "${SUMSUB_KEY:-}" && -n "${SUMSUB_SECRET:-}" ]]
+  [[ -n "${LANA_DOMAIN_CONFIG_SUMSUB_API_KEY:-}" && -n "${LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET:-}" ]]
 }
 
 # All sumsub-dependent models (staging + intermediate + output)
@@ -130,7 +130,7 @@ build_asset_selection() {
     asset_selection="${asset_selection},${sumsub_selection}"
     total=$((total + ${#SUMSUB_ASSETS[@]}))
   else
-    echo "Skipping sumsub assets materialization (SUMSUB_KEY or SUMSUB_SECRET not set)"
+    echo "Skipping sumsub assets materialization (LANA_DOMAIN_CONFIG_SUMSUB_API_KEY or LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET not set)"
   fi
 
   variables=$(cat <<EOF
@@ -224,7 +224,7 @@ EOF
   if has_sumsub_credentials; then
     dbt_assets=$(echo "$output" | jq -c '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] != "seeds")]')
   else
-    echo "Skipping sumsub models and downstream dependents (SUMSUB_KEY or SUMSUB_SECRET not set)"
+    echo "Skipping sumsub models and downstream dependents (LANA_DOMAIN_CONFIG_SUMSUB_API_KEY or LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET not set)"
     local skip_models
     skip_models=$(sumsub_all_jq_array)
     dbt_assets=$(echo "$output" | jq -c --argjson skip "$skip_models" '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] != "seeds" and (.[-1] | IN($skip[]) | not))]')

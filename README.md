@@ -46,8 +46,8 @@ Set them in your `.env` file
 
 - `DAGSTER=true`: Enables the local dagster deployment.
 - `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
-- `SUMSUB_KEY`: SumSub API key for identity verification
-- `SUMSUB_SECRET`: SumSub API secret for identity verification
+- `LANA_DOMAIN_CONFIG_SUMSUB_API_KEY`: SumSub API key for identity verification
+- `LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET`: SumSub API secret for identity verification
 - `INGEST_HONEYCOMB_API_KEY`: Honeycomb Ingest API key for tracing
 - `HONEYCOMB_API_KEY`: Honeycomb Configuration API key for dashboards 
 
