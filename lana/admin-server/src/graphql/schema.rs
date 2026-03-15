@@ -2664,11 +2664,11 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let report_definition_id =
             lana_app::report::ReportDefinitionId::try_new(input.report_definition_id)?;
-        let _job_id = app
+        let job_id = app
             .reports()
             .trigger_report_run_job(sub, report_definition_id, input.as_of_date.map(Into::into))
             .await?;
-        Ok(ReportRunCreatePayload { run_id: None })
+        Ok(ReportRunCreatePayload { run_id: job_id.to_string() })
     }
 
     async fn report_file_generate_download_link(
