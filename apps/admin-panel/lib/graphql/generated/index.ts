@@ -5419,6 +5419,45 @@ export type PoliciesQuery = { __typename?: 'Query', policies: { __typename?: 'Po
           | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string } }
          } }>, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
+export type PriceProviderCreateMutationVariables = Exact<{
+  input: PriceProviderCreateInput;
+}>;
+
+
+export type PriceProviderCreateMutation = { __typename?: 'Mutation', priceProviderCreate: { __typename?: 'PriceProviderCreatePayload', priceProvider: { __typename?: 'PriceProvider', id: string, priceProviderId: string, name: string, createdAt: string } } };
+
+export type PriceProviderFieldsFragment = { __typename?: 'PriceProvider', id: string, priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean };
+
+export type PriceProvidersQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<PriceProvidersSort>;
+}>;
+
+
+export type PriceProvidersQuery = { __typename?: 'Query', priceProviders: { __typename?: 'PriceProviderConnection', edges: Array<{ __typename?: 'PriceProviderEdge', cursor: string, node: { __typename?: 'PriceProvider', id: string, priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type PriceProviderActivateMutationVariables = Exact<{
+  priceProviderId: Scalars['UUID']['input'];
+}>;
+
+
+export type PriceProviderActivateMutation = { __typename?: 'Mutation', priceProviderActivate: { __typename?: 'PriceProviderActivatePayload', priceProvider: { __typename?: 'PriceProvider', id: string, priceProviderId: string, active: boolean } } };
+
+export type PriceProviderDeactivateMutationVariables = Exact<{
+  priceProviderId: Scalars['UUID']['input'];
+}>;
+
+
+export type PriceProviderDeactivateMutation = { __typename?: 'Mutation', priceProviderDeactivate: { __typename?: 'PriceProviderDeactivatePayload', priceProvider: { __typename?: 'PriceProvider', id: string, priceProviderId: string, active: boolean } } };
+
+export type PriceProviderConfigUpdateMutationVariables = Exact<{
+  input: PriceProviderConfigUpdateInput;
+}>;
+
+
+export type PriceProviderConfigUpdateMutation = { __typename?: 'Mutation', priceProviderConfigUpdate: { __typename?: 'PriceProviderConfigUpdatePayload', priceProvider: { __typename?: 'PriceProvider', id: string, priceProviderId: string, name: string, provider: string } } };
+
 export type ProfitAndLossStatementQueryVariables = Exact<{
   from: Scalars['Date']['input'];
   until?: InputMaybe<Scalars['Date']['input']>;
@@ -6847,6 +6886,16 @@ export const PendingCreditFacilityLayoutFragmentFragmentDoc = gql`
   }
 }
     ${ApprovalProcessFieldsFragmentDoc}`;
+export const PriceProviderFieldsFragmentDoc = gql`
+    fragment PriceProviderFields on PriceProvider {
+  id
+  priceProviderId
+  createdAt
+  name
+  provider
+  active
+}
+    `;
 export const ProspectDetailsFragmentFragmentDoc = gql`
     fragment ProspectDetailsFragment on Prospect {
   id
@@ -12755,6 +12804,212 @@ export type PoliciesQueryHookResult = ReturnType<typeof usePoliciesQuery>;
 export type PoliciesLazyQueryHookResult = ReturnType<typeof usePoliciesLazyQuery>;
 export type PoliciesSuspenseQueryHookResult = ReturnType<typeof usePoliciesSuspenseQuery>;
 export type PoliciesQueryResult = Apollo.QueryResult<PoliciesQuery, PoliciesQueryVariables>;
+export const PriceProviderCreateDocument = gql`
+    mutation PriceProviderCreate($input: PriceProviderCreateInput!) {
+  priceProviderCreate(input: $input) {
+    priceProvider {
+      id
+      priceProviderId
+      name
+      createdAt
+    }
+  }
+}
+    `;
+export type PriceProviderCreateMutationFn = Apollo.MutationFunction<PriceProviderCreateMutation, PriceProviderCreateMutationVariables>;
+
+/**
+ * __usePriceProviderCreateMutation__
+ *
+ * To run a mutation, you first call `usePriceProviderCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePriceProviderCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [priceProviderCreateMutation, { data, loading, error }] = usePriceProviderCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function usePriceProviderCreateMutation(baseOptions?: Apollo.MutationHookOptions<PriceProviderCreateMutation, PriceProviderCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PriceProviderCreateMutation, PriceProviderCreateMutationVariables>(PriceProviderCreateDocument, options);
+      }
+export type PriceProviderCreateMutationHookResult = ReturnType<typeof usePriceProviderCreateMutation>;
+export type PriceProviderCreateMutationResult = Apollo.MutationResult<PriceProviderCreateMutation>;
+export type PriceProviderCreateMutationOptions = Apollo.BaseMutationOptions<PriceProviderCreateMutation, PriceProviderCreateMutationVariables>;
+export const PriceProvidersDocument = gql`
+    query PriceProviders($first: Int!, $after: String, $sort: PriceProvidersSort) {
+  priceProviders(first: $first, after: $after, sort: $sort) {
+    edges {
+      cursor
+      node {
+        ...PriceProviderFields
+      }
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    ${PriceProviderFieldsFragmentDoc}`;
+
+/**
+ * __usePriceProvidersQuery__
+ *
+ * To run a query within a React component, call `usePriceProvidersQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePriceProvidersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePriceProvidersQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *      sort: // value for 'sort'
+ *   },
+ * });
+ */
+export function usePriceProvidersQuery(baseOptions: Apollo.QueryHookOptions<PriceProvidersQuery, PriceProvidersQueryVariables> & ({ variables: PriceProvidersQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PriceProvidersQuery, PriceProvidersQueryVariables>(PriceProvidersDocument, options);
+      }
+export function usePriceProvidersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PriceProvidersQuery, PriceProvidersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PriceProvidersQuery, PriceProvidersQueryVariables>(PriceProvidersDocument, options);
+        }
+// @ts-ignore
+export function usePriceProvidersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PriceProvidersQuery, PriceProvidersQueryVariables>): Apollo.UseSuspenseQueryResult<PriceProvidersQuery, PriceProvidersQueryVariables>;
+export function usePriceProvidersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PriceProvidersQuery, PriceProvidersQueryVariables>): Apollo.UseSuspenseQueryResult<PriceProvidersQuery | undefined, PriceProvidersQueryVariables>;
+export function usePriceProvidersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PriceProvidersQuery, PriceProvidersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PriceProvidersQuery, PriceProvidersQueryVariables>(PriceProvidersDocument, options);
+        }
+export type PriceProvidersQueryHookResult = ReturnType<typeof usePriceProvidersQuery>;
+export type PriceProvidersLazyQueryHookResult = ReturnType<typeof usePriceProvidersLazyQuery>;
+export type PriceProvidersSuspenseQueryHookResult = ReturnType<typeof usePriceProvidersSuspenseQuery>;
+export type PriceProvidersQueryResult = Apollo.QueryResult<PriceProvidersQuery, PriceProvidersQueryVariables>;
+export const PriceProviderActivateDocument = gql`
+    mutation PriceProviderActivate($priceProviderId: UUID!) {
+  priceProviderActivate(priceProviderId: $priceProviderId) {
+    priceProvider {
+      id
+      priceProviderId
+      active
+    }
+  }
+}
+    `;
+export type PriceProviderActivateMutationFn = Apollo.MutationFunction<PriceProviderActivateMutation, PriceProviderActivateMutationVariables>;
+
+/**
+ * __usePriceProviderActivateMutation__
+ *
+ * To run a mutation, you first call `usePriceProviderActivateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePriceProviderActivateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [priceProviderActivateMutation, { data, loading, error }] = usePriceProviderActivateMutation({
+ *   variables: {
+ *      priceProviderId: // value for 'priceProviderId'
+ *   },
+ * });
+ */
+export function usePriceProviderActivateMutation(baseOptions?: Apollo.MutationHookOptions<PriceProviderActivateMutation, PriceProviderActivateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PriceProviderActivateMutation, PriceProviderActivateMutationVariables>(PriceProviderActivateDocument, options);
+      }
+export type PriceProviderActivateMutationHookResult = ReturnType<typeof usePriceProviderActivateMutation>;
+export type PriceProviderActivateMutationResult = Apollo.MutationResult<PriceProviderActivateMutation>;
+export type PriceProviderActivateMutationOptions = Apollo.BaseMutationOptions<PriceProviderActivateMutation, PriceProviderActivateMutationVariables>;
+export const PriceProviderDeactivateDocument = gql`
+    mutation PriceProviderDeactivate($priceProviderId: UUID!) {
+  priceProviderDeactivate(priceProviderId: $priceProviderId) {
+    priceProvider {
+      id
+      priceProviderId
+      active
+    }
+  }
+}
+    `;
+export type PriceProviderDeactivateMutationFn = Apollo.MutationFunction<PriceProviderDeactivateMutation, PriceProviderDeactivateMutationVariables>;
+
+/**
+ * __usePriceProviderDeactivateMutation__
+ *
+ * To run a mutation, you first call `usePriceProviderDeactivateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePriceProviderDeactivateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [priceProviderDeactivateMutation, { data, loading, error }] = usePriceProviderDeactivateMutation({
+ *   variables: {
+ *      priceProviderId: // value for 'priceProviderId'
+ *   },
+ * });
+ */
+export function usePriceProviderDeactivateMutation(baseOptions?: Apollo.MutationHookOptions<PriceProviderDeactivateMutation, PriceProviderDeactivateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PriceProviderDeactivateMutation, PriceProviderDeactivateMutationVariables>(PriceProviderDeactivateDocument, options);
+      }
+export type PriceProviderDeactivateMutationHookResult = ReturnType<typeof usePriceProviderDeactivateMutation>;
+export type PriceProviderDeactivateMutationResult = Apollo.MutationResult<PriceProviderDeactivateMutation>;
+export type PriceProviderDeactivateMutationOptions = Apollo.BaseMutationOptions<PriceProviderDeactivateMutation, PriceProviderDeactivateMutationVariables>;
+export const PriceProviderConfigUpdateDocument = gql`
+    mutation PriceProviderConfigUpdate($input: PriceProviderConfigUpdateInput!) {
+  priceProviderConfigUpdate(input: $input) {
+    priceProvider {
+      id
+      priceProviderId
+      name
+      provider
+    }
+  }
+}
+    `;
+export type PriceProviderConfigUpdateMutationFn = Apollo.MutationFunction<PriceProviderConfigUpdateMutation, PriceProviderConfigUpdateMutationVariables>;
+
+/**
+ * __usePriceProviderConfigUpdateMutation__
+ *
+ * To run a mutation, you first call `usePriceProviderConfigUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePriceProviderConfigUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [priceProviderConfigUpdateMutation, { data, loading, error }] = usePriceProviderConfigUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function usePriceProviderConfigUpdateMutation(baseOptions?: Apollo.MutationHookOptions<PriceProviderConfigUpdateMutation, PriceProviderConfigUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PriceProviderConfigUpdateMutation, PriceProviderConfigUpdateMutationVariables>(PriceProviderConfigUpdateDocument, options);
+      }
+export type PriceProviderConfigUpdateMutationHookResult = ReturnType<typeof usePriceProviderConfigUpdateMutation>;
+export type PriceProviderConfigUpdateMutationResult = Apollo.MutationResult<PriceProviderConfigUpdateMutation>;
+export type PriceProviderConfigUpdateMutationOptions = Apollo.BaseMutationOptions<PriceProviderConfigUpdateMutation, PriceProviderConfigUpdateMutationVariables>;
 export const ProfitAndLossStatementDocument = gql`
     query ProfitAndLossStatement($from: Date!, $until: Date) {
   profitAndLossStatement(from: $from, until: $until) {

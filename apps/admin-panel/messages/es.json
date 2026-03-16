@@ -219,6 +219,7 @@
       "transactionTemplates": "Plantillas de transacciones",
       "rolesAndPermissions": "Roles y permisos",
       "custodians": "Custodios",
+      "priceProviders": "Proveedores de Precios",
       "configurations": "Configuraciones",
       "prospects": "Prospectos"
     },
@@ -1892,6 +1893,70 @@
       "success": "Configuración del custodio actualizada exitosamente"
     }
   },
+  "PriceProviders": {
+    "title": "Proveedores de Precios",
+    "description": "Gestionar proveedores de precios y sus configuraciones",
+    "table": {
+      "headers": {
+        "name": "Nombre",
+        "provider": "Proveedor",
+        "status": "Estado",
+        "created": "Creado"
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      },
+      "actions": {
+        "activate": "Activar",
+        "deactivate": "Desactivar",
+        "updateConfig": "Actualizar Configuración"
+      },
+      "success": {
+        "activated": "Proveedor de precios activado exitosamente",
+        "deactivated": "Proveedor de precios desactivado exitosamente"
+      },
+      "errors": {
+        "activateFailed": "Error al activar el proveedor de precios",
+        "deactivateFailed": "Error al desactivar el proveedor de precios"
+      }
+    },
+    "create": {
+      "title": "Agregar Nuevo Proveedor de Precios",
+      "description": "Agregar un nuevo proveedor de precios",
+      "fields": {
+        "type": "Proveedor",
+        "name": "Nombre",
+        "usdPerBtc": "USD por BTC"
+      },
+      "placeholders": {
+        "selectType": "Seleccionar un proveedor",
+        "name": "Ingrese un nombre de visualización",
+        "usdPerBtc": "Ingrese el precio en USD"
+      },
+      "buttons": {
+        "create": "Agregar Proveedor de Precios"
+      },
+      "success": "Proveedor de precios agregado exitosamente",
+      "errors": {
+        "failed": "Error al crear el proveedor de precios"
+      }
+    },
+    "updateConfig": {
+      "title": "Actualizar Configuración del Proveedor de Precios",
+      "description": "Actualizar la configuración de este proveedor de precios",
+      "fields": {
+        "usdPerBtc": "USD por BTC"
+      },
+      "placeholders": {
+        "usdPerBtc": "Ingrese el precio en USD"
+      },
+      "buttons": {
+        "update": "Actualizar Configuración"
+      },
+      "success": "Configuración del proveedor de precios actualizada exitosamente"
+    }
+  },
   "DepositAccounts": {
     "title": "Cuentas de Depósito",
     "description": "Cuentas de depósito de clientes para gestionar fondos y transacciones",
@@ -2733,6 +2798,7 @@
       "termsTemplate": "Plantilla de Términos",
       "committee": "Comité",
       "custodian": "Agregar Custodio",
+      "priceProvider": "Agregar Proveedor de Precios",
       "executeManualTransaction": "Registrar partida manual",
       "role": "Rol",
       "depositAccount": "Cuenta de depósito",

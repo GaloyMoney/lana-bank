@@ -37,6 +37,7 @@ import { CreateCommitteeDialog } from "./committees/create"
 import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 import { ExecuteManualTransactionDialog } from "./journal/execute-manual-transaction"
 import { CreateCustodianDialog } from "./custodians/create"
+import { CreatePriceProviderDialog } from "./price-providers/create"
 import { AddChildNodeDialog } from "./chart-of-accounts/add-child-node-dialog"
 import { CreateDepositAccountDialog } from "./deposit-accounts/create"
 import { OpenNextYearDialog } from "./fiscal-years/open-next-year"
@@ -88,6 +89,7 @@ export const PATH_CONFIGS = {
   DISBURSAL_DETAILS: /^\/disbursals\/[^/]+/,
 
   CUSTODIANS: "/custodians",
+  PRICE_PROVIDERS: "/price-providers",
 
   JOURNAL: "/journal",
 
@@ -170,6 +172,8 @@ const CreateButton = () => {
     useState(false)
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
   const [openCreateCustodianDialog, setOpenCreateCustodianDialog] = useState(false)
+  const [openCreatePriceProviderDialog, setOpenCreatePriceProviderDialog] =
+    useState(false)
   const [openExecuteManualTransaction, setOpenExecuteManualTransaction] = useState(false)
   const [openCreateDepositAccountDialog, setOpenCreateDepositAccountDialog] =
     useState(false)
@@ -350,6 +354,12 @@ const CreateButton = () => {
       condition: () => permissionsData?.me.userCanCreateCustodian !== false,
     },
     {
+      label: t("menuItems.priceProvider"),
+      onClick: () => setOpenCreatePriceProviderDialog(true),
+      dataTestId: "create-price-provider-button",
+      allowedPaths: [PATH_CONFIGS.PRICE_PROVIDERS],
+    },
+    {
       label: t("menuItems.executeManualTransaction"),
       onClick: () => setOpenExecuteManualTransaction(true),
       dataTestId: "execute-manual-transaction-button",
@@ -503,6 +513,11 @@ const CreateButton = () => {
       <CreateCustodianDialog
         openCreateCustodianDialog={openCreateCustodianDialog}
         setOpenCreateCustodianDialog={setOpenCreateCustodianDialog}
+      />
+
+      <CreatePriceProviderDialog
+        openCreatePriceProviderDialog={openCreatePriceProviderDialog}
+        setOpenCreatePriceProviderDialog={setOpenCreatePriceProviderDialog}
       />
 
       <ExecuteManualTransactionDialog

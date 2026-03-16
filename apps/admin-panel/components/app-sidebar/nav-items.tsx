@@ -24,6 +24,7 @@ import {
   ShieldAlert,
   Building,
   Building2,
+  TrendingUp,
   FileSignature,
   Clock,
   Calendar,
@@ -73,6 +74,7 @@ export function useNavItems() {
     { title: t("users"), url: "/users", icon: UserCircle },
     { title: t("rolesAndPermissions"), url: "/roles-and-permissions", icon: ShieldAlert },
     { title: t("custodians"), url: "/custodians", icon: Building },
+    { title: t("priceProviders"), url: "/price-providers", icon: TrendingUp },
     { title: t("configurations"), url: "/configurations", icon: Cog },
   ]
 
