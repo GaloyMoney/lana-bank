@@ -49,7 +49,6 @@ impl fmt::Display for ReportDefinitionId {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(rename_all = "lowercase")]
 pub enum ReportOutputFormat {
     Csv,
@@ -68,14 +67,12 @@ impl ReportOutputFormat {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct ReportDefinitionOutput {
     #[serde(rename = "type")]
     pub format: ReportOutputFormat,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct ReportDefinition {
     pub norm: String,
     pub id: String,

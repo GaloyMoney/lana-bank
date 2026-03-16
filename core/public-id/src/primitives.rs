@@ -39,7 +39,6 @@ impl std::fmt::Display for PublicId {
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]
 #[serde(transparent)]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct PublicIdTargetType(Cow<'static, str>);
 
 impl PublicIdTargetType {

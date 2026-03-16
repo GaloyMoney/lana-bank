@@ -1,6 +1,4 @@
 use derive_builder::Builder;
-#[cfg(feature = "json-schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use es_entity::*;
@@ -8,7 +6,6 @@ use es_entity::*;
 use crate::primitives::*;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "PublicId")]
 pub enum PublicIdEntityEvent {
