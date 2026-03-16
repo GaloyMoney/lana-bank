@@ -80,16 +80,15 @@ where
         let classify_spawner =
             jobs.add_initializer(ClassifyDepositAccountActivityJobInit::new(deposits));
 
-        let sweep_spawner = jobs.add_initializer(SweepDepositActivityStatusJobInit::new(
-            deposits,
-            classify_spawner,
-        ));
+        let collect_spawner = jobs.add_initializer(
+            CollectAccountsForActivityClassificationJobInit::new(deposits, classify_spawner),
+        );
 
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(DEPOSIT_END_OF_DAY),
-                DepositEndOfDayHandler::new(sweep_spawner),
+                DepositEndOfDayHandler::new(collect_spawner),
             )
             .await?;
 

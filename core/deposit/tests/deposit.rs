@@ -376,13 +376,13 @@ async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
 }
 
 /// Test helper that exercises the same code path as the fan-out jobs:
-/// sweep non-escheatable accounts, then classify and update each one.
+/// collect non-escheatable accounts, then classify and update each one.
 async fn apply_activity_reclassifications(
     deposit: &TestDeposit,
     now: DateTime<Utc>,
 ) -> anyhow::Result<()> {
     let accounts = deposit
-        .list_account_ids_for_activity_sweep(None, 100)
+        .list_account_ids_for_activity_classification(None, 100)
         .await?;
     for (account_id, _) in accounts {
         deposit
