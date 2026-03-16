@@ -22,6 +22,14 @@ pub enum AccountingTemplateError {
     DuplicateAccountingTemplateName,
     #[error("AccountingTemplateError - DuplicateAccountingTemplateCode")]
     DuplicateAccountingTemplateCode,
+    #[error("Invalid code: {0}")]
+    InvalidCode(String),
+    #[error("Invalid name: {0}")]
+    InvalidName(String),
+    #[error("Invalid template: {0}")]
+    InvalidTemplate(String),
+    #[error("Invalid entry at index {0}: {1}")]
+    InvalidEntry(usize, String),
 }
 
 es_entity::from_es_entity_error!(AccountingTemplateError);
@@ -53,6 +61,10 @@ impl ErrorSeverity for AccountingTemplateError {
             Self::AuditError(e) => e.severity(),
             Self::DuplicateAccountingTemplateName => Level::WARN,
             Self::DuplicateAccountingTemplateCode => Level::WARN,
+            Self::InvalidCode(_) => Level::WARN,
+            Self::InvalidName(_) => Level::WARN,
+            Self::InvalidTemplate(_) => Level::WARN,
+            Self::InvalidEntry(_, _) => Level::WARN,
         }
     }
 }

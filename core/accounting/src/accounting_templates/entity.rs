@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use crate::accounting_templates::AccountingTemplateError;
+
 use super::{AccountingTemplateId, AccountingTemplateValues};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -68,6 +70,56 @@ impl AccountingTemplate {
     }
 }
 
+impl AccountingTemplateValues {
+    pub fn validate_code(code: String) -> Result<String, AccountingTemplateError> {
+        if code.is_empty() {
+            return Err(AccountingTemplateError::InvalidCode(
+                "Code cannot be empty".into(),
+            ));
+        }
+        if !code
+            .chars()
+            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_')
+        {
+            return Err(AccountingTemplateError::InvalidCode(
+                "code must be uppercase alphanumeric with underscores".into(),
+            ));
+        }
+        Ok(code)
+    }
+
+    pub fn validate_name(name: String) -> Result<String, AccountingTemplateError> {
+        if name.is_empty() {
+            return Err(AccountingTemplateError::InvalidName(
+                "Name cannot be empty".into(),
+            ));
+        }
+        if name.len() > 255 {
+            return Err(AccountingTemplateError::InvalidName("Name too long".into()));
+        }
+        Ok(name)
+    }
+
+    pub fn validate(&self) -> Result<(), AccountingTemplateError> {
+        if self.entries.is_empty() {
+            return Err(AccountingTemplateError::InvalidTemplate(
+                "Template must have at least one entry".into(),
+            ));
+        }
+
+        for (idx, entry) in self.entries.iter().enumerate() {
+            if entry.account_id_or_code.is_empty() {
+                return Err(AccountingTemplateError::InvalidEntry(
+                    idx,
+                    "Account reference cannot be empty".into(),
+                ));
+            }
+        }
+
+        Ok(())
+    }
+}
+
 impl TryFromEvents<AccountingTemplateEvent> for AccountingTemplate {
     fn try_from_events(
         events: EntityEvents<AccountingTemplateEvent>,
@@ -116,6 +168,21 @@ pub struct NewAccountingTemplate {
 impl NewAccountingTemplate {
     pub fn builder() -> NewAccountingTemplateBuilder {
         NewAccountingTemplateBuilder::default()
+    }
+
+    pub fn build(self) -> Result<AccountingTemplateEvent, AccountingTemplateError> {
+        let code = AccountingTemplateValues::validate_code(self.code)?;
+
+        let name = AccountingTemplateValues::validate_name(self.name)?;
+
+        self.values.validate()?;
+
+        Ok(AccountingTemplateEvent::Initialized {
+            id: self.id,
+            code,
+            name,
+            values: self.values,
+        })
     }
 }
 
