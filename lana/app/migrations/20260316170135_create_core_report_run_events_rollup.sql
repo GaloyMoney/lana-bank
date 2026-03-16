@@ -35,7 +35,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'state_updated') THEN
+  IF event_type NOT IN ('initialized', 'state_updated', 'external_id_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -79,6 +79,8 @@ BEGIN
       new_row.run_type := (NEW.event ->> 'run_type');
       new_row.start_time := (NEW.event ->> 'start_time')::TIMESTAMPTZ;
       new_row.state := (NEW.event ->> 'state');
+    WHEN 'external_id_updated' THEN
+      new_row.external_id := (NEW.event ->> 'external_id');
   END CASE;
 
   INSERT INTO core_report_run_events_rollup (
