@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id AS \"id: DepositAccountId\", created_at\n               FROM core_deposit_accounts\n               WHERE activity != 'escheatable'\n                 AND (($1::timestamptz IS NULL) OR (created_at, id) > ($1, $2))\n               ORDER BY created_at, id\n               LIMIT $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: DepositAccountId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "71a9116278459b385d970473e21e09e80681c9f0d6a2f9a540b82a15848e8478"
+}

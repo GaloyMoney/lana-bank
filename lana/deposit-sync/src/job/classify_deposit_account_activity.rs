@@ -6,8 +6,8 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject};
 use core_deposit::{
-    Activity, CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject,
-    DepositAccountId, GovernanceAction, GovernanceObject,
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
+    GovernanceAction, GovernanceObject,
 };
 use governance::GovernanceEvent;
 use job::*;
@@ -20,7 +20,7 @@ const CLASSIFY_DEPOSIT_ACCOUNT_ACTIVITY_JOB: JobType =
 #[serde(rename_all = "camelCase")]
 pub struct ClassifyDepositAccountActivityConfig {
     pub deposit_account_id: DepositAccountId,
-    pub new_activity_status: Activity,
+    pub closing_time: chrono::DateTime<chrono::Utc>,
 }
 
 pub struct ClassifyDepositAccountActivityJobInit<Perms, E>
@@ -108,15 +108,20 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut op = current_job.begin_op().await?;
-        self.deposits
-            .update_account_activity_in_op(
-                &mut op,
-                self.config.deposit_account_id,
-                self.config.new_activity_status,
-            )
+        let new_activity = self
+            .deposits
+            .classify_account_activity(self.config.deposit_account_id, self.config.closing_time)
             .await?;
-        Ok(JobCompletion::CompleteWithOp(op))
+
+        if let Some(activity) = new_activity {
+            let mut op = current_job.begin_op().await?;
+            self.deposits
+                .update_account_activity_in_op(&mut op, self.config.deposit_account_id, activity)
+                .await?;
+            Ok(JobCompletion::CompleteWithOp(op))
+        } else {
+            Ok(JobCompletion::Complete)
+        }
     }
 }
 

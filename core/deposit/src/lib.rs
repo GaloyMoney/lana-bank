@@ -890,36 +890,68 @@ where
         Ok(self.deposit_accounts.begin_op().await?)
     }
 
-    /// Returns all deposit accounts whose activity status needs reclassification,
-    /// sorted by account ID for cursor-based processing.
+    /// Returns a page of non-escheatable deposit account IDs for activity sweep,
+    /// using keyset cursor pagination ordered by (created_at, id).
     #[record_error_severity]
-    #[instrument(name = "deposit.collect_activity_reclassifications", skip(self), fields(closing_time = %closing_time))]
-    pub async fn collect_activity_reclassifications(
+    #[instrument(name = "deposit.list_account_ids_for_activity_sweep", skip(self))]
+    pub async fn list_account_ids_for_activity_sweep(
         &self,
+        after: Option<(DateTime<Utc>, DepositAccountId)>,
+        limit: i64,
+    ) -> Result<Vec<(DepositAccountId, DateTime<Utc>)>, CoreDepositError> {
+        Ok(self
+            .deposit_accounts
+            .list_account_ids_not_escheatable(after, limit)
+            .await?)
+    }
+
+    /// Determines whether a deposit account needs activity reclassification.
+    /// Returns `Some(new_activity)` if the account's activity should change,
+    /// or `None` if no change is needed (including if the account is already escheatable).
+    #[record_error_severity]
+    #[instrument(name = "deposit.classify_account_activity", skip(self), fields(%account_id, closing_time = %closing_time))]
+    pub async fn classify_account_activity(
+        &self,
+        account_id: DepositAccountId,
         closing_time: DateTime<Utc>,
-    ) -> Result<Vec<(DepositAccountId, Activity)>, CoreDepositError> {
-        let (inactive_date, escheatable_date) = self.activity_threshold_dates(closing_time).await?;
-        let accounts = self.deposit_accounts.list_all().await?;
-        let mut reclassifications = Vec::new();
-
-        for account in &accounts {
-            if account.activity == Activity::Escheatable {
-                continue;
-            }
-            let last_activity_date = self.last_activity_date_for_account(account).await?;
-            let activity = Self::activity_for_last_activity_date(
-                last_activity_date,
-                inactive_date,
-                escheatable_date,
-            );
-
-            if activity != account.activity {
-                reclassifications.push((account.id, activity));
-            }
+    ) -> Result<Option<Activity>, CoreDepositError> {
+        let account = self.deposit_accounts.find_by_id(account_id).await?;
+        if account.activity == Activity::Escheatable {
+            return Ok(None);
         }
+        let (inactive_date, escheatable_date) = self.activity_threshold_dates(closing_time).await?;
+        let last_activity_date = self.last_activity_date_for_account(&account).await?;
+        let activity = Self::activity_for_last_activity_date(
+            last_activity_date,
+            inactive_date,
+            escheatable_date,
+        );
+        if activity != account.activity {
+            Ok(Some(activity))
+        } else {
+            Ok(None)
+        }
+    }
 
-        reclassifications.sort_by_key(|(id, _)| *id);
-        Ok(reclassifications)
+    /// Classifies and updates a single deposit account's activity status.
+    /// Combines classification and update in a single operation.
+    #[record_error_severity]
+    #[instrument(name = "deposit.classify_and_update_account_activity", skip(self), fields(%account_id, closing_time = %closing_time))]
+    pub async fn classify_and_update_account_activity(
+        &self,
+        account_id: DepositAccountId,
+        closing_time: DateTime<Utc>,
+    ) -> Result<(), CoreDepositError> {
+        if let Some(activity) = self
+            .classify_account_activity(account_id, closing_time)
+            .await?
+        {
+            let mut op = self.deposit_accounts.begin_op().await?;
+            self.update_account_activity_in_op(&mut op, account_id, activity)
+                .await?;
+            op.commit().await?;
+        }
+        Ok(())
     }
 
     /// Updates a single deposit account's activity status within a database operation.
