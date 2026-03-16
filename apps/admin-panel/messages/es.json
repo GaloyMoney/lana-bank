@@ -1882,6 +1882,14 @@
       "errors": {
         "failed": "Error al crear el custodio"
       }
+    },
+    "updateConfig": {
+      "title": "Actualizar Configuración del Custodio",
+      "description": "Reemplazar las credenciales de configuración para este custodio. Todos los campos son obligatorios.",
+      "buttons": {
+        "update": "Actualizar Configuración"
+      },
+      "success": "Configuración del custodio actualizada exitosamente"
     }
   },
   "DepositAccounts": {
