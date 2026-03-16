@@ -32,6 +32,21 @@ gql`
           name
         }
       }
+      visibleNavigationItems {
+        term
+        user
+        customer
+        deposit
+        withdraw
+        audit
+        financials
+        governance {
+          committee
+          policy
+          approvalProcess
+        }
+        creditFacilities
+      }
     }
   }
 `
