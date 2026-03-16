@@ -63,7 +63,7 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
     },
   ]
 
-  const footerContent = (
+  const footerContent = !liquidation.completed ? (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-wrap gap-2 justify-end">
         <Button
@@ -105,7 +105,7 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
         defaultToLiquidate={liquidation.initiallyEstimatedToLiquidate}
       />
     </div>
-  )
+  ) : undefined
 
   return (
     <>
