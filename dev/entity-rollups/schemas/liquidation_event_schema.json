@@ -29,14 +29,6 @@
       "type": "object"
     },
     "PriceOfOneBTC": {
-      "$ref": "#/$defs/UsdCents"
-    },
-    "Satoshis": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
-    },
-    "UsdCents": {
       "format": "uint64",
       "minimum": 0,
       "type": "integer"
@@ -58,10 +50,14 @@
           "type": "string"
         },
         "initially_estimated_to_liquidate": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "initially_expected_to_receive": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "trigger_price": {
           "$ref": "#/$defs/PriceOfOneBTC"
@@ -85,7 +81,9 @@
     {
       "properties": {
         "amount": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "ledger_tx_id": {
           "format": "uuid",
@@ -106,7 +104,9 @@
     {
       "properties": {
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "ledger_tx_id": {
           "format": "uuid",

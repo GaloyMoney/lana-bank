@@ -30,11 +30,6 @@
     "EffectiveDate": {
       "format": "date",
       "type": "string"
-    },
-    "UsdCents": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -45,7 +40,9 @@
           "$ref": "#/$defs/DisbursalLedgerAccountIds"
         },
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "approval_process_id": {
           "format": "uuid",
@@ -136,7 +133,9 @@
     {
       "properties": {
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "effective": {
           "format": "date",

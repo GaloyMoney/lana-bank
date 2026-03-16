@@ -145,10 +145,14 @@
     "CreditFacilityReceivable": {
       "properties": {
         "disbursed": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "interest": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         }
       },
       "required": [
@@ -274,9 +278,6 @@
       ]
     },
     "PriceOfOneBTC": {
-      "$ref": "#/$defs/UsdCents"
-    },
-    "Satoshis": {
       "format": "uint64",
       "minimum": 0,
       "type": "integer"
@@ -355,11 +356,6 @@
         "disbursal_policy"
       ],
       "type": "object"
-    },
-    "UsdCents": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -374,10 +370,14 @@
           "type": "string"
         },
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "collateral": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "collateral_id": {
           "format": "uuid",
@@ -516,7 +516,9 @@
     {
       "properties": {
         "collateral": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "collateralization_state": {
           "$ref": "#/$defs/CollateralizationState"
@@ -560,10 +562,14 @@
     {
       "properties": {
         "initially_estimated_to_liquidate": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "initially_expected_to_receive": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "liquidation_id": {
           "format": "uuid",

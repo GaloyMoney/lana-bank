@@ -1,17 +1,12 @@
 {
-  "$defs": {
-    "UsdCents": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
-    }
-  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "beneficiary_id": {
           "format": "uuid",

@@ -1,176 +1,89 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod error;
+
+use std::{fmt, marker::PhantomData};
+
 use rust_decimal::Decimal;
-use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
-use tracing::Level;
-use tracing_utils::ErrorSeverity;
 
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use std::fmt;
+pub use error::ConversionError;
 
-pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
-pub const CENTS_PER_USD: Decimal = dec!(100);
+// ---------------------------------------------------------------------------
+// Currency trait + marker types
+// ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct SignedSatoshis(i64);
-
-#[cfg(feature = "graphql")]
-async_graphql::scalar!(SignedSatoshis);
-
-impl From<Satoshis> for SignedSatoshis {
-    fn from(sats: Satoshis) -> Self {
-        Self(i64::try_from(sats.0).expect("Satoshis must be integer sized for i64"))
-    }
+pub trait Currency:
+    'static + Copy + Clone + Send + Sync + fmt::Debug + PartialEq + Eq + std::hash::Hash
+{
+    const CODE: &'static str;
+    const MINOR_UNITS_PER_MAJOR: u64;
 }
 
-impl fmt::Display for SignedSatoshis {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Usd;
+
+impl Currency for Usd {
+    const CODE: &'static str = "USD";
+    const MINOR_UNITS_PER_MAJOR: u64 = 100;
 }
 
-impl Default for SignedSatoshis {
-    fn default() -> Self {
-        Self::ZERO
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Btc;
+
+impl Currency for Btc {
+    const CODE: &'static str = "BTC";
+    const MINOR_UNITS_PER_MAJOR: u64 = 100_000_000;
 }
 
-impl std::ops::Sub<SignedSatoshis> for SignedSatoshis {
-    type Output = SignedSatoshis;
+// ---------------------------------------------------------------------------
+// MinorUnits<C> — unsigned
+// ---------------------------------------------------------------------------
 
-    fn sub(self, other: SignedSatoshis) -> SignedSatoshis {
-        SignedSatoshis(self.0 - other.0)
-    }
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct MinorUnits<C: Currency>(u64, PhantomData<C>);
 
-impl std::ops::Add<SignedSatoshis> for SignedSatoshis {
-    type Output = SignedSatoshis;
+impl<C: Currency> MinorUnits<C> {
+    pub const ZERO: Self = Self(0, PhantomData);
+    pub const ONE: Self = Self(1, PhantomData);
 
-    fn add(self, other: SignedSatoshis) -> SignedSatoshis {
-        SignedSatoshis(self.0 + other.0)
-    }
-}
-
-impl SignedSatoshis {
-    pub const ZERO: Self = Self(0);
-    pub const ONE: Self = Self(1);
-
-    pub fn to_btc(self) -> Decimal {
-        Decimal::from(self.0) / SATS_PER_BTC
+    pub fn to_major(self) -> Decimal {
+        Decimal::from(self.0) / Decimal::from(C::MINOR_UNITS_PER_MAJOR)
     }
 
-    pub fn abs(self) -> SignedSatoshis {
-        SignedSatoshis(self.0.abs())
-    }
-
-    pub fn from_btc(btc: Decimal) -> Self {
-        let sats = btc * SATS_PER_BTC;
-        assert!(sats.trunc() == sats, "Satoshis must be an integer");
-        Self(i64::try_from(sats).expect("Satoshis must be integer"))
-    }
-
-    pub fn into_inner(self) -> i64 {
-        self.0
-    }
-}
-#[derive(Error, Debug)]
-pub enum ConversionError {
-    #[error("ConversionError - DecimalError: {0}")]
-    DecimalError(#[from] rust_decimal::Error),
-    #[error("ConversionError - UnexpectedNegativeNumber: {0}")]
-    UnexpectedNegativeNumber(rust_decimal::Decimal),
-    #[error("ConversionError - Overflow")]
-    Overflow,
-}
-
-impl ErrorSeverity for ConversionError {
-    fn severity(&self) -> Level {
-        match self {
-            Self::DecimalError(_) => Level::ERROR,
-            Self::UnexpectedNegativeNumber(_) => Level::WARN,
-            Self::Overflow => Level::ERROR,
+    pub fn try_from_major(major: Decimal) -> Result<Self, ConversionError> {
+        let minor = major * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
+        if minor.trunc() != minor {
+            return Err(ConversionError::PrecisionLoss(major));
         }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct Satoshis(u64);
-
-#[cfg(feature = "graphql")]
-async_graphql::scalar!(Satoshis);
-
-impl fmt::Display for Satoshis {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Default for Satoshis {
-    fn default() -> Self {
-        Self::ZERO
-    }
-}
-
-impl std::ops::Add<Satoshis> for Satoshis {
-    type Output = Self;
-
-    fn add(self, other: Self) -> Self {
-        Satoshis(self.0 + other.0)
-    }
-}
-
-impl std::ops::Sub<Satoshis> for Satoshis {
-    type Output = Satoshis;
-
-    fn sub(self, other: Satoshis) -> Satoshis {
-        Satoshis(self.0 - other.0)
-    }
-}
-
-impl std::ops::SubAssign for Satoshis {
-    fn sub_assign(&mut self, other: Self) {
-        self.0 -= other.0;
-    }
-}
-
-impl std::ops::AddAssign for Satoshis {
-    fn add_assign(&mut self, other: Self) {
-        self.0 += other.0;
-    }
-}
-
-impl From<u64> for Satoshis {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
-
-impl Satoshis {
-    pub const ZERO: Self = Self(0);
-    pub const ONE: Self = Self(1);
-
-    pub fn to_btc(self) -> Decimal {
-        Decimal::from(self.0) / SATS_PER_BTC
-    }
-
-    pub fn try_from_btc(btc: Decimal) -> Result<Self, ConversionError> {
-        let sats = btc * SATS_PER_BTC;
-        assert!(sats.trunc() == sats, "Satoshis must be an integer");
-        if sats < Decimal::new(0, 0) {
-            return Err(ConversionError::UnexpectedNegativeNumber(sats));
+        if minor < Decimal::new(0, 0) {
+            return Err(ConversionError::UnexpectedNegativeNumber(minor));
         }
-        Ok(Self(u64::try_from(sats)?))
+        Ok(Self(u64::try_from(minor)?, PhantomData))
     }
 
     pub fn into_inner(self) -> u64 {
         self.0
+    }
+
+    pub fn is_zero(self) -> bool {
+        self.0 == 0
+    }
+}
+
+// --- Currency-specific methods ---
+
+impl MinorUnits<Btc> {
+    pub fn to_btc(self) -> Decimal {
+        self.to_major()
+    }
+
+    pub fn try_from_btc(btc: Decimal) -> Result<Self, ConversionError> {
+        Self::try_from_major(btc)
     }
 
     pub fn formatted_btc(self) -> String {
@@ -178,33 +91,147 @@ impl Satoshis {
     }
 }
 
-impl TryFrom<SignedSatoshis> for Satoshis {
-    type Error = ConversionError;
+impl MinorUnits<Usd> {
+    pub fn to_usd(self) -> Decimal {
+        self.to_major()
+    }
 
-    fn try_from(value: SignedSatoshis) -> Result<Self, Self::Error> {
-        Self::try_from_btc(value.to_btc())
+    pub fn try_from_usd(usd: Decimal) -> Result<Self, ConversionError> {
+        Self::try_from_major(usd)
+    }
+
+    pub fn formatted_usd(self) -> String {
+        format!("${:.2}", self.to_usd())
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct SignedUsdCents(i64);
+// --- Serde ---
 
-#[cfg(feature = "graphql")]
-async_graphql::scalar!(SignedUsdCents);
+impl<C: Currency> Serialize for MinorUnits<C> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.0.serialize(serializer)
+    }
+}
 
-impl SignedUsdCents {
-    pub const ZERO: Self = Self(0);
-    pub const ONE: Self = Self(1);
+impl<'de, C: Currency> Deserialize<'de> for MinorUnits<C> {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        u64::deserialize(deserializer).map(|v| Self(v, PhantomData))
+    }
+}
 
-    pub fn to_usd(self) -> Decimal {
-        Decimal::from(self.0) / CENTS_PER_USD
+// --- JsonSchema ---
+
+#[cfg(feature = "json-schema")]
+impl<C: Currency> JsonSchema for MinorUnits<C> {
+    fn inline_schema() -> bool {
+        true
     }
 
-    pub fn from_usd(usd: Decimal) -> Self {
-        let cents = usd * CENTS_PER_USD;
-        assert!(cents.trunc() == cents, "Cents must be an integer");
-        Self(i64::try_from(cents).expect("Cents must be integer"))
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        u64::schema_name()
+    }
+
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        u64::json_schema(generator)
+    }
+}
+
+// --- Display / Default ---
+
+impl<C: Currency> fmt::Display for MinorUnits<C> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl<C: Currency> Default for MinorUnits<C> {
+    fn default() -> Self {
+        Self::ZERO
+    }
+}
+
+// --- Arithmetic ---
+
+impl<C: Currency> std::ops::Add for MinorUnits<C> {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        Self(self.0 + other.0, PhantomData)
+    }
+}
+
+impl<C: Currency> std::ops::Sub for MinorUnits<C> {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self {
+        Self(self.0 - other.0, PhantomData)
+    }
+}
+
+impl<C: Currency> std::ops::AddAssign for MinorUnits<C> {
+    fn add_assign(&mut self, other: Self) {
+        self.0 += other.0;
+    }
+}
+
+impl<C: Currency> std::ops::SubAssign for MinorUnits<C> {
+    fn sub_assign(&mut self, other: Self) {
+        self.0 -= other.0;
+    }
+}
+
+impl std::ops::Mul<u64> for MinorUnits<Usd> {
+    type Output = Self;
+    fn mul(self, rhs: u64) -> Self {
+        Self(self.0 * rhs, PhantomData)
+    }
+}
+
+// --- From conversions ---
+
+impl<C: Currency> From<u64> for MinorUnits<C> {
+    fn from(value: u64) -> Self {
+        Self(value, PhantomData)
+    }
+}
+
+impl<C: Currency> TryFrom<SignedMinorUnits<C>> for MinorUnits<C> {
+    type Error = ConversionError;
+    fn try_from(value: SignedMinorUnits<C>) -> Result<Self, Self::Error> {
+        let major = value.to_major();
+        Self::try_from_major(major)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SignedMinorUnits<C> — signed
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct SignedMinorUnits<C: Currency>(i64, PhantomData<C>);
+
+impl<C: Currency> SignedMinorUnits<C> {
+    pub const ZERO: Self = Self(0, PhantomData);
+    pub const ONE: Self = Self(1, PhantomData);
+
+    pub fn to_major(self) -> Decimal {
+        Decimal::from(self.0) / Decimal::from(C::MINOR_UNITS_PER_MAJOR)
+    }
+
+    pub fn try_from_major(major: Decimal) -> Result<Self, ConversionError> {
+        let minor = major * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
+        if minor.trunc() != minor {
+            return Err(ConversionError::PrecisionLoss(major));
+        }
+        Ok(Self(
+            i64::try_from(minor).map_err(|_| ConversionError::Overflow)?,
+            PhantomData,
+        ))
+    }
+
+    pub fn checked_abs(self) -> Result<Self, ConversionError> {
+        self.0
+            .checked_abs()
+            .map(|v| Self(v, PhantomData))
+            .ok_or(ConversionError::Overflow)
     }
 
     pub fn into_inner(self) -> i64 {
@@ -216,205 +243,280 @@ impl SignedUsdCents {
     }
 }
 
-impl From<UsdCents> for SignedUsdCents {
-    fn from(cents: UsdCents) -> Self {
-        Self(i64::try_from(cents.0).expect("Cents must be integer sized for i64"))
+// --- Currency-specific methods ---
+
+impl SignedMinorUnits<Btc> {
+    pub fn to_btc(self) -> Decimal {
+        self.to_major()
+    }
+
+    pub fn from_btc(btc: Decimal) -> Self {
+        Self::try_from_major(btc).expect("BTC must convert to whole satoshis")
     }
 }
 
-impl fmt::Display for SignedUsdCents {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+impl SignedMinorUnits<Usd> {
+    pub fn to_usd(self) -> Decimal {
+        self.to_major()
+    }
+
+    pub fn from_usd(usd: Decimal) -> Self {
+        Self::try_from_major(usd).expect("USD must convert to whole cents")
+    }
+}
+
+// --- Serde ---
+
+impl<C: Currency> Serialize for SignedMinorUnits<C> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.0.serialize(serializer)
+    }
+}
+
+impl<'de, C: Currency> Deserialize<'de> for SignedMinorUnits<C> {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        i64::deserialize(deserializer).map(|v| Self(v, PhantomData))
+    }
+}
+
+// --- JsonSchema ---
+
+#[cfg(feature = "json-schema")]
+impl<C: Currency> JsonSchema for SignedMinorUnits<C> {
+    fn inline_schema() -> bool {
+        true
+    }
+
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        i64::schema_name()
+    }
+
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        i64::json_schema(generator)
+    }
+}
+
+// --- Display / Default ---
+
+impl<C: Currency> fmt::Display for SignedMinorUnits<C> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl Default for SignedUsdCents {
+impl<C: Currency> Default for SignedMinorUnits<C> {
     fn default() -> Self {
         Self::ZERO
     }
 }
 
-impl std::ops::Sub<SignedUsdCents> for SignedUsdCents {
-    type Output = SignedUsdCents;
+// --- Arithmetic ---
 
-    fn sub(self, other: SignedUsdCents) -> SignedUsdCents {
-        SignedUsdCents(self.0 - other.0)
+impl<C: Currency> std::ops::Add for SignedMinorUnits<C> {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        Self(self.0 + other.0, PhantomData)
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct UsdCents(u64);
+impl<C: Currency> std::ops::Sub for SignedMinorUnits<C> {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self {
+        Self(self.0 - other.0, PhantomData)
+    }
+}
+
+// --- From conversions ---
+
+impl<C: Currency> TryFrom<MinorUnits<C>> for SignedMinorUnits<C> {
+    type Error = ConversionError;
+    fn try_from(val: MinorUnits<C>) -> Result<Self, Self::Error> {
+        Ok(Self(
+            i64::try_from(val.0).map_err(|_| ConversionError::Overflow)?,
+            PhantomData,
+        ))
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SQLx impls
+// ---------------------------------------------------------------------------
+
+#[cfg(feature = "sqlx")]
+mod minor_units_sqlx {
+    use sqlx::{Type, postgres::*};
+
+    use super::*;
+
+    impl<C: Currency> Type<Postgres> for MinorUnits<C> {
+        fn type_info() -> PgTypeInfo {
+            <i64 as Type<Postgres>>::type_info()
+        }
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <i64 as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl<C: Currency> sqlx::Encode<'_, Postgres> for MinorUnits<C> {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            let val = i64::try_from(self.into_inner())
+                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Sync + Send>)?;
+            <i64 as sqlx::Encode<'_, Postgres>>::encode(val, buf)
+        }
+    }
+
+    impl<'r, C: Currency> sqlx::Decode<'r, Postgres> for MinorUnits<C> {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let val = <i64 as sqlx::Decode<Postgres>>::decode(value)?;
+            let val = u64::try_from(val)
+                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Sync + Send>)?;
+            Ok(MinorUnits::from(val))
+        }
+    }
+
+    impl<C: Currency> PgHasArrayType for MinorUnits<C> {
+        fn array_type_info() -> PgTypeInfo {
+            <i64 as PgHasArrayType>::array_type_info()
+        }
+    }
+}
+
+#[cfg(feature = "sqlx")]
+mod signed_minor_units_sqlx {
+    use sqlx::{Type, postgres::*};
+
+    use super::*;
+
+    impl<C: Currency> Type<Postgres> for SignedMinorUnits<C> {
+        fn type_info() -> PgTypeInfo {
+            <i64 as Type<Postgres>>::type_info()
+        }
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <i64 as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl<C: Currency> sqlx::Encode<'_, Postgres> for SignedMinorUnits<C> {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            <i64 as sqlx::Encode<'_, Postgres>>::encode(self.into_inner(), buf)
+        }
+    }
+
+    impl<'r, C: Currency> sqlx::Decode<'r, Postgres> for SignedMinorUnits<C> {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let val = <i64 as sqlx::Decode<Postgres>>::decode(value)?;
+            Ok(SignedMinorUnits(val, std::marker::PhantomData))
+        }
+    }
+
+    impl<C: Currency> PgHasArrayType for SignedMinorUnits<C> {
+        fn array_type_info() -> PgTypeInfo {
+            <i64 as PgHasArrayType>::array_type_info()
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// GraphQL scalars
+// ---------------------------------------------------------------------------
 
 #[cfg(feature = "graphql")]
-async_graphql::scalar!(UsdCents);
+mod graphql_scalars {
+    use async_graphql::{InputValueError, InputValueResult, Scalar, ScalarType, Value};
 
-impl std::ops::SubAssign for UsdCents {
-    fn sub_assign(&mut self, other: Self) {
-        self.0 -= other.0;
-    }
-}
+    use super::*;
 
-impl std::ops::AddAssign for UsdCents {
-    fn add_assign(&mut self, other: Self) {
-        self.0 += other.0;
-    }
-}
+    // We cannot use async_graphql::scalar!() on type aliases of generic types,
+    // so we implement the Scalar trait manually for each concrete alias.
 
-impl UsdCents {
-    pub const ZERO: Self = Self(0);
-    pub const ONE: Self = Self(1);
-
-    pub fn to_usd(self) -> Decimal {
-        Decimal::from(self.0) / CENTS_PER_USD
-    }
-
-    pub fn try_from_usd(usd: Decimal) -> Result<Self, ConversionError> {
-        let cents = usd * CENTS_PER_USD;
-        assert!(cents.trunc() == cents, "Cents must be an integer");
-        if cents < Decimal::new(0, 0) {
-            return Err(ConversionError::UnexpectedNegativeNumber(cents));
-        }
-        Ok(Self(u64::try_from(cents)?))
-    }
-
-    pub fn into_inner(self) -> u64 {
-        self.0
-    }
-
-    pub fn is_zero(self) -> bool {
-        self.0 == 0
-    }
-
-    pub fn formatted_usd(self) -> String {
-        format!("${:.2}", self.to_usd())
-    }
-}
-
-impl From<u64> for UsdCents {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
-
-#[cfg(feature = "sqlx")]
-mod usd_cents_sqlx {
-    use sqlx::{Type, postgres::*};
-
-    use super::UsdCents;
-
-    impl Type<Postgres> for UsdCents {
-        fn type_info() -> PgTypeInfo {
-            <i64 as Type<Postgres>>::type_info()
+    #[Scalar(name = "Satoshis")]
+    impl ScalarType for MinorUnits<Btc> {
+        fn parse(value: Value) -> InputValueResult<Self> {
+            match &value {
+                Value::Number(n) => {
+                    let v = n
+                        .as_u64()
+                        .ok_or_else(|| InputValueError::expected_type(value))?;
+                    Ok(Self::from(v))
+                }
+                _ => Err(InputValueError::expected_type(value)),
+            }
         }
 
-        fn compatible(ty: &PgTypeInfo) -> bool {
-            <i64 as Type<Postgres>>::compatible(ty)
+        fn to_value(&self) -> Value {
+            Value::Number(self.into_inner().into())
         }
     }
 
-    impl sqlx::Encode<'_, Postgres> for UsdCents {
-        fn encode_by_ref(
-            &self,
-            buf: &mut PgArgumentBuffer,
-        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
-            let val = i64::try_from(self.into_inner())
-                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Sync + Send>)?;
-            <i64 as sqlx::Encode<'_, Postgres>>::encode(val, buf)
+    #[Scalar(name = "UsdCents")]
+    impl ScalarType for MinorUnits<Usd> {
+        fn parse(value: Value) -> InputValueResult<Self> {
+            match &value {
+                Value::Number(n) => {
+                    let v = n
+                        .as_u64()
+                        .ok_or_else(|| InputValueError::expected_type(value))?;
+                    Ok(Self::from(v))
+                }
+                _ => Err(InputValueError::expected_type(value)),
+            }
+        }
+
+        fn to_value(&self) -> Value {
+            Value::Number(self.into_inner().into())
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for UsdCents {
-        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
-            let val = <i64 as sqlx::Decode<Postgres>>::decode(value)?;
-            let val = u64::try_from(val)
-                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Sync + Send>)?;
-            Ok(UsdCents::from(val))
+    #[Scalar(name = "SignedSatoshis")]
+    impl ScalarType for SignedMinorUnits<Btc> {
+        fn parse(value: Value) -> InputValueResult<Self> {
+            match &value {
+                Value::Number(n) => {
+                    let v = n
+                        .as_i64()
+                        .ok_or_else(|| InputValueError::expected_type(value))?;
+                    Ok(Self(v, PhantomData))
+                }
+                _ => Err(InputValueError::expected_type(value)),
+            }
+        }
+
+        fn to_value(&self) -> Value {
+            Value::Number(self.into_inner().into())
         }
     }
 
-    impl PgHasArrayType for UsdCents {
-        fn array_type_info() -> PgTypeInfo {
-            <i64 as sqlx::postgres::PgHasArrayType>::array_type_info()
+    #[Scalar(name = "SignedUsdCents")]
+    impl ScalarType for SignedMinorUnits<Usd> {
+        fn parse(value: Value) -> InputValueResult<Self> {
+            match &value {
+                Value::Number(n) => {
+                    let v = n
+                        .as_i64()
+                        .ok_or_else(|| InputValueError::expected_type(value))?;
+                    Ok(Self(v, PhantomData))
+                }
+                _ => Err(InputValueError::expected_type(value)),
+            }
+        }
+
+        fn to_value(&self) -> Value {
+            Value::Number(self.into_inner().into())
         }
     }
 }
 
-#[cfg(feature = "sqlx")]
-mod satoshis_sqlx {
-    use sqlx::{Type, postgres::*};
+// ---------------------------------------------------------------------------
+// Type aliases — backward-compatible public API
+// ---------------------------------------------------------------------------
 
-    use super::Satoshis;
-
-    impl Type<Postgres> for Satoshis {
-        fn type_info() -> PgTypeInfo {
-            <i64 as Type<Postgres>>::type_info()
-        }
-
-        fn compatible(ty: &PgTypeInfo) -> bool {
-            <i64 as Type<Postgres>>::compatible(ty)
-        }
-    }
-
-    impl sqlx::Encode<'_, Postgres> for Satoshis {
-        fn encode_by_ref(
-            &self,
-            buf: &mut PgArgumentBuffer,
-        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
-            let val = i64::try_from(self.into_inner())
-                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Sync + Send>)?;
-            <i64 as sqlx::Encode<'_, Postgres>>::encode(val, buf)
-        }
-    }
-
-    impl<'r> sqlx::Decode<'r, Postgres> for Satoshis {
-        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
-            let val = <i64 as sqlx::Decode<Postgres>>::decode(value)?;
-            let val = u64::try_from(val)
-                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Sync + Send>)?;
-            Ok(Satoshis::from(val))
-        }
-    }
-
-    impl PgHasArrayType for Satoshis {
-        fn array_type_info() -> PgTypeInfo {
-            <i64 as sqlx::postgres::PgHasArrayType>::array_type_info()
-        }
-    }
-}
-
-impl fmt::Display for UsdCents {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Default for UsdCents {
-    fn default() -> Self {
-        UsdCents::ZERO
-    }
-}
-
-impl std::ops::Sub<UsdCents> for UsdCents {
-    type Output = UsdCents;
-
-    fn sub(self, other: UsdCents) -> UsdCents {
-        UsdCents(self.0 - other.0)
-    }
-}
-
-impl std::ops::Add<UsdCents> for UsdCents {
-    type Output = Self;
-
-    fn add(self, other: UsdCents) -> Self {
-        Self(self.0 + other.0)
-    }
-}
-
-impl std::ops::Mul<u64> for UsdCents {
-    type Output = Self;
-
-    fn mul(self, rhs: u64) -> Self {
-        Self(self.0 * rhs)
-    }
-}
+pub type UsdCents = MinorUnits<Usd>;
+pub type Satoshis = MinorUnits<Btc>;
+pub type SignedUsdCents = SignedMinorUnits<Usd>;
+pub type SignedSatoshis = SignedMinorUnits<Btc>;

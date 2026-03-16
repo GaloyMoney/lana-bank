@@ -1,10 +1,5 @@
 {
   "$defs": {
-    "Satoshis": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
-    },
     "WalletNetwork": {
       "enum": [
         "Testnet3",
@@ -60,7 +55,9 @@
           "type": "string"
         },
         "new_balance": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "type": {
           "const": "balance_changed",
