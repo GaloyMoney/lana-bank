@@ -99,6 +99,7 @@ where
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct SweepState {
     last_account_id: Option<DepositAccountId>,
 }
