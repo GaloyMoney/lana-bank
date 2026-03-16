@@ -1,16 +1,17 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod error;
+
 use std::{fmt, marker::PhantomData};
 
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
-use tracing::Level;
-use tracing_utils::ErrorSeverity;
 
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
+
+pub use error::ConversionError;
 
 // ---------------------------------------------------------------------------
 // Currency trait + marker types
@@ -37,33 +38,6 @@ pub struct Btc;
 impl Currency for Btc {
     const CODE: &'static str = "BTC";
     const MINOR_UNITS_PER_MAJOR: u64 = 100_000_000;
-}
-
-// ---------------------------------------------------------------------------
-// ConversionError
-// ---------------------------------------------------------------------------
-
-#[derive(Error, Debug)]
-pub enum ConversionError {
-    #[error("ConversionError - DecimalError: {0}")]
-    DecimalError(#[from] rust_decimal::Error),
-    #[error("ConversionError - UnexpectedNegativeNumber: {0}")]
-    UnexpectedNegativeNumber(rust_decimal::Decimal),
-    #[error("ConversionError - Overflow")]
-    Overflow,
-    #[error("ConversionError - PrecisionLoss: {0} has fractional minor units")]
-    PrecisionLoss(rust_decimal::Decimal),
-}
-
-impl ErrorSeverity for ConversionError {
-    fn severity(&self) -> Level {
-        match self {
-            Self::DecimalError(_) => Level::ERROR,
-            Self::UnexpectedNegativeNumber(_) => Level::WARN,
-            Self::Overflow => Level::ERROR,
-            Self::PrecisionLoss(_) => Level::WARN,
-        }
-    }
 }
 
 // ---------------------------------------------------------------------------
