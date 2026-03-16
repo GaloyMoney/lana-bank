@@ -2182,7 +2182,6 @@ checksums:
     admin/mutations/collateralRecordProceedsFromLiquidation: 47123330cd03e6f421b60f2164284591
     admin/mutations/liquidationRecordCollateralSent: 0dea28afcef094473f6fb9de8193edac
     admin/mutations/liquidationRecordProceedsReceived: 47123330cd03e6f421b60f2164284591
-    admin/mutations/liquidationPaymentCalculate: df644a3d475d03721b65c07fcc37e2c6
     admin/mutations/custodianCreate: d6b765e72ebc16a8b1c9110973cebb6c
     admin/mutations/custodianConfigUpdate: 7285bab249259e681a52e7e090af7535
     admin/mutations/committeeCreate: 1485f3f278d023b47cf3b1b578e6fe42

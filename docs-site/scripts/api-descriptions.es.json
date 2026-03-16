@@ -81,8 +81,7 @@
       "availableReportDefinitions": "Devuelve las definiciones de reportes que pueden generarse manualmente, incluyendo los formatos de salida y si se requiere una fecha de corte",
       "prospect": "Obtiene un prospecto especifico por su identificador unico",
       "prospectByPublicId": "Obtiene un prospecto por su identificador publico",
-      "prospects": "Devuelve una lista paginada de todos los prospectos, opcionalmente filtrada por etapa",
-      "liquidationPaymentCalculate": "TODO: Add description"
+      "prospects": "Devuelve una lista paginada de todos los prospectos, opcionalmente filtrada por etapa"
     },
     "mutations": {
       "customerDocumentCreate": "Carga y adjunta un documento al perfil de un cliente",
