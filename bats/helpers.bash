@@ -51,10 +51,24 @@ wait_for_keycloak_user_ready() {
 start_server() {
   echo "--- Starting server ---"
 
-  # Check for running server
+  # Each BATS file must get a fresh server so manual clock state and other
+  # in-memory mutations do not leak across files.
+  stop_server
+
   if pgrep -f '[l]ana-cli' >/dev/null; then
-    rm -f "$SERVER_PID_FILE"
-    return 0
+    echo "Stopping stray lana-cli process"
+    pkill -TERM -f '[l]ana-cli' 2>/dev/null || true
+
+    local seconds=0
+    while (( seconds < 30 )) && pgrep -f '[l]ana-cli' >/dev/null; do
+      sleep 1
+      ((seconds++))
+    done
+
+    if pgrep -f '[l]ana-cli' >/dev/null; then
+      echo "Stray lana-cli process did not stop gracefully, sending SIGKILL"
+      pkill -KILL -f '[l]ana-cli' 2>/dev/null || true
+    fi
   fi
 
   # Start server if not already running
@@ -82,13 +96,14 @@ start_server() {
   fi
 }
 stop_server() {
+  local seconds=0
+
   if [[ -f "$SERVER_PID_FILE" ]]; then
     PID=$(cat "$SERVER_PID_FILE")
 
     if kill -TERM $PID 2>/dev/null; then
       echo "Sent SIGTERM to process $PID"
 
-      local seconds=0
       while (( seconds < 30 )) && kill -0 $PID 2>/dev/null; do
         sleep 1
         ((seconds++))
@@ -101,6 +116,22 @@ stop_server() {
     fi
 
     rm -f "$SERVER_PID_FILE"
+  fi
+
+  if pgrep -f '[l]ana-cli' >/dev/null; then
+    echo "Cleaning up stray lana-cli process"
+    pkill -TERM -f '[l]ana-cli' 2>/dev/null || true
+
+    seconds=0
+    while (( seconds < 30 )) && pgrep -f '[l]ana-cli' >/dev/null; do
+      sleep 1
+      ((seconds++))
+    done
+
+    if pgrep -f '[l]ana-cli' >/dev/null; then
+      echo "Stray lana-cli process didn't stop gracefully, sending SIGKILL"
+      pkill -KILL -f '[l]ana-cli' 2>/dev/null || true
+    fi
   fi
 }
 
