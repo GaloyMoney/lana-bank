@@ -117,7 +117,8 @@ where
 {
     #[instrument(
         name = "deposit-sync.sweep-deposit-activity-status.process_command",
-        skip_all
+        skip(self, current_job),
+        fields(closing_time = %self.config.closing_time)
     )]
     async fn run(
         &self,
@@ -146,7 +147,6 @@ where
                         ClassifyDepositAccountActivityConfig {
                             deposit_account_id: *id,
                             new_activity_status: *activity,
-                            closing_time: self.config.closing_time,
                         },
                     )
                     .queue_id(id.to_string())
