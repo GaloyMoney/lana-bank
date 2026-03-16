@@ -19,8 +19,6 @@ pub enum PriceProviderError {
     Find(#[from] PriceProviderFindError),
     #[error("PriceProviderError - Query: {0}")]
     Query(#[from] PriceProviderQueryError),
-    #[error("PriceProviderError - Serde: {0}")]
-    Serde(#[from] serde_json::Error),
     #[error("PriceProviderError - BfxClientError: {0}")]
     BfxClientError(#[from] bfx_client::BfxClientError),
     #[error("PriceProviderError - ConversionError: {0}")]
@@ -39,7 +37,6 @@ impl ErrorSeverity for PriceProviderError {
             Self::Modify(_) => Level::ERROR,
             Self::Find(_) => Level::ERROR,
             Self::Query(_) => Level::ERROR,
-            Self::Serde(_) => Level::ERROR,
             Self::BfxClientError(e) => e.severity(),
             Self::ConversionError(e) => e.severity(),
             Self::NoActiveProviders => Level::WARN,

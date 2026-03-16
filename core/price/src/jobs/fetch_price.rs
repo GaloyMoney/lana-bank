@@ -86,8 +86,7 @@ async fn fetch_price_from_single(
     provider: &crate::provider::PriceProvider,
 ) -> Result<PriceOfOneBTC, PriceProviderError> {
     tracing::Span::current().record("provider_name", provider.name.as_str());
-    let config = provider.config();
-    match config {
+    match provider.config() {
         PriceProviderConfig::Bitfinex => {
             let client = bfx_client::BfxClient::new();
             let tick = client.btc_usd_tick().await?;

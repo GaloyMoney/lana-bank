@@ -713,7 +713,7 @@ impl Loader<PriceProviderId> for LanaLoader {
     ) -> Result<HashMap<PriceProviderId, PriceProvider>, Self::Error> {
         self.app
             .core_price()
-            .find_all_providers(keys)
+            .find_all_providers(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }

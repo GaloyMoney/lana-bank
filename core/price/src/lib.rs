@@ -163,15 +163,10 @@ where
             .list_by_id_in_op(&mut db, Default::default(), Default::default())
             .await?;
         if existing.entities.is_empty() {
-            let config = PriceProviderConfig::Bitfinex;
-            let config_value =
-                serde_json::to_value(&config).expect("PriceProviderConfig serializes");
-            let id = PriceProviderId::new();
             let new_provider = NewPriceProvider::builder()
-                .id(id)
+                .id(PriceProviderId::new())
                 .name("Bitfinex".to_string())
-                .provider(provider::PriceProviderConfigDiscriminants::from(&config).to_string())
-                .provider_config(config_value)
+                .config(PriceProviderConfig::Bitfinex)
                 .build()
                 .expect("should always build a new price provider");
 
@@ -234,13 +229,10 @@ where
             )
             .await?;
 
-        let config_value = serde_json::to_value(&config).expect("PriceProviderConfig serializes");
-        let id = PriceProviderId::new();
         let new_provider = NewPriceProvider::builder()
-            .id(id)
+            .id(PriceProviderId::new())
             .name(name)
-            .provider(provider::PriceProviderConfigDiscriminants::from(&config).to_string())
-            .provider_config(config_value)
+            .config(config)
             .build()
             .expect("should always build a new price provider");
 
@@ -362,8 +354,16 @@ where
     #[tracing::instrument(name = "core.price.find_all_providers", skip(self))]
     pub async fn find_all_providers<T: From<provider::PriceProvider>>(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         ids: &[PriceProviderId],
     ) -> Result<HashMap<PriceProviderId, T>, PriceError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CorePriceObject::all_providers(),
+                CorePriceAction::PROVIDER_LIST,
+            )
+            .await?;
         Ok(self.providers.find_all(ids).await?)
     }
 }

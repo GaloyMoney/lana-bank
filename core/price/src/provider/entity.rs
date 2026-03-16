@@ -16,10 +16,9 @@ pub enum PriceProviderEvent {
     Initialized {
         id: PriceProviderId,
         name: String,
-        provider: String,
     },
     ConfigUpdated {
-        provider_config: serde_json::Value,
+        provider_config: PriceProviderConfig,
     },
     Activated {},
     Deactivated {},
@@ -29,7 +28,7 @@ pub enum PriceProviderEvent {
 #[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct PriceProvider {
     pub id: PriceProviderId,
-    pub(super) provider_config: serde_json::Value,
+    pub(super) provider_config: PriceProviderConfig,
     pub name: String,
     pub provider: String,
     pub(super) active: bool,
@@ -44,27 +43,25 @@ impl PriceProvider {
     }
 
     pub fn update_config(&mut self, new_config: PriceProviderConfig) -> Idempotent<()> {
-        let new_value = serde_json::to_value(&new_config).expect("config serializes");
-
         idempotency_guard!(
             self.events.iter_all().rev(),
             already_applied: PriceProviderEvent::ConfigUpdated { provider_config }
-                if *provider_config == new_value,
+                if *provider_config == new_config,
             resets_on: PriceProviderEvent::ConfigUpdated { .. }
         );
 
-        self.provider_config = new_value.clone();
+        self.provider = PriceProviderConfigDiscriminants::from(&new_config).to_string();
+        self.provider_config = new_config.clone();
 
         self.events.push(PriceProviderEvent::ConfigUpdated {
-            provider_config: new_value,
+            provider_config: new_config,
         });
 
         Idempotent::Executed(())
     }
 
-    pub fn config(&self) -> PriceProviderConfig {
-        serde_json::from_value(self.provider_config.clone())
-            .expect("provider_config is always valid — we serialized it ourselves")
+    pub fn config(&self) -> &PriceProviderConfig {
+        &self.provider_config
     }
 
     pub fn active(&self) -> bool {
@@ -74,8 +71,7 @@ impl PriceProvider {
     pub fn activate(&mut self) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            already_applied: PriceProviderEvent::Activated {}
-                if true,
+            already_applied: PriceProviderEvent::Activated {},
             resets_on: PriceProviderEvent::Deactivated { .. }
         );
 
@@ -87,8 +83,7 @@ impl PriceProvider {
     pub fn deactivate(&mut self) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            already_applied: PriceProviderEvent::Deactivated {}
-                if true,
+            already_applied: PriceProviderEvent::Deactivated {},
             resets_on: PriceProviderEvent::Activated { .. }
         );
 
@@ -106,18 +101,18 @@ impl TryFromEvents<PriceProviderEvent> for PriceProvider {
 
         for event in events.iter_all() {
             match event {
-                PriceProviderEvent::Initialized {
-                    id, name, provider, ..
-                } => {
-                    builder = builder
-                        .id(*id)
-                        .name(name.clone())
-                        .provider(provider.clone())
-                        .active(true)
+                PriceProviderEvent::Initialized { id, name, .. } => {
+                    builder = builder.id(*id).name(name.clone()).active(true)
                 }
                 PriceProviderEvent::ConfigUpdated {
                     provider_config, ..
-                } => builder = builder.provider_config(provider_config.clone()),
+                } => {
+                    builder = builder
+                        .provider(
+                            PriceProviderConfigDiscriminants::from(provider_config).to_string(),
+                        )
+                        .provider_config(provider_config.clone())
+                }
                 PriceProviderEvent::Activated {} => builder = builder.active(true),
                 PriceProviderEvent::Deactivated {} => builder = builder.active(false),
             }
@@ -132,8 +127,18 @@ pub struct NewPriceProvider {
     #[builder(setter(into))]
     pub(super) id: PriceProviderId,
     pub(super) name: String,
+    #[builder(setter(custom))]
     pub(super) provider: String,
-    pub(super) provider_config: serde_json::Value,
+    #[builder(setter(custom))]
+    pub(super) config: PriceProviderConfig,
+}
+
+impl NewPriceProviderBuilder {
+    pub fn config(&mut self, config: PriceProviderConfig) -> &mut Self {
+        self.provider = Some(PriceProviderConfigDiscriminants::from(&config).to_string());
+        self.config = Some(config);
+        self
+    }
 }
 
 impl NewPriceProvider {
@@ -150,10 +155,9 @@ impl IntoEvents<PriceProviderEvent> for NewPriceProvider {
                 PriceProviderEvent::Initialized {
                     id: self.id,
                     name: self.name,
-                    provider: self.provider,
                 },
                 PriceProviderEvent::ConfigUpdated {
-                    provider_config: self.provider_config,
+                    provider_config: self.config,
                 },
             ],
         )

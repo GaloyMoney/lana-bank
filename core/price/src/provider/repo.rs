@@ -6,12 +6,11 @@ use es_entity::*;
 use crate::primitives::*;
 
 use super::entity::*;
-
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "PriceProvider",
     columns(
-        name(ty = "String", list_by),
+        name(ty = "String", list_by, update(persist = false)),
         provider(ty = "String", find_by),
         active(
             ty = "bool",
