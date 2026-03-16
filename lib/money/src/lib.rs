@@ -51,6 +51,8 @@ pub enum ConversionError {
     UnexpectedNegativeNumber(rust_decimal::Decimal),
     #[error("ConversionError - Overflow")]
     Overflow,
+    #[error("ConversionError - PrecisionLoss: {0} has fractional minor units")]
+    PrecisionLoss(rust_decimal::Decimal),
 }
 
 impl ErrorSeverity for ConversionError {
@@ -59,6 +61,7 @@ impl ErrorSeverity for ConversionError {
             Self::DecimalError(_) => Level::ERROR,
             Self::UnexpectedNegativeNumber(_) => Level::WARN,
             Self::Overflow => Level::ERROR,
+            Self::PrecisionLoss(_) => Level::WARN,
         }
     }
 }
@@ -80,7 +83,9 @@ impl<C: Currency> MinorUnits<C> {
 
     pub fn try_from_major(major: Decimal) -> Result<Self, ConversionError> {
         let minor = major * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
-        assert!(minor.trunc() == minor, "Minor units must be an integer");
+        if minor.trunc() != minor {
+            return Err(ConversionError::PrecisionLoss(major));
+        }
         if minor < Decimal::new(0, 0) {
             return Err(ConversionError::UnexpectedNegativeNumber(minor));
         }
@@ -237,13 +242,15 @@ impl<C: Currency> SignedMinorUnits<C> {
         Decimal::from(self.0) / Decimal::from(C::MINOR_UNITS_PER_MAJOR)
     }
 
-    pub fn from_major(major: Decimal) -> Self {
+    pub fn try_from_major(major: Decimal) -> Result<Self, ConversionError> {
         let minor = major * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
-        assert!(minor.trunc() == minor, "Minor units must be an integer");
-        Self(
-            i64::try_from(minor).expect("Minor units must fit i64"),
+        if minor.trunc() != minor {
+            return Err(ConversionError::PrecisionLoss(major));
+        }
+        Ok(Self(
+            i64::try_from(minor).map_err(|_| ConversionError::Overflow)?,
             PhantomData,
-        )
+        ))
     }
 
     pub fn abs(self) -> Self {
@@ -267,7 +274,7 @@ impl SignedMinorUnits<Btc> {
     }
 
     pub fn from_btc(btc: Decimal) -> Self {
-        Self::from_major(btc)
+        Self::try_from_major(btc).expect("BTC must convert to whole satoshis")
     }
 }
 
@@ -277,7 +284,7 @@ impl SignedMinorUnits<Usd> {
     }
 
     pub fn from_usd(usd: Decimal) -> Self {
-        Self::from_major(usd)
+        Self::try_from_major(usd).expect("USD must convert to whole cents")
     }
 }
 

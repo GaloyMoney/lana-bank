@@ -1,10 +1,5 @@
 {
   "$defs": {
-    "UsdCents": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
-    },
     "WithdrawalStatus": {
       "enum": [
         "PendingApproval",
@@ -22,7 +17,9 @@
     {
       "properties": {
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "approval_process_id": {
           "format": "uuid",

@@ -32,11 +32,6 @@
         "Interest"
       ],
       "type": "string"
-    },
-    "UsdCents": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -44,7 +39,9 @@
     {
       "properties": {
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "beneficiary_id": {
           "format": "uuid",
@@ -131,7 +128,9 @@
     {
       "properties": {
         "due_amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "ledger_tx_id": {
           "format": "uuid",
@@ -156,7 +155,9 @@
           "type": "string"
         },
         "overdue_amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "type": {
           "const": "overdue_recorded",
@@ -173,7 +174,9 @@
     {
       "properties": {
         "defaulted_amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "ledger_tx_id": {
           "format": "uuid",
@@ -198,7 +201,9 @@
           "type": "string"
         },
         "payment_allocation_amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "payment_allocation_id": {
           "format": "uuid",

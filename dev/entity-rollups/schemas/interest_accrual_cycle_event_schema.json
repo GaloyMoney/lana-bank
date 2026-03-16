@@ -241,11 +241,6 @@
         "disbursal_policy"
       ],
       "type": "object"
-    },
-    "UsdCents": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -300,7 +295,9 @@
           "type": "string"
         },
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "ledger_tx_id": {
           "format": "uuid",
@@ -341,7 +338,9 @@
           ]
         },
         "total": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "tx_ref": {
           "type": "string"

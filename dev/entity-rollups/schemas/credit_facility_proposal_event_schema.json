@@ -201,11 +201,6 @@
         "disbursal_policy"
       ],
       "type": "object"
-    },
-    "UsdCents": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -213,7 +208,9 @@
     {
       "properties": {
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "custodian_id": {
           "format": "uuid",

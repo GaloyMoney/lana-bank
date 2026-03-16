@@ -54,16 +54,6 @@
         "uncovered_outstanding_account_id"
       ],
       "type": "object"
-    },
-    "Satoshis": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
-    },
-    "UsdCents": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -108,10 +98,14 @@
     {
       "properties": {
         "abs_diff": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "collateral_amount": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "direction": {
           "$ref": "#/$defs/CollateralDirection"
@@ -137,10 +131,14 @@
     {
       "properties": {
         "abs_diff": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "collateral_amount": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "direction": {
           "$ref": "#/$defs/CollateralDirection"
@@ -166,10 +164,14 @@
     {
       "properties": {
         "abs_diff": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "collateral_amount": {
-          "$ref": "#/$defs/Satoshis"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "direction": {
           "$ref": "#/$defs/CollateralDirection"
@@ -217,7 +219,9 @@
     {
       "properties": {
         "amount": {
-          "$ref": "#/$defs/UsdCents"
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "ledger_tx_id": {
           "format": "uuid",
