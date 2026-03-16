@@ -75,21 +75,29 @@ where
             .await
     }
 
-    pub async fn list_all(&self) -> Result<Vec<DepositAccount>, DepositAccountError> {
-        let mut accounts = Vec::new();
-        let mut next = Some(PaginatedQueryArgs::<
-            deposit_account_cursor::DepositAccountsByIdCursor,
-        >::default());
-
-        while let Some(query) = next.take() {
-            let mut ret = self
-                .list_by_id(query, es_entity::ListDirection::Descending)
-                .await?;
-            accounts.append(&mut ret.entities);
-            next = ret.into_next_query();
-        }
-
-        Ok(accounts)
+    pub async fn list_account_ids_not_escheatable(
+        &self,
+        after: Option<(chrono::DateTime<chrono::Utc>, DepositAccountId)>,
+        limit: i64,
+    ) -> Result<Vec<(DepositAccountId, chrono::DateTime<chrono::Utc>)>, DepositAccountError> {
+        let (after_created_at, after_id) = match after {
+            Some((ts, id)) => (Some(ts), Some(id)),
+            None => (None, None),
+        };
+        let rows = sqlx::query!(
+            r#"SELECT id AS "id: DepositAccountId", created_at
+               FROM core_deposit_accounts
+               WHERE activity != 'escheatable'
+                 AND (($1::timestamptz IS NULL) OR (created_at, id) > ($1, $2))
+               ORDER BY created_at, id
+               LIMIT $3"#,
+            after_created_at,
+            after_id as Option<DepositAccountId>,
+            limit,
+        )
+        .fetch_all(self.pool())
+        .await?;
+        Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }
 }
 
