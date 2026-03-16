@@ -1,19 +1,21 @@
-use job::{JobId, JobSpawner, JobType};
+use command_job::CommandJobSpawner;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
+
+use job::JobType;
 
 use core_access::CoreAccessEvent;
 use tracing::{Span, instrument};
 
-use super::create_keycloak_user::CreateKeycloakUserConfig;
+use super::create_keycloak_user::CreateKeycloakUserCommand;
 
 pub const USER_ONBOARDING_JOB: JobType = JobType::new("outbox.user-onboarding");
 
 pub struct UserOnboardingHandler {
-    create_keycloak_user: JobSpawner<CreateKeycloakUserConfig>,
+    create_keycloak_user: CommandJobSpawner<CreateKeycloakUserCommand>,
 }
 
 impl UserOnboardingHandler {
-    pub fn new(create_keycloak_user: JobSpawner<CreateKeycloakUserConfig>) -> Self {
+    pub fn new(create_keycloak_user: CommandJobSpawner<CreateKeycloakUserCommand>) -> Self {
         Self {
             create_keycloak_user,
         }
@@ -36,14 +38,12 @@ where
             Span::current().record("event_type", access_event.as_ref());
 
             self.create_keycloak_user
-                .spawn_with_queue_id_in_op(
+                .spawn_in_op(
                     op,
-                    JobId::new(),
-                    CreateKeycloakUserConfig {
+                    CreateKeycloakUserCommand {
                         email: entity.email.clone(),
                         user_id: entity.id,
                     },
-                    entity.id.to_string(),
                 )
                 .await?;
         }

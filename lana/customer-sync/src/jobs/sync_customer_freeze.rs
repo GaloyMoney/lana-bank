@@ -1,20 +1,21 @@
 use tracing::{Span, instrument};
 
-use job::{JobId, JobSpawner, JobType};
+use command_job::CommandJobSpawner;
+use job::JobType;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use core_customer::CoreCustomerEvent;
 
-use super::freeze_customer_deposits::FreezeCustomerDepositsConfig;
+use super::freeze_customer_deposits::FreezeCustomerDepositsCommand;
 
 pub const CUSTOMER_FREEZE_SYNC: JobType = JobType::new("outbox.customer-freeze-sync");
 
 pub struct SyncCustomerFreezeHandler {
-    freeze_customer_deposits: JobSpawner<FreezeCustomerDepositsConfig>,
+    freeze_customer_deposits: CommandJobSpawner<FreezeCustomerDepositsCommand>,
 }
 
 impl SyncCustomerFreezeHandler {
-    pub fn new(freeze_customer_deposits: JobSpawner<FreezeCustomerDepositsConfig>) -> Self {
+    pub fn new(freeze_customer_deposits: CommandJobSpawner<FreezeCustomerDepositsCommand>) -> Self {
         Self {
             freeze_customer_deposits,
         }
@@ -37,14 +38,12 @@ where
             Span::current().record("event_type", e.as_ref());
 
             self.freeze_customer_deposits
-                .spawn_with_queue_id_in_op(
+                .spawn_in_op(
                     op,
-                    JobId::new(),
-                    FreezeCustomerDepositsConfig {
+                    FreezeCustomerDepositsCommand {
                         customer_id: entity.id,
                         party_id: entity.party_id,
                     },
-                    entity.id.to_string(),
                 )
                 .await?;
         }

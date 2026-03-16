@@ -7,10 +7,12 @@ mod jobs;
 
 use config::*;
 use error::*;
+use jobs::freeze_customer_deposits::FreezeCustomerDepositsCommandJob;
 use jobs::*;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use command_job::build_command_job;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
@@ -107,8 +109,12 @@ where
             )
             .await?;
 
-        let freeze_customer_deposits_spawner = jobs.add_initializer(
-            FreezeCustomerDepositsJobInitializer::new(deposit.clone(), keycloak_client.clone()),
+        let freeze_customer_deposits_spawner = build_command_job(
+            jobs,
+            FreezeCustomerDepositsCommandJob::<Perms, E>::new(
+                deposit.clone(),
+                keycloak_client.clone(),
+            ),
         );
         outbox
             .register_event_handler(

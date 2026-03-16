@@ -6,6 +6,7 @@ use obix::out::OutboxEventMarker;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
+use command_job::CommandJob;
 use core_customer::{
     CUSTOMER_SYNC, CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject,
 };
@@ -17,7 +18,7 @@ use governance::GovernanceEvent;
 use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct FreezeCustomerDepositsConfig {
+pub struct FreezeCustomerDepositsCommand {
     pub customer_id: CustomerId,
     pub party_id: core_customer::PartyId,
 }
@@ -25,7 +26,7 @@ pub struct FreezeCustomerDepositsConfig {
 pub const FREEZE_CUSTOMER_DEPOSITS_COMMAND: JobType =
     JobType::new("command.customer-sync.freeze-customer-deposits");
 
-pub struct FreezeCustomerDepositsJobInitializer<Perms, E>
+pub struct FreezeCustomerDepositsCommandJob<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -36,7 +37,7 @@ where
     keycloak_client: keycloak_client::KeycloakClient,
 }
 
-impl<Perms, E> FreezeCustomerDepositsJobInitializer<Perms, E>
+impl<Perms, E> FreezeCustomerDepositsCommandJob<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -54,7 +55,8 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for FreezeCustomerDepositsJobInitializer<Perms, E>
+#[async_trait]
+impl<Perms, E> CommandJob for FreezeCustomerDepositsCommandJob<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -65,71 +67,39 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Config = FreezeCustomerDepositsConfig;
+    type Command = FreezeCustomerDepositsCommand;
 
-    fn job_type(&self) -> JobType {
+    fn job_type() -> JobType {
         FREEZE_CUSTOMER_DEPOSITS_COMMAND
     }
 
-    fn init(
-        &self,
-        job: &Job,
-        _: JobSpawner<Self::Config>,
-    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(FreezeCustomerDepositsJobRunner {
-            config: job.config()?,
-            deposit: self.deposit.clone(),
-            keycloak_client: self.keycloak_client.clone(),
-        }))
+    fn queue_id(command: &Self::Command) -> String {
+        command.customer_id.to_string()
     }
-}
 
-pub struct FreezeCustomerDepositsJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    config: FreezeCustomerDepositsConfig,
-    deposit: CoreDeposit<Perms, E>,
-    keycloak_client: keycloak_client::KeycloakClient,
-}
-
-#[async_trait]
-impl<Perms, E> JobRunner for FreezeCustomerDepositsJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
     #[record_error_severity]
     #[tracing::instrument(
         name = "customer_sync.freeze_customer_deposits_job.process_command",
-        skip(self, current_job),
-        fields(customer_id = %self.config.customer_id),
+        skip(self, current_job, command),
+        fields(customer_id = %command.customer_id),
     )]
     async fn run(
         &self,
         current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        command: &Self::Command,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error + Send + Sync>> {
         let mut op = current_job.begin_op().await?;
         self.deposit
             .freeze_accounts_for_holder_in_op(
                 &mut op,
                 &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(CUSTOMER_SYNC),
-                self.config.customer_id,
+                command.customer_id,
             )
             .await?;
 
         if let Err(e) = self
             .keycloak_client
-            .disable_user(self.config.party_id.into())
+            .disable_user(command.party_id.into())
             .await
         {
             tracing::warn!("Failed to disable Keycloak user: {e}");

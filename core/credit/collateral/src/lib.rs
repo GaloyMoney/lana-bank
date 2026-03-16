@@ -26,6 +26,7 @@ use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use es_entity::Idempotent;
 
+use command_job::build_atomic_command_job;
 use jobs::{record_collateral_update, wallet_collateral_sync};
 use repo::CollateralRepo;
 
@@ -124,8 +125,9 @@ where
             clock.clone(),
         ));
 
-        let record_collateral_update = jobs.add_initializer(
-            record_collateral_update::RecordCollateralUpdateJobInitializer::<
+        let record_collateral_update = build_atomic_command_job(
+            jobs,
+            record_collateral_update::RecordCollateralUpdateCommandJob::<
                 <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
                 E,
             >::new(ledger.clone(), repo.clone()),
