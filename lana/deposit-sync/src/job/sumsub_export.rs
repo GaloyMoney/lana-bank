@@ -1,191 +1,80 @@
-use tracing::{Span, instrument};
+use es_entity::DbOp;
+use tracing::Span;
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
-use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
-    DepositId, GovernanceAction, GovernanceObject, UsdCents, WithdrawalId,
-};
-use governance::GovernanceEvent;
+use core_deposit::CoreDepositEvent;
+use job::{JobId, JobSpawner, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
-use sumsub::SumsubClient;
 
-use job::JobType;
-use lana_events::LanaEvent;
+use super::export_sumsub_deposit::ExportSumsubDepositConfig;
+use super::export_sumsub_withdrawal::ExportSumsubWithdrawalConfig;
 
 pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("outbox.sumsub-export");
 
-pub struct SumsubExportHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<LanaEvent>
-        + std::fmt::Debug,
-{
-    sumsub_client: SumsubClient,
-    deposits: CoreDeposit<Perms, E>,
-    customers: Customers<Perms, E>,
+pub struct SumsubExportHandler {
+    export_sumsub_deposit: JobSpawner<ExportSumsubDepositConfig>,
+    export_sumsub_withdrawal: JobSpawner<ExportSumsubWithdrawalConfig>,
 }
 
-impl<Perms, E> SumsubExportHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<LanaEvent>
-        + std::fmt::Debug,
-{
+impl SumsubExportHandler {
     pub fn new(
-        sumsub_client: SumsubClient,
-        deposits: &CoreDeposit<Perms, E>,
-        customers: &Customers<Perms, E>,
+        export_sumsub_deposit: JobSpawner<ExportSumsubDepositConfig>,
+        export_sumsub_withdrawal: JobSpawner<ExportSumsubWithdrawalConfig>,
     ) -> Self {
         Self {
-            sumsub_client,
-            deposits: deposits.clone(),
-            customers: customers.clone(),
+            export_sumsub_deposit,
+            export_sumsub_withdrawal,
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for SumsubExportHandler<Perms, E>
+impl<E> OutboxEventHandler<E> for SumsubExportHandler
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<CoreCustomerAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<LanaEvent>
-        + std::fmt::Debug,
+    E: OutboxEventMarker<CoreDepositEvent>,
 {
-    #[instrument(name = "deposit_sync.sumsub_export_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[tracing::instrument(name = "outbox.deposit_sync.sumsub_export.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        _op: &mut es_entity::DbOp<'_>,
+        op: &mut DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        match event.as_event() {
-            Some(e @ CoreDepositEvent::DepositInitialized { entity }) => {
-                event.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", e.as_ref());
+        if let Some(e @ CoreDepositEvent::DepositInitialized { entity }) = event.as_event() {
+            event.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", e.as_ref());
 
-                self.handle_deposit(entity.id, entity.deposit_account_id, entity.amount)
-                    .await?;
-            }
-            Some(e @ CoreDepositEvent::WithdrawalConfirmed { entity }) => {
-                event.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", e.as_ref());
-
-                self.handle_withdrawal(entity.id, entity.deposit_account_id, entity.amount)
-                    .await?;
-            }
-            _ => {}
-        }
-        Ok(())
-    }
-}
-
-impl<Perms, E> SumsubExportHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<CoreCustomerAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<LanaEvent>
-        + std::fmt::Debug,
-{
-    async fn handle_deposit(
-        &self,
-        id: DepositId,
-        deposit_account_id: DepositAccountId,
-        amount: UsdCents,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let account = self
-            .deposits
-            .find_account_by_id_without_audit(deposit_account_id)
-            .await?;
-
-        let customer = self
-            .customers
-            .find_by_id_without_audit(account.account_holder_id)
-            .await?;
-
-        // Valid use case branching
-        // lint:allow(service-conditionals)
-        if customer.should_sync_financial_transactions() {
-            let amount_usd: f64 = amount.to_usd().try_into()?;
-            self.sumsub_client
-                .submit_finance_transaction(
-                    account.account_holder_id,
-                    id.to_string(),
-                    "Deposit",
-                    "in",
-                    amount_usd,
-                    "USD",
+            self.export_sumsub_deposit
+                .spawn_with_queue_id_in_op(
+                    op,
+                    JobId::new(),
+                    ExportSumsubDepositConfig {
+                        deposit_account_id: entity.deposit_account_id,
+                        deposit_id: entity.id,
+                        amount: entity.amount,
+                    },
+                    entity.deposit_account_id.to_string(),
                 )
                 .await?;
-        } else {
-            tracing::warn!(
-                deposit_id = %id,
-                customer_id = %account.account_holder_id,
-                kyc_level = ?customer.level,
-                "Skipping sync for non verified customer deposit"
-            );
         }
-        Ok(())
-    }
 
-    async fn handle_withdrawal(
-        &self,
-        id: WithdrawalId,
-        deposit_account_id: DepositAccountId,
-        amount: UsdCents,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let account = self
-            .deposits
-            .find_account_by_id_without_audit(deposit_account_id)
-            .await?;
+        if let Some(e @ CoreDepositEvent::WithdrawalConfirmed { entity }) = event.as_event() {
+            event.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", e.as_ref());
 
-        let customer = self
-            .customers
-            .find_by_id_without_audit(account.account_holder_id)
-            .await?;
-
-        // Valid use case branching
-        // lint:allow(service-conditionals)
-        if customer.should_sync_financial_transactions() {
-            let amount_usd: f64 = amount.to_usd().try_into()?;
-            self.sumsub_client
-                .submit_finance_transaction(
-                    account.account_holder_id,
-                    id.to_string(),
-                    "Withdrawal",
-                    "out",
-                    amount_usd,
-                    "USD",
+            self.export_sumsub_withdrawal
+                .spawn_with_queue_id_in_op(
+                    op,
+                    JobId::new(),
+                    ExportSumsubWithdrawalConfig {
+                        deposit_account_id: entity.deposit_account_id,
+                        withdrawal_id: entity.id,
+                        amount: entity.amount,
+                    },
+                    entity.deposit_account_id.to_string(),
                 )
                 .await?;
-        } else {
-            tracing::warn!(
-                withdrawal_id = %id,
-                customer_id = %account.account_holder_id,
-                kyc_level = ?customer.level,
-                "Skipping sync for non verified customer withdrawal"
-            );
         }
+
         Ok(())
     }
 }
