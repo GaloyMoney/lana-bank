@@ -1,12 +1,21 @@
 use anyhow::{Context, anyhow};
 use chrono::{DateTime, NaiveDate, TimeZone, Utc};
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use serde::{Deserialize, Serialize};
 use sqlx::Row;
 use tokio_stream::StreamExt;
 
 use core_time_events::{CoreTimeEvent, TimeEvents};
 
 const END_OF_DAY_PRODUCER_JOB_TYPE: &str = "cron.core-time-event.end-of-day-producer";
+
+#[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
+#[serde(tag = "module")]
+enum DummyEvent {
+    CoreTimeEvent(CoreTimeEvent),
+    #[serde(other)]
+    Unknown,
+}
 
 #[tokio::test]
 #[serial_test::file_serial(core_time_events_manual_clock)]
@@ -20,7 +29,7 @@ async fn manual_clock_advance_publishes_end_of_day_event() -> anyhow::Result<()>
         .expect("valid timestamp");
     let (clock, controller) = ClockHandle::artificial(ArtificialClockConfig::manual_at(start));
 
-    let outbox = obix::Outbox::<CoreTimeEvent>::init(
+    let outbox = obix::Outbox::<DummyEvent>::init(
         &pool,
         obix::MailboxConfig::builder()
             .clock(clock.clone())
