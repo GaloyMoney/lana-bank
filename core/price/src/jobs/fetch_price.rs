@@ -93,9 +93,9 @@ async fn fetch_price_from_single(
             let usd_cents = money::UsdCents::try_from_usd(tick.last_price)?;
             Ok(PriceOfOneBTC::new(usd_cents))
         }
-        PriceProviderConfig::ManualPrice { usd_cents_per_btc } => {
-            Ok(PriceOfOneBTC::new(money::UsdCents::from(usd_cents_per_btc)))
-        }
+        PriceProviderConfig::ManualPrice { usd_cents_per_btc } => Ok(PriceOfOneBTC::new(
+            money::UsdCents::from(*usd_cents_per_btc),
+        )),
     }
 }
 
