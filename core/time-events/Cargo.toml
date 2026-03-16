@@ -27,3 +27,12 @@ es-entity = { workspace = true }
 strum = { workspace = true }
 
 schemars = { workspace = true, optional = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+authz = { workspace = true, features = ["test-dummy"] }
+serde_json = { workspace = true }
+serial_test = { workspace = true }
+sqlx = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
