@@ -886,10 +886,6 @@ where
         }
     }
 
-    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CoreDepositError> {
-        Ok(self.deposit_accounts.begin_op().await?)
-    }
-
     /// Returns a page of non-escheatable deposit account IDs for activity sweep,
     /// using keyset cursor pagination ordered by (created_at, id).
     #[record_error_severity]
