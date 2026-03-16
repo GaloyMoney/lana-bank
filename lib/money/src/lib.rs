@@ -253,8 +253,11 @@ impl<C: Currency> SignedMinorUnits<C> {
         ))
     }
 
-    pub fn abs(self) -> Self {
-        Self(self.0.abs(), PhantomData)
+    pub fn checked_abs(self) -> Result<Self, ConversionError> {
+        self.0
+            .checked_abs()
+            .map(|v| Self(v, PhantomData))
+            .ok_or(ConversionError::Overflow)
     }
 
     pub fn into_inner(self) -> i64 {
@@ -351,12 +354,13 @@ impl<C: Currency> std::ops::Sub for SignedMinorUnits<C> {
 
 // --- From conversions ---
 
-impl<C: Currency> From<MinorUnits<C>> for SignedMinorUnits<C> {
-    fn from(val: MinorUnits<C>) -> Self {
-        Self(
-            i64::try_from(val.0).expect("Minor units must fit i64"),
+impl<C: Currency> TryFrom<MinorUnits<C>> for SignedMinorUnits<C> {
+    type Error = ConversionError;
+    fn try_from(val: MinorUnits<C>) -> Result<Self, Self::Error> {
+        Ok(Self(
+            i64::try_from(val.0).map_err(|_| ConversionError::Overflow)?,
             PhantomData,
-        )
+        ))
     }
 }
 
@@ -400,6 +404,44 @@ mod minor_units_sqlx {
     }
 
     impl<C: Currency> PgHasArrayType for MinorUnits<C> {
+        fn array_type_info() -> PgTypeInfo {
+            <i64 as PgHasArrayType>::array_type_info()
+        }
+    }
+}
+
+#[cfg(feature = "sqlx")]
+mod signed_minor_units_sqlx {
+    use sqlx::{Type, postgres::*};
+
+    use super::*;
+
+    impl<C: Currency> Type<Postgres> for SignedMinorUnits<C> {
+        fn type_info() -> PgTypeInfo {
+            <i64 as Type<Postgres>>::type_info()
+        }
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <i64 as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl<C: Currency> sqlx::Encode<'_, Postgres> for SignedMinorUnits<C> {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            <i64 as sqlx::Encode<'_, Postgres>>::encode(self.into_inner(), buf)
+        }
+    }
+
+    impl<'r, C: Currency> sqlx::Decode<'r, Postgres> for SignedMinorUnits<C> {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let val = <i64 as sqlx::Decode<Postgres>>::decode(value)?;
+            Ok(SignedMinorUnits(val, std::marker::PhantomData))
+        }
+    }
+
+    impl<C: Currency> PgHasArrayType for SignedMinorUnits<C> {
         fn array_type_info() -> PgTypeInfo {
             <i64 as PgHasArrayType>::array_type_info()
         }
