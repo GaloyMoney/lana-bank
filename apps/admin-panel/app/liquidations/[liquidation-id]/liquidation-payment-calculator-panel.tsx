@@ -1,22 +1,15 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
-import { Calculator } from "lucide-react"
+import { X } from "lucide-react"
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@lana/web/ui/card"
 
 import {
   useLiquidationPaymentCalculateLazyQuery,
@@ -44,20 +37,20 @@ gql`
   }
 `
 
-type LiquidationPaymentCalculatorDialogProps = {
+type LiquidationPaymentCalculatorPanelProps = {
   open: boolean
-  onOpenChange: (isOpen: boolean) => void
+  onClose: () => void
   liquidationId: string
   outstanding: number
   defaultToReceive?: number
   defaultToLiquidate?: number
 }
 
-export const LiquidationPaymentCalculatorDialog: React.FC<
-  LiquidationPaymentCalculatorDialogProps
+export const LiquidationPaymentCalculatorPanel: React.FC<
+  LiquidationPaymentCalculatorPanelProps
 > = ({
   open,
-  onOpenChange,
+  onClose,
   liquidationId,
   outstanding,
   defaultToReceive,
@@ -87,10 +80,22 @@ export const LiquidationPaymentCalculatorDialog: React.FC<
 
   const [error, setError] = useState<string | null>(null)
 
+  // Reset form when opened
+  useEffect(() => {
+    if (open) {
+      setToReceive(defaultToReceive ? (defaultToReceive / 100).toString() : "")
+      setToLiquidate(
+        defaultToLiquidate ? (defaultToLiquidate / 100000000).toString() : ""
+      )
+      setTargetCvl("")
+      setResults(null)
+      setError(null)
+    }
+  }, [open, defaultToReceive, defaultToLiquidate])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    setResults(null)
 
     const filledFields = [
       toReceive !== "",
@@ -164,17 +169,6 @@ export const LiquidationPaymentCalculatorDialog: React.FC<
     }
   }
 
-  const handleCloseDialog = () => {
-    setToReceive(defaultToReceive ? (defaultToReceive / 100).toString() : "")
-    setToLiquidate(
-      defaultToLiquidate ? (defaultToLiquidate / 100000000).toString() : ""
-    )
-    setTargetCvl("")
-    setResults(null)
-    setError(null)
-    onOpenChange(false)
-  }
-
   const handleReset = () => {
     setToReceive(defaultToReceive ? (defaultToReceive / 100).toString() : "")
     setToLiquidate(
@@ -195,18 +189,30 @@ export const LiquidationPaymentCalculatorDialog: React.FC<
     return t("results.infinite")
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleCloseDialog}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
+    <Card className="animate-in slide-in-from-top-2 duration-200">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">
             {t("title")}
-          </DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
-        </DialogHeader>
+          </CardTitle>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-8 w-8"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
+      </CardHeader>
+      <CardContent>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="toReceive">{t("fields.toReceive")}</Label>
               <Input
@@ -254,10 +260,10 @@ export const LiquidationPaymentCalculatorDialog: React.FC<
           {error && <p className="text-destructive text-sm">{error}</p>}
 
           {results && (
-            <div className="bg-muted rounded-md p-4 space-y-3">
+            <div className={`bg-muted rounded-md p-4 space-y-3 transition-opacity duration-200 ${loading ? 'opacity-50' : 'opacity-100'}`}>
               <h4 className="font-semibold text-sm">{t("results.title")}</h4>
-              <div className="grid grid-cols-1 gap-2 text-sm">
-                <div className="flex justify-between">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="flex flex-col gap-1">
                   <span className="text-muted-foreground">
                     {t("results.toReceive")}
                   </span>
@@ -265,7 +271,7 @@ export const LiquidationPaymentCalculatorDialog: React.FC<
                     ${(results.toReceive / 100).toFixed(2)} USD
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-col gap-1">
                   <span className="text-muted-foreground">
                     {t("results.toLiquidate")}
                   </span>
@@ -273,7 +279,7 @@ export const LiquidationPaymentCalculatorDialog: React.FC<
                     {(results.toLiquidate / 100000000).toFixed(8)} BTC
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-col gap-1">
                   <span className="text-muted-foreground">
                     {t("results.targetCvl")}
                   </span>
@@ -283,7 +289,7 @@ export const LiquidationPaymentCalculatorDialog: React.FC<
             </div>
           )}
 
-          <DialogFooter>
+          <div className="flex flex-wrap gap-2 justify-end pt-2">
             <Button
               type="button"
               variant="outline"
@@ -293,25 +299,17 @@ export const LiquidationPaymentCalculatorDialog: React.FC<
               {commonT("reset")}
             </Button>
             <Button
-              type="button"
-              variant="outline"
-              onClick={handleCloseDialog}
-              disabled={loading}
-            >
-              {commonT("cancel")}
-            </Button>
-            <Button
               type="submit"
               loading={loading}
-              data-testid="liquidation-payment-calculator-dialog-button"
+              data-testid="liquidation-payment-calculator-submit-button"
             >
               {t("buttons.calculate")}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </CardContent>
+    </Card>
   )
 }
 
-export default LiquidationPaymentCalculatorDialog
+export default LiquidationPaymentCalculatorPanel

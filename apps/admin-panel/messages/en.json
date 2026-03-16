@@ -1447,8 +1447,7 @@
         "buttons": {
           "recordCollateralSent": "Record Collateral Sent",
           "recordPaymentReceived": "Record Payment Received",
-          "viewMoreDetails": "View More Details",
-          "calculatePayment": "Calculate Payment"
+          "viewMoreDetails": "View More Details"
         }
       },
       "calculator": {
@@ -1464,6 +1463,7 @@
         },
         "buttons": {
           "calculate": "Calculate",
+          "calculatePayment": "Payment Calculator",
           "cancel": "Cancel"
         },
         "validation": {
