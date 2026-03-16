@@ -2054,19 +2054,19 @@ export type LiquidationEdge = {
   node: Liquidation;
 };
 
+export type LiquidationPayment = {
+  __typename?: 'LiquidationPayment';
+  targetCvl: CvlPct;
+  toLiquidate: Scalars['Satoshis']['output'];
+  toReceive: Scalars['UsdCents']['output'];
+};
+
 export type LiquidationPaymentCalculateInput = {
   liquidationId: Scalars['UUID']['input'];
   outstanding: Scalars['UsdCents']['input'];
   targetCvl?: InputMaybe<Scalars['CVLPctValue']['input']>;
   toLiquidate?: InputMaybe<Scalars['Satoshis']['input']>;
   toReceive?: InputMaybe<Scalars['UsdCents']['input']>;
-};
-
-export type LiquidationPaymentValue = {
-  __typename?: 'LiquidationPaymentValue';
-  targetCvl: CvlPct;
-  toLiquidate: Scalars['Satoshis']['output'];
-  toReceive: Scalars['UsdCents']['output'];
 };
 
 export type LiquidationProceedsReceived = {
@@ -3048,7 +3048,7 @@ export type Query = {
   ledgerTransaction?: Maybe<LedgerTransaction>;
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   liquidation?: Maybe<Liquidation>;
-  liquidationPaymentCalculate: LiquidationPaymentValue;
+  liquidationPaymentCalculate: LiquidationPayment;
   liquidations: LiquidationConnection;
   loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
@@ -5227,7 +5227,7 @@ export type LiquidationPaymentCalculateQueryVariables = Exact<{
 }>;
 
 
-export type LiquidationPaymentCalculateQuery = { __typename?: 'Query', liquidationPaymentCalculate: { __typename?: 'LiquidationPaymentValue', toReceive: UsdCents, toLiquidate: Satoshis, targetCvl:
+export type LiquidationPaymentCalculateQuery = { __typename?: 'Query', liquidationPaymentCalculate: { __typename?: 'LiquidationPayment', toReceive: UsdCents, toLiquidate: Satoshis, targetCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
      } };
