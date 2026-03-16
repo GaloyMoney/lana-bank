@@ -240,6 +240,7 @@ where
             ledger_arc.collateral_account_sets(),
             outbox,
             jobs,
+            price_arc.clone(),
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);

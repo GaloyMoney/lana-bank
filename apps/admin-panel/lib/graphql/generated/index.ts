@@ -2053,6 +2053,21 @@ export type LiquidationEdge = {
   node: Liquidation;
 };
 
+export type LiquidationPaymentCalculateInput = {
+  liquidationId: Scalars['UUID']['input'];
+  outstanding: Scalars['UsdCents']['input'];
+  targetCvl?: InputMaybe<Scalars['CVLPctValue']['input']>;
+  toLiquidate?: InputMaybe<Scalars['Satoshis']['input']>;
+  toReceive?: InputMaybe<Scalars['UsdCents']['input']>;
+};
+
+export type LiquidationPaymentValue = {
+  __typename?: 'LiquidationPaymentValue';
+  targetCvl: CvlPct;
+  toLiquidate: Scalars['Satoshis']['output'];
+  toReceive: Scalars['UsdCents']['output'];
+};
+
 export type LiquidationProceedsReceived = {
   __typename?: 'LiquidationProceedsReceived';
   amount: Scalars['UsdCents']['output'];
@@ -3032,6 +3047,7 @@ export type Query = {
   ledgerTransaction?: Maybe<LedgerTransaction>;
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   liquidation?: Maybe<Liquidation>;
+  liquidationPaymentCalculate: LiquidationPaymentValue;
   liquidations: LiquidationConnection;
   loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
@@ -3289,6 +3305,11 @@ export type QueryLedgerTransactionsForTemplateCodeArgs = {
 
 export type QueryLiquidationArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryLiquidationPaymentCalculateArgs = {
+  input: LiquidationPaymentCalculateInput;
 };
 
 
