@@ -103,37 +103,7 @@ Here's the problem Cachix solves: Nix builds are perfectly reproducible, but the
 |---|---|
 | **Cache name** | `galoymoney` |
 | **URL** | `https://galoymoney.cachix.org` |
-| **Who writes to it** | The Concourse nix-cache pipeline (with a write token) |
 | **Who reads from it** | GitHub Actions workflows, Concourse jobs, and any developer who runs `cachix use galoymoney` |
-
-### The two-system caching design
-
-There's an intentional split between who builds for the cache and who reads from it:
-
-- **Concourse** is the builder. A dedicated Concourse pipeline (`ci/nix-cache/pipeline.yml`) watches for new PRs and pushes to `main`, builds the relevant Nix derivations, and pushes them to Cachix. Concourse workers have persistent storage and are well-suited for long-running builds.
-
-- **GitHub Actions** is the consumer. Every workflow configures Cachix with `skipPush: true`, meaning it will download pre-built binaries from the cache but never upload anything. GitHub Actions runners are ephemeral, and having many parallel runners push to the cache would create redundant uploads and potential race conditions.
-
-This design keeps the cache clean and ensures builds are fast across both CI systems.
-
-### How the cache pipeline works
-
-The Concourse nix-cache pipeline has four jobs:
-
-**`populate-nix-cache-pr`** is the main workhorse. When a PR is opened or updated, it builds derivations in a carefully ordered sequence:
-
-1. First, it checks that the PR is still the latest commit (no point building a stale revision).
-2. It builds `lana-deps` — the pre-compiled Rust dependency tree. This is the biggest and most valuable thing to cache.
-3. Once dependencies are cached, it builds several things in parallel: the `nextest` runner, the `simulation` tests, `lana-cli-debug`, and the `bats` test environment.
-4. Finally, it runs `nix flake check`, builds the `next-version` script, and builds the full release binary.
-
-Each derivation is pushed to Cachix immediately when it completes (using `cachix watch-exec`), so subsequent GitHub Actions runs can pick them up even while the pipeline is still working on other derivations.
-
-**`cache-dev-profile`** caches the `nix develop` shell and CI utility scripts. This makes `nix develop` fast for developers who use Cachix.
-
-**`build-release-main`** triggers on every push to `main` and builds the release binary. This keeps the cache warm for the most common build path — when the release pipeline runs after a merge, the derivations it needs are already cached.
-
-**`rebuild-nix-cache`** is a manual job that loops through all open PRs and re-triggers their cache builds. This is handy when a dependency update has invalidated the cache and you want to rebuild everything proactively.
 
 ### Using Cachix as a developer
 

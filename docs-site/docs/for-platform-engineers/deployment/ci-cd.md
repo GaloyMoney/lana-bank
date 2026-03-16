@@ -87,7 +87,7 @@ Here's the pattern you'll see in every workflow file:
     skipPush: true
 ```
 
-The `skipPush: true` part is key — GitHub Actions only **reads** from the cache, it never writes to it. The cache gets populated by a separate Concourse pipeline (described in the [Nix Cache Pipeline](#nix-cache-pipeline) section below). This separation exists because Concourse has powerful caching workers with persistent storage, while GitHub Actions runners are ephemeral and would produce redundant pushes.
+The `skipPush: true` part is key — GitHub Actions only **reads** from the cache, it never writes to it.
 
 Most workflows also reclaim 10-20 GB of disk space at the start by removing pre-installed software (Docker images, Android SDK, etc.) that GitHub runners ship with. The large Rust compilations need that breathing room.
 
@@ -420,54 +420,11 @@ This design means that you always know exactly what's running in production, and
 
 ---
 
-## Nix Cache Pipeline
-
-Alongside the release pipeline, there's a separate Concourse pipeline dedicated to keeping the **Cachix binary cache** warm. This pipeline is defined in `ci/nix-cache/pipeline.yml` in the lana-bank repo.
-
-### Why does this exist?
-
-Compiling Rust from scratch is slow. The lana-bank codebase has a lot of dependencies, and a cold build can take a very long time. The Nix cache pipeline makes sure that pre-built binaries are always available, so both developers and CI systems can skip the compilation step and just download the result.
-
-The cache is hosted on [Cachix](https://app.cachix.org/) under the name `galoymoney`.
-
-### How it works in practice
-
-There's an intentional split in responsibilities between Concourse and GitHub Actions:
-
-- **Concourse** does the heavy lifting: it builds Nix derivations and **pushes** them to the Cachix cache. Concourse workers have persistent storage and can run long builds efficiently.
-- **GitHub Actions** is a consumer: it **reads** from the cache (with `skipPush: true`) but never writes to it. GitHub Actions runners are ephemeral, and having them push to the cache would produce a lot of redundant uploads.
-
-This split keeps things efficient and avoids cache pollution from parallel GitHub Actions runs.
-
-### Cache pipeline jobs
-
-| Job | When it runs | What it does |
-|-----|-------------|-------------|
-| **build-release-main** | Every push to `main` | Builds the release binary and pushes all derivations to Cachix. This keeps the cache fresh for the most common build path. |
-| **cache-dev-profile** | When a PR is opened or updated | Caches the `nix develop` shell and CI utility scripts. This means `nix develop` is fast for developers who use Cachix locally. |
-| **populate-nix-cache-pr** | When a PR is opened or updated | The main workhorse. Builds derivations in stages: first `lana-deps` (the Rust dependency tree), then `nextest`, `simulation`, `lana-cli-debug`, and `bats` in parallel, and finally `nix flake check` and the full release build. Each derivation is pushed to Cachix as soon as it completes. |
-| **rebuild-nix-cache** | Manual trigger | Loops through all open PRs and re-triggers cache builds for them. Useful when the cache has gone stale or a dependency has changed. |
-
-### The developer experience
-
-When everything is working well, here's what a developer sees:
-
-1. They open a PR.
-2. In the background, the Concourse `populate-nix-cache-pr` job starts building derivations for that PR's code.
-3. GitHub Actions also starts running — but many of the Nix derivations it needs are already in the cache from step 2 (or from a previous build of `main`), so it downloads pre-built binaries instead of compiling them.
-4. If the Concourse cache build finishes before GitHub Actions needs a particular derivation, the GitHub Actions job gets a cache hit and proceeds quickly. If not, the job may build it from scratch, but the next run will be faster.
-
-The `wait-cachix-paths` utility script is available for cases where a CI step needs to wait for the cache to be populated before proceeding. It polls the Cachix API until the requested derivation is available.
-
-Developers can also use the cache locally by running `cachix use galoymoney`. After that, `nix develop` and `nix build` will download pre-built artifacts whenever possible.
-
----
-
 ## Putting It All Together
 
 Here's the complete journey one more time, but now you should understand what's happening at each step and why:
 
-1. **Developer opens a PR.** GitHub Actions runs 10+ parallel checks (tests, lint, security scans). Meanwhile, Concourse starts pre-building Nix derivations and pushing them to Cachix.
+1. **Developer opens a PR.** GitHub Actions runs 10+ parallel checks (tests, lint, security scans).
 
 2. **PR is merged to `main`.** Concourse re-runs the tests against the actual merged commit to catch integration issues. On success, it builds a release candidate — four Docker images tagged with an RC version.
 
@@ -491,8 +448,8 @@ At any point, you can trace what's running in an environment all the way back to
 |------|-------------|----------------------|
 | **GitHub Actions** | Runs PR validation checks | `.github/workflows/` in lana-bank |
 | **Concourse** | Builds releases, tests charts, deploys to environments | `ci/` in lana-bank, galoy-private-charts, and galoy-deployments |
-| **Cachix** | Stores pre-built Nix binaries (`galoymoney` cache) | Concourse nix-cache pipeline + GitHub Actions workflows |
-| **YTT** | Templates Concourse pipeline YAML | `ci/release/` and `ci/nix-cache/` in lana-bank |
+| **Cachix** | Stores pre-built Nix binaries (`galoymoney` cache) | GitHub Actions workflows |
+| **YTT** | Templates Concourse pipeline YAML | `ci/release/` in lana-bank |
 | **Cocogitto** | Computes the next version from conventional commits | `cog.toml` in lana-bank |
 | **git-cliff** | Generates the CHANGELOG from conventional commits | `ci/vendor/config/git-cliff.toml` in lana-bank |
 | **Vendir** | Vendors the Helm chart from galoy-private-charts into galoy-deployments | `vendir.yml` in galoy-deployments |
