@@ -77,7 +77,7 @@ export default function SystemInfoPage() {
           {loading ? (
             <LoaderCircle className="animate-spin" />
           ) : data?.appConfig ? (
-            <pre className="text-xs font-mono whitespace-pre-wrap overflow-auto max-h-[600px]">
+            <pre className="text-xs font-mono whitespace-pre overflow-x-auto rounded-md bg-muted p-4">
               {data.appConfig}
             </pre>
           ) : (
