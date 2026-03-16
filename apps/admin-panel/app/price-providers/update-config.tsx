@@ -66,9 +66,8 @@ export const UpdatePriceProviderConfigDialog: React.FC<
 
   const [updateConfig, { loading }] = usePriceProviderConfigUpdateMutation()
 
-  const isBitfinex = provider.toLowerCase() === "bitfinex"
-  const isManualPrice =
-    provider.toLowerCase() === "manual-price" || provider.toLowerCase() === "manualprice"
+  const isBitfinex = provider === "bitfinex"
+  const isManualPrice = provider === "manual-price"
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
