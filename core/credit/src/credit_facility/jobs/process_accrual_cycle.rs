@@ -17,7 +17,7 @@
 //! │  AwaitObligationsSync                                                    │
 //! │    • Wait for all facility obligations to reach current status           │
 //! │    • Required before cycle completion to ensure consistent state         │
-//! │    → not ready: RescheduleIn(5 min)                                      │
+//! │    → not ready: RescheduleNow                                      │
 //! │    → ready: transition to CompleteCycle                                  │
 //! ├─────────────────────────────────────────────────────────────────────────┤
 //! │  CompleteCycle                                                           │
@@ -424,7 +424,7 @@ where
     /// Waits for all facility obligations to have their status updated.
     /// This is required before cycle completion to ensure consistent state.
     /// Transitions:
-    /// - If obligations not synced: reschedule in 5 minutes
+    /// - If obligations not synced: reschedule immediately
     /// - If obligations synced: transition to CompleteCycle
     async fn await_obligations_sync(
         &self,
@@ -438,9 +438,7 @@ where
 
         if !obligations_synced {
             tracing::debug!("Obligations not yet synced, rescheduling");
-            return Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
-                5 * 60,
-            )));
+            return Ok(JobCompletion::RescheduleNow);
         }
 
         tracing::debug!("Obligations synced, transitioning to complete cycle");
