@@ -1189,9 +1189,7 @@ checksums:
     PriceProviders/create/errors/failed: 9c91536412c789a125dea854d379aeec
     PriceProviders/updateConfig/title: 9315d119d3f9f95fa63f96c90c8fd4be
     PriceProviders/updateConfig/description: af53e3491b146dd1e82d331efa0955af
-    PriceProviders/updateConfig/fields/name: 9368b5a047572b6051f334af5aa76819
     PriceProviders/updateConfig/fields/usdPerBtc: 873afce013b1635c729db3f6c8a2de61
-    PriceProviders/updateConfig/placeholders/name: 82cfd01ec74495e62b820568c46270f4
     PriceProviders/updateConfig/placeholders/usdPerBtc: 0400821a2da829f0fbccf68716a33451
     PriceProviders/updateConfig/buttons/update: 4faf748015eaf8ff2134b6ea3a1110ed
     PriceProviders/updateConfig/success: f290f1db665da7440de228f1180ad59e
