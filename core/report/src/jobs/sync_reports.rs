@@ -128,31 +128,28 @@ where
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         if let Some(target_run_id) = self.config.target_run_id.as_deref() {
-            let maybe_run = self.dagster_adapter.fetch_run(target_run_id).await?;
-            let Some(run_result) = maybe_run else {
-                tracing::warn!(
-                    target_run_id,
-                    "Dagster run not visible yet, rescheduling sync"
+            loop {
+                let maybe_run = self.dagster_adapter.fetch_run(target_run_id).await?;
+                let Some(run_result) = maybe_run else {
+                    tracing::warn!(target_run_id, "Dagster run not visible yet, retrying");
+                    tokio::time::sleep(std::time::Duration::from_secs(SYNC_REPORTS_RETRY_SECS))
+                        .await;
+                    continue;
+                };
+
+                self.sync_run(&run_result).await?;
+
+                if run_result.status.is_finished() {
+                    return Ok(JobCompletion::Complete);
+                }
+
+                tracing::debug!(
+                    target_run_id = %run_result.run_id,
+                    status = ?run_result.status,
+                    "Dagster run still in progress, retrying"
                 );
-                return Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
-                    SYNC_REPORTS_RETRY_SECS,
-                )));
-            };
-
-            self.sync_run(&run_result).await?;
-
-            if run_result.status.is_finished() {
-                return Ok(JobCompletion::Complete);
+                tokio::time::sleep(std::time::Duration::from_secs(SYNC_REPORTS_RETRY_SECS)).await;
             }
-
-            tracing::debug!(
-                target_run_id = %run_result.run_id,
-                status = ?run_result.status,
-                "Dagster run still in progress, rescheduling sync"
-            );
-            return Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
-                SYNC_REPORTS_RETRY_SECS,
-            )));
         }
 
         let response = self.dagster_adapter.fetch_recent_runs(1).await?;

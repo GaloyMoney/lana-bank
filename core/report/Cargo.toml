@@ -32,6 +32,7 @@ thiserror = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
+tokio = { workspace = true }
 tracing-utils = { workspace = true }
 schemars = { workspace = true, optional = true }
 
