@@ -2,6 +2,9 @@
   "Common": {
     "loading": "Cargando...",
     "error": "Ha ocurrido un error",
+    "errors": {
+      "general": "Ha ocurrido un error"
+    },
     "notFound": "No encontrado",
     "back": "Volver",
     "save": "Guardar",
