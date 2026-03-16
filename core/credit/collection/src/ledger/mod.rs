@@ -146,6 +146,7 @@ impl CollectionLedger {
                 templates::RECORD_OBLIGATION_DUE_BALANCE_CODE,
                 templates::RecordObligationDueBalanceParams {
                     journal_id: self.journal_id,
+                    currency: self.usd,
                     amount: outstanding_amount.to_usd(),
                     receivable_not_yet_due_account_id: not_yet_due_account_id,
                     receivable_due_account_id: due_account_id,
@@ -182,6 +183,7 @@ impl CollectionLedger {
                 templates::RECORD_OBLIGATION_OVERDUE_BALANCE_CODE,
                 templates::RecordObligationOverdueBalanceParams {
                     journal_id: self.journal_id,
+                    currency: self.usd,
                     amount: outstanding_amount.to_usd(),
                     receivable_due_account_id: due_account_id,
                     receivable_overdue_account_id: overdue_account_id,
@@ -218,6 +220,7 @@ impl CollectionLedger {
                 templates::RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE,
                 templates::RecordObligationDefaultedBalanceParams {
                     journal_id: self.journal_id,
+                    currency: self.usd,
                     amount: outstanding_amount.to_usd(),
                     receivable_account_id,
                     defaulted_account_id,

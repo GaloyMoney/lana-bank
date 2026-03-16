@@ -17,6 +17,7 @@ pub const CANCEL_DISBURSAL_CODE: &str = "CANCEL_DISBURSAL";
 pub struct CancelDisbursalParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
+    pub currency: Currency,
     pub facility_uncovered_outstanding_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub disbursed_amount: Decimal,
@@ -30,6 +31,11 @@ impl<S: std::fmt::Display> CancelDisbursalParams<S> {
             NewParamDefinition::builder()
                 .name("journal_id")
                 .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
@@ -66,6 +72,7 @@ impl<S: std::fmt::Display> From<CancelDisbursalParams<S>> for Params {
         CancelDisbursalParams {
             entity_id,
             journal_id,
+            currency,
             facility_uncovered_outstanding_account,
             credit_facility_account,
             disbursed_amount,
@@ -75,6 +82,7 @@ impl<S: std::fmt::Display> From<CancelDisbursalParams<S>> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
+        params.insert("currency", currency);
         params.insert(
             "facility_uncovered_outstanding_account",
             facility_uncovered_outstanding_account,
@@ -113,7 +121,7 @@ impl CancelDisbursal {
             // Reverse pending entries
             NewTxTemplateEntry::builder()
                 .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_PENDING_DR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.credit_facility_account")
                 .direction("DEBIT")
                 .layer("PENDING")
@@ -122,7 +130,7 @@ impl CancelDisbursal {
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_PENDING_CR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.facility_uncovered_outstanding_account")
                 .direction("CREDIT")
                 .layer("PENDING")
@@ -132,7 +140,7 @@ impl CancelDisbursal {
             // Reverse settled entries
             NewTxTemplateEntry::builder()
                 .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_SETTLED_DR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.facility_uncovered_outstanding_account")
                 .direction("DEBIT")
                 .layer("SETTLED")
@@ -141,7 +149,7 @@ impl CancelDisbursal {
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_SETTLED_CR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.credit_facility_account")
                 .direction("CREDIT")
                 .layer("SETTLED")

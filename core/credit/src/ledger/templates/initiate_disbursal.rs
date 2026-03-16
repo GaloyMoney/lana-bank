@@ -17,6 +17,7 @@ pub const INITIATE_DISBURSAL_CODE: &str = "INITIATE_CREDIT_FACILITY_DISBURSAL";
 pub struct InitiateDisbursalParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
+    pub currency: Currency,
     pub facility_uncovered_outstanding_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub disbursed_amount: Decimal,
@@ -30,6 +31,11 @@ impl<S: std::fmt::Display> InitiateDisbursalParams<S> {
             NewParamDefinition::builder()
                 .name("journal_id")
                 .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
@@ -67,6 +73,7 @@ impl<S: std::fmt::Display> From<InitiateDisbursalParams<S>> for Params {
         InitiateDisbursalParams {
             entity_id,
             journal_id,
+            currency,
             credit_facility_account,
             disbursed_amount,
             facility_uncovered_outstanding_account,
@@ -76,6 +83,7 @@ impl<S: std::fmt::Display> From<InitiateDisbursalParams<S>> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
+        params.insert("currency", currency);
         params.insert(
             "facility_uncovered_outstanding_account",
             facility_uncovered_outstanding_account,
@@ -115,7 +123,7 @@ impl InitiateDisbursal {
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_account")
                 .units("params.disbursed_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_SETTLED_DR'")
                 .direction("DEBIT")
                 .layer("SETTLED")
@@ -124,7 +132,7 @@ impl InitiateDisbursal {
             NewTxTemplateEntry::builder()
                 .account_id("params.facility_uncovered_outstanding_account")
                 .units("params.disbursed_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_SETTLED_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
@@ -134,7 +142,7 @@ impl InitiateDisbursal {
             NewTxTemplateEntry::builder()
                 .account_id("params.facility_uncovered_outstanding_account")
                 .units("params.disbursed_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_PENDING_DR'")
                 .direction("DEBIT")
                 .layer("PENDING")
@@ -143,7 +151,7 @@ impl InitiateDisbursal {
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_account")
                 .units("params.disbursed_amount")
-                .currency("'USD'")
+                .currency("params.currency")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_PENDING_CR'")
                 .direction("CREDIT")
                 .layer("PENDING")

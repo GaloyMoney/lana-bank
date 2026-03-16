@@ -14,6 +14,7 @@ pub const RESERVE_FOR_LIQUIDATION_CODE: &str = "RESERVE_FOR_LIQUIDATION";
 #[derive(Debug)]
 pub struct ReserveForLiquidationParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
+    pub currency: Currency,
     pub amount: Decimal,
     pub liquidation_omnibus_account_id: CalaAccountId,
     pub facility_liquidation_account_id: CalaAccountId,
@@ -27,6 +28,11 @@ impl<S: std::fmt::Display> ReserveForLiquidationParams<S> {
             NewParamDefinition::builder()
                 .name("journal_id")
                 .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
@@ -61,6 +67,7 @@ impl<S: std::fmt::Display> From<ReserveForLiquidationParams<S>> for Params {
     fn from(
         ReserveForLiquidationParams {
             journal_id,
+            currency,
             amount,
             liquidation_omnibus_account_id,
             facility_liquidation_account_id,
@@ -70,6 +77,7 @@ impl<S: std::fmt::Display> From<ReserveForLiquidationParams<S>> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
+        params.insert("currency", currency);
         params.insert("amount", amount);
         params.insert(
             "liquidation_omnibus_account_id",
@@ -107,7 +115,7 @@ impl ReserveForLiquidation {
         let entries = vec![
             NewTxTemplateEntry::builder()
                 .entry_type("'RESERVE_FOR_LIQUIDATION_CR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.facility_liquidation_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
@@ -116,7 +124,7 @@ impl ReserveForLiquidation {
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .entry_type("'RESERVE_FOR_LIQUIDATION_DR'")
-                .currency("'USD'")
+                .currency("params.currency")
                 .account_id("params.liquidation_omnibus_account_id")
                 .direction("DEBIT")
                 .layer("SETTLED")
