@@ -1,3 +1,4 @@
+use es_entity::DbOp;
 use tracing::Span;
 
 use core_deposit::CoreDepositEvent;
@@ -30,10 +31,10 @@ impl<E> OutboxEventHandler<E> for SumsubExportHandler
 where
     E: OutboxEventMarker<CoreDepositEvent>,
 {
-    #[tracing::instrument(name = "deposit_sync.sumsub_export_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[tracing::instrument(name = "outbox.deposit_sync.sumsub_export.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        op: &mut es_entity::DbOp<'_>,
+        op: &mut DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(e @ CoreDepositEvent::DepositInitialized { entity }) = event.as_event() {

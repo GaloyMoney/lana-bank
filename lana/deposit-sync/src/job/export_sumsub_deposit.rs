@@ -13,6 +13,7 @@ use job::*;
 use lana_events::LanaEvent;
 use obix::out::OutboxEventMarker;
 use sumsub::SumsubClient;
+use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 pub const EXPORT_SUMSUB_DEPOSIT_COMMAND: JobType =
@@ -125,7 +126,7 @@ where
         + std::fmt::Debug,
 {
     #[record_error_severity]
-    #[tracing::instrument(name = "deposit-sync.export-sumsub-deposit.process_command", skip_all)]
+    #[instrument(name = "deposit-sync.export-sumsub-deposit.process_command", skip_all)]
     async fn run(
         &self,
         _current_job: CurrentJob,
