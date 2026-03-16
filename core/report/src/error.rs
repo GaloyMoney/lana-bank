@@ -38,6 +38,12 @@ impl From<crate::report::ReportQueryError> for ReportError {
     }
 }
 
+impl From<crate::report_run::ReportRunCreateError> for ReportError {
+    fn from(e: crate::report_run::ReportRunCreateError) -> Self {
+        ReportError::ReportRunError(crate::report_run::error::ReportRunError::from(e))
+    }
+}
+
 impl From<crate::report_run::ReportRunFindError> for ReportError {
     fn from(e: crate::report_run::ReportRunFindError) -> Self {
         ReportError::ReportRunError(crate::report_run::error::ReportRunError::from(e))

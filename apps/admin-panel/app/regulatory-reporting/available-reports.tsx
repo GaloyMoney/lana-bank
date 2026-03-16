@@ -44,9 +44,11 @@ gql`
     }
   }
 
-  mutation ReportGenerate($input: TriggerReportRunInput!) {
-    triggerReportRun(input: $input) {
-      runId
+  mutation ReportGenerate($input: ReportRunTriggerInput!) {
+    reportRunTrigger(input: $input) {
+      reportRun {
+        id
+      }
     }
   }
 `

@@ -2211,6 +2211,7 @@ export type Mutation = {
   prospectCreate: ProspectCreatePayload;
   prospectKycLinkCreate: ProspectKycLinkCreatePayload;
   reportFileGenerateDownloadLink: ReportFileGenerateDownloadLinkPayload;
+  reportRunTrigger: ReportRunTriggerPayload;
   roleAddPermissionSets: RoleAddPermissionSetsPayload;
   roleCreate: RoleCreatePayload;
   roleRemovePermissionSets: RoleRemovePermissionSetsPayload;
@@ -2221,7 +2222,6 @@ export type Mutation = {
    * boundary and returns the updated clock state.
    */
   timeAdvanceToNextEndOfDay: TimeAdvanceToNextEndOfDayPayload;
-  triggerReportRun: ReportRunCreatePayload;
   userCreate: UserCreatePayload;
   userUpdateRole: UserUpdateRolePayload;
   withdrawalCancel: WithdrawalCancelPayload;
@@ -2506,6 +2506,11 @@ export type MutationReportFileGenerateDownloadLinkArgs = {
 };
 
 
+export type MutationReportRunTriggerArgs = {
+  input: ReportRunTriggerInput;
+};
+
+
 export type MutationRoleAddPermissionSetsArgs = {
   input: RoleAddPermissionSetsInput;
 };
@@ -2528,11 +2533,6 @@ export type MutationTermsTemplateCreateArgs = {
 
 export type MutationTermsTemplateUpdateArgs = {
   input: TermsTemplateUpdateInput;
-};
-
-
-export type MutationTriggerReportRunArgs = {
-  input: TriggerReportRunInput;
 };
 
 
@@ -3525,11 +3525,6 @@ export type ReportRunConnection = {
   pageInfo: PageInfo;
 };
 
-export type ReportRunCreatePayload = {
-  __typename?: 'ReportRunCreatePayload';
-  runId?: Maybe<Scalars['String']['output']>;
-};
-
 /** An edge in a connection. */
 export type ReportRunEdge = {
   __typename?: 'ReportRunEdge';
@@ -3545,6 +3540,16 @@ export enum ReportRunState {
   Running = 'RUNNING',
   Success = 'SUCCESS'
 }
+
+export type ReportRunTriggerInput = {
+  asOfDate?: InputMaybe<Scalars['Date']['input']>;
+  reportDefinitionId: Scalars['String']['input'];
+};
+
+export type ReportRunTriggerPayload = {
+  __typename?: 'ReportRunTriggerPayload';
+  reportRun: ReportRun;
+};
 
 export enum ReportRunType {
   Manual = 'MANUAL',
@@ -3849,11 +3854,6 @@ export type TrialBalance = {
   accounts: Array<LedgerAccount>;
   name: Scalars['String']['output'];
   total: LedgerAccountBalanceRangeByCurrency;
-};
-
-export type TriggerReportRunInput = {
-  asOfDate?: InputMaybe<Scalars['Date']['input']>;
-  reportDefinitionId: Scalars['String']['input'];
 };
 
 export type UnfreezeEntry = {
@@ -5597,11 +5597,11 @@ export type AvailableReportDefinitionsQueryVariables = Exact<{ [key: string]: ne
 export type AvailableReportDefinitionsQuery = { __typename?: 'Query', availableReportDefinitions: Array<{ __typename?: 'ReportDefinition', reportDefinitionId: string, norm: string, id: string, friendlyName: string, supportsAsOf: boolean, outputs: Array<{ __typename?: 'ReportDefinitionOutput', format: ReportOutputFormat }> }> };
 
 export type ReportGenerateMutationVariables = Exact<{
-  input: TriggerReportRunInput;
+  input: ReportRunTriggerInput;
 }>;
 
 
-export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun: { __typename?: 'ReportRunCreatePayload', runId?: string | null } };
+export type ReportGenerateMutation = { __typename?: 'Mutation', reportRunTrigger: { __typename?: 'ReportRunTriggerPayload', reportRun: { __typename?: 'ReportRun', id: string } } };
 
 export type ReportRunsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -13648,9 +13648,11 @@ export type AvailableReportDefinitionsLazyQueryHookResult = ReturnType<typeof us
 export type AvailableReportDefinitionsSuspenseQueryHookResult = ReturnType<typeof useAvailableReportDefinitionsSuspenseQuery>;
 export type AvailableReportDefinitionsQueryResult = Apollo.QueryResult<AvailableReportDefinitionsQuery, AvailableReportDefinitionsQueryVariables>;
 export const ReportGenerateDocument = gql`
-    mutation ReportGenerate($input: TriggerReportRunInput!) {
-  triggerReportRun(input: $input) {
-    runId
+    mutation ReportGenerate($input: ReportRunTriggerInput!) {
+  reportRunTrigger(input: $input) {
+    reportRun {
+      id
+    }
   }
 }
     `;

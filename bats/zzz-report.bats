@@ -61,8 +61,8 @@ wait_for_report_run_complete() {
         }
       }'
   )
-  exec_admin_graphql 'trigger-report-run' "$variables"
-  echo "triggerReportRun response: $(graphql_output)"
+  exec_admin_graphql 'report-run-trigger' "$variables"
+  echo "reportRunTrigger response: $(graphql_output)"
 
   # Poll for the report run to appear (async creation, may take a while)
   retry 60 5 find_report_run "$report_definition_id"

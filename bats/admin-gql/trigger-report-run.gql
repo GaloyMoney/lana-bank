@@ -1,5 +1,0 @@
-mutation TriggerReportRun($input: TriggerReportRunInput!) {
-  triggerReportRun(input: $input) {
-    runId
-  }
-}

@@ -8,7 +8,7 @@ use tracing_macros::record_error_severity;
 
 use crate::dagster_adapter::DagsterReportAdapter;
 use crate::report_run::ReportRunRepo;
-use crate::{CoreReportEvent, ReportDefinitionId, find_report_definition};
+use crate::{CoreReportEvent, ReportDefinitionId, ReportRunId, find_report_definition};
 
 use super::{SyncReportsJobConfig, SyncReportsJobSpawner};
 
@@ -20,6 +20,7 @@ where
     report_definition_id: ReportDefinitionId,
     #[serde(default)]
     as_of_date: Option<NaiveDate>,
+    report_run_id: ReportRunId,
     _phantom: std::marker::PhantomData<E>,
 }
 
@@ -31,6 +32,7 @@ where
         Self {
             report_definition_id: self.report_definition_id.clone(),
             as_of_date: self.as_of_date,
+            report_run_id: self.report_run_id,
             _phantom: std::marker::PhantomData,
         }
     }
@@ -40,10 +42,15 @@ impl<E> TriggerReportRunJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new(report_definition_id: ReportDefinitionId, as_of_date: Option<NaiveDate>) -> Self {
+    pub fn new(
+        report_definition_id: ReportDefinitionId,
+        as_of_date: Option<NaiveDate>,
+        report_run_id: ReportRunId,
+    ) -> Self {
         Self {
             report_definition_id,
             as_of_date,
+            report_run_id,
             _phantom: std::marker::PhantomData,
         }
     }
@@ -146,6 +153,16 @@ where
         tracing::info!("Successfully triggered file report run: {}", dagster_run_id);
 
         let mut db = self.report_runs.begin_op().await?;
+
+        let mut report_run = self
+            .report_runs
+            .find_by_id_in_op(&mut db, self.config.report_run_id)
+            .await?;
+        let _ = report_run.update_external_id(dagster_run_id.clone());
+        self.report_runs
+            .update_in_op(&mut db, &mut report_run)
+            .await?;
+
         self.sync_reports_spawner
             .spawn_in_op(
                 &mut db,
