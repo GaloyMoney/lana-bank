@@ -31,7 +31,7 @@ use crate::{
     kyc::CustomerKyc,
     notification::Notification,
     outbox::Outbox,
-    price::Price,
+    price::{CorePrice, Price},
     primitives::Subject,
     public_id::PublicIds,
     report::Reports,
@@ -58,7 +58,7 @@ pub struct LanaApp {
     access: Access,
     credit: Credit,
     custody: Custody,
-    price: Price,
+    core_price: CorePrice,
     outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
@@ -149,7 +149,7 @@ impl LanaApp {
         let storage = Storage::new(&config.storage);
         let reports =
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
-        let price = Price::init(config.price, &mut jobs, &outbox).await?;
+        let core_price = CorePrice::init(&pool, &authz, &mut jobs, &outbox, clock.clone()).await?;
         let _time_events =
             TimeEvents::init(&exposed_domain_configs_readonly, &mut jobs, &outbox).await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
@@ -245,7 +245,7 @@ impl LanaApp {
             &authz,
             &customers,
             &custody,
-            &price,
+            core_price.price(),
             &outbox,
             &cala,
             journal_init.journal_id,
@@ -294,7 +294,7 @@ impl LanaApp {
             deposits,
             customer_kyc,
             access,
-            price,
+            core_price,
             credit,
             custody,
             outbox,
@@ -341,7 +341,11 @@ impl LanaApp {
     }
 
     pub fn price(&self) -> &Price {
-        &self.price
+        self.core_price.price()
+    }
+
+    pub fn core_price(&self) -> &CorePrice {
+        &self.core_price
     }
 
     pub fn outbox(&self) -> &Outbox {

@@ -380,6 +380,24 @@ CREATE TABLE core_credit_facility_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_price_providers (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
+  provider VARCHAR NOT NULL UNIQUE,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_price_provider_events (
+  id UUID NOT NULL REFERENCES core_price_providers(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_custodians (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,

@@ -20,6 +20,7 @@ mod event_timeline;
 mod loader;
 mod me;
 mod price;
+mod price_provider;
 mod primitives;
 mod prospect;
 mod public_id;

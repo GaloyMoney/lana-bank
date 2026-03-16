@@ -16,6 +16,7 @@ use lana_app::{
     customer::{CustomerDocumentId, Party, PartyId},
     deposit::error::CoreDepositError,
     governance::error::GovernanceError,
+    price::error::PriceError,
     report::{ReportId, ReportRunId, error::ReportError},
 };
 
@@ -24,7 +25,7 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
     customer::*, deposit::*, deposit_account::*, document::*, domain_config::*, policy::*,
-    prospect::*, reports::*, terms_template::*, withdrawal::*,
+    price_provider::*, prospect::*, reports::*, terms_template::*, withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -696,6 +697,23 @@ impl Loader<FiscalYearId> for LanaLoader {
         self.app
             .accounting()
             .find_all_fiscal_years_authorized(&self.sub, keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<PriceProviderId> for LanaLoader {
+    type Value = PriceProvider;
+    type Error = Arc<PriceError>;
+
+    #[instrument(name = "loader.price_providers", skip(self), fields(count = keys.len()), err)]
+    async fn load(
+        &self,
+        keys: &[PriceProviderId],
+    ) -> Result<HashMap<PriceProviderId, PriceProvider>, Self::Error> {
+        self.app
+            .core_price()
+            .find_all_providers(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }

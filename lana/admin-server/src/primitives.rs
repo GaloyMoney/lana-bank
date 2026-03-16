@@ -4,6 +4,7 @@ use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
 use domain_config::DomainConfigId;
+pub use lana_app::price::PriceProviderId;
 
 pub use lana_app::{
     accounting::{LedgerAccountId, TransactionTemplateId},
@@ -165,5 +166,6 @@ impl_to_global_id! {
     FiscalYearId,
     ProspectId,
     DomainConfigId,
-    TransactionTemplateId
+    TransactionTemplateId,
+    PriceProviderId
 }

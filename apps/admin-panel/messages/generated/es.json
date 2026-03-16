@@ -108,6 +108,14 @@
       "description": "Puede crear y gestionar comités y políticas, y controlar procesos de aprobación (crear, aprobar, denegar, concluir)",
       "label": "Editor de gobernanza"
     },
+    "price_viewer": {
+      "description": "Puede ver las configuraciones de proveedores de precios",
+      "label": "Visualizador de precios"
+    },
+    "price_writer": {
+      "description": "Puede crear y gestionar las configuraciones de proveedores de precios",
+      "label": "Editor de precios"
+    },
     "report_viewer": {
       "description": "Puede ver informes regulatorios y descargarlos",
       "label": "Visualizador de informes"

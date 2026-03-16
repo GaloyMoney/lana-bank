@@ -108,12 +108,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
 
     let journal_id = helpers::init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(
-        core_price::PriceConfig { providers: vec![] },
-        &mut jobs,
-        &outbox,
-    )
-    .await?;
+    let price = core_price::Price::new(&outbox);
     // Reset this event-sourced config so each test builds a fresh
     // chart-of-accounts mapping. Reusing stale config can reference
     // account-set IDs that no longer exist in a clean integration run.

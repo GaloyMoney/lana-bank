@@ -1,1 +1,1 @@
-pub mod get_price_from_bfx;
+pub mod fetch_price;

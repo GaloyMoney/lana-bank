@@ -101,12 +101,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(
-        core_price::PriceConfig { providers: vec![] },
-        &mut jobs,
-        &outbox,
-    )
-    .await?;
+    let price = core_price::Price::new(&outbox);
     // Required to prevent the case there is an attempt to remove an account set member from
     // an account set that no longer exists.
     domain_config::DomainConfigTestUtils::clear_config_by_key(

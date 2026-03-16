@@ -1,21 +1,20 @@
 mod helpers;
 
-use std::sync::Arc;
-
 use rand::RngExt;
 use rust_decimal_macros::dec;
 
-use bfx_client::BfxClient;
-use core_price::{Price, PriceConfig, PriceOfOneBTC, jobs::get_price_from_bfx::fetch_price};
+use core_price::{Price, PriceOfOneBTC};
 use helpers::{DummyEvent, init_pool, publish_dummy_price_event, wait_for_price_to_be_updated};
 use money::{Satoshis, UsdCents};
 use obix::out::Outbox;
 
 #[tokio::test]
 async fn get_price_from_client() {
-    let client = BfxClient::new();
-    let price = fetch_price(Arc::new(client)).await;
-    assert!(price.is_ok());
+    let client = bfx_client::BfxClient::new();
+    let tick = client.btc_usd_tick().await.expect("should fetch tick");
+    let usd_cents = UsdCents::try_from_usd(tick.last_price).expect("should convert price");
+    let price = PriceOfOneBTC::new(usd_cents);
+    assert!(price.sats_to_cents_round_down(Satoshis::from(100_000_000)) > UsdCents::from(0));
 }
 
 #[tokio::test]
@@ -23,15 +22,8 @@ async fn update_price() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
     let outbox = Outbox::<DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?).await?;
-    let mut jobs = job::Jobs::init(
-        job::JobSvcConfig::builder()
-            .pool(pool.clone())
-            .build()
-            .unwrap(),
-    )
-    .await?;
 
-    let price = Price::init(PriceConfig { providers: vec![] }, &mut jobs, &outbox).await?;
+    let price = Price::new(&outbox);
 
     let initial_price_cents = rand::rng().random_range(1_000_000..10_000_000);
     let initial_price = PriceOfOneBTC::new(UsdCents::from(initial_price_cents));

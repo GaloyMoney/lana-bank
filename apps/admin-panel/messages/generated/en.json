@@ -108,6 +108,14 @@
       "description": "Can create and manage committees and policies, and control approval processes (create, approve, deny, conclude)",
       "label": "Governance Writer"
     },
+    "price_viewer": {
+      "description": "Can view price provider configurations",
+      "label": "Price Viewer"
+    },
+    "price_writer": {
+      "description": "Can create and manage price provider configurations",
+      "label": "Price Writer"
+    },
     "report_viewer": {
       "description": "Can see regulatory reports and download them",
       "label": "Report Viewer"

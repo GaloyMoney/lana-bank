@@ -16,9 +16,6 @@ app:
     shutdown_timeout: 5
   access:
     superuser_email: null
-  price:
-    providers:
-    - bitfinex
   storage:
     provider: local
     root_folder: ''

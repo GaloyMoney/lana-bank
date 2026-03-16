@@ -1,0 +1,49 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT active, id FROM core_price_providers WHERE ((active = $1) AND (COALESCE(id > $3, true))) ORDER BY id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_price_provider_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: Repo__Id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "context: es_entity::ContextData",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 4,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Int8",
+        "Uuid",
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      null,
+      false
+    ]
+  },
+  "hash": "7db65f2db9e222b60314ad80ae8b35ae0a104f62d24223a3d39a4317b000bdd0"
+}

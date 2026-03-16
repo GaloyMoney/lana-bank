@@ -76,7 +76,13 @@ pub mod deposit_sync {
 }
 
 pub mod price {
-    pub use core_price::*;
+    pub use core_price::{
+        CorePriceAction, CorePriceEvent, CorePriceObject, PRICE_UPDATED_EVENT_TYPE, Price,
+        PriceOfOneBTC, PriceProvider, PriceProviderConfig, PriceProviderId, PriceProvidersSortBy,
+        error, jobs, price_provider_cursor, provider,
+    };
+    pub type CorePrice =
+        core_price::CorePrice<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod job {

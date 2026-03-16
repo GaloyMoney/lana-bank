@@ -6,19 +6,27 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
-json-schema = ["dep:schemars", "money/json-schema"]
+json-schema = ["dep:schemars", "money/json-schema", "es-entity/json-schema"]
 
 [dependencies]
 bfx-client = { workspace = true }
 money = { workspace = true }
 
+permission-sets-macro = { workspace = true }
+audit = { workspace = true }
+authz = { workspace = true }
 job = { workspace = true }
 obix = { workspace = true }
+es-entity = { workspace = true }
+sqlx = { workspace = true }
+
 async-trait = { workspace = true }
+derive_builder = { workspace = true }
 futures = { workspace = true }
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
 serde = { workspace = true }
+strum = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
@@ -31,3 +39,5 @@ chrono = { workspace = true }
 anyhow = { workspace = true }
 sqlx = { workspace = true }
 rand = { workspace = true }
+authz = { workspace = true, features = ["test-dummy"] }
+obix = { workspace = true, features = ["test-utils"] }

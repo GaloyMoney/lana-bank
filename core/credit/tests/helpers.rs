@@ -613,12 +613,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
 
     let journal_id = init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(
-        core_price::PriceConfig { providers: vec![] },
-        &mut jobs,
-        &outbox,
-    )
-    .await?;
+    let price = core_price::Price::new(&outbox);
     domain_config::DomainConfigTestUtils::clear_config_by_key(
         &pool,
         "credit-chart-of-accounts-integration",
