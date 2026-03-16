@@ -2591,6 +2591,7 @@ union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdraw
 
 type Query {
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
+	appConfig: String!
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(after: String, first: Int!): ApprovalProcessConnection!
 	audit(action: String, after: String, authorized: Boolean, first: Int!, object: String, subject: AuditSubjectId): AuditEntryConnection!

@@ -9,7 +9,7 @@ use serde_json::json;
 fn main() {
     // Reference admin_server to ensure all domain crates are linked,
     // which registers their permission set entries via inventory.
-    let _ = admin_server::graphql::schema(None, Default::default());
+    let _ = admin_server::graphql::schema(None, Default::default(), Default::default());
 
     // 1. Permission labels
     let mut permissions = BTreeMap::new();

@@ -43,13 +43,18 @@ pub use schema::*;
 
 use lana_app::app::LanaApp;
 
+#[derive(Clone, Default)]
+pub struct AppConfig(pub String);
+
 pub fn schema(
     app: Option<LanaApp>,
     build_info: BuildInfo,
+    app_config: AppConfig,
 ) -> Schema<Query, Mutation, Subscription> {
     let mut schema_builder = Schema::build(Query, Mutation, Subscription)
         .extension(extensions::Tracing)
-        .data(build_info);
+        .data(build_info)
+        .data(app_config);
 
     if let Some(app) = app {
         schema_builder = schema_builder.data(app);

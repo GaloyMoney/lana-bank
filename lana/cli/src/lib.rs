@@ -208,6 +208,9 @@ fn check_port_available(port: u16, name: &str) -> anyhow::Result<()> {
 }
 
 async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
+    let app_config_yaml = serde_yaml::to_string(&config)
+        .unwrap_or_else(|e| format!("# Failed to serialize config: {e}"));
+
     check_port_available(config.admin_server.port, "Admin server")?;
     check_port_available(config.customer_server.port, "Customer server")?;
 
@@ -268,6 +271,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
                 config.admin_server,
                 admin_app,
                 BuildInfo::get(),
+                admin_server::graphql::AppConfig(app_config_yaml),
                 async move {
                     let _ = admin_shutdown.recv().await;
                 },

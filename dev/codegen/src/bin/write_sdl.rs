@@ -3,7 +3,7 @@ fn main() {
 
     println!(
         "{}",
-        admin_server::graphql::schema(None, Default::default())
+        admin_server::graphql::schema(None, Default::default(), Default::default())
             .sdl_with_options(
                 SDLExportOptions::new()
                     .sorted_fields()

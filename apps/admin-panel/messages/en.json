@@ -3125,6 +3125,7 @@
     "buildTarget": "Build Target",
     "enabledFeatures": "Enabled Features",
     "loading": "Loading...",
-    "unavailable": "Unable to fetch server info"
+    "unavailable": "Unable to fetch server info",
+    "appConfig": "Application Configuration"
   }
 }

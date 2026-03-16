@@ -22,6 +22,7 @@ gql`
       buildTarget
       enabledFeatures
     }
+    appConfig
   }
 `
 
@@ -62,6 +63,23 @@ export default function SystemInfoPage() {
                 />
               )}
             </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{t("unavailable")}</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("appConfig")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <LoaderCircle className="animate-spin" />
+          ) : data?.appConfig ? (
+            <pre className="text-xs font-mono whitespace-pre-wrap overflow-auto max-h-[600px]">
+              {data.appConfig}
+            </pre>
           ) : (
             <p className="text-sm text-muted-foreground">{t("unavailable")}</p>
           )}

@@ -34,6 +34,7 @@ pub async fn run<S>(
     config: AdminServerConfig,
     app: LanaApp,
     build_info: impl Into<graphql::BuildInfo>,
+    app_config: graphql::AppConfig,
     signal: S,
 ) -> anyhow::Result<()>
 where
@@ -47,7 +48,7 @@ where
     tokio::spawn(async move {
         decoder.refresh_keys_periodically().await;
     });
-    let schema = graphql::schema(Some(app.clone()), build_info.into());
+    let schema = graphql::schema(Some(app.clone()), build_info.into(), app_config);
 
     let cors = CorsLayer::permissive();
 
