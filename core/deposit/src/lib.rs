@@ -920,6 +920,55 @@ where
         Ok(())
     }
 
+    /// Returns all deposit accounts whose activity status needs reclassification,
+    /// sorted by account ID for cursor-based processing.
+    #[instrument(name = "deposit.collect_activity_reclassifications", skip(self))]
+    pub async fn collect_activity_reclassifications(
+        &self,
+        closing_time: DateTime<Utc>,
+    ) -> Result<Vec<(DepositAccountId, Activity)>, CoreDepositError> {
+        let (inactive_date, escheatable_date) = self.activity_threshold_dates(closing_time).await?;
+        let accounts = self.deposit_accounts.list_all().await?;
+        let mut reclassifications = Vec::new();
+
+        for account in &accounts {
+            if account.activity == Activity::Escheatable {
+                continue;
+            }
+            let last_activity_date = self.last_activity_date_for_account(account).await?;
+            let activity = Self::activity_for_last_activity_date(
+                last_activity_date,
+                inactive_date,
+                escheatable_date,
+            );
+
+            if activity != account.activity {
+                reclassifications.push((account.id, activity));
+            }
+        }
+
+        reclassifications.sort_by_key(|(id, _)| *id);
+        Ok(reclassifications)
+    }
+
+    /// Updates a single deposit account's activity status within a database operation.
+    #[instrument(name = "deposit.update_account_activity_in_op", skip(self, op))]
+    pub async fn update_account_activity_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        account_id: DepositAccountId,
+        activity: Activity,
+    ) -> Result<(), CoreDepositError> {
+        let mut account = self
+            .deposit_accounts
+            .find_by_id_in_op(&mut *op, account_id)
+            .await?;
+        if account.update_activity(activity).did_execute() {
+            self.deposit_accounts.update_in_op(op, &mut account).await?;
+        }
+        Ok(())
+    }
+
     #[record_error_severity]
     #[instrument(name = "deposit.find_deposit_by_id", skip(self))]
     pub async fn find_deposit_by_id(
