@@ -2062,6 +2062,7 @@ checksums:
     fm-attr-id: 44293843ff899961536b5fe640c47c2e
     fm-attr-title: c531b88ecfe7dd2337a34f4a9ed18a5f
   3d24ad833a0d72ca91d363f51010c597:
+    admin/queries/appConfig: 6a0bb4e3524793b5f064b2f1c7de707d
     admin/queries/buildInfo: 8b7883b3e4b76a5401173a7956bccfa9
     admin/queries/me: d9a4f3b87b65112adf2741b8b3228e2b
     admin/queries/dashboard: 89bf1f5251b12a5738ef7dcf912e1989
