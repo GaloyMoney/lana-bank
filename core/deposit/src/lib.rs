@@ -901,19 +901,22 @@ where
             .await?)
     }
 
-    /// Determines whether a deposit account needs activity re-evaluation.
-    /// Returns `Some(new_activity)` if the account's activity should change,
-    /// or `None` if no change is needed (including if the account is already escheatable).
+    /// Evaluates a single deposit account's activity status and updates it
+    /// within the provided database operation if a change is needed.
     #[record_error_severity]
-    #[instrument(name = "deposit.evaluate_account_activity", skip(self), fields(%account_id, closing_time = %closing_time))]
-    pub async fn evaluate_account_activity(
+    #[instrument(name = "deposit.evaluate_and_update_account_activity_in_op", skip(self, op), fields(%account_id, closing_time = %closing_time))]
+    pub async fn evaluate_and_update_account_activity_in_op(
         &self,
+        op: &mut es_entity::DbOp<'_>,
         account_id: DepositAccountId,
         closing_time: DateTime<Utc>,
-    ) -> Result<Option<Activity>, CoreDepositError> {
-        let account = self.deposit_accounts.find_by_id(account_id).await?;
+    ) -> Result<(), CoreDepositError> {
+        let mut account = self
+            .deposit_accounts
+            .find_by_id_in_op(&mut *op, account_id)
+            .await?;
         if account.activity == Activity::Escheatable {
-            return Ok(None);
+            return Ok(());
         }
         let (inactive_date, escheatable_date) = self.activity_threshold_dates(closing_time).await?;
         let last_activity_date = self.last_activity_date_for_account(&account).await?;
@@ -922,47 +925,6 @@ where
             inactive_date,
             escheatable_date,
         );
-        if activity != account.activity {
-            Ok(Some(activity))
-        } else {
-            Ok(None)
-        }
-    }
-
-    /// Evaluates and updates a single deposit account's activity status.
-    /// Combines evaluation and update in a single operation.
-    #[record_error_severity]
-    #[instrument(name = "deposit.evaluate_and_update_account_activity", skip(self), fields(%account_id, closing_time = %closing_time))]
-    pub async fn evaluate_and_update_account_activity(
-        &self,
-        account_id: DepositAccountId,
-        closing_time: DateTime<Utc>,
-    ) -> Result<(), CoreDepositError> {
-        if let Some(activity) = self
-            .evaluate_account_activity(account_id, closing_time)
-            .await?
-        {
-            let mut op = self.deposit_accounts.begin_op().await?;
-            self.update_account_activity_in_op(&mut op, account_id, activity)
-                .await?;
-            op.commit().await?;
-        }
-        Ok(())
-    }
-
-    /// Updates a single deposit account's activity status within a database operation.
-    #[record_error_severity]
-    #[instrument(name = "deposit.update_account_activity_in_op", skip(self, op), fields(%account_id))]
-    pub async fn update_account_activity_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        account_id: DepositAccountId,
-        activity: Activity,
-    ) -> Result<(), CoreDepositError> {
-        let mut account = self
-            .deposit_accounts
-            .find_by_id_in_op(&mut *op, account_id)
-            .await?;
         if account.update_activity(activity).did_execute() {
             self.deposit_accounts.update_in_op(op, &mut account).await?;
         }

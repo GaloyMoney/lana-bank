@@ -108,20 +108,15 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let new_activity = self
-            .deposits
-            .evaluate_account_activity(self.config.deposit_account_id, self.config.closing_time)
+        let mut op = current_job.begin_op().await?;
+        self.deposits
+            .evaluate_and_update_account_activity_in_op(
+                &mut op,
+                self.config.deposit_account_id,
+                self.config.closing_time,
+            )
             .await?;
-
-        if let Some(activity) = new_activity {
-            let mut op = current_job.begin_op().await?;
-            self.deposits
-                .update_account_activity_in_op(&mut op, self.config.deposit_account_id, activity)
-                .await?;
-            Ok(JobCompletion::CompleteWithOp(op))
-        } else {
-            Ok(JobCompletion::Complete)
-        }
+        Ok(JobCompletion::CompleteWithOp(op))
     }
 }
 
