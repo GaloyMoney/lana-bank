@@ -163,6 +163,6 @@ where
             }
         }
 
-        Ok(JobCompletion::RescheduleAt(schedule.next_closing()))
+        Ok(JobCompletion::RescheduleNow)
     }
 }
