@@ -4,10 +4,14 @@ pub use komainu::KomainuDirectoryConfig;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct KomainuConfig {
+    #[serde(skip_serializing)]
     pub api_key: String,
+    #[serde(skip_serializing)]
     pub api_secret: String,
     pub testing_instance: bool,
+    #[serde(skip_serializing)]
     pub secret_key: String,
+    #[serde(skip_serializing)]
     pub webhook_secret: String,
 }
 

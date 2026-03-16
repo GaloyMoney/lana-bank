@@ -5,11 +5,14 @@ pub use bitgo::BitgoDirectoryConfig;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BitgoConfig {
+    #[serde(skip_serializing)]
     pub long_lived_token: String,
     pub enterprise_id: String,
+    #[serde(skip_serializing)]
     pub passphrase: String,
     pub testing_instance: bool,
     pub webhook_url: Url,
+    #[serde(skip_serializing)]
     pub webhook_secret: String,
 }
 

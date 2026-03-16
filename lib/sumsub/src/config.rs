@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Deserialize, Serialize, Default)]
 #[serde(deny_unknown_fields)]
 pub struct SumsubConfig {
-    #[serde(default)]
+    #[serde(default, skip_serializing)]
     pub sumsub_key: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing)]
     pub sumsub_secret: String,
 }
 
