@@ -21,7 +21,6 @@ const CLASSIFY_DEPOSIT_ACCOUNT_ACTIVITY_JOB: JobType =
 pub struct ClassifyDepositAccountActivityConfig {
     pub deposit_account_id: DepositAccountId,
     pub new_activity_status: Activity,
-    pub closing_time: chrono::DateTime<chrono::Utc>,
 }
 
 pub struct ClassifyDepositAccountActivityJobInit<Perms, E>
@@ -102,7 +101,8 @@ where
 {
     #[instrument(
         name = "deposit-sync.classify-deposit-account-activity.process_command",
-        skip_all
+        skip(self, current_job),
+        fields(deposit_account_id = %self.config.deposit_account_id)
     )]
     async fn run(
         &self,

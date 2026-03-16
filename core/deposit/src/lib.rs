@@ -886,43 +886,14 @@ where
         }
     }
 
-    #[record_error_severity]
-    #[instrument(name = "deposit.perform_activity_status_update", skip(self))]
-    pub async fn perform_activity_status_update(
-        &self,
-        now: DateTime<Utc>,
-    ) -> Result<(), CoreDepositError> {
-        // TODO: Optimize this daily job to avoid scanning all accounts and doing
-        // per-account last-activity lookups.
-        let (inactive_date, escheatable_date) = self.activity_threshold_dates(now).await?;
-        let accounts = self.deposit_accounts.list_all().await?;
-        let mut accounts_to_update = Vec::new();
-
-        for mut account in accounts {
-            let last_activity_date = self.last_activity_date_for_account(&account).await?;
-            let activity = Self::activity_for_last_activity_date(
-                last_activity_date,
-                inactive_date,
-                escheatable_date,
-            );
-
-            if account.update_activity(activity).did_execute() {
-                accounts_to_update.push(account);
-            }
-        }
-
-        if !accounts_to_update.is_empty() {
-            self.deposit_accounts
-                .update_all(&mut accounts_to_update)
-                .await?;
-        }
-
-        Ok(())
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CoreDepositError> {
+        Ok(self.deposit_accounts.begin_op().await?)
     }
 
     /// Returns all deposit accounts whose activity status needs reclassification,
     /// sorted by account ID for cursor-based processing.
-    #[instrument(name = "deposit.collect_activity_reclassifications", skip(self))]
+    #[record_error_severity]
+    #[instrument(name = "deposit.collect_activity_reclassifications", skip(self), fields(closing_time = %closing_time))]
     pub async fn collect_activity_reclassifications(
         &self,
         closing_time: DateTime<Utc>,
@@ -952,7 +923,8 @@ where
     }
 
     /// Updates a single deposit account's activity status within a database operation.
-    #[instrument(name = "deposit.update_account_activity_in_op", skip(self, op))]
+    #[record_error_severity]
+    #[instrument(name = "deposit.update_account_activity_in_op", skip(self, op), fields(%account_id))]
     pub async fn update_account_activity_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
