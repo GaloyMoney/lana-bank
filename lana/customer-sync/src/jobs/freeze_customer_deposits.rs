@@ -26,7 +26,7 @@ pub struct FreezeCustomerDepositsCommand {
 pub const FREEZE_CUSTOMER_DEPOSITS_COMMAND: JobType =
     JobType::new("command.customer-sync.freeze-customer-deposits");
 
-pub struct FreezeCustomerDepositsCommandJob<Perms, E>
+pub struct FreezeCustomerDeposits<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -37,7 +37,7 @@ where
     keycloak_client: keycloak_client::KeycloakClient,
 }
 
-impl<Perms, E> FreezeCustomerDepositsCommandJob<Perms, E>
+impl<Perms, E> FreezeCustomerDeposits<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -56,7 +56,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> CommandJob for FreezeCustomerDepositsCommandJob<Perms, E>
+impl<Perms, E> CommandJob for FreezeCustomerDeposits<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:

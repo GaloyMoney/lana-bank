@@ -17,18 +17,18 @@ pub struct CreateKeycloakUserCommand {
 pub const CREATE_KEYCLOAK_USER_COMMAND: JobType =
     JobType::new("command.user-onboarding.create-keycloak-user");
 
-pub struct CreateKeycloakUserCommandJob {
+pub struct CreateKeycloakUser {
     keycloak_client: KeycloakClient,
 }
 
-impl CreateKeycloakUserCommandJob {
+impl CreateKeycloakUser {
     pub fn new(keycloak_client: KeycloakClient) -> Self {
         Self { keycloak_client }
     }
 }
 
 #[async_trait]
-impl CommandJob for CreateKeycloakUserCommandJob {
+impl CommandJob for CreateKeycloakUser {
     type Command = CreateKeycloakUserCommand;
 
     fn job_type() -> JobType {

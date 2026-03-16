@@ -7,7 +7,7 @@ mod jobs;
 
 use config::*;
 use error::*;
-use jobs::freeze_customer_deposits::FreezeCustomerDepositsCommandJob;
+use jobs::freeze_customer_deposits::FreezeCustomerDeposits;
 use jobs::*;
 
 use audit::AuditSvc;
@@ -111,10 +111,7 @@ where
 
         let freeze_customer_deposits_spawner = build_command_job(
             jobs,
-            FreezeCustomerDepositsCommandJob::<Perms, E>::new(
-                deposit.clone(),
-                keycloak_client.clone(),
-            ),
+            FreezeCustomerDeposits::<Perms, E>::new(deposit.clone(), keycloak_client.clone()),
         );
         outbox
             .register_event_handler(

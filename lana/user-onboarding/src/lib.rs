@@ -7,7 +7,7 @@ mod jobs;
 
 use config::UserOnboardingConfig;
 use error::*;
-use jobs::create_keycloak_user::CreateKeycloakUserCommandJob;
+use jobs::create_keycloak_user::CreateKeycloakUser;
 use jobs::*;
 
 use command_job::build_command_job;
@@ -49,7 +49,7 @@ where
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak);
 
         let create_keycloak_user =
-            build_command_job(jobs, CreateKeycloakUserCommandJob::new(keycloak_client));
+            build_command_job(jobs, CreateKeycloakUser::new(keycloak_client));
         outbox
             .register_event_handler(
                 jobs,

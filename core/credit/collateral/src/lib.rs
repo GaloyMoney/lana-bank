@@ -127,7 +127,7 @@ where
 
         let record_collateral_update = build_atomic_command_job(
             jobs,
-            record_collateral_update::RecordCollateralUpdateCommandJob::<
+            record_collateral_update::RecordCollateralUpdate::<
                 <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
                 E,
             >::new(ledger.clone(), repo.clone()),

@@ -23,7 +23,7 @@ pub struct RecordCollateralUpdateCommand {
 pub const RECORD_COLLATERAL_UPDATE_COMMAND: JobType =
     JobType::new("command.core-credit.record-collateral-update");
 
-pub struct RecordCollateralUpdateCommandJob<S, E>
+pub struct RecordCollateralUpdate<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
@@ -33,7 +33,7 @@ where
     _phantom: std::marker::PhantomData<S>,
 }
 
-impl<S, E> RecordCollateralUpdateCommandJob<S, E>
+impl<S, E> RecordCollateralUpdate<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
@@ -48,7 +48,7 @@ where
 }
 
 #[async_trait]
-impl<S, E> AtomicCommandJob for RecordCollateralUpdateCommandJob<S, E>
+impl<S, E> AtomicCommandJob for RecordCollateralUpdate<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
