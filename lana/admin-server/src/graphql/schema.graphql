@@ -2036,6 +2036,15 @@ input ManualConfig {
 	name: String!
 }
 
+input ManualPriceConfigInput {
+	usdCentsPerBtc: Int!
+}
+
+input ManualPriceCreateInput {
+	name: String!
+	usdCentsPerBtc: Int!
+}
+
 input ManualTransactionEntryInput {
 	accountRef: String!
 	amount: Decimal!
@@ -2112,8 +2121,10 @@ type Mutation {
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
+	priceProviderActivate(priceProviderId: UUID!): PriceProviderActivatePayload!
 	priceProviderConfigUpdate(input: PriceProviderConfigUpdateInput!): PriceProviderConfigUpdatePayload!
 	priceProviderCreate(input: PriceProviderCreateInput!): PriceProviderCreatePayload!
+	priceProviderDeactivate(priceProviderId: UUID!): PriceProviderDeactivatePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
 	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
@@ -2370,6 +2381,7 @@ type PolicyEdge {
 }
 
 type PriceProvider {
+	active: Boolean!
 	createdAt: Timestamp!
 	id: ID!
 	name: String!
@@ -2377,8 +2389,13 @@ type PriceProvider {
 	provider: String!
 }
 
+type PriceProviderActivatePayload {
+	priceProvider: PriceProvider!
+}
+
 input PriceProviderConfigInput @oneOf {
 	bitfinex: BitfinexCreateInput
+	manualPrice: ManualPriceConfigInput
 }
 
 input PriceProviderConfigUpdateInput {
@@ -2407,9 +2424,14 @@ type PriceProviderConnection {
 
 input PriceProviderCreateInput @oneOf {
 	bitfinex: BitfinexCreateInput
+	manualPrice: ManualPriceCreateInput
 }
 
 type PriceProviderCreatePayload {
+	priceProvider: PriceProvider!
+}
+
+type PriceProviderDeactivatePayload {
 	priceProvider: PriceProvider!
 }
 

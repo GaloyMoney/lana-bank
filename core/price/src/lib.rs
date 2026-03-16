@@ -185,7 +185,10 @@ where
                 )
                 .await?;
 
-            providers.create_in_op(&mut db, new_provider).await?;
+            let mut provider = providers.create_in_op(&mut db, new_provider).await?;
+            if provider.activate().did_execute() {
+                providers.update_in_op(&mut db, &mut provider).await?;
+            }
         }
         db.commit().await?;
 
@@ -267,6 +270,60 @@ where
         let mut provider = self.providers.find_by_id_in_op(&mut op, id).await?;
 
         if provider.update_config(config).did_execute() {
+            self.providers.update_in_op(&mut op, &mut provider).await?;
+            op.commit().await?;
+        }
+
+        Ok(provider)
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "core.price.activate_provider", skip(self))]
+    pub async fn activate_provider(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<PriceProviderId> + std::fmt::Debug,
+    ) -> Result<provider::PriceProvider, PriceError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CorePriceObject::provider(id),
+                CorePriceAction::PROVIDER_UPDATE,
+            )
+            .await?;
+
+        let mut op = self.providers.begin_op().await?;
+        let mut provider = self.providers.find_by_id_in_op(&mut op, id).await?;
+
+        if provider.activate().did_execute() {
+            self.providers.update_in_op(&mut op, &mut provider).await?;
+            op.commit().await?;
+        }
+
+        Ok(provider)
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "core.price.deactivate_provider", skip(self))]
+    pub async fn deactivate_provider(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<PriceProviderId> + std::fmt::Debug,
+    ) -> Result<provider::PriceProvider, PriceError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CorePriceObject::provider(id),
+                CorePriceAction::PROVIDER_UPDATE,
+            )
+            .await?;
+
+        let mut op = self.providers.begin_op().await?;
+        let mut provider = self.providers.find_by_id_in_op(&mut op, id).await?;
+
+        if provider.deactivate().did_execute() {
             self.providers.update_in_op(&mut op, &mut provider).await?;
             op.commit().await?;
         }

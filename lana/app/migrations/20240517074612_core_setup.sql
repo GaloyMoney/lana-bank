@@ -384,6 +384,7 @@ CREATE TABLE core_price_providers (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,
   provider VARCHAR NOT NULL UNIQUE,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 

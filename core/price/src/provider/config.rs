@@ -6,4 +6,5 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum PriceProviderConfig {
     Bitfinex,
+    ManualPrice { usd_cents_per_btc: u64 },
 }

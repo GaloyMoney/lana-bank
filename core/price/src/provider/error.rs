@@ -25,6 +25,10 @@ pub enum PriceProviderError {
     BfxClientError(#[from] bfx_client::BfxClientError),
     #[error("PriceProviderError - ConversionError: {0}")]
     ConversionError(#[from] money::ConversionError),
+    #[error("PriceProviderError - NoActiveProviders")]
+    NoActiveProviders,
+    #[error("PriceProviderError - AllProvidersFailed")]
+    AllProvidersFailed,
 }
 
 impl ErrorSeverity for PriceProviderError {
@@ -38,6 +42,8 @@ impl ErrorSeverity for PriceProviderError {
             Self::Serde(_) => Level::ERROR,
             Self::BfxClientError(e) => e.severity(),
             Self::ConversionError(e) => e.severity(),
+            Self::NoActiveProviders => Level::WARN,
+            Self::AllProvidersFailed => Level::ERROR,
         }
     }
 }

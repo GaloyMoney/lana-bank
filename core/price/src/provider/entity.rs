@@ -21,6 +21,8 @@ pub enum PriceProviderEvent {
     ConfigUpdated {
         provider_config: serde_json::Value,
     },
+    Activated {},
+    Deactivated {},
 }
 
 #[derive(EsEntity, Builder, Clone)]
@@ -30,6 +32,7 @@ pub struct PriceProvider {
     pub(super) provider_config: serde_json::Value,
     pub name: String,
     pub provider: String,
+    pub(super) active: bool,
     events: EntityEvents<PriceProviderEvent>,
 }
 
@@ -63,6 +66,36 @@ impl PriceProvider {
         serde_json::from_value(self.provider_config.clone())
             .expect("provider_config is always valid — we serialized it ourselves")
     }
+
+    pub fn active(&self) -> bool {
+        self.active
+    }
+
+    pub fn activate(&mut self) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            already_applied: PriceProviderEvent::Activated {}
+                if true,
+            resets_on: PriceProviderEvent::Deactivated { .. }
+        );
+
+        self.active = true;
+        self.events.push(PriceProviderEvent::Activated {});
+        Idempotent::Executed(())
+    }
+
+    pub fn deactivate(&mut self) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            already_applied: PriceProviderEvent::Deactivated {}
+                if true,
+            resets_on: PriceProviderEvent::Activated { .. }
+        );
+
+        self.active = false;
+        self.events.push(PriceProviderEvent::Deactivated {});
+        Idempotent::Executed(())
+    }
 }
 
 impl TryFromEvents<PriceProviderEvent> for PriceProvider {
@@ -80,10 +113,13 @@ impl TryFromEvents<PriceProviderEvent> for PriceProvider {
                         .id(*id)
                         .name(name.clone())
                         .provider(provider.clone())
+                        .active(true)
                 }
                 PriceProviderEvent::ConfigUpdated {
                     provider_config, ..
                 } => builder = builder.provider_config(provider_config.clone()),
+                PriceProviderEvent::Activated {} => builder = builder.active(true),
+                PriceProviderEvent::Deactivated {} => builder = builder.active(false),
             }
         }
 

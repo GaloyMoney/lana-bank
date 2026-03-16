@@ -10,7 +10,16 @@ use super::entity::*;
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "PriceProvider",
-    columns(name(ty = "String", list_by), provider(ty = "String", find_by)),
+    columns(
+        name(ty = "String", list_by),
+        provider(ty = "String", find_by),
+        active(
+            ty = "bool",
+            list_for,
+            create(persist = false),
+            update(accessor = "active()")
+        )
+    ),
     tbl_prefix = "core"
 )]
 pub(crate) struct PriceProviderRepo {

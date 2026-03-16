@@ -39,6 +39,10 @@ impl PriceProvider {
     async fn provider(&self) -> &str {
         &self.entity.provider
     }
+
+    async fn active(&self) -> bool {
+        self.entity.active()
+    }
 }
 
 #[derive(InputObject)]
@@ -46,15 +50,28 @@ pub struct BitfinexCreateInput {
     name: String,
 }
 
+#[derive(InputObject)]
+pub struct ManualPriceCreateInput {
+    name: String,
+    usd_cents_per_btc: u64,
+}
+
+#[derive(InputObject)]
+pub struct ManualPriceConfigInput {
+    usd_cents_per_btc: u64,
+}
+
 #[derive(OneofObject)]
 pub enum PriceProviderCreateInput {
     Bitfinex(BitfinexCreateInput),
+    ManualPrice(ManualPriceCreateInput),
 }
 
 impl PriceProviderCreateInput {
     pub fn name(&self) -> &str {
         match self {
             PriceProviderCreateInput::Bitfinex(conf) => &conf.name,
+            PriceProviderCreateInput::ManualPrice(conf) => &conf.name,
         }
     }
 }
@@ -63,6 +80,9 @@ impl From<PriceProviderCreateInput> for DomainPriceProviderConfig {
     fn from(input: PriceProviderCreateInput) -> Self {
         match input {
             PriceProviderCreateInput::Bitfinex(_) => DomainPriceProviderConfig::Bitfinex,
+            PriceProviderCreateInput::ManualPrice(conf) => DomainPriceProviderConfig::ManualPrice {
+                usd_cents_per_btc: conf.usd_cents_per_btc,
+            },
         }
     }
 }
@@ -70,12 +90,16 @@ impl From<PriceProviderCreateInput> for DomainPriceProviderConfig {
 #[derive(OneofObject)]
 pub enum PriceProviderConfigInput {
     Bitfinex(BitfinexCreateInput),
+    ManualPrice(ManualPriceConfigInput),
 }
 
 impl From<PriceProviderConfigInput> for DomainPriceProviderConfig {
     fn from(input: PriceProviderConfigInput) -> Self {
         match input {
             PriceProviderConfigInput::Bitfinex(_) => DomainPriceProviderConfig::Bitfinex,
+            PriceProviderConfigInput::ManualPrice(conf) => DomainPriceProviderConfig::ManualPrice {
+                usd_cents_per_btc: conf.usd_cents_per_btc,
+            },
         }
     }
 }
@@ -89,6 +113,10 @@ pub struct PriceProviderConfigUpdateInput {
 crate::mutation_payload! { PriceProviderCreatePayload, price_provider: PriceProvider }
 
 crate::mutation_payload! { PriceProviderConfigUpdatePayload, price_provider: PriceProvider }
+
+crate::mutation_payload! { PriceProviderActivatePayload, price_provider: PriceProvider }
+
+crate::mutation_payload! { PriceProviderDeactivatePayload, price_provider: PriceProvider }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum PriceProvidersSortBy {

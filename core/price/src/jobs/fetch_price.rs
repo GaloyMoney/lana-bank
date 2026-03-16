@@ -77,19 +77,15 @@ where
     outbox: Outbox<E>,
 }
 
-#[record_error_severity]
-#[tracing::instrument(name = "core.price.fetch_price", skip(providers))]
-async fn fetch_price_from_provider(
-    providers: &PriceProviderRepo,
+#[tracing::instrument(
+    name = "core.price.fetch_price_from_single",
+    skip_all,
+    fields(provider_name)
+)]
+async fn fetch_price_from_single(
+    provider: &crate::provider::PriceProvider,
 ) -> Result<PriceOfOneBTC, PriceProviderError> {
-    let result = providers
-        .list_by_id(Default::default(), Default::default())
-        .await?;
-    let provider = result
-        .entities
-        .into_iter()
-        .next()
-        .ok_or(PriceProviderError::Sqlx(sqlx::Error::RowNotFound))?;
+    tracing::Span::current().record("provider_name", provider.name.as_str());
     let config = provider.config();
     match config {
         PriceProviderConfig::Bitfinex => {
@@ -98,7 +94,46 @@ async fn fetch_price_from_provider(
             let usd_cents = money::UsdCents::try_from_usd(tick.last_price)?;
             Ok(PriceOfOneBTC::new(usd_cents))
         }
+        PriceProviderConfig::ManualPrice { usd_cents_per_btc } => {
+            Ok(PriceOfOneBTC::new(money::UsdCents::from(usd_cents_per_btc)))
+        }
     }
+}
+
+#[record_error_severity]
+#[tracing::instrument(name = "core.price.fetch_price", skip(providers))]
+async fn fetch_price_from_providers(
+    providers: &PriceProviderRepo,
+) -> Result<PriceOfOneBTC, PriceProviderError> {
+    let result = providers
+        .list_for_active_by_id(true, Default::default(), Default::default())
+        .await?;
+    let active_providers = result.entities;
+    if active_providers.is_empty() {
+        return Err(PriceProviderError::NoActiveProviders);
+    }
+
+    let mut prices = Vec::new();
+    for provider in &active_providers {
+        match fetch_price_from_single(provider).await {
+            Ok(price) => prices.push(price),
+            Err(e) => {
+                tracing::warn!(
+                    provider_name = %provider.name,
+                    error = %e,
+                    "Failed to fetch price from provider, skipping"
+                );
+            }
+        }
+    }
+
+    if prices.is_empty() {
+        return Err(PriceProviderError::AllProvidersFailed);
+    }
+
+    prices.sort();
+    let median = prices[prices.len() / 2];
+    Ok(median)
 }
 
 #[async_trait]
@@ -111,7 +146,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         loop {
-            let price = fetch_price_from_provider(&self.providers).await?;
+            let price = fetch_price_from_providers(&self.providers).await?;
             self.outbox
                 .publish_ephemeral(
                     PRICE_UPDATED_EVENT_TYPE,

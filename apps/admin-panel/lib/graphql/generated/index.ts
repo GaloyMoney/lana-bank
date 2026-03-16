@@ -2104,6 +2104,15 @@ export type ManualConfig = {
   name: Scalars['String']['input'];
 };
 
+export type ManualPriceConfigInput = {
+  usdCentsPerBtc: Scalars['Int']['input'];
+};
+
+export type ManualPriceCreateInput = {
+  name: Scalars['String']['input'];
+  usdCentsPerBtc: Scalars['Int']['input'];
+};
+
 export type ManualTransactionEntryInput = {
   accountRef: Scalars['String']['input'];
   amount: Scalars['Decimal']['input'];
@@ -2183,8 +2192,10 @@ export type Mutation = {
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
+  priceProviderActivate: PriceProviderActivatePayload;
   priceProviderConfigUpdate: PriceProviderConfigUpdatePayload;
   priceProviderCreate: PriceProviderCreatePayload;
+  priceProviderDeactivate: PriceProviderDeactivatePayload;
   prospectClose: ProspectClosePayload;
   prospectConvert: ProspectConvertPayload;
   prospectCreate: ProspectCreatePayload;
@@ -2440,6 +2451,11 @@ export type MutationPolicyAssignCommitteeArgs = {
 };
 
 
+export type MutationPriceProviderActivateArgs = {
+  priceProviderId: Scalars['UUID']['input'];
+};
+
+
 export type MutationPriceProviderConfigUpdateArgs = {
   input: PriceProviderConfigUpdateInput;
 };
@@ -2447,6 +2463,11 @@ export type MutationPriceProviderConfigUpdateArgs = {
 
 export type MutationPriceProviderCreateArgs = {
   input: PriceProviderCreateInput;
+};
+
+
+export type MutationPriceProviderDeactivateArgs = {
+  priceProviderId: Scalars['UUID']['input'];
 };
 
 
@@ -2761,6 +2782,7 @@ export type PolicyEdge = {
 
 export type PriceProvider = {
   __typename?: 'PriceProvider';
+  active: Scalars['Boolean']['output'];
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
@@ -2768,8 +2790,14 @@ export type PriceProvider = {
   provider: Scalars['String']['output'];
 };
 
+export type PriceProviderActivatePayload = {
+  __typename?: 'PriceProviderActivatePayload';
+  priceProvider: PriceProvider;
+};
+
 export type PriceProviderConfigInput =
-  { bitfinex: BitfinexCreateInput; };
+  { bitfinex: BitfinexCreateInput; manualPrice?: never; }
+  |  { bitfinex?: never; manualPrice: ManualPriceConfigInput; };
 
 export type PriceProviderConfigUpdateInput = {
   config: PriceProviderConfigInput;
@@ -2792,10 +2820,16 @@ export type PriceProviderConnection = {
 };
 
 export type PriceProviderCreateInput =
-  { bitfinex: BitfinexCreateInput; };
+  { bitfinex: BitfinexCreateInput; manualPrice?: never; }
+  |  { bitfinex?: never; manualPrice: ManualPriceCreateInput; };
 
 export type PriceProviderCreatePayload = {
   __typename?: 'PriceProviderCreatePayload';
+  priceProvider: PriceProvider;
+};
+
+export type PriceProviderDeactivatePayload = {
+  __typename?: 'PriceProviderDeactivatePayload';
   priceProvider: PriceProvider;
 };
 
