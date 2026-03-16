@@ -22,7 +22,6 @@ server_cmd() {
       sed -e 's/provider: local/provider: gcp/' \
           -e '/root_folder:/d' \
           -e '/server_url:/d' \
-          -e '/signing_secret:/d' \
           -e "/provider: gcp/a\\    bucket_name: ${DOCS_BUCKET_NAME}" \
           "${REPO_ROOT}/bats/lana.yml" > "$gcs_config"
       export LANA_CONFIG="$gcs_config"

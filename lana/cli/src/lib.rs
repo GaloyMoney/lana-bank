@@ -48,6 +48,8 @@ struct Cli {
         default_value = "secret"
     )]
     keycloak_customer_client_secret: String,
+    #[clap(long, env = "STORAGE_SIGNING_SECRET")]
+    storage_signing_secret: Option<String>,
     #[clap(long, env = "LANA_HOME", default_value = ".lana")]
     lana_home: String,
     /// Override values in the YAML config file (lana.yml) using dot-separated paths.
@@ -143,6 +145,7 @@ pub async fn run() -> anyhow::Result<()> {
                     deprecated_encryption_key: cli.deprecated_encryption_key,
                     keycloak_internal_client_secret: cli.keycloak_internal_client_secret,
                     keycloak_customer_client_secret: cli.keycloak_customer_client_secret,
+                    storage_signing_secret: cli.storage_signing_secret,
                 },
                 &cli.config_overrides,
             )?;

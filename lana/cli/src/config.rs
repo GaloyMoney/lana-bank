@@ -71,6 +71,7 @@ pub struct EnvSecrets {
     pub deprecated_encryption_key: Option<String>,
     pub keycloak_internal_client_secret: String,
     pub keycloak_customer_client_secret: String,
+    pub storage_signing_secret: Option<String>,
 }
 
 impl Config {
@@ -84,6 +85,7 @@ impl Config {
             deprecated_encryption_key,
             keycloak_internal_client_secret,
             keycloak_customer_client_secret,
+            storage_signing_secret,
         }: EnvSecrets,
         config_overrides: &[String],
     ) -> anyhow::Result<Self> {
@@ -108,6 +110,14 @@ impl Config {
         config.app.notification.email.password = smtp_password;
         config.app.user_onboarding.keycloak.client_secret = keycloak_internal_client_secret;
         config.app.customer_sync.keycloak.client_secret = keycloak_customer_client_secret;
+
+        if let Some(secret) = storage_signing_secret {
+            if let lana_app::storage::config::StorageConfig::Local(ref mut local_config) =
+                config.app.storage
+            {
+                local_config.signing_secret = secret;
+            }
+        }
 
         let parse_key = |hex_str: String| -> anyhow::Result<[u8; 32]> {
             let bytes = hex::decode(hex_str)?;
