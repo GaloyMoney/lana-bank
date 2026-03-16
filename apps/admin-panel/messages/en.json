@@ -219,6 +219,7 @@
       "transactionTemplates": "Transaction Templates",
       "rolesAndPermissions": "Roles & Permissions",
       "custodians": "Custodians",
+      "priceProviders": "Price Providers",
       "configurations": "Configurations",
       "prospects": "Prospects"
     },
@@ -1892,6 +1893,72 @@
       "success": "Custodian configuration updated successfully"
     }
   },
+  "PriceProviders": {
+    "title": "Price Providers",
+    "description": "Manage price feed providers and their configurations",
+    "table": {
+      "headers": {
+        "name": "Name",
+        "provider": "Provider",
+        "status": "Status",
+        "created": "Created"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "updateConfig": "Update Config"
+      },
+      "success": {
+        "activated": "Price provider activated successfully",
+        "deactivated": "Price provider deactivated successfully"
+      },
+      "errors": {
+        "activateFailed": "Failed to activate price provider",
+        "deactivateFailed": "Failed to deactivate price provider"
+      }
+    },
+    "create": {
+      "title": "Add New Price Provider",
+      "description": "Add a new price feed provider",
+      "fields": {
+        "type": "Provider",
+        "name": "Name",
+        "usdPerBtc": "USD per BTC"
+      },
+      "placeholders": {
+        "selectType": "Select a Provider",
+        "name": "Enter a display name",
+        "usdPerBtc": "Enter price in USD"
+      },
+      "buttons": {
+        "create": "Add Price Provider"
+      },
+      "success": "Price provider added successfully",
+      "errors": {
+        "failed": "Failed to create price provider"
+      }
+    },
+    "updateConfig": {
+      "title": "Update Price Provider Config",
+      "description": "Update the configuration for this price provider",
+      "fields": {
+        "name": "Name",
+        "usdPerBtc": "USD per BTC"
+      },
+      "placeholders": {
+        "name": "Enter a display name",
+        "usdPerBtc": "Enter price in USD"
+      },
+      "buttons": {
+        "update": "Update Config"
+      },
+      "success": "Price provider configuration updated successfully"
+    }
+  },
   "DepositAccounts": {
     "title": "Deposit Accounts",
     "description": "Customer deposit accounts for managing funds and transactions",
@@ -2733,6 +2800,7 @@
       "termsTemplate": "Terms Template",
       "committee": "Committee",
       "custodian": "Add Custodian",
+      "priceProvider": "Add Price Provider",
       "executeManualTransaction": "Execute Manual Transaction",
       "role": "Role",
       "depositAccount": "Deposit Account",

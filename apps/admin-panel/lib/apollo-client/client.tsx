@@ -232,6 +232,10 @@ export const makeClient = ({
             ...relayStylePagination(),
             keyArgs: ["sort"],
           },
+          priceProviders: {
+            ...relayStylePagination(),
+            keyArgs: ["sort"],
+          },
           committees: {
             ...relayStylePagination(),
             keyArgs: ["sort"],
