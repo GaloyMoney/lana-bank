@@ -3125,6 +3125,7 @@
     "buildTarget": "Objetivo de Compilación",
     "enabledFeatures": "Funciones Habilitadas",
     "loading": "Cargando...",
-    "unavailable": "No se pudo obtener la información del servidor"
+    "unavailable": "No se pudo obtener la información del servidor",
+    "appConfig": "Configuración de la Aplicación"
   }
 }

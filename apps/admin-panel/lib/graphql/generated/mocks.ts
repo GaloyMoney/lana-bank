@@ -3226,6 +3226,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
     return {
         __typename: 'Query',
         accountEntryCsv: overrides && overrides.hasOwnProperty('accountEntryCsv') ? overrides.accountEntryCsv! : relationshipsToOmit.has('AccountingCsvDocument') ? {} as AccountingCsvDocument : mockAccountingCsvDocument({}, relationshipsToOmit),
+        appConfig: overrides && overrides.hasOwnProperty('appConfig') ? overrides.appConfig! : faker.lorem.word(),
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
         approvalProcesses: overrides && overrides.hasOwnProperty('approvalProcesses') ? overrides.approvalProcesses! : relationshipsToOmit.has('ApprovalProcessConnection') ? {} as ApprovalProcessConnection : mockApprovalProcessConnection({}, relationshipsToOmit),
         audit: overrides && overrides.hasOwnProperty('audit') ? overrides.audit! : relationshipsToOmit.has('AuditEntryConnection') ? {} as AuditEntryConnection : mockAuditEntryConnection({}, relationshipsToOmit),

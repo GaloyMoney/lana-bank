@@ -48,6 +48,10 @@ impl Query {
         ctx.data_unchecked::<BuildInfo>().clone()
     }
 
+    async fn app_config(&self, ctx: &Context<'_>) -> String {
+        ctx.data_unchecked::<super::AppConfig>().0.clone()
+    }
+
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<MeUser> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let user = Arc::new(app.access().users().find_for_subject(sub).await?);

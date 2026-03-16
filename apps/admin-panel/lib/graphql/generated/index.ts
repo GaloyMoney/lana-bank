@@ -2987,6 +2987,7 @@ export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer
 export type Query = {
   __typename?: 'Query';
   accountEntryCsv?: Maybe<AccountingCsvDocument>;
+  appConfig: Scalars['String']['output'];
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
@@ -5604,7 +5605,7 @@ export type RolesQuery = { __typename?: 'Query', roles: { __typename?: 'RoleConn
 export type GetBuildInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetBuildInfoQuery = { __typename?: 'Query', buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
+export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: string, buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
 
 export type TermsTemplateEventHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -13751,6 +13752,7 @@ export const GetBuildInfoDocument = gql`
     buildTarget
     enabledFeatures
   }
+  appConfig
 }
     `;
 

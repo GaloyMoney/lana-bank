@@ -1947,6 +1947,7 @@ checksums:
     SystemInfo/enabledFeatures: ba09ab3cc2478701b47b4d7a8486383b
     SystemInfo/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     SystemInfo/unavailable: 2f28882ff148efef4167ca553c841341
+    SystemInfo/appConfig: b18c8593851e81202cb2281a14093f3e
   aafe99efd8562d4095906d30010fcd19:
     Permissions/access_viewer/description: e47f0f1513dd3c253c5d1f0ed10c2e58
     Permissions/access_viewer/label: 9cf21f792a7ba07d3a092d992600388c
