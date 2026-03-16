@@ -163,6 +163,7 @@ checksums:
     Sidebar/navItems/transactionTemplates: cdfe1e063b21076f6b5dc06d5c6cce33
     Sidebar/navItems/rolesAndPermissions: 766190959c36bdfa5506b087f190707d
     Sidebar/navItems/custodians: c69cf14ea7b8332077f570c0c8b06585
+    Sidebar/navItems/priceProviders: 5f5fea9d2d3f0fcd6f44c7ab982a2b70
     Sidebar/navItems/configurations: 073691963088b401d00d351cd4f6a58b
     Sidebar/navItems/prospects: 8fd9acd1c9f666b0afa89fa9a1af3b96
     Sidebar/footer/appName: 7dfeb06f156f842109c07f26a73cb311
@@ -1160,6 +1161,40 @@ checksums:
     Custodians/updateConfig/description: 9112987b73c86ffb2509087a02dc47df
     Custodians/updateConfig/buttons/update: 4faf748015eaf8ff2134b6ea3a1110ed
     Custodians/updateConfig/success: c13e4d98dae773c0d4da64dfc2ab6048
+    PriceProviders/title: 5f5fea9d2d3f0fcd6f44c7ab982a2b70
+    PriceProviders/description: fb8b4e7b1520f9f5dd45dd6b3126a94f
+    PriceProviders/table/headers/name: 9368b5a047572b6051f334af5aa76819
+    PriceProviders/table/headers/provider: d7bb643922dba7960bfb99ec1d746bdd
+    PriceProviders/table/headers/status: 4e1fcce15854d824919b4a582c697c90
+    PriceProviders/table/headers/created: 6045b4ff97fb7dca19ebadfa2e34a700
+    PriceProviders/table/status/active: 3e1ec025c4a50830bbb9ad57a176630a
+    PriceProviders/table/status/inactive: 239e3b722db75bbafc6c628a2685eed2
+    PriceProviders/table/actions/activate: cbe3629cad32c63dd160e5250f8a283f
+    PriceProviders/table/actions/deactivate: e311b7f7e3e11af5672d624d60d70a92
+    PriceProviders/table/actions/updateConfig: 4faf748015eaf8ff2134b6ea3a1110ed
+    PriceProviders/table/success/activated: 303c7e668100c5f6969a3a1704e122da
+    PriceProviders/table/success/deactivated: 21fb9d67675bb4cd83b2947f46121e47
+    PriceProviders/table/errors/activateFailed: da357a654afb28c3e85878c52271f9bb
+    PriceProviders/table/errors/deactivateFailed: 3bd06fb294e2709f07bf678fdaff7ccc
+    PriceProviders/create/title: d6f48f8513f622e8453141862cc49f13
+    PriceProviders/create/description: aadcac995aecf3c5b3d8763b64770e91
+    PriceProviders/create/fields/type: d7bb643922dba7960bfb99ec1d746bdd
+    PriceProviders/create/fields/name: 9368b5a047572b6051f334af5aa76819
+    PriceProviders/create/fields/usdPerBtc: 873afce013b1635c729db3f6c8a2de61
+    PriceProviders/create/placeholders/selectType: 3da3d6949ee679103818e2f9619e3aeb
+    PriceProviders/create/placeholders/name: 82cfd01ec74495e62b820568c46270f4
+    PriceProviders/create/placeholders/usdPerBtc: 0400821a2da829f0fbccf68716a33451
+    PriceProviders/create/buttons/create: b4757d548e97d67c3d3d64f3aec41464
+    PriceProviders/create/success: 6e0738b8145f3a0f09ce8fa9ed58a21a
+    PriceProviders/create/errors/failed: 9c91536412c789a125dea854d379aeec
+    PriceProviders/updateConfig/title: 9315d119d3f9f95fa63f96c90c8fd4be
+    PriceProviders/updateConfig/description: af53e3491b146dd1e82d331efa0955af
+    PriceProviders/updateConfig/fields/name: 9368b5a047572b6051f334af5aa76819
+    PriceProviders/updateConfig/fields/usdPerBtc: 873afce013b1635c729db3f6c8a2de61
+    PriceProviders/updateConfig/placeholders/name: 82cfd01ec74495e62b820568c46270f4
+    PriceProviders/updateConfig/placeholders/usdPerBtc: 0400821a2da829f0fbccf68716a33451
+    PriceProviders/updateConfig/buttons/update: 4faf748015eaf8ff2134b6ea3a1110ed
+    PriceProviders/updateConfig/success: f290f1db665da7440de228f1180ad59e
     DepositAccounts/title: 152a03fb9acdc8943bb3c0d0d8d93ae5
     DepositAccounts/description: 6c02daebe9aff13d8acaf0271a35950a
     DepositAccounts/table/headers/depositAccountId: e795343893c6a1e18fba01dcabfcf920
@@ -1649,6 +1684,7 @@ checksums:
     CreateButton/menuItems/termsTemplate: 21fcfdd286d7253fb4818bd0db3b12db
     CreateButton/menuItems/committee: d856e06fc77be0f7b3611d671e3dd0ec
     CreateButton/menuItems/custodian: a8e359b8fcfb691a7c1bf2eb7129938b
+    CreateButton/menuItems/priceProvider: b4757d548e97d67c3d3d64f3aec41464
     CreateButton/menuItems/executeManualTransaction: 53bf9bf8b9aba6e1ec1b0dcb70ca0ad8
     CreateButton/menuItems/role: 53743bbb6ca938f5b893552e839d067f
     CreateButton/menuItems/depositAccount: 23d240412c0bf14efcff84a2325587be
