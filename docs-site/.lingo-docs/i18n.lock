@@ -2183,8 +2183,10 @@ checksums:
     admin/mutations/liquidationRecordProceedsReceived: 47123330cd03e6f421b60f2164284591
     admin/mutations/custodianCreate: d6b765e72ebc16a8b1c9110973cebb6c
     admin/mutations/custodianConfigUpdate: 7285bab249259e681a52e7e090af7535
-    admin/mutations/priceProviderCreate: 3d119816054f8316839fc114a6313beb
+    admin/mutations/priceProviderCreate: f5b7c051016db8f88a152b9c89a4403a
     admin/mutations/priceProviderConfigUpdate: 23dc26e87e1d27e74bcafab47898caa5
+    admin/mutations/priceProviderActivate: 20d7920ac0cb13552d36a10d6587750c
+    admin/mutations/priceProviderDeactivate: 6b338e757bde90dd4b40f54cda12b054
     admin/mutations/committeeCreate: 1485f3f278d023b47cf3b1b578e6fe42
     admin/mutations/committeeAddUser: 0d4fa9cf0fc40ad9503b6d7ebb8d610b
     admin/mutations/committeeRemoveUser: f1909d1a31577f7aa23ea3b2e6da31f9
