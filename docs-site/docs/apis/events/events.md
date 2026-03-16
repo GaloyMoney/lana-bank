@@ -69,7 +69,7 @@ Events related to credit facility collateral management and liquidation.
 |-------|-------------|----------------|
 | `CollateralUpdated` | Collateral amount was updated | `entity.adjustment`, `entity.amount`, `entity.id`, `entity.secured_loan_id` |
 | `LiquidationCollateralSentOut` | Collateral was sent for liquidation | `amount`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at`, `secured_loan_id` |
-| `LiquidationProceedsReceived` | Liquidation proceeds were received | `amount`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at`, `secured_loan_id` |
+| `LiquidationProceedsReceived` | Liquidation proceeds were received | `amount`, `collateral_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at`, `secured_loan_id` |
 | `LiquidationCompleted` | Liquidation was completed | `liquidation_id`, `secured_loan_id` |
 
 ---
