@@ -20,7 +20,6 @@ app:
     provider: local
     root_folder: ''
     server_url: http://localhost:5253
-    signing_secret: dev-local-storage-signing-secret
   user_onboarding:
     keycloak:
       url: http://localhost:8081/
