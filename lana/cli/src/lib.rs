@@ -227,27 +227,28 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
 
     let superuser_email = config.app.access.superuser_email.clone();
 
-    let (clock, _clock_ctrl) = config.time.into_clock();
+    let app_clock = config.time.into_clock();
 
     let domain_config_settings = startup_domain_config::parse_from_env()?;
     let app = lana_app::app::LanaApp::init(
         pool.clone(),
         config.app,
-        clock.clone(),
+        app_clock.clock.clone(),
+        app_clock.controller.is_some(),
         domain_config_settings.into_iter().map(|s| (s.key, s.value)),
     )
     .await
     .context("Failed to initialize Lana app")?;
 
     if config.bootstrap.active
-        && let (Some(ctrl), Some(superuser_email)) = (_clock_ctrl, superuser_email)
+        && let (Some(ctrl), Some(superuser_email)) = (app_clock.controller, superuser_email)
     {
         let seed_only = config.bootstrap.seed_only;
         let _ = sim_bootstrap::run(
             superuser_email.to_string(),
             &app,
             config.bootstrap,
-            clock,
+            app_clock.clock,
             ctrl,
         )
         .await;

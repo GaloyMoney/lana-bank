@@ -67,7 +67,7 @@ pub struct LanaApp {
     reports: Reports,
     terms_templates: TermsTemplates,
     storage: Storage,
-    _time_events: TimeEvents,
+    time_events: TimeEvents,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
     _deposit_sync: DepositSync,
@@ -81,6 +81,7 @@ impl LanaApp {
         pool: PgPool,
         config: AppConfig,
         clock: es_entity::clock::ClockHandle,
+        has_clock_controller: bool,
         startup_domain_configs: impl IntoIterator<Item = (String, serde_json::Value)>,
     ) -> Result<Self, ApplicationError> {
         sqlx::migrate!()
@@ -150,8 +151,15 @@ impl LanaApp {
         let reports =
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
         let core_price = CorePrice::init(&pool, &authz, &mut jobs, &outbox, clock.clone()).await?;
-        let _time_events =
-            TimeEvents::init(&exposed_domain_configs_readonly, &mut jobs, &outbox).await?;
+        let time_events = TimeEvents::init(
+            &authz,
+            &exposed_domain_configs_readonly,
+            &mut jobs,
+            &outbox,
+            &clock,
+            has_clock_controller,
+        )
+        .await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
         let public_ids = PublicIds::new(&pool);
 
@@ -305,7 +313,7 @@ impl LanaApp {
             reports,
             terms_templates,
             storage,
-            _time_events,
+            time_events,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,
@@ -438,6 +446,15 @@ impl LanaApp {
 
     pub fn terms_templates(&self) -> &TermsTemplates {
         &self.terms_templates
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "lana.app.time_state", skip(self))]
+    pub async fn time_state(
+        &self,
+        sub: &Subject,
+    ) -> Result<crate::time_events::TimeState, ApplicationError> {
+        Ok(self.time_events.state(sub).await?)
     }
 
     pub async fn get_visible_nav_items(

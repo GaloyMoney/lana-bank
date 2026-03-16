@@ -37,7 +37,7 @@ use super::{
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
     dashboard::*, deposit::*, deposit_config::*, document::*, domain_config::*, loader::*, me::*,
     policy::*, price::*, price_provider::*, prospect::*, public_id::*, reports::*, sumsub::*,
-    terms::build_term_values, terms_template::*, withdrawal::*,
+    terms::build_term_values, terms_template::*, time::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -46,6 +46,13 @@ pub struct Query;
 impl Query {
     async fn build_info(&self, ctx: &Context<'_>) -> BuildInfo {
         ctx.data_unchecked::<BuildInfo>().clone()
+    }
+
+    /// Returns the current environment clock state, including the next
+    /// configured end-of-day boundary.
+    async fn time(&self, ctx: &Context<'_>) -> async_graphql::Result<Time> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        Ok(app.time_state(sub).await?.into())
     }
 
     async fn app_config(&self, ctx: &Context<'_>) -> String {

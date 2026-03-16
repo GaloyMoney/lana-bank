@@ -7,11 +7,17 @@ import { LoaderCircle } from "lucide-react"
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@lana/web/ui/card"
+import { formatDate } from "@lana/web/utils"
 
-import { useGetBuildInfoQuery } from "@/lib/graphql/generated"
+import {
+  type Time,
+  useGetBuildInfoQuery,
+  useGetTimeQuery,
+} from "@/lib/graphql/generated"
 import { env } from "@/env"
 
 gql`
@@ -24,6 +30,15 @@ gql`
     }
     appConfig
   }
+
+  query GetTime {
+    time {
+      currentDate
+      currentTime
+      nextEndOfDayAt
+      canAdvanceToNextEndOfDay
+    }
+  }
 `
 
 export default function SystemInfoPage() {
@@ -32,6 +47,13 @@ export default function SystemInfoPage() {
 
   const { data, loading } = useGetBuildInfoQuery()
   const buildInfo = data?.buildInfo
+  const {
+    data: timeData,
+    loading: timeLoading,
+    error: timeError,
+  } = useGetTimeQuery()
+
+  const time = timeData?.time
 
   return (
     <div className="space-y-4">
@@ -69,6 +91,8 @@ export default function SystemInfoPage() {
         </CardContent>
       </Card>
 
+      <TimeCard time={time} loading={timeLoading} error={timeError} />
+
       <Card>
         <CardHeader>
           <CardTitle>{t("appConfig")}</CardTitle>
@@ -95,5 +119,51 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground">{label}</span>
       <span className="font-mono text-xs">{value}</span>
     </div>
+  )
+}
+
+type TimeCardProps = {
+  time?: Time
+  loading: boolean
+  error?: Error
+}
+
+function TimeCard({ time, loading, error }: TimeCardProps) {
+  const t = useTranslations("SystemInfo")
+  const tTime = useTranslations("Configurations.time")
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{tTime("title")}</CardTitle>
+        <CardDescription>{tTime("description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <LoaderCircle className="animate-spin" />
+        ) : error ? (
+          <p className="text-sm text-destructive">{tTime("loadError")}</p>
+        ) : time ? (
+          <div className="space-y-2">
+            <InfoRow
+              label={tTime("currentDate")}
+              value={formatDate(time.currentDate, { includeTime: false })}
+            />
+            <InfoRow
+              label={tTime("currentTime")}
+              value={formatDate(time.currentTime)}
+            />
+            <InfoRow
+              label={t("timeMode")}
+              value={time.canAdvanceToNextEndOfDay ? t("simulated") : t("realtime")}
+            />
+            <InfoRow
+              label={tTime("nextEndOfDay")}
+              value={formatDate(time.nextEndOfDayAt)}
+            />
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
   )
 }

@@ -28,6 +28,7 @@ mod reports;
 mod sumsub;
 mod terms;
 mod terms_template;
+mod time;
 mod withdrawal;
 #[macro_use]
 pub(crate) mod macros;
@@ -40,6 +41,7 @@ use async_graphql::*;
 pub use build_info::BuildInfo;
 pub(crate) use loader::LanaLoader;
 pub use schema::*;
+pub use time::*;
 
 use lana_app::app::LanaApp;
 

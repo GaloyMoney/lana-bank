@@ -2657,6 +2657,11 @@ type Query {
 	roles(after: String, first: Int!, sort: RolesSort = {by: CREATED_AT, direction: DESC}): RoleConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
+	"""
+	Returns the current environment clock state, including the next
+	configured end-of-day boundary.
+	"""
+	time: Time!
 	transactionTemplates(after: String, first: Int!): TransactionTemplateConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	user(id: UUID!): User
@@ -2960,6 +2965,25 @@ input TermsTemplateUpdateInput {
 
 type TermsTemplateUpdatePayload {
 	termsTemplate: TermsTemplate!
+}
+
+type Time {
+	"""
+	Whether the environment clock can be advanced manually.
+	"""
+	canAdvanceToNextEndOfDay: Boolean!
+	"""
+	Current business date for the environment clock.
+	"""
+	currentDate: Date!
+	"""
+	Current environment timestamp.
+	"""
+	currentTime: Timestamp!
+	"""
+	Timestamp when the next end-of-day boundary will be reached.
+	"""
+	nextEndOfDayAt: Timestamp!
 }
 
 """
