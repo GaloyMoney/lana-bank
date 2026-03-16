@@ -1946,11 +1946,9 @@
       "title": "Update Price Provider Config",
       "description": "Update the configuration for this price provider",
       "fields": {
-        "name": "Name",
         "usdPerBtc": "USD per BTC"
       },
       "placeholders": {
-        "name": "Enter a display name",
         "usdPerBtc": "Enter price in USD"
       },
       "buttons": {

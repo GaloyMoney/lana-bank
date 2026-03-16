@@ -40,21 +40,18 @@ interface UpdatePriceProviderConfigDialogProps {
   open: boolean
   setOpen: (open: boolean) => void
   priceProviderId: string
-  provider: string
 }
 
 export const UpdatePriceProviderConfigDialog: React.FC<
   UpdatePriceProviderConfigDialogProps
-> = ({ open, setOpen, priceProviderId, provider }) => {
+> = ({ open, setOpen, priceProviderId }) => {
   const t = useTranslations("PriceProviders.updateConfig")
   const tCommon = useTranslations("Common")
 
-  const [name, setName] = useState("")
   const [usdPerBtc, setUsdPerBtc] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   const resetForm = () => {
-    setName("")
     setUsdPerBtc("")
     setError(null)
   }
@@ -66,20 +63,20 @@ export const UpdatePriceProviderConfigDialog: React.FC<
 
   const [updateConfig, { loading }] = usePriceProviderConfigUpdateMutation()
 
-  const isBitfinex = provider === "bitfinex"
-  const isManualPrice = provider === "manual-price"
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
     try {
-      const config = isBitfinex
-        ? { bitfinex: { name } }
-        : { manualPrice: { usdCentsPerBtc: Math.round(Number(usdPerBtc) * 100) } }
-
       await updateConfig({
-        variables: { input: { priceProviderId, config } },
+        variables: {
+          input: {
+            priceProviderId,
+            config: {
+              manualPrice: { usdCentsPerBtc: Math.round(Number(usdPerBtc) * 100) },
+            },
+          },
+        },
         onCompleted: (data) => {
           if (data?.priceProviderConfigUpdate.priceProvider) {
             toast.success(t("success"))
@@ -98,8 +95,6 @@ export const UpdatePriceProviderConfigDialog: React.FC<
     }
   }
 
-  if (!isBitfinex && !isManualPrice) return null
-
   return (
     <Dialog
       open={open}
@@ -114,40 +109,23 @@ export const UpdatePriceProviderConfigDialog: React.FC<
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {isBitfinex && (
-            <div>
-              <Label htmlFor="price-provider-update-name">{t("fields.name")}</Label>
-              <Input
-                id="price-provider-update-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t("placeholders.name")}
-                disabled={loading}
-                required
-                data-testid="price-provider-update-name-input"
-              />
-            </div>
-          )}
-
-          {isManualPrice && (
-            <div>
-              <Label htmlFor="price-provider-update-usd-per-btc">
-                {t("fields.usdPerBtc")}
-              </Label>
-              <Input
-                id="price-provider-update-usd-per-btc"
-                type="number"
-                value={usdPerBtc}
-                onChange={(e) => setUsdPerBtc(e.target.value)}
-                placeholder={t("placeholders.usdPerBtc")}
-                disabled={loading}
-                required
-                min="0"
-                step="0.01"
-                data-testid="price-provider-update-usd-per-btc-input"
-              />
-            </div>
-          )}
+          <div>
+            <Label htmlFor="price-provider-update-usd-per-btc">
+              {t("fields.usdPerBtc")}
+            </Label>
+            <Input
+              id="price-provider-update-usd-per-btc"
+              type="number"
+              value={usdPerBtc}
+              onChange={(e) => setUsdPerBtc(e.target.value)}
+              placeholder={t("placeholders.usdPerBtc")}
+              disabled={loading}
+              required
+              min="0"
+              step="0.01"
+              data-testid="price-provider-update-usd-per-btc-input"
+            />
+          </div>
 
           {error && <div className="text-destructive text-sm">{error}</div>}
           <DialogFooter>

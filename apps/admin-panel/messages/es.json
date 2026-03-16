@@ -219,7 +219,7 @@
       "transactionTemplates": "Plantillas de transacciones",
       "rolesAndPermissions": "Roles y permisos",
       "custodians": "Custodios",
-      "priceProviders": "Price Providers",
+      "priceProviders": "Proveedores de Precios",
       "configurations": "Configuraciones",
       "prospects": "Prospectos"
     },
@@ -1894,69 +1894,67 @@
     }
   },
   "PriceProviders": {
-    "title": "Price Providers",
-    "description": "Manage price feed providers and their configurations",
+    "title": "Proveedores de Precios",
+    "description": "Gestionar proveedores de precios y sus configuraciones",
     "table": {
       "headers": {
-        "name": "Name",
-        "provider": "Provider",
-        "status": "Status",
-        "created": "Created"
+        "name": "Nombre",
+        "provider": "Proveedor",
+        "status": "Estado",
+        "created": "Creado"
       },
       "status": {
-        "active": "Active",
-        "inactive": "Inactive"
+        "active": "Activo",
+        "inactive": "Inactivo"
       },
       "actions": {
-        "activate": "Activate",
-        "deactivate": "Deactivate",
-        "updateConfig": "Update Config"
+        "activate": "Activar",
+        "deactivate": "Desactivar",
+        "updateConfig": "Actualizar Configuración"
       },
       "success": {
-        "activated": "Price provider activated successfully",
-        "deactivated": "Price provider deactivated successfully"
+        "activated": "Proveedor de precios activado exitosamente",
+        "deactivated": "Proveedor de precios desactivado exitosamente"
       },
       "errors": {
-        "activateFailed": "Failed to activate price provider",
-        "deactivateFailed": "Failed to deactivate price provider"
+        "activateFailed": "Error al activar el proveedor de precios",
+        "deactivateFailed": "Error al desactivar el proveedor de precios"
       }
     },
     "create": {
-      "title": "Add New Price Provider",
-      "description": "Add a new price feed provider",
+      "title": "Agregar Nuevo Proveedor de Precios",
+      "description": "Agregar un nuevo proveedor de precios",
       "fields": {
-        "type": "Provider",
-        "name": "Name",
-        "usdPerBtc": "USD per BTC"
+        "type": "Proveedor",
+        "name": "Nombre",
+        "usdPerBtc": "USD por BTC"
       },
       "placeholders": {
-        "selectType": "Select a Provider",
-        "name": "Enter a display name",
-        "usdPerBtc": "Enter price in USD"
+        "selectType": "Seleccionar un proveedor",
+        "name": "Ingrese un nombre de visualización",
+        "usdPerBtc": "Ingrese el precio en USD"
       },
       "buttons": {
-        "create": "Add Price Provider"
+        "create": "Agregar Proveedor de Precios"
       },
-      "success": "Price provider added successfully",
+      "success": "Proveedor de precios agregado exitosamente",
       "errors": {
-        "failed": "Failed to create price provider"
+        "failed": "Error al crear el proveedor de precios"
       }
     },
     "updateConfig": {
-      "title": "Update Price Provider Config",
-      "description": "Update the configuration for this price provider",
+      "title": "Actualizar Configuración del Proveedor de Precios",
+      "description": "Actualizar la configuración de este proveedor de precios",
       "fields": {
-        "name": "Name",
-        "usdPerBtc": "USD per BTC"
+        "usdPerBtc": "USD por BTC"
       },
       "placeholders": {
-        "name": "Enter a display name",
-        "usdPerBtc": "Enter price in USD"
+        "usdPerBtc": "Ingrese el precio en USD"
       },
       "buttons": {
-        "update": "Update Config"
+        "update": "Actualizar Configuración"
       },
-      "success": "Price provider configuration updated successfully"
+      "success": "Configuración del proveedor de precios actualizada exitosamente"
     }
   },
   "DepositAccounts": {
@@ -2800,7 +2798,7 @@
       "termsTemplate": "Plantilla de Términos",
       "committee": "Comité",
       "custodian": "Agregar Custodio",
-      "priceProvider": "Add Price Provider",
+      "priceProvider": "Agregar Proveedor de Precios",
       "executeManualTransaction": "Registrar partida manual",
       "role": "Rol",
       "depositAccount": "Cuenta de depósito",

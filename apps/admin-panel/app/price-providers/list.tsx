@@ -78,10 +78,7 @@ gql`
 const PriceProvidersList = () => {
   const t = useTranslations("PriceProviders.table")
   const [sortBy, setSortBy] = useState<PriceProvidersSort | null>(null)
-  const [selectedProvider, setSelectedProvider] = useState<{
-    id: string
-    provider: string
-  } | null>(null)
+  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null)
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false)
 
   const { data, loading, error, fetchMore } = usePriceProvidersQuery({
@@ -122,11 +119,8 @@ const PriceProvidersList = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<PriceProvider>
-        columns={columns(t, handleActivate, handleDeactivate, (provider) => {
-          setSelectedProvider({
-            id: provider.priceProviderId,
-            provider: provider.provider,
-          })
+        columns={columns(t, handleActivate, handleDeactivate, (priceProviderId) => {
+          setSelectedProviderId(priceProviderId)
           setOpenUpdateDialog(true)
         })}
         data={data?.priceProviders as PaginatedData<PriceProvider>}
@@ -140,12 +134,11 @@ const PriceProvidersList = () => {
           })
         }}
       />
-      {selectedProvider && (
+      {selectedProviderId && (
         <UpdatePriceProviderConfigDialog
           open={openUpdateDialog}
           setOpen={setOpenUpdateDialog}
-          priceProviderId={selectedProvider.id}
-          provider={selectedProvider.provider}
+          priceProviderId={selectedProviderId}
         />
       )}
     </div>
@@ -158,7 +151,7 @@ const columns = (
   t: ReturnType<typeof useTranslations>,
   onActivate: (id: string) => void,
   onDeactivate: (id: string) => void,
-  onUpdateConfig: (provider: PriceProvider) => void,
+  onUpdateConfig: (priceProviderId: string) => void,
 ): Column<PriceProvider>[] => [
   {
     key: "name",
@@ -214,17 +207,19 @@ const columns = (
             {t("actions.activate")}
           </Button>
         )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation()
-            onUpdateConfig(record)
-          }}
-          data-testid="price-provider-update-config-button"
-        >
-          {t("actions.updateConfig")}
-        </Button>
+        {record.provider === "manual-price" && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              onUpdateConfig(record.priceProviderId)
+            }}
+            data-testid="price-provider-update-config-button"
+          >
+            {t("actions.updateConfig")}
+          </Button>
+        )}
       </div>
     ),
   },
