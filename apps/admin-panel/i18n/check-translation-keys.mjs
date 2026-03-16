@@ -343,7 +343,6 @@ function traceVariableToFunctionCall(src, varName) {
 
 // Also collect data for later passes
 const dynamicNamespaceFiles = [] // Files with useTranslations(variable)
-const dynamicKeyWarnings = [] // Track warnings to potentially resolve later
 
 for (const file of sourceFiles) {
   const src = readFileSync(file, "utf8")
@@ -504,7 +503,7 @@ for (const file of sourceFiles) {
 // ── Pass 2: Dynamic namespace resolution ────────────────────────────────────
 // For useTranslations(variable), find all callers that pass literal strings
 
-for (const { file, rel, varName } of dynamicNamespaceFiles) {
+for (const { file, varName } of dynamicNamespaceFiles) {
   const src = readFileSync(file, "utf8")
 
   // Find the component name that accepts this variable as a prop
