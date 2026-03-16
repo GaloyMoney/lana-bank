@@ -186,22 +186,24 @@ checksums:
     md-section-8: 0e40f726efe75bb00adeff723986884c
     md-section-9: cb502ead2294d1e36b663cb849f695ba
     md-section-10: bd9d3fae1de24dcfd4cbec2cfed364d5
-    md-section-11: 034ea35488010804e243efe4866c362e
-    md-section-12: 58f9d8175a6a21a31072d5add3772f19
-    md-section-13: 3490e1ef11750cbec64a8d7f78b34d7d
-    md-section-14: e00bdf6f4d6aa4c15149c45ce254fbb1
-    md-section-15: 998e8b10bd01e188aabbcd44e9fc766c
-    md-section-16: c6ec1f1d025ab50db90cc9384cd4012b
-    md-section-17: 3cac6fe4422326db1f9e3e12e7c9f7bd
-    md-section-18: 01eba3b79c85c93856e49daebcefe025
-    md-section-19: 3a0078fd800bf3aed3cf7f95699b113e
-    md-section-20: 748c45175b4409895dbefb17bcaaf2b7
-    md-section-21: a00537b342c576ab6d786e7a2276b542
-    md-section-22: 7cff101cb973341d09bab253b353dc3d
-    md-section-23: cfed62820ecd34cd95fff35708e5f258
-    md-section-24: 998c08b17a066dc7ebc59fb0400cf29b
-    md-section-25: 0f06cfb90b1236246d5565e3069289b4
-    md-section-26: 031d46961503397c3cc9a4fc9cfef659
+    md-section-11: 5169cca379ac3f17906da85c58e265f1
+    md-section-12: 5edeefcea482b90a3512686e6ddca066
+    md-section-13: 034ea35488010804e243efe4866c362e
+    md-section-14: 58f9d8175a6a21a31072d5add3772f19
+    md-section-15: 3490e1ef11750cbec64a8d7f78b34d7d
+    md-section-16: e00bdf6f4d6aa4c15149c45ce254fbb1
+    md-section-17: 998e8b10bd01e188aabbcd44e9fc766c
+    md-section-18: c6ec1f1d025ab50db90cc9384cd4012b
+    md-section-19: 3cac6fe4422326db1f9e3e12e7c9f7bd
+    md-section-20: 01eba3b79c85c93856e49daebcefe025
+    md-section-21: 3a0078fd800bf3aed3cf7f95699b113e
+    md-section-22: 748c45175b4409895dbefb17bcaaf2b7
+    md-section-23: a00537b342c576ab6d786e7a2276b542
+    md-section-24: 7cff101cb973341d09bab253b353dc3d
+    md-section-25: cfed62820ecd34cd95fff35708e5f258
+    md-section-26: 998c08b17a066dc7ebc59fb0400cf29b
+    md-section-27: 0f06cfb90b1236246d5565e3069289b4
+    md-section-28: 031d46961503397c3cc9a4fc9cfef659
     fm-attr-id: badc799891d0270f1826234e046ea118
     fm-attr-title: 0dd007c328859bcdda4d504c447a06c2
   e8dfdcf9c029b7705477eba4e3b06574:
@@ -2064,6 +2066,7 @@ checksums:
   3d24ad833a0d72ca91d363f51010c597:
     admin/queries/appConfig: 6a0bb4e3524793b5f064b2f1c7de707d
     admin/queries/buildInfo: 8b7883b3e4b76a5401173a7956bccfa9
+    admin/queries/time: a474c7e849adb4cbb8f91f4f19954c40
     admin/queries/me: d9a4f3b87b65112adf2741b8b3228e2b
     admin/queries/dashboard: 89bf1f5251b12a5738ef7dcf912e1989
     admin/queries/user: 737f0557ba25ae68b6f4eb69d63f9312
@@ -2156,6 +2159,7 @@ checksums:
     admin/mutations/customerUnfreeze: 49aaddae490eaff46796612785e47fe0
     admin/mutations/customerClose: b28c9ede0effd084a8d01546ccd0e708
     admin/mutations/domainConfigUpdate: 7c8152f40fc4a56c954717b3c5132f65
+    admin/mutations/timeAdvanceToNextEndOfDay: 25d1a209e0185bd5c20c0c801be68191
     admin/mutations/depositModuleConfigure: e2ef274ff3e8f4a46e91aaf6a1c1cf84
     admin/mutations/manualTransactionExecute: dd512f872d793ac164f2840fe67c4762
     admin/mutations/depositRecord: c7cbbc8442b73abd5b36b92090dd9f6a

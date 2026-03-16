@@ -107,7 +107,7 @@ where
         let clock = current_job.clock().clone();
 
         let schedule = ClosingSchedule::new(timezone, closing_time, &clock);
-        let most_recent_closing_day = schedule.next_closing_day() - chrono::Days::new(1);
+        let most_recent_closing_day = schedule.most_recent_closing_day();
 
         match state.last_published_day {
             None => {

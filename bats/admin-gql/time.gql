@@ -1,0 +1,8 @@
+query Time {
+  time {
+    currentDate
+    currentTime
+    nextEndOfDayAt
+    canAdvanceToNextEndOfDay
+  }
+}

@@ -187,9 +187,20 @@ pub async fn disbursal_different_months_scenario(
             continue;
         }
 
-        let total_outstanding = app.credit().outstanding(&facility).await?;
-        if total_outstanding.is_zero() {
+        let balance = app.credit().facilities().balance(&sub, cf_id).await?;
+        if !balance.any_outstanding_or_defaulted() {
             break;
+        }
+
+        let total_outstanding = balance.total_outstanding_payable();
+        if total_outstanding.is_zero() {
+            if balance.total_outstanding().is_zero() {
+                anyhow::bail!("Facility defaulted before completion");
+            }
+
+            tokio::time::sleep(MIN_EVENT_WAIT).await;
+            clock_ctrl.advance(ONE_DAY).await;
+            continue;
         }
 
         app.record_payment_with_date(&sub, cf_id, total_outstanding, clock.today())

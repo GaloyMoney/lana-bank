@@ -40,6 +40,10 @@ impl ClosingSchedule {
         self.next_closing.with_timezone(&self.timezone).date_naive()
     }
 
+    pub fn most_recent_closing_day(&self) -> NaiveDate {
+        self.next_closing_day() - chrono::Days::new(1)
+    }
+
     pub fn closing_for_day(
         timezone: Tz,
         closing_time_of_day: NaiveTime,
@@ -133,6 +137,36 @@ mod tests {
             .to_rfc3339_opts(SecondsFormat::Secs, true);
 
         assert_eq!(next, "2021-01-15T18:00:00Z");
+    }
+
+    #[test]
+    fn current_day_is_local_calendar_day_before_closing() {
+        let clock = clock_at("2021-01-15T12:00:00Z");
+        let schedule = ClosingSchedule::new(
+            "UTC".parse().unwrap(),
+            NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
+            &clock,
+        );
+
+        assert_eq!(
+            schedule.current_day(),
+            NaiveDate::from_ymd_opt(2021, 1, 15).unwrap()
+        );
+    }
+
+    #[test]
+    fn most_recent_closing_day_stays_previous_day_before_closing() {
+        let clock = clock_at("2021-01-15T12:00:00Z");
+        let schedule = ClosingSchedule::new(
+            "UTC".parse().unwrap(),
+            NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
+            &clock,
+        );
+
+        assert_eq!(
+            schedule.most_recent_closing_day(),
+            NaiveDate::from_ymd_opt(2021, 1, 14).unwrap()
+        );
     }
 
     #[test]

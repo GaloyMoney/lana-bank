@@ -53,7 +53,15 @@ make setup-db run-server
 
 Esto ejecuta las migraciones de base de datos e inicia el servidor de aplicación Rust.
 
-### 4. Ejecutar las Aplicaciones Frontend
+## Tiempo Simulado
+
+Cuando un entorno está configurado con tiempo artificial manual, Lana mantiene el reloj de la aplicación en tiempo simulado. Esto es útil para probar flujos de trabajo dependientes del tiempo, como el procesamiento de fin de día y la acumulación de intereses.
+
+- Los servidores web de administración y de clientes se inician inmediatamente, incluso si `sim-bootstrap` todavía está cargando datos semilla en segundo plano.
+- Los operadores pueden inspeccionar el reloj actual del entorno desde la página `Información del Sistema` del Panel de Administración o mediante la consulta GraphQL de administración `time`.
+- Los operadores pueden avanzar el entorno al siguiente límite de fin de día configurado desde la misma página o llamando a la mutación GraphQL de administración `timeAdvanceToNextEndOfDay`.
+
+### 4. Ejecutar Aplicaciones Frontend
 
 En terminales separadas:
 
@@ -79,11 +87,11 @@ cd apps/customer-portal && pnpm dev
 | Consola de Administración de Keycloak | http://localhost:8081 |
 
 :::info
-Las APIs GraphQL deben accederse a través de Oathkeeper (puerto 4455) que maneja la validación JWT. Los puertos directos (5253/5254) carecen de contexto de autenticación y no funcionarán correctamente.
+Las APIs GraphQL deben accederse a través de Oathkeeper (puerto 4455) que maneja la validación de JWT. Los puertos directos (5253/5254) carecen de contexto de autenticación y no funcionarán correctamente.
 :::
 
 :::tip
-Si `app.localhost` no resuelve, agrega `127.0.0.1 app.localhost` y `::1 app.localhost` a tu archivo `/etc/hosts`.
+Si `app.localhost` no se resuelve, añade `127.0.0.1 app.localhost` y `::1 app.localhost` a tu archivo `/etc/hosts`.
 :::
 
 ## Desarrollo Interactivo con Tilt
@@ -104,24 +112,24 @@ make dev-down
 
 | Comando | Propósito |
 |---------|---------|
-| `make start-deps` | Iniciar dependencias Docker |
-| `make stop-deps` | Detener dependencias Docker |
+| `make start-deps` | Iniciar dependencias de Docker |
+| `make stop-deps` | Detener dependencias de Docker |
 | `make reset-deps` | Limpiar y reiniciar bases de datos |
-| `make check-code-rust` | Verificar que el código Rust compila |
+| `make check-code-rust` | Verificar que el código Rust compile |
 | `make check-code-apps` | Lint, verificación de tipos y compilación de frontends |
-| `cargo nextest run` | Ejecutar todas las pruebas Rust |
-| `cargo nextest run -p <crate>` | Ejecutar pruebas para un solo crate |
-| `make e2e` | Ejecutar pruebas end-to-end BATS |
+| `cargo nextest run` | Ejecutar todas las pruebas de Rust |
+| `cargo nextest run -p <crate>` | Ejecutar pruebas para un único crate |
+| `make e2e` | Ejecutar pruebas end-to-end de BATS |
 | `make sdl` | Regenerar esquemas GraphQL |
 | `make sqlx-prepare` | Actualizar caché de consultas offline de SQLx |
 
 :::warning
-Antepón `SQLX_OFFLINE=true` a los comandos directos de `cargo` para usar la caché de consultas offline en lugar de requerir una base de datos en ejecución.
+Anteponer `SQLX_OFFLINE=true` a los comandos directos de `cargo` para usar la caché de consultas offline en lugar de requerir una base de datos en ejecución.
 :::
 
 ## Acceso a la Base de Datos
 
-Conectar a la base de datos PostgreSQL principal:
+Conectarse a la base de datos principal de PostgreSQL:
 
 ```bash
 psql postgres://user:password@localhost:5433/pg
@@ -133,11 +141,11 @@ Ejecutar migraciones manualmente:
 cargo sqlx migrate run
 ```
 
-Las migraciones se encuentran en `lana/app/migrations/`.
+Las migraciones están ubicadas en `lana/app/migrations/`.
 
 ## Variables de Entorno
 
-El shell Nix establece automáticamente las variables de entorno clave:
+El shell de Nix establece automáticamente las variables de entorno clave:
 
 | Variable | Valor | Propósito |
 |----------|-------|---------|

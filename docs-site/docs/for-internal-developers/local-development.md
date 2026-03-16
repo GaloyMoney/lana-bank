@@ -53,6 +53,14 @@ make setup-db run-server
 
 This runs database migrations and starts the Rust application server.
 
+## Simulated Time
+
+When an environment is configured with manual artificial time, Lana keeps the application clock in simulated time. This is useful for testing time-dependent workflows such as end-of-day processing and interest accrual.
+
+- The admin and customer web servers start immediately, even if `sim-bootstrap` is still loading seed data in the background.
+- Operators can inspect the current environment clock from the Admin Panel `System Info` page or through the admin GraphQL query `time`.
+- Operators can advance the environment to the next configured end-of-day boundary from the same page or by calling the admin GraphQL mutation `timeAdvanceToNextEndOfDay`.
+
 ### 4. Run Frontend Apps
 
 In separate terminals:
@@ -142,4 +150,3 @@ The Nix shell automatically sets key environment variables:
 | `ENCRYPTION_KEY` | (dev key) | Encryption key for secrets |
 | `KC_URL` | `http://localhost:8081` | Keycloak URL |
 | `REALM` | (configured per realm) | Keycloak realm |
-

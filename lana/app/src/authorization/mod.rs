@@ -2,6 +2,7 @@ pub mod seed;
 
 use crate::audit::Audit;
 
+pub use authz::PermissionCheck;
 pub use authz::error;
 use authz::error::AuthorizationError;
 pub use core_access::{CoreAccessAction, CoreAccessObject};

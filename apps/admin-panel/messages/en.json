@@ -132,6 +132,10 @@
       "timezone": "Timezone",
       "endOfDayTime": "End of day time",
       "nextEndOfDay": "Next end of day",
+      "advanceToNextEndOfDay": "Advance to next EOD",
+      "advanceSuccess": "Time advanced to the next end of day",
+      "advanceError": "Could not advance time",
+      "advanceErrorWithReason": "Could not advance time: {error}",
       "loadError": "Could not load time"
     },
     "notification-email-from-email": {
@@ -3237,6 +3241,9 @@
     "title": "System Information",
     "frontend": "Frontend",
     "backend": "Backend",
+    "timeMode": "Time mode",
+    "realtime": "Realtime",
+    "simulated": "Simulated",
     "version": "Version",
     "buildProfile": "Build Profile",
     "buildTarget": "Build Target",

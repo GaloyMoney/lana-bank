@@ -108,6 +108,10 @@ checksums:
     Configurations/time/timezone: 370780b854bdbef55320f977a4fb9ddb
     Configurations/time/endOfDayTime: 58166f24f1d9436c1db2f0daeb7cb5f9
     Configurations/time/nextEndOfDay: d782252d4a08b51063438f89d4e5d446
+    Configurations/time/advanceToNextEndOfDay: 90ebe40d22432142a0dcbed2f45021e0
+    Configurations/time/advanceSuccess: c3b5e3a17590ddf773079cc5dbabf745
+    Configurations/time/advanceError: 10f9cd13af538b0a5425583639e79fb9
+    Configurations/time/advanceErrorWithReason: 1ec501ff637cee03308d42786de8aeb4
     Configurations/time/loadError: 3574080c5420fb78cdf2be7c6afbf958
     Configurations/notification-email-from-email/title: 52f3f83e83a55f5e81d17f1990c2cf5c
     Configurations/notification-email-from-email/description: 1a4d3315fff2155c42d63353d05fabe4
@@ -2012,6 +2016,9 @@ checksums:
     SystemInfo/title: 52c3996b6a3f37c8334027372c1d9723
     SystemInfo/frontend: 64cd32a0bf23670a162c4209b6e7fda9
     SystemInfo/backend: 3fbd08ffd1724ca0549c7036a5543165
+    SystemInfo/timeMode: 356ca984fb63c8869323c926e2eb512f
+    SystemInfo/realtime: 3046bcbad707f45b03cbd74f1bf2f069
+    SystemInfo/simulated: d489c39d7ea28bbb888ec334dc7251ac
     SystemInfo/version: 501b826ddd956aae42ef8e3f6865e4a6
     SystemInfo/buildProfile: 450f969561e804dd932f2ac6f62c241d
     SystemInfo/buildTarget: 4accf07e06d04aa646cc009654ad878c

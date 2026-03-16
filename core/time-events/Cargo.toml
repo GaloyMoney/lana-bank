@@ -13,8 +13,6 @@ json-schema = [
 
 [dependencies]
 async-trait = { workspace = true }
-audit = { workspace = true }
-authz = { workspace = true }
 domain-config = { workspace = true }
 chrono = { workspace = true }
 chrono-tz = { workspace = true, features = ["serde"] }

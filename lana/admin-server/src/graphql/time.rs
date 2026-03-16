@@ -14,6 +14,8 @@ pub struct Time {
     timezone: String,
     /// Configured end-of-day time in HH:MM:SS format.
     end_of_day_time: String,
+    /// Whether the environment clock can be advanced manually.
+    can_advance_to_next_end_of_day: bool,
 }
 
 impl From<lana_app::time_events::TimeState> for Time {
@@ -24,6 +26,12 @@ impl From<lana_app::time_events::TimeState> for Time {
             next_end_of_day_at: value.next_end_of_day_at.into(),
             timezone: value.timezone.to_string(),
             end_of_day_time: value.end_of_day_time.format("%H:%M:%S").to_string(),
+            can_advance_to_next_end_of_day: value.can_advance_to_next_end_of_day,
         }
     }
+}
+
+crate::mutation_payload! {
+    TimeAdvanceToNextEndOfDayPayload,
+    time: Time
 }

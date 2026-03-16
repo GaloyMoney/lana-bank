@@ -132,6 +132,10 @@
       "timezone": "Zona horaria",
       "endOfDayTime": "Hora de fin de día",
       "nextEndOfDay": "Próximo fin de día",
+      "advanceToNextEndOfDay": "Avanzar al siguiente fin de día",
+      "advanceSuccess": "El tiempo avanzó al siguiente fin de día",
+      "advanceError": "No se pudo avanzar el tiempo",
+      "advanceErrorWithReason": "No se pudo avanzar el tiempo: {error}",
       "loadError": "No se pudo cargar el tiempo"
     },
     "notification-email-from-email": {
@@ -3237,6 +3241,9 @@
     "title": "Información del Sistema",
     "frontend": "Frontend",
     "backend": "Backend",
+    "timeMode": "Modo de tiempo",
+    "realtime": "Tiempo real",
+    "simulated": "Simulado",
     "version": "Versión",
     "buildProfile": "Perfil de Compilación",
     "buildTarget": "Objetivo de Compilación",

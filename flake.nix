@@ -568,7 +568,8 @@
                 echo "$!" > .server.pid
 
                 # Wait for simulation to complete by polling logs
-                # "transitioning to realtime" is logged when sim_bootstrap completes successfully
+                # Newer builds keep simulated time after bootstrap, so they log explicit completion
+                # instead of transitioning back to realtime.
                 echo "Waiting for simulation to complete..."
                 MAX_WAIT=1800  # 30 minutes max for simulation to complete
                 ELAPSED=0
@@ -576,7 +577,7 @@
 
                 while [ $ELAPSED -lt $MAX_WAIT ]; do
                   # Check for successful completion
-                  if grep -q "transitioning to realtime" server.log; then
+                  if grep -q "Sim bootstrap completed successfully" server.log || grep -q "transitioning to realtime" server.log; then
                     echo "✅ Simulation completed successfully!"
                     if wait4x http http://localhost:5253/health --timeout 30s; then
                       echo "✅ Health check passed!"

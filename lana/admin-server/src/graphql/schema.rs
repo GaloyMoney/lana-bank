@@ -2,6 +2,7 @@ use async_graphql::{Context, Error, Object, Subscription, types::connection::*};
 
 use std::io::Read;
 
+use domain_config::DomainConfigAction;
 use futures::StreamExt;
 use futures::stream::Stream;
 use obix::out::OutboxEventMarker;
@@ -52,7 +53,12 @@ impl Query {
     /// configured end-of-day boundary.
     async fn time(&self, ctx: &Context<'_>) -> async_graphql::Result<Time> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        Ok(app.time_state(sub).await?.into())
+        Ok(app
+            .time_events(sub, DomainConfigAction::EXPOSED_CONFIG_READ)
+            .await?
+            .state()
+            .await?
+            .into())
     }
 
     async fn app_config(&self, ctx: &Context<'_>) -> String {
@@ -1599,6 +1605,21 @@ impl Mutation {
                 input.value.into_inner(),
             )
         )
+    }
+
+    /// Advances manual environment time to the next configured end-of-day
+    /// boundary and returns the updated clock state.
+    async fn time_advance_to_next_end_of_day(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<TimeAdvanceToNextEndOfDayPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        Ok(TimeAdvanceToNextEndOfDayPayload::from(Time::from(
+            app.time_events(sub, DomainConfigAction::EXPOSED_CONFIG_WRITE)
+                .await?
+                .advance_to_next_end_of_day()
+                .await?,
+        )))
     }
 
     async fn deposit_module_configure(

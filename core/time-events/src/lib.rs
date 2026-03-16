@@ -6,13 +6,12 @@ pub mod error;
 mod event;
 mod jobs;
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
 use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
 use chrono_tz::Tz;
-use domain_config::{DomainConfigAction, DomainConfigObject, ExposedDomainConfigsReadOnly};
-use es_entity::clock::ClockHandle;
+use domain_config::ExposedDomainConfigsReadOnly;
+use es_entity::clock::{ClockController, ClockHandle};
 use obix::{Outbox, out::OutboxEventMarker};
+use std::time::Duration;
 use tracing_macros::record_error_severity;
 
 use crate::{
@@ -31,32 +30,25 @@ pub struct TimeState {
     pub next_end_of_day_at: DateTime<Utc>,
     pub timezone: Tz,
     pub end_of_day_time: NaiveTime,
+    pub can_advance_to_next_end_of_day: bool,
 }
 
 #[derive(Clone)]
-pub struct TimeEvents<Perms>
-where
-    Perms: PermissionCheck,
-{
-    authz: Perms,
+pub struct TimeEvents {
     clock: ClockHandle,
+    clock_controller: Option<ClockController>,
     domain_configs: ExposedDomainConfigsReadOnly,
 }
 
-impl<Perms> TimeEvents<Perms>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
-{
+impl TimeEvents {
     #[record_error_severity]
     #[tracing::instrument(name = "core_time_events.init", skip_all)]
     pub async fn init<E>(
-        authz: &Perms,
         domain_configs: &ExposedDomainConfigsReadOnly,
         jobs: &mut job::Jobs,
         outbox: &Outbox<E>,
         clock: &ClockHandle,
+        clock_controller: Option<ClockController>,
     ) -> Result<Self, TimeEventsError>
     where
         E: OutboxEventMarker<CoreTimeEvent>,
@@ -73,26 +65,15 @@ where
             .await?;
 
         Ok(Self {
-            authz: authz.clone(),
             clock: clock.clone(),
+            clock_controller,
             domain_configs: domain_configs.clone(),
         })
     }
 
     #[record_error_severity]
     #[tracing::instrument(name = "core_time_events.state", skip(self))]
-    pub async fn state(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<TimeState, TimeEventsError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                DomainConfigObject::all_exposed_configs(),
-                DomainConfigAction::EXPOSED_CONFIG_READ,
-            )
-            .await?;
-
+    pub async fn state(&self) -> Result<TimeState, TimeEventsError> {
         let current_time = self.clock.now();
         let timezone = self
             .domain_configs
@@ -112,6 +93,44 @@ where
             next_end_of_day_at: schedule.next_closing(),
             timezone,
             end_of_day_time: closing_time,
+            can_advance_to_next_end_of_day: self.clock_controller.is_some(),
         })
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(
+        name = "core_time_events.advance_to_next_end_of_day",
+        skip(self),
+        fields(next_end_of_day_at = tracing::field::Empty)
+    )]
+    pub async fn advance_to_next_end_of_day(&self) -> Result<TimeState, TimeEventsError> {
+        let Some(controller) = self.clock_controller.as_ref() else {
+            return Err(TimeEventsError::TimeAdvanceUnavailable);
+        };
+
+        let before = self.state().await?;
+        tracing::Span::current().record(
+            "next_end_of_day_at",
+            tracing::field::display(before.next_end_of_day_at),
+        );
+
+        let advance_by = (before.next_end_of_day_at - before.current_time)
+            .to_std()
+            .map_err(|_| {
+                TimeEventsError::TimeAdvanceFailed(
+                    "Next end of day is not in the future".to_string(),
+                )
+            })?;
+
+        let _ = controller.advance(advance_by).await;
+
+        let after = self.state().await?;
+        if advance_by > Duration::ZERO && after.current_time < before.next_end_of_day_at {
+            return Err(TimeEventsError::TimeAdvanceFailed(
+                "Artificial clock is not manually advanceable".to_string(),
+            ));
+        }
+
+        Ok(after)
     }
 }

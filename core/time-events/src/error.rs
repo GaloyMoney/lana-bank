@@ -8,8 +8,10 @@ pub enum TimeEventsError {
     DomainConfig(#[from] domain_config::DomainConfigError),
     #[error("TimeEventsError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
-    #[error("TimeEventsError - AuthorizationError: {0}")]
-    AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("TimeEventsError - TimeAdvanceUnavailable")]
+    TimeAdvanceUnavailable,
+    #[error("TimeEventsError - TimeAdvanceFailed: {0}")]
+    TimeAdvanceFailed(String),
 }
 
 impl ErrorSeverity for TimeEventsError {
@@ -17,7 +19,8 @@ impl ErrorSeverity for TimeEventsError {
         match self {
             Self::DomainConfig(_) => Level::ERROR,
             Self::JobError(_) => Level::ERROR,
-            Self::AuthorizationError(_) => Level::WARN,
+            Self::TimeAdvanceUnavailable => Level::WARN,
+            Self::TimeAdvanceFailed(_) => Level::WARN,
         }
     }
 }

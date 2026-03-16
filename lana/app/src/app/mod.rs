@@ -2,6 +2,8 @@ mod config;
 mod error;
 
 use core_credit::PaymentSourceAccountId;
+use domain_config::{DomainConfigAction, DomainConfigObject};
+use es_entity::clock::{ClockController, ClockHandle};
 use sqlx::PgPool;
 use tracing::{Instrument, instrument};
 use tracing_macros::record_error_severity;
@@ -80,7 +82,8 @@ impl LanaApp {
     pub async fn init(
         pool: PgPool,
         config: AppConfig,
-        clock: es_entity::clock::ClockHandle,
+        clock: ClockHandle,
+        clock_controller: Option<ClockController>,
         startup_domain_configs: impl IntoIterator<Item = (String, serde_json::Value)>,
     ) -> Result<Self, ApplicationError> {
         sqlx::migrate!()
@@ -151,11 +154,11 @@ impl LanaApp {
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
         let core_price = CorePrice::init(&pool, &authz, &mut jobs, &outbox, clock.clone()).await?;
         let time_events = TimeEvents::init(
-            &authz,
             &exposed_domain_configs_readonly,
             &mut jobs,
             &outbox,
             &clock,
+            clock_controller,
         )
         .await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
@@ -447,12 +450,17 @@ impl LanaApp {
     }
 
     #[record_error_severity]
-    #[instrument(name = "lana.app.time_state", skip(self))]
-    pub async fn time_state(
+    #[instrument(name = "lana.app.time_events", skip(self))]
+    pub async fn time_events(
         &self,
         sub: &Subject,
-    ) -> Result<crate::time_events::TimeState, ApplicationError> {
-        Ok(self.time_events.state(sub).await?)
+        action: DomainConfigAction,
+    ) -> Result<TimeEvents, ApplicationError> {
+        self.authz
+            .enforce_permission(sub, DomainConfigObject::all_exposed_configs(), action)
+            .await?;
+
+        Ok(self.time_events.clone())
     }
 
     pub async fn get_visible_nav_items(

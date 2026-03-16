@@ -229,6 +229,9 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let pool = db::init_pool(&config.db).await?;
 
     let superuser_email = config.app.access.superuser_email.clone();
+    let admin_server_config = config.admin_server.clone();
+    let customer_server_config = config.customer_server.clone();
+    let bootstrap_config = config.bootstrap.clone();
 
     let app_clock = config.time.into_clock();
 
@@ -237,32 +240,11 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         pool.clone(),
         config.app,
         app_clock.clock.clone(),
+        app_clock.controller.clone(),
         domain_config_settings.into_iter().map(|s| (s.key, s.value)),
     )
     .await
     .context("Failed to initialize Lana app")?;
-
-    if config.bootstrap.active
-        && let (Some(ctrl), Some(superuser_email)) = (app_clock.controller, superuser_email)
-    {
-        let seed_only = config.bootstrap.seed_only;
-        let _ = sim_bootstrap::run(
-            superuser_email.to_string(),
-            &app,
-            config.bootstrap,
-            app_clock.clock,
-            ctrl,
-        )
-        .await;
-        if seed_only {
-            info!("Seed-only mode: bootstrap complete, shutting down");
-            if let Err(e) = app.shutdown().await {
-                eprintln!("Error shutting down app: {}", e);
-            }
-            eprintln!("shutdown complete");
-            return Ok(());
-        }
-    }
 
     let admin_error_send = error_send.clone();
     let admin_app = app.clone();
@@ -271,7 +253,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     server_handles.push(tokio::spawn(async move {
         let _ = admin_error_send.try_send(
             admin_server::run(
-                config.admin_server,
+                admin_server_config,
                 admin_app,
                 BuildInfo::get(),
                 admin_server::graphql::AppConfig(app_config_yaml),
@@ -289,13 +271,46 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let mut customer_shutdown = shutdown_recv.resubscribe();
     server_handles.push(tokio::spawn(async move {
         let _ = customer_error_send.try_send(
-            customer_server::run(config.customer_server, customer_app, async move {
+            customer_server::run(customer_server_config, customer_app, async move {
                 let _ = customer_shutdown.recv().await;
             })
             .await
             .context("Customer server error"),
         );
     }));
+
+    let mut bootstrap_handle = if bootstrap_config.active
+        && let (Some(ctrl), Some(superuser_email)) = (app_clock.controller.clone(), superuser_email)
+    {
+        let bootstrap_app = app.clone();
+        let bootstrap_clock = app_clock.clock.clone();
+        let bootstrap_config = bootstrap_config.clone();
+        let bootstrap_error_send = error_send.clone();
+        Some(tokio::spawn(async move {
+            let result = sim_bootstrap::run(
+                superuser_email.to_string(),
+                &bootstrap_app,
+                bootstrap_config,
+                bootstrap_clock,
+                ctrl,
+            )
+            .await
+            .context("Sim bootstrap failed");
+
+            if let Err(ref err) = result {
+                error!(error = ?err, "Sim bootstrap failed");
+                let _ = bootstrap_error_send.try_send(Err(anyhow::anyhow!("{err:#}")));
+            } else {
+                info!("Sim bootstrap completed successfully");
+            }
+
+            result
+        }))
+    } else {
+        None
+    };
+    let should_wait_for_seed_only_bootstrap =
+        bootstrap_config.active && bootstrap_config.seed_only && bootstrap_handle.is_some();
 
     // Setup signal handlers
     let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
@@ -304,6 +319,25 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .context("Failed to setup SIGINT handler")?;
 
     let result = tokio::select! {
+        bootstrap_result = async {
+            if should_wait_for_seed_only_bootstrap {
+                if let Some(handle) = bootstrap_handle.as_mut() {
+                    match handle.await {
+                        Ok(result) => result?,
+                        Err(err) => {
+                            return Err(anyhow::anyhow!(err).context("Sim bootstrap task failed"));
+                        }
+                    }
+                }
+            } else {
+                std::future::pending::<()>().await;
+            }
+            Ok::<(), anyhow::Error>(())
+        } => {
+            bootstrap_result?;
+            info!("Seed-only mode: bootstrap complete, shutting down");
+            Ok(())
+        }
         reason = error_recv.recv() => {
             let reason = reason.expect("Didn't receive error msg");
             if let Err(ref e) = reason {
@@ -325,6 +359,13 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
 
     info!("Sending shutdown signal to servers");
     let _ = shutdown_send.send(());
+
+    if let Some(handle) = bootstrap_handle.take() {
+        if !handle.is_finished() {
+            handle.abort();
+        }
+        let _ = handle.await;
+    }
 
     const SERVER_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(10);
     let shutdown_all = async {
