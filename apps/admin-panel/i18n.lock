@@ -3,6 +3,7 @@ checksums:
   65f0b2bcf7f26084eccbea1631cf7828:
     Common/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     Common/error: 53a2b5f5e7d83c737c8e02fe18fb4bdb
+    Common/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     Common/notFound: 58efcf2ecdcf18f0cd0253acc60eb812
     Common/back: f541015a827e37cb3b1234e56bc2aa3c
     Common/save: f7a2929f33bc420195e59ac5a8bcd454
