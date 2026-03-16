@@ -14,7 +14,7 @@ use job::*;
 use obix::out::OutboxEventMarker;
 
 const EVALUATE_DEPOSIT_ACCOUNT_ACTIVITY_JOB: JobType =
-    JobType::new("task.evaluate-deposit-account-activity");
+    JobType::new("command.deposit-sync.evaluate-deposit-account-activity");
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
