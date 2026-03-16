@@ -237,18 +237,18 @@ impl CreditFacility {
         Ok(CreditFacilityBalance::from(balance))
     }
 
-    async fn wallet(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Wallet>> {
+    async fn wallet(&self, ctx: &Context<'_>) -> async_graphql::Result<Wallet> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let collateral = loader
             .load_one(self.entity.collateral_id)
             .await?
             .expect("credit facility has collateral");
 
-        if let Some(wallet_id) = collateral.wallet_id {
-            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
-        } else {
-            Ok(None)
-        }
+        let wallet_id = collateral.wallet_id.expect("credit facility has wallet");
+        Ok(loader
+            .load_one(WalletId::from(wallet_id))
+            .await?
+            .expect("wallet exists"))
     }
 
     async fn event_history(

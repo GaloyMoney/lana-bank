@@ -388,6 +388,30 @@ where
         self.collaterals.as_ref()
     }
 
+    pub async fn update_collateral_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        collateral_id: core_credit_collateral::CollateralId,
+        updated_collateral: Satoshis,
+        effective: chrono::NaiveDate,
+    ) -> Result<core_credit_collateral::Collateral, CoreCreditError> {
+        let collateral = self
+            .collaterals
+            .find_by_id_without_audit(collateral_id)
+            .await?;
+        if let Some(wallet_id) = collateral.custody_wallet_id {
+            if !self.custody.is_manual_custody_wallet(wallet_id).await? {
+                return Err(
+                    core_credit_collateral::error::CollateralError::ManualUpdateError.into(),
+                );
+            }
+        }
+        Ok(self
+            .collaterals
+            .update_collateral_by_id(sub, collateral_id, updated_collateral, effective)
+            .await?)
+    }
+
     pub fn disbursals(&self) -> &Disbursals<Perms, E> {
         self.disbursals.as_ref()
     }

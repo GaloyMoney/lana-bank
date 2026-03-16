@@ -2113,7 +2113,7 @@ impl Mutation {
             CollateralUpdatePayload,
             Collateral,
             ctx,
-            app.credit().collaterals().update_collateral_by_id(
+            app.credit().update_collateral_by_id(
                 sub,
                 collateral_id.into(),
                 collateral,

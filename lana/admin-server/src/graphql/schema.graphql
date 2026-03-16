@@ -502,7 +502,7 @@ type CreditFacility {
 	userCanRecordPayment: Boolean!
 	userCanRecordPaymentWithDate: Boolean!
 	userCanUpdateCollateral: Boolean!
-	wallet: Wallet
+	wallet: Wallet!
 }
 
 input CreditFacilityAgreementGenerateInput {
@@ -2200,7 +2200,7 @@ type PendingCreditFacility {
 	pendingCreditFacilityId: UUID!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	status: PendingCreditFacilityStatus!
-	wallet: Wallet
+	wallet: Wallet!
 }
 
 type PendingCreditFacilityCollateralizationPayload {
