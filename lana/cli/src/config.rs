@@ -111,12 +111,11 @@ impl Config {
         config.app.user_onboarding.keycloak.client_secret = keycloak_internal_client_secret;
         config.app.customer_sync.keycloak.client_secret = keycloak_customer_client_secret;
 
-        if let Some(secret) = storage_signing_secret {
-            if let lana_app::storage::config::StorageConfig::Local(ref mut local_config) =
+        if let Some(secret) = storage_signing_secret
+            && let lana_app::storage::config::StorageConfig::Local(ref mut local_config) =
                 config.app.storage
-            {
-                local_config.signing_secret = secret;
-            }
+        {
+            local_config.signing_secret = secret;
         }
 
         let parse_key = |hex_str: String| -> anyhow::Result<[u8; 32]> {
