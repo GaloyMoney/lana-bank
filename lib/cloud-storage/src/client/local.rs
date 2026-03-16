@@ -19,8 +19,12 @@ pub struct LocalConfig {
     /// Base URL for the server that will serve local files (e.g., "http://localhost:5253")
     pub server_url: String,
     /// Secret key for signing URLs - must be shared across all server instances
-    #[serde(default, skip_serializing)]
+    #[serde(default = "default_signing_secret", skip_serializing)]
     pub signing_secret: String,
+}
+
+fn default_signing_secret() -> String {
+    "dev-local-storage-signing-secret".to_string()
 }
 
 impl Default for LocalConfig {
@@ -28,7 +32,7 @@ impl Default for LocalConfig {
         Self {
             root_folder: PathBuf::default(),
             server_url: "http://localhost:5253".to_string(),
-            signing_secret: "dev-local-storage-signing-secret".to_string(),
+            signing_secret: default_signing_secret(),
         }
     }
 }
