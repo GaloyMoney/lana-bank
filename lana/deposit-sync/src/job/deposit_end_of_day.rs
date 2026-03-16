@@ -4,19 +4,18 @@ use core_time_events::CoreTimeEvent;
 use job::JobType;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use super::collect_accounts_for_activity_classification::{
-    CollectAccountsForActivityClassificationConfig,
-    CollectAccountsForActivityClassificationJobSpawner,
+use super::collect_accounts_for_activity_evaluation::{
+    CollectAccountsForActivityEvaluationConfig, CollectAccountsForActivityEvaluationJobSpawner,
 };
 
 pub const DEPOSIT_END_OF_DAY: JobType = JobType::new("outbox.deposit-end-of-day");
 
 pub struct DepositEndOfDayHandler {
-    collect_spawner: CollectAccountsForActivityClassificationJobSpawner,
+    collect_spawner: CollectAccountsForActivityEvaluationJobSpawner,
 }
 
 impl DepositEndOfDayHandler {
-    pub fn new(collect_spawner: CollectAccountsForActivityClassificationJobSpawner) -> Self {
+    pub fn new(collect_spawner: CollectAccountsForActivityEvaluationJobSpawner) -> Self {
         Self { collect_spawner }
     }
 }
@@ -40,7 +39,7 @@ where
                 .spawn_in_op(
                     op,
                     job::JobId::new(),
-                    CollectAccountsForActivityClassificationConfig {
+                    CollectAccountsForActivityEvaluationConfig {
                         closing_time: *closing_time,
                     },
                 )
