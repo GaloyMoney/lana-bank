@@ -133,6 +133,40 @@ stop_server() {
       pkill -KILL -f '[l]ana-cli' 2>/dev/null || true
     fi
   fi
+
+  cleanup_bats_background_state
+}
+
+cleanup_bats_background_state() {
+  if [[ -z "${PG_CON:-}" ]]; then
+    return 0
+  fi
+
+  # BATS files are expected to be isolated. When a file advances the manual
+  # clock, shutdown can reschedule long-lived jobs at that future artificial
+  # time, which blocks later files from claiming those jobs after a restart.
+  # Reset job and outbox state between files so each server starts clean.
+  psql "$PG_CON" -v ON_ERROR_STOP=1 >/dev/null <<'SQL'
+DO $$
+BEGIN
+  IF to_regclass('public.cala_persistent_outbox_events') IS NOT NULL THEN
+    DELETE FROM cala_persistent_outbox_events;
+  END IF;
+  IF to_regclass('public.persistent_outbox_events') IS NOT NULL THEN
+    DELETE FROM persistent_outbox_events;
+  END IF;
+  IF to_regclass('public.job_events') IS NOT NULL THEN
+    DELETE FROM job_events;
+  END IF;
+  IF to_regclass('public.job_executions') IS NOT NULL THEN
+    DELETE FROM job_executions;
+  END IF;
+  IF to_regclass('public.jobs') IS NOT NULL THEN
+    DELETE FROM jobs;
+  END IF;
+END
+$$;
+SQL
 }
 
 gql_query() {
