@@ -4,4 +4,4 @@ mod payment;
 
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 pub(super) use error::LiquidationError;
-pub use payment::LiquidationPayment;
+pub use payment::LiquidationPaymentAmounts;

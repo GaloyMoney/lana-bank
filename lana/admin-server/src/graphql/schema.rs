@@ -689,9 +689,9 @@ impl Query {
         &self,
         ctx: &Context<'_>,
         input: LiquidationPaymentCalculateInput,
-    ) -> async_graphql::Result<LiquidationPaymentValue> {
+    ) -> async_graphql::Result<LiquidationPayment> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let result = app
+        let amounts = app
             .credit()
             .collaterals()
             .calculate_liquidation_payment(
@@ -704,11 +704,7 @@ impl Query {
             )
             .await?;
 
-        Ok(LiquidationPaymentValue {
-            to_liquidate: result.to_liquidate,
-            to_receive: result.to_receive,
-            target_cvl: result.target_cvl.into(),
-        })
+        Ok(amounts.into())
     }
 
     async fn custodians(

@@ -5,13 +5,13 @@ use core_price::PriceOfOneBTC;
 use money::{Satoshis, UsdCents};
 
 #[derive(Debug, Clone)]
-pub struct LiquidationPayment {
+pub struct LiquidationPaymentAmounts {
     pub to_liquidate: Satoshis,
     pub to_receive: UsdCents,
     pub target_cvl: CVLPct,
 }
 
-impl LiquidationPayment {
+impl LiquidationPaymentAmounts {
     const UNIT_FEE_FACTOR: Decimal = Decimal::ONE;
 
     const ZERO: Self = Self {
@@ -19,6 +19,44 @@ impl LiquidationPayment {
         to_receive: UsdCents::ZERO,
         target_cvl: CVLPct::ZERO,
     };
+
+    pub fn calculate(
+        outstanding: UsdCents,
+        collateral: Satoshis,
+        price: PriceOfOneBTC,
+        to_receive: Option<UsdCents>,
+        to_liquidate: Option<Satoshis>,
+        target_cvl: Option<CVLPct>,
+    ) -> Option<Self> {
+        match (to_receive, target_cvl, to_liquidate) {
+            (Some(to_receive), Some(target_cvl), None) => {
+                Some(Self::calculate_amount_to_liquidate(
+                    outstanding,
+                    price,
+                    target_cvl,
+                    collateral,
+                    to_receive,
+                ))
+            }
+            (None, Some(target_cvl), Some(to_liquidate)) => {
+                Some(Self::calculate_amount_to_receive(
+                    outstanding,
+                    price,
+                    target_cvl,
+                    collateral,
+                    to_liquidate,
+                ))
+            }
+            (Some(to_receive), None, Some(to_liquidate)) => Some(Self::calculate_target_cvl(
+                outstanding,
+                price,
+                collateral,
+                to_receive,
+                to_liquidate,
+            )),
+            _ => None,
+        }
+    }
 
     /// Calculates, under current `price`, current `collateral` and
     /// current `outstanding` amount, amount to liquidate so that
@@ -154,7 +192,7 @@ mod test {
     use core_price::PriceOfOneBTC;
     use money::{Satoshis, UsdCents};
 
-    use crate::{CVLPct, LiquidationPayment};
+    use crate::{CVLPct, LiquidationPaymentAmounts};
 
     #[test]
     fn to_liquidate_from_to_receive() {
@@ -164,7 +202,7 @@ mod test {
         let collateral = Satoshis::from(100_000_000);
         let to_receive = UsdCents::from(1_875_000);
 
-        let res = LiquidationPayment::calculate_amount_to_liquidate(
+        let res = LiquidationPaymentAmounts::calculate_amount_to_liquidate(
             outstanding,
             price,
             target_cvl,
@@ -182,7 +220,7 @@ mod test {
         let collateral = Satoshis::from(100_000_000);
         let to_liquidate = Satoshis::from(30_000_000);
 
-        let res = LiquidationPayment::calculate_amount_to_receive(
+        let res = LiquidationPaymentAmounts::calculate_amount_to_receive(
             outstanding,
             price,
             target_cvl,
@@ -202,7 +240,7 @@ mod test {
         let outstanding = UsdCents::from(5_000_000);
         let collateral = Satoshis::from(100_000_000);
 
-        let res = LiquidationPayment::calculate_target_cvl(
+        let res = LiquidationPaymentAmounts::calculate_target_cvl(
             outstanding,
             price,
             collateral,

@@ -1440,6 +1440,7 @@
           "customerEmail": "Correo Electrónico del Cliente",
           "status": "Estado",
           "expectedToReceive": "Esperado a recibir",
+          "initiallyEstimatedToLiquidate": "Estimado para Liquidar",
           "sentTotal": "Total enviado",
           "amountReceived": "Total recibido",
           "createdAt": "Fecha de registro"
@@ -1447,8 +1448,7 @@
         "buttons": {
           "recordCollateralSent": "Registrar garantía enviada",
           "recordPaymentReceived": "Registrar pago recibido",
-          "viewMoreDetails": "Ver más detalles",
-          "calculatePayment": "Calcular Pago"
+          "viewMoreDetails": "Ver más detalles"
         }
       },
       "calculator": {
@@ -1464,6 +1464,7 @@
         },
         "buttons": {
           "calculate": "Calcular",
+          "calculatePayment": "Calculadora de Pagos",
           "cancel": "Cancelar"
         },
         "validation": {

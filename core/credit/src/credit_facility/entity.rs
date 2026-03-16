@@ -5,7 +5,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use core_credit_collateral::{
-    CollateralId, FacilityProceedsFromLiquidationAccountId, LiquidationId, LiquidationPayment,
+    CollateralId, FacilityProceedsFromLiquidationAccountId, LiquidationId,
+    LiquidationPaymentAmounts,
 };
 use core_credit_collection::NewObligation;
 use es_entity::*;
@@ -383,7 +384,7 @@ impl CreditFacility {
 
         let amount = balances.total_outstanding();
 
-        let payment = LiquidationPayment::calculate_liquidation_payment(
+        let payment = LiquidationPaymentAmounts::calculate_liquidation_payment(
             amount,
             price,
             self.terms.initial_cvl,

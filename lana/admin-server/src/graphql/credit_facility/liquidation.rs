@@ -10,7 +10,8 @@ use crate::{
     primitives::*,
 };
 pub use lana_app::credit::{
-    Liquidation as DomainLiquidation, LiquidationsSortBy as DomainLiquidationsSortBy,
+    Liquidation as DomainLiquidation, LiquidationPaymentAmounts,
+    LiquidationsSortBy as DomainLiquidationsSortBy,
 };
 
 use super::{Collateral, SortDirection};
@@ -116,10 +117,20 @@ pub struct LiquidationPaymentCalculateInput {
 }
 
 #[derive(SimpleObject)]
-pub struct LiquidationPaymentValue {
+pub struct LiquidationPayment {
     pub to_liquidate: Satoshis,
     pub to_receive: UsdCents,
     pub target_cvl: CVLPct,
+}
+
+impl From<LiquidationPaymentAmounts> for LiquidationPayment {
+    fn from(amounts: LiquidationPaymentAmounts) -> Self {
+        Self {
+            to_liquidate: amounts.to_liquidate,
+            to_receive: amounts.to_receive,
+            target_cvl: amounts.target_cvl.into(),
+        }
+    }
 }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]

@@ -34,8 +34,10 @@ pub enum CollateralError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CollateralError - LiquidationNotFound")]
     LiquidationNotFound,
-    #[error("CollateralError - InvalidLiquidationPaymentCalculationInput: {0}")]
-    InvalidLiquidationPaymentCalculationInput(String),
+    #[error(
+        "CollateralError - InvalidLiquidationPaymentCalculationInput: Expected exactly 2 arguments."
+    )]
+    InvalidLiquidationPaymentCalculationInput,
 }
 
 impl From<LiquidationQueryError> for CollateralError {
@@ -60,7 +62,7 @@ impl ErrorSeverity for CollateralError {
             Self::LiquidationError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::LiquidationNotFound => Level::WARN,
-            Self::InvalidLiquidationPaymentCalculationInput(_) => Level::WARN,
+            Self::InvalidLiquidationPaymentCalculationInput => Level::WARN,
         }
     }
 }

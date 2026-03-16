@@ -39,7 +39,7 @@ pub use {
         FacilityLedgerAccountIdsForLiquidation, FacilityProceedsFromLiquidationAccountId,
         InternalAccountSetDetails, LiquidationProceedsAccountIds,
     },
-    liquidation::{Liquidation, LiquidationPayment},
+    liquidation::{Liquidation, LiquidationPaymentAmounts},
     primitives::*,
     public::CoreCreditCollateralEvent,
     repo::{LiquidationsSortBy, liquidation_cursor},
@@ -522,7 +522,7 @@ where
         to_receive: Option<UsdCents>,
         to_liquidate: Option<Satoshis>,
         target_cvl: Option<CVLPct>,
-    ) -> Result<LiquidationPaymentCalculation, CollateralError> {
+    ) -> Result<LiquidationPaymentAmounts, CollateralError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -540,54 +540,15 @@ where
         let collateral = self.repo.find_by_id(liquidation.collateral_id).await?;
         let price = self.price.usd_cents_per_btc().await;
 
-        let result = match (to_receive, target_cvl, to_liquidate) {
-            (Some(to_receive), Some(target_cvl), None) => {
-                let to_liquidate = LiquidationPayment::calculate_amount_to_liquidate(
-                    outstanding,
-                    price,
-                    target_cvl,
-                    collateral.amount,
-                    to_receive,
-                );
-
-                LiquidationPaymentCalculation {
-                    to_liquidate: to_liquidate.to_liquidate,
-                    to_receive: to_liquidate.to_receive,
-                    target_cvl: to_liquidate.target_cvl,
-                }
-            }
-            (None, Some(target_cvl), Some(to_liquidate)) => {
-                let to_receive = LiquidationPayment::calculate_amount_to_receive(
-                    outstanding,
-                    price,
-                    target_cvl,
-                    collateral.amount,
-                    to_liquidate,
-                );
-                LiquidationPaymentCalculation {
-                    to_liquidate: to_receive.to_liquidate,
-                    to_receive: to_receive.to_receive,
-                    target_cvl: to_receive.target_cvl,
-                }
-            }
-            (Some(to_receive), None, Some(to_liquidate)) => {
-                let target_cvl = LiquidationPayment::calculate_target_cvl(
-                    outstanding,
-                    price,
-                    collateral.amount,
-                    to_receive,
-                    to_liquidate,
-                );
-                LiquidationPaymentCalculation {
-                    to_liquidate: target_cvl.to_liquidate,
-                    to_receive: target_cvl.to_receive,
-                    target_cvl: target_cvl.target_cvl,
-                }
-            }
-            _ => unreachable!("Validation above ensures 2 of 3 are provided"),
-        };
-
-        Ok(result)
+        LiquidationPaymentAmounts::calculate(
+            outstanding,
+            collateral.amount,
+            price,
+            to_receive,
+            to_liquidate,
+            target_cvl,
+        )
+        .ok_or_else(|| CollateralError::InvalidLiquidationPaymentCalculationInput)
     }
 }
 

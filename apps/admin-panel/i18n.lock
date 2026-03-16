@@ -900,13 +900,13 @@ checksums:
     Liquidations/LiquidationDetails/DetailsCard/details/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
     Liquidations/LiquidationDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
     Liquidations/LiquidationDetails/DetailsCard/details/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
+    Liquidations/LiquidationDetails/DetailsCard/details/initiallyEstimatedToLiquidate: 49dd338ef778a0a14c5759c056ece472
     Liquidations/LiquidationDetails/DetailsCard/details/sentTotal: fc40b27969deda2caeab3853a49a3593
     Liquidations/LiquidationDetails/DetailsCard/details/amountReceived: 0e4f52c9fe1b61dc834294d7af823356
     Liquidations/LiquidationDetails/DetailsCard/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Liquidations/LiquidationDetails/DetailsCard/buttons/recordCollateralSent: 4ccb2caa89e295615e642f43999c285f
     Liquidations/LiquidationDetails/DetailsCard/buttons/recordPaymentReceived: 3bd2bb18bcccd58281d50a1c27e2c48e
     Liquidations/LiquidationDetails/DetailsCard/buttons/viewMoreDetails: 8ab63c6de1a1dc0d39f0f1cbdf6db655
-    Liquidations/LiquidationDetails/DetailsCard/buttons/calculatePayment: a8111e79143c80aba0e3a5fc994cf30f
     Liquidations/LiquidationDetails/calculator/title: 896b9de0a0e976af01bc19afcf492e3e
     Liquidations/LiquidationDetails/calculator/description: 961e20d5aefff3a8f8942839be31d1e4
     Liquidations/LiquidationDetails/calculator/fields/toReceive: a5b682f5258fe7eab652e2a0096b773c
@@ -916,6 +916,7 @@ checksums:
     Liquidations/LiquidationDetails/calculator/fields/targetCvl: 1c5ca403faf25b31b3336ad39934fa0b
     Liquidations/LiquidationDetails/calculator/fields/targetCvlPlaceholder: e008adab0655b6b76215ee257020c000
     Liquidations/LiquidationDetails/calculator/buttons/calculate: c5fcf8d3a38706ae2071b6f78339ec68
+    Liquidations/LiquidationDetails/calculator/buttons/calculatePayment: 1042e75b98c54666286a53d7c1f1fcca
     Liquidations/LiquidationDetails/calculator/buttons/cancel: 2e2a849c2223911717de8caa2c71bade
     Liquidations/LiquidationDetails/calculator/validation/twoFieldsRequired: a2214a5bfea9bd470063a805071a8398
     Liquidations/LiquidationDetails/calculator/validation/invalidAmount: 1c7b2c3a8c90b965662ef5217f43ae8d
