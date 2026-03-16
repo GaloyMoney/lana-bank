@@ -1953,6 +1953,7 @@ type Liquidation {
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	expectedToReceive: UsdCents!
 	id: ID!
+	initiallyEstimatedToLiquidate: Satoshis!
 	liquidationId: UUID!
 	receivedProceeds: [LiquidationProceedsReceived!]!
 	sentCollateral: [LiquidationCollateralSent!]!

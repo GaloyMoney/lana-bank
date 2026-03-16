@@ -46,6 +46,10 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
       value: <Balance amount={liquidation.expectedToReceive} currency="usd" />,
     },
     {
+      label: t("details.initiallyEstimatedToLiquidate"),
+      value: <Balance amount={liquidation.initiallyEstimatedToLiquidate} currency="btc" />,
+    },
+    {
       label: t("details.createdAt"),
       value: formatDate(liquidation.createdAt),
     },
@@ -98,7 +102,7 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
         liquidationId={liquidation.liquidationId}
         outstanding={liquidation.collateral.creditFacility?.balance?.outstanding?.usdBalance ?? 0}
         defaultToReceive={liquidation.expectedToReceive}
-        defaultToLiquidate={liquidation.sentTotal}
+        defaultToLiquidate={liquidation.initiallyEstimatedToLiquidate}
       />
     </div>
   )

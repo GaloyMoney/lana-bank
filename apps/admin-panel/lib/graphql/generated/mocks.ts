@@ -2462,6 +2462,7 @@ export const mockLiquidation = (overrides?: Partial<Liquidation>, _relationships
         eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         expectedToReceive: overrides && overrides.hasOwnProperty('expectedToReceive') ? overrides.expectedToReceive! : generateMockValue.usdCents(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        initiallyEstimatedToLiquidate: overrides && overrides.hasOwnProperty('initiallyEstimatedToLiquidate') ? overrides.initiallyEstimatedToLiquidate! : generateMockValue.satoshis(),
         liquidationId: overrides && overrides.hasOwnProperty('liquidationId') ? overrides.liquidationId! : generateMockValue.uuid(),
         receivedProceeds: overrides && overrides.hasOwnProperty('receivedProceeds') ? overrides.receivedProceeds! : [relationshipsToOmit.has('LiquidationProceedsReceived') ? {} as LiquidationProceedsReceived : mockLiquidationProceedsReceived({}, relationshipsToOmit)],
         sentCollateral: overrides && overrides.hasOwnProperty('sentCollateral') ? overrides.sentCollateral! : [relationshipsToOmit.has('LiquidationCollateralSent') ? {} as LiquidationCollateralSent : mockLiquidationCollateralSent({}, relationshipsToOmit)],

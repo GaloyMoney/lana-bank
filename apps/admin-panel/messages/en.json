@@ -1440,6 +1440,7 @@
           "customerEmail": "Customer Email",
           "status": "Status",
           "expectedToReceive": "Expected to Receive",
+          "initiallyEstimatedToLiquidate": "Estimated to Liquidate",
           "sentTotal": "Sent Total",
           "amountReceived": "Received Total",
           "createdAt": "Created At"
