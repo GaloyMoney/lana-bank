@@ -542,7 +542,7 @@ where
 
         let result = match (to_receive, target_cvl, to_liquidate) {
             (Some(to_receive), Some(target_cvl), None) => {
-                let to_liquidate = LiquidationPayment::to_liquidate_from_to_receive(
+                let to_liquidate = LiquidationPayment::calculate_amount_to_liquidate(
                     outstanding,
                     price,
                     target_cvl,
@@ -557,7 +557,7 @@ where
                 }
             }
             (None, Some(target_cvl), Some(to_liquidate)) => {
-                let to_receive = LiquidationPayment::to_receive_from_to_liquidate(
+                let to_receive = LiquidationPayment::calculate_amount_to_receive(
                     outstanding,
                     price,
                     target_cvl,
@@ -571,7 +571,7 @@ where
                 }
             }
             (Some(to_receive), None, Some(to_liquidate)) => {
-                let target_cvl = LiquidationPayment::target_cvl_from_payment_amounts(
+                let target_cvl = LiquidationPayment::calculate_target_cvl(
                     outstanding,
                     price,
                     collateral.amount,
@@ -579,9 +579,9 @@ where
                     to_liquidate,
                 );
                 LiquidationPaymentCalculation {
-                    to_liquidate,
-                    to_receive,
-                    target_cvl,
+                    to_liquidate: target_cvl.to_liquidate,
+                    to_receive: target_cvl.to_receive,
+                    target_cvl: target_cvl.target_cvl,
                 }
             }
             _ => unreachable!("Validation above ensures 2 of 3 are provided"),

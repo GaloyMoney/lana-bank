@@ -20,7 +20,10 @@ impl LiquidationPayment {
         target_cvl: CVLPct::ZERO,
     };
 
-    pub fn to_liquidate_from_to_receive(
+    /// Calculates, under current `price`, current `collateral` and
+    /// current `outstanding` amount, amount to liquidate so that
+    /// `target_cvl` holds.
+    pub fn calculate_amount_to_liquidate(
         outstanding: UsdCents,
         price: PriceOfOneBTC,
         target_cvl: CVLPct,
@@ -28,29 +31,21 @@ impl LiquidationPayment {
         to_receive: UsdCents,
     ) -> Self {
         let target_ratio = Self::target_ratio_or_zero(target_cvl);
-        let collateral_usd = price.sats_to_cents_round_down(collateral).to_usd();
-
-        let required_collateral = outstanding.to_usd() * target_ratio;
-        if to_receive.to_usd() > required_collateral - collateral_usd {
-            let to_liquidate = price.cents_to_sats_round_up(to_receive);
-            Self {
-                to_liquidate,
-                to_receive,
-                target_cvl,
-            }
-        } else {
-            Self::ZERO
+        if target_ratio == Decimal::ZERO {
+            return Self::ZERO;
         }
-    }
 
-    pub fn to_receive_from_to_liquidate(
-        _outstanding: UsdCents,
-        price: PriceOfOneBTC,
-        target_cvl: CVLPct,
-        _collateral: Satoshis,
-        to_liquidate: Satoshis,
-    ) -> Self {
-        let to_receive = price.sats_to_cents_round_down(to_liquidate);
+        let collateral_usd = price.sats_to_cents_round_down(collateral).to_usd();
+        let new_outstanding = outstanding - to_receive;
+
+        let to_liquidate_usd = (collateral_usd - target_ratio * new_outstanding.to_usd())
+            .max(Decimal::ZERO)
+            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
+
+        let to_liquidate_cents = UsdCents::try_from_usd(to_liquidate_usd)
+            .expect("liquidate amount must be in whole cents");
+        let to_liquidate = price.cents_to_sats_round_up(to_liquidate_cents);
+
         Self {
             to_liquidate,
             to_receive,
@@ -58,7 +53,43 @@ impl LiquidationPayment {
         }
     }
 
-    pub fn calculate_from_target_cvl(
+    /// Calculates, under current `price`, current `collateral` and
+    /// current `outstanding` amount, amount to receive so that
+    /// `target_cvl` holds.
+    pub fn calculate_amount_to_receive(
+        outstanding: UsdCents,
+        price: PriceOfOneBTC,
+        target_cvl: CVLPct,
+        collateral: Satoshis,
+        to_liquidate: Satoshis,
+    ) -> Self {
+        let target_ratio = Self::target_ratio_or_zero(target_cvl);
+        if target_ratio == Decimal::ZERO {
+            return Self::ZERO;
+        }
+
+        let new_collateral_usd = price
+            .sats_to_cents_round_down(collateral - to_liquidate)
+            .to_usd();
+
+        let repay_usd = (outstanding.to_usd() - new_collateral_usd / target_ratio)
+            .max(Decimal::ZERO)
+            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
+
+        let to_receive =
+            UsdCents::try_from_usd(repay_usd).expect("repay amount must be in whole cents");
+
+        Self {
+            to_liquidate,
+            to_receive,
+            target_cvl,
+        }
+    }
+
+    /// Calculates expected payment given `target_cvl` and current
+    /// `outstanding` amount, current `price` and current `collateral`
+    /// amount.
+    pub fn calculate_liquidation_payment(
         outstanding: UsdCents,
         price: PriceOfOneBTC,
         target_cvl: CVLPct,
@@ -90,27 +121,23 @@ impl LiquidationPayment {
         }
     }
 
-    pub fn target_cvl_from_payment_amounts(
+    /// Calculates target CVL if, given current `outstanding` amount,
+    /// current `collateral` and current `price`, `to_liquidate` were
+    /// liquidated and `to_receive` were received.
+    pub fn calculate_target_cvl(
         outstanding: UsdCents,
         price: PriceOfOneBTC,
         collateral: Satoshis,
         to_receive: UsdCents,
-        _to_liquidate: Satoshis,
-    ) -> CVLPct {
-        let to_receive_usd = to_receive.to_usd();
-        let outstanding_usd = outstanding.to_usd();
-        let collateral_usd = price.sats_to_cents_round_down(collateral).to_usd();
+        to_liquidate: Satoshis,
+    ) -> Self {
+        let new_collateral_usd = price.sats_to_cents_round_down(collateral - to_liquidate);
+        let new_outstanding = outstanding - to_receive;
 
-        if to_receive_usd <= outstanding_usd && to_receive_usd != collateral_usd {
-            let target_ratio =
-                (to_receive_usd - collateral_usd) / (to_receive_usd - outstanding_usd);
-            let cvl_pct = (target_ratio * Decimal::from(100u64))
-                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero);
-            CVLPct::Finite(cvl_pct)
-        } else if to_receive_usd > outstanding_usd {
-            CVLPct::Infinite
-        } else {
-            CVLPct::ZERO
+        Self {
+            to_liquidate,
+            to_receive,
+            target_cvl: CVLPct::from_loan_amounts(new_collateral_usd, new_outstanding),
         }
     }
 
@@ -137,7 +164,7 @@ mod test {
         let collateral = Satoshis::from(100_000_000);
         let to_receive = UsdCents::from(1_875_000);
 
-        let res = LiquidationPayment::to_liquidate_from_to_receive(
+        let res = LiquidationPayment::calculate_amount_to_liquidate(
             outstanding,
             price,
             target_cvl,
@@ -148,14 +175,14 @@ mod test {
     }
 
     #[test]
-    fn to_receive_from_to_liquidate() {
+    fn calculate_amount_to_receive() {
         let outstanding = UsdCents::from(5_000_000);
         let price = PriceOfOneBTC::new(UsdCents::from(6_250_000));
         let target_cvl = CVLPct::new(140);
         let collateral = Satoshis::from(100_000_000);
         let to_liquidate = Satoshis::from(30_000_000);
 
-        let res = LiquidationPayment::to_receive_from_to_liquidate(
+        let res = LiquidationPayment::calculate_amount_to_receive(
             outstanding,
             price,
             target_cvl,
@@ -167,37 +194,21 @@ mod test {
 
     #[test]
     fn target_cvl_from_payment_amounts() {
-        let outstanding = UsdCents::from(5_000_000);
         let price = PriceOfOneBTC::new(UsdCents::from(6_250_000));
-        let collateral = Satoshis::from(100_000_000);
+
+        let to_liquidate = Satoshis::from(30_000_000);
         let to_receive = UsdCents::from(1_875_000);
-        let to_liquidate = Satoshis::from(30_000);
 
-        let res = LiquidationPayment::target_cvl_from_payment_amounts(
-            outstanding,
-            price,
-            collateral,
-            to_receive,
-            to_liquidate,
-        );
-        assert_eq!(res, CVLPct::new(140));
-    }
-
-    #[test]
-    fn target_cvl_infinite_when_excess_payment() {
         let outstanding = UsdCents::from(5_000_000);
-        let price = PriceOfOneBTC::new(UsdCents::from(6_250_000));
         let collateral = Satoshis::from(100_000_000);
-        let to_receive = UsdCents::from(10_000_000);
-        let to_liquidate = Satoshis::from(160_000);
 
-        let res = LiquidationPayment::target_cvl_from_payment_amounts(
+        let res = LiquidationPayment::calculate_target_cvl(
             outstanding,
             price,
             collateral,
             to_receive,
             to_liquidate,
         );
-        assert_eq!(res, CVLPct::Infinite);
+        assert_eq!(res.target_cvl, CVLPct::new(140));
     }
 }
