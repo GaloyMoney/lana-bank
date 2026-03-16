@@ -230,9 +230,8 @@ impl LoanAgreementData {
         full_name: String,
         address: Option<String>,
         country: Option<String>,
+        date: chrono::NaiveDate,
     ) -> Self {
-        let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
-
         Self {
             email,
             full_name,
@@ -240,7 +239,7 @@ impl LoanAgreementData {
             country,
             customer_id: customer_id.to_string(),
             telegram_handle,
-            date,
+            date: date.format("%Y-%m-%d").to_string(),
         }
     }
 }

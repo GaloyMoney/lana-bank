@@ -2,7 +2,7 @@ pub mod error;
 
 use async_trait::async_trait;
 use bytes::Bytes;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 
 use money::Satoshis;
 
@@ -35,10 +35,13 @@ pub trait CustodianClient: Send {
     ) -> Result<Option<Satoshis>, CustodianClientError>;
 
     /// Validates and parses webhook.
+    /// The `now` parameter provides the current time from the application clock,
+    /// used as a fallback when the external provider does not supply a timestamp.
     async fn process_webhook(
         &self,
         headers: &http::HeaderMap,
         payload: Bytes,
+        now: DateTime<Utc>,
     ) -> Result<Option<CustodianNotification>, CustodianClientError>;
 }
 
@@ -82,6 +85,7 @@ impl CustodianClient for bitgo::BitgoClient {
         &self,
         headers: &http::HeaderMap,
         payload: Bytes,
+        now: DateTime<Utc>,
     ) -> Result<Option<CustodianNotification>, CustodianClientError> {
         let notification = self.validate_webhook_notification(headers, &payload)?;
 
@@ -97,7 +101,7 @@ impl CustodianClient for bitgo::BitgoClient {
                 if transfer.state == TransferState::Confirmed {
                     let (wallet, _) = self.get_wallet(&transfer.wallet).await?;
 
-                    let changed_at = transfer.confirmed_time.unwrap_or_else(Utc::now);
+                    let changed_at = transfer.confirmed_time.unwrap_or(now);
 
                     Some(CustodianNotification::WalletBalanceChanged {
                         external_wallet_id: transfer.wallet,
@@ -147,6 +151,7 @@ impl CustodianClient for komainu::KomainuClient {
         &self,
         headers: &http::HeaderMap,
         payload: Bytes,
+        now: DateTime<Utc>,
     ) -> Result<Option<CustodianNotification>, CustodianClientError> {
         let notification = self.validate_webhook_notification(headers, &payload)?;
 
@@ -162,7 +167,7 @@ impl CustodianClient for komainu::KomainuClient {
 
                 let new_balance = Satoshis::try_from_btc(wallet.balance.available)?;
 
-                let changed_at = wallet.balance.balance_updated_at.unwrap_or_else(Utc::now);
+                let changed_at = wallet.balance.balance_updated_at.unwrap_or(now);
 
                 Some(CustodianNotification::WalletBalanceChanged {
                     external_wallet_id: wallet.id,
@@ -226,6 +231,7 @@ impl CustodianClient for self_custody::SelfCustodyClient {
         &self,
         _headers: &http::HeaderMap,
         _payload: Bytes,
+        _now: DateTime<Utc>,
     ) -> Result<Option<CustodianNotification>, CustodianClientError> {
         Ok(None)
     }
@@ -277,12 +283,13 @@ pub mod mock {
             &self,
             _headers: &http::HeaderMap,
             payload: Bytes,
+            now: DateTime<Utc>,
         ) -> Result<Option<CustodianNotification>, CustodianClientError> {
             if let Ok(WalletBalanceChanged { wallet, balance }) = serde_json::from_slice(&payload) {
                 Ok(Some(CustodianNotification::WalletBalanceChanged {
                     external_wallet_id: wallet,
                     new_balance: balance.into(),
-                    changed_at: Utc::now(),
+                    changed_at: now,
                 }))
             } else {
                 Ok(None)
@@ -319,6 +326,7 @@ impl CustodianClient for ManualCustodian {
         &self,
         _headers: &http::HeaderMap,
         _payload: Bytes,
+        _now: DateTime<Utc>,
     ) -> Result<Option<CustodianNotification>, CustodianClientError> {
         Ok(None)
     }

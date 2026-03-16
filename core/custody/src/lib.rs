@@ -62,6 +62,7 @@ where
     wallets: WalletRepo<E>,
     encryption_config: EncryptionConfig,
     config: CustodyConfig,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for CustodianWebhookHandler<Perms, E>
@@ -76,6 +77,7 @@ where
             wallets: self.wallets.clone(),
             encryption_config: self.encryption_config.clone(),
             config: self.config.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -116,13 +118,14 @@ where
         clock: ClockHandle,
     ) -> Self {
         let custodians = CustodianRepo::new(pool, clock.clone());
-        let wallets = WalletRepo::new(pool, &CustodyPublisher::new(outbox), clock);
+        let wallets = WalletRepo::new(pool, &CustodyPublisher::new(outbox), clock.clone());
         Self {
             authz: authz.clone(),
             encryption_config: encryption_config.clone(),
             config: config.clone(),
             custodians,
             wallets,
+            clock,
         }
     }
 
@@ -151,7 +154,7 @@ where
                     &self.encryption_config.encryption_key,
                     &self.config.custody_providers,
                 )?
-                .process_webhook(&header_map, payload)
+                .process_webhook(&header_map, payload, self.clock.now())
                 .await?
         {
             match notification {
