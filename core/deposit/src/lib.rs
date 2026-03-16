@@ -886,14 +886,11 @@ where
         }
     }
 
-    /// Returns a page of non-escheatable deposit account IDs for activity classification,
+    /// Returns a page of non-escheatable deposit account IDs for activity evaluation,
     /// using keyset cursor pagination ordered by (created_at, id).
     #[record_error_severity]
-    #[instrument(
-        name = "deposit.list_account_ids_for_activity_classification",
-        skip(self)
-    )]
-    pub async fn list_account_ids_for_activity_classification(
+    #[instrument(name = "deposit.list_account_ids_for_activity_evaluation", skip(self))]
+    pub async fn list_account_ids_for_activity_evaluation(
         &self,
         after: Option<(DateTime<Utc>, DepositAccountId)>,
         limit: i64,
@@ -904,12 +901,12 @@ where
             .await?)
     }
 
-    /// Determines whether a deposit account needs activity reclassification.
+    /// Determines whether a deposit account needs activity re-evaluation.
     /// Returns `Some(new_activity)` if the account's activity should change,
     /// or `None` if no change is needed (including if the account is already escheatable).
     #[record_error_severity]
-    #[instrument(name = "deposit.classify_account_activity", skip(self), fields(%account_id, closing_time = %closing_time))]
-    pub async fn classify_account_activity(
+    #[instrument(name = "deposit.evaluate_account_activity", skip(self), fields(%account_id, closing_time = %closing_time))]
+    pub async fn evaluate_account_activity(
         &self,
         account_id: DepositAccountId,
         closing_time: DateTime<Utc>,
@@ -932,17 +929,17 @@ where
         }
     }
 
-    /// Classifies and updates a single deposit account's activity status.
-    /// Combines classification and update in a single operation.
+    /// Evaluates and updates a single deposit account's activity status.
+    /// Combines evaluation and update in a single operation.
     #[record_error_severity]
-    #[instrument(name = "deposit.classify_and_update_account_activity", skip(self), fields(%account_id, closing_time = %closing_time))]
-    pub async fn classify_and_update_account_activity(
+    #[instrument(name = "deposit.evaluate_and_update_account_activity", skip(self), fields(%account_id, closing_time = %closing_time))]
+    pub async fn evaluate_and_update_account_activity(
         &self,
         account_id: DepositAccountId,
         closing_time: DateTime<Utc>,
     ) -> Result<(), CoreDepositError> {
         if let Some(activity) = self
-            .classify_account_activity(account_id, closing_time)
+            .evaluate_account_activity(account_id, closing_time)
             .await?
         {
             let mut op = self.deposit_accounts.begin_op().await?;

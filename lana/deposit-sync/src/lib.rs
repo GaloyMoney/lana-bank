@@ -77,11 +77,11 @@ where
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
     ) -> Result<Self, DepositSyncError> {
-        let classify_spawner =
-            jobs.add_initializer(ClassifyDepositAccountActivityJobInit::new(deposits));
+        let evaluate_spawner =
+            jobs.add_initializer(EvaluateDepositAccountActivityJobInit::new(deposits));
 
         let collect_spawner = jobs.add_initializer(
-            CollectAccountsForActivityClassificationJobInit::new(deposits, classify_spawner),
+            CollectAccountsForActivityEvaluationJobInit::new(deposits, evaluate_spawner),
         );
 
         outbox

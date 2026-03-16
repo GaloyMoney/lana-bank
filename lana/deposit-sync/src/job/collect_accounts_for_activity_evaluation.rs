@@ -13,21 +13,21 @@ use governance::GovernanceEvent;
 use job::*;
 use obix::out::OutboxEventMarker;
 
-use super::classify_deposit_account_activity::{
-    ClassifyDepositAccountActivityConfig, ClassifyDepositAccountActivityJobSpawner,
+use super::evaluate_deposit_account_activity::{
+    EvaluateDepositAccountActivityConfig, EvaluateDepositAccountActivityJobSpawner,
 };
 
-const COLLECT_ACCOUNTS_FOR_ACTIVITY_CLASSIFICATION_JOB: JobType =
-    JobType::new("command.deposit-sync.collect-accounts-for-activity-classification");
+const COLLECT_ACCOUNTS_FOR_ACTIVITY_EVALUATION_JOB: JobType =
+    JobType::new("task.collect-accounts-for-activity-evaluation");
 const PAGE_SIZE: i64 = 100;
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CollectAccountsForActivityClassificationConfig {
+pub struct CollectAccountsForActivityEvaluationConfig {
     pub closing_time: chrono::DateTime<chrono::Utc>,
 }
 
-pub struct CollectAccountsForActivityClassificationJobInit<Perms, E>
+pub struct CollectAccountsForActivityEvaluationJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -35,10 +35,10 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     deposits: CoreDeposit<Perms, E>,
-    classify_spawner: ClassifyDepositAccountActivityJobSpawner,
+    evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
 }
 
-impl<Perms, E> CollectAccountsForActivityClassificationJobInit<Perms, E>
+impl<Perms, E> CollectAccountsForActivityEvaluationJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -47,16 +47,16 @@ where
 {
     pub fn new(
         deposits: &CoreDeposit<Perms, E>,
-        classify_spawner: ClassifyDepositAccountActivityJobSpawner,
+        evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
     ) -> Self {
         Self {
             deposits: deposits.clone(),
-            classify_spawner,
+            evaluate_spawner,
         }
     }
 }
 
-impl<Perms, E> JobInitializer for CollectAccountsForActivityClassificationJobInit<Perms, E>
+impl<Perms, E> JobInitializer for CollectAccountsForActivityEvaluationJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -67,10 +67,10 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    type Config = CollectAccountsForActivityClassificationConfig;
+    type Config = CollectAccountsForActivityEvaluationConfig;
 
     fn job_type(&self) -> JobType {
-        COLLECT_ACCOUNTS_FOR_ACTIVITY_CLASSIFICATION_JOB
+        COLLECT_ACCOUNTS_FOR_ACTIVITY_EVALUATION_JOB
     }
 
     fn init(
@@ -78,36 +78,34 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(
-            CollectAccountsForActivityClassificationJobRunner {
-                config: job.config()?,
-                deposits: self.deposits.clone(),
-                classify_spawner: self.classify_spawner.clone(),
-            },
-        ))
+        Ok(Box::new(CollectAccountsForActivityEvaluationJobRunner {
+            config: job.config()?,
+            deposits: self.deposits.clone(),
+            evaluate_spawner: self.evaluate_spawner.clone(),
+        }))
     }
 }
 
-struct CollectAccountsForActivityClassificationJobRunner<Perms, E>
+struct CollectAccountsForActivityEvaluationJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    config: CollectAccountsForActivityClassificationConfig,
+    config: CollectAccountsForActivityEvaluationConfig,
     deposits: CoreDeposit<Perms, E>,
-    classify_spawner: ClassifyDepositAccountActivityJobSpawner,
+    evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct CollectAccountsForActivityClassificationState {
+struct CollectAccountsForActivityEvaluationState {
     last_cursor: Option<(chrono::DateTime<chrono::Utc>, DepositAccountId)>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CollectAccountsForActivityClassificationJobRunner<Perms, E>
+impl<Perms, E> JobRunner for CollectAccountsForActivityEvaluationJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -119,7 +117,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     #[instrument(
-        name = "deposit-sync.collect-accounts-for-activity-classification.process_command",
+        name = "deposit-sync.collect-accounts-for-activity-evaluation.run",
         skip(self, current_job),
         fields(closing_time = %self.config.closing_time)
     )]
@@ -128,13 +126,13 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CollectAccountsForActivityClassificationState>()?
+            .execution_state::<CollectAccountsForActivityEvaluationState>()?
             .unwrap_or_default();
 
         loop {
             let rows = self
                 .deposits
-                .list_account_ids_for_activity_classification(state.last_cursor, PAGE_SIZE)
+                .list_account_ids_for_activity_evaluation(state.last_cursor, PAGE_SIZE)
                 .await?;
 
             if rows.is_empty() {
@@ -146,7 +144,7 @@ where
                 .map(|(id, _)| {
                     JobSpec::new(
                         JobId::new(),
-                        ClassifyDepositAccountActivityConfig {
+                        EvaluateDepositAccountActivityConfig {
                             deposit_account_id: *id,
                             closing_time: self.config.closing_time,
                         },
@@ -156,7 +154,7 @@ where
                 .collect();
 
             let mut op = current_job.begin_op().await?;
-            self.classify_spawner
+            self.evaluate_spawner
                 .spawn_all_in_op(&mut op, specs)
                 .await?;
 
@@ -171,5 +169,5 @@ where
     }
 }
 
-pub type CollectAccountsForActivityClassificationJobSpawner =
-    JobSpawner<CollectAccountsForActivityClassificationConfig>;
+pub type CollectAccountsForActivityEvaluationJobSpawner =
+    JobSpawner<CollectAccountsForActivityEvaluationConfig>;

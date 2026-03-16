@@ -13,17 +13,17 @@ use governance::GovernanceEvent;
 use job::*;
 use obix::out::OutboxEventMarker;
 
-const CLASSIFY_DEPOSIT_ACCOUNT_ACTIVITY_JOB: JobType =
-    JobType::new("command.deposit-sync.classify-deposit-account-activity");
+const EVALUATE_DEPOSIT_ACCOUNT_ACTIVITY_JOB: JobType =
+    JobType::new("task.evaluate-deposit-account-activity");
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ClassifyDepositAccountActivityConfig {
+pub struct EvaluateDepositAccountActivityConfig {
     pub deposit_account_id: DepositAccountId,
     pub closing_time: chrono::DateTime<chrono::Utc>,
 }
 
-pub struct ClassifyDepositAccountActivityJobInit<Perms, E>
+pub struct EvaluateDepositAccountActivityJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -33,7 +33,7 @@ where
     deposits: CoreDeposit<Perms, E>,
 }
 
-impl<Perms, E> ClassifyDepositAccountActivityJobInit<Perms, E>
+impl<Perms, E> EvaluateDepositAccountActivityJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -47,7 +47,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for ClassifyDepositAccountActivityJobInit<Perms, E>
+impl<Perms, E> JobInitializer for EvaluateDepositAccountActivityJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -58,10 +58,10 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    type Config = ClassifyDepositAccountActivityConfig;
+    type Config = EvaluateDepositAccountActivityConfig;
 
     fn job_type(&self) -> JobType {
-        CLASSIFY_DEPOSIT_ACCOUNT_ACTIVITY_JOB
+        EVALUATE_DEPOSIT_ACCOUNT_ACTIVITY_JOB
     }
 
     fn init(
@@ -69,26 +69,26 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ClassifyDepositAccountActivityJobRunner {
+        Ok(Box::new(EvaluateDepositAccountActivityJobRunner {
             config: job.config()?,
             deposits: self.deposits.clone(),
         }))
     }
 }
 
-struct ClassifyDepositAccountActivityJobRunner<Perms, E>
+struct EvaluateDepositAccountActivityJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    config: ClassifyDepositAccountActivityConfig,
+    config: EvaluateDepositAccountActivityConfig,
     deposits: CoreDeposit<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for ClassifyDepositAccountActivityJobRunner<Perms, E>
+impl<Perms, E> JobRunner for EvaluateDepositAccountActivityJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -100,7 +100,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     #[instrument(
-        name = "deposit-sync.classify-deposit-account-activity.process_command",
+        name = "deposit-sync.evaluate-deposit-account-activity.run",
         skip(self, current_job),
         fields(deposit_account_id = %self.config.deposit_account_id)
     )]
@@ -110,7 +110,7 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let new_activity = self
             .deposits
-            .classify_account_activity(self.config.deposit_account_id, self.config.closing_time)
+            .evaluate_account_activity(self.config.deposit_account_id, self.config.closing_time)
             .await?;
 
         if let Some(activity) = new_activity {
@@ -125,5 +125,5 @@ where
     }
 }
 
-pub type ClassifyDepositAccountActivityJobSpawner =
-    JobSpawner<ClassifyDepositAccountActivityConfig>;
+pub type EvaluateDepositAccountActivityJobSpawner =
+    JobSpawner<EvaluateDepositAccountActivityConfig>;
