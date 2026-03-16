@@ -28,3 +28,5 @@ tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 thiserror = { workspace = true }
+rust_decimal = { workspace = true }
+chrono = { workspace = true }
