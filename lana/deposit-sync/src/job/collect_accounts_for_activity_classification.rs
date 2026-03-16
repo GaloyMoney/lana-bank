@@ -17,17 +17,17 @@ use super::classify_deposit_account_activity::{
     ClassifyDepositAccountActivityConfig, ClassifyDepositAccountActivityJobSpawner,
 };
 
-const SWEEP_DEPOSIT_ACTIVITY_STATUS_JOB: JobType =
-    JobType::new("command.deposit-sync.sweep-deposit-activity-status");
+const COLLECT_ACCOUNTS_FOR_ACTIVITY_CLASSIFICATION_JOB: JobType =
+    JobType::new("command.deposit-sync.collect-accounts-for-activity-classification");
 const PAGE_SIZE: i64 = 100;
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SweepDepositActivityStatusConfig {
+pub struct CollectAccountsForActivityClassificationConfig {
     pub closing_time: chrono::DateTime<chrono::Utc>,
 }
 
-pub struct SweepDepositActivityStatusJobInit<Perms, E>
+pub struct CollectAccountsForActivityClassificationJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -38,7 +38,7 @@ where
     classify_spawner: ClassifyDepositAccountActivityJobSpawner,
 }
 
-impl<Perms, E> SweepDepositActivityStatusJobInit<Perms, E>
+impl<Perms, E> CollectAccountsForActivityClassificationJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -56,7 +56,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for SweepDepositActivityStatusJobInit<Perms, E>
+impl<Perms, E> JobInitializer for CollectAccountsForActivityClassificationJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -67,10 +67,10 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    type Config = SweepDepositActivityStatusConfig;
+    type Config = CollectAccountsForActivityClassificationConfig;
 
     fn job_type(&self) -> JobType {
-        SWEEP_DEPOSIT_ACTIVITY_STATUS_JOB
+        COLLECT_ACCOUNTS_FOR_ACTIVITY_CLASSIFICATION_JOB
     }
 
     fn init(
@@ -78,34 +78,36 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(SweepDepositActivityStatusJobRunner {
-            config: job.config()?,
-            deposits: self.deposits.clone(),
-            classify_spawner: self.classify_spawner.clone(),
-        }))
+        Ok(Box::new(
+            CollectAccountsForActivityClassificationJobRunner {
+                config: job.config()?,
+                deposits: self.deposits.clone(),
+                classify_spawner: self.classify_spawner.clone(),
+            },
+        ))
     }
 }
 
-struct SweepDepositActivityStatusJobRunner<Perms, E>
+struct CollectAccountsForActivityClassificationJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    config: SweepDepositActivityStatusConfig,
+    config: CollectAccountsForActivityClassificationConfig,
     deposits: CoreDeposit<Perms, E>,
     classify_spawner: ClassifyDepositAccountActivityJobSpawner,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct SweepState {
+struct CollectAccountsForActivityClassificationState {
     last_cursor: Option<(chrono::DateTime<chrono::Utc>, DepositAccountId)>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for SweepDepositActivityStatusJobRunner<Perms, E>
+impl<Perms, E> JobRunner for CollectAccountsForActivityClassificationJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -117,7 +119,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     #[instrument(
-        name = "deposit-sync.sweep-deposit-activity-status.process_command",
+        name = "deposit-sync.collect-accounts-for-activity-classification.process_command",
         skip(self, current_job),
         fields(closing_time = %self.config.closing_time)
     )]
@@ -126,13 +128,13 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<SweepState>()?
+            .execution_state::<CollectAccountsForActivityClassificationState>()?
             .unwrap_or_default();
 
         loop {
             let rows = self
                 .deposits
-                .list_account_ids_for_activity_sweep(state.last_cursor, PAGE_SIZE)
+                .list_account_ids_for_activity_classification(state.last_cursor, PAGE_SIZE)
                 .await?;
 
             if rows.is_empty() {
@@ -169,4 +171,5 @@ where
     }
 }
 
-pub type SweepDepositActivityStatusJobSpawner = JobSpawner<SweepDepositActivityStatusConfig>;
+pub type CollectAccountsForActivityClassificationJobSpawner =
+    JobSpawner<CollectAccountsForActivityClassificationConfig>;

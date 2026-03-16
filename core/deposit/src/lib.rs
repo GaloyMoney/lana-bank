@@ -886,11 +886,14 @@ where
         }
     }
 
-    /// Returns a page of non-escheatable deposit account IDs for activity sweep,
+    /// Returns a page of non-escheatable deposit account IDs for activity classification,
     /// using keyset cursor pagination ordered by (created_at, id).
     #[record_error_severity]
-    #[instrument(name = "deposit.list_account_ids_for_activity_sweep", skip(self))]
-    pub async fn list_account_ids_for_activity_sweep(
+    #[instrument(
+        name = "deposit.list_account_ids_for_activity_classification",
+        skip(self)
+    )]
+    pub async fn list_account_ids_for_activity_classification(
         &self,
         after: Option<(DateTime<Utc>, DepositAccountId)>,
         limit: i64,
