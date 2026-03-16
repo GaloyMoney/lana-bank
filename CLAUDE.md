@@ -52,7 +52,7 @@ Note: GraphQL APIs must be accessed through Oathkeeper (port 4455) which handles
 - **File Naming**: `mod.rs` (interface), `repo.rs` (storage), `entity.rs` (private events), `error.rs` (errors), `primitives.rs` (value objects), `publisher.rs` (outbox), `job.rs` (async jobs)
 - **Public Events**: `public/` subfolder contains public events shared across module boundaries
 - **Dependencies**: Add to root Cargo.toml with `{ workspace = true }`
-- **GraphQL**: Don't edit schema.graphql manually, use `make sdl`
+- **GraphQL**: Don't edit schema.graphql manually, use `make sdl`. New queries/mutations also need API descriptions in `docs-site/scripts/api-descriptions.en.json` (Spanish auto-translated by lingo.dev Docs Translation action)
 - **Formatting**: Use Rust fmt, Follow DDD (Domain-Driven Design) pattern
 - **Error Handling**: Module-specific errors in `error.rs`
 - **Frontend**: NextJS with TypeScript, lint with `pnpm lint`
@@ -91,6 +91,8 @@ For detailed patterns on `Idempotent<T>`, `idempotency_guard!`, and infallible q
 ## Common Pitfalls
 - Run `cargo fmt` before commit
 - Always regenerate GraphQL schema after Rust changes: `make sdl`
+- Both `write_sdl.rs` and `write_translation_labels.rs` call `admin_server::graphql::schema()` — update both when the signature changes
+- Changing serde serialization on config fields? Run `make generate-default-config` to update `dev/lana.default.yml` (checked by Nix `check-default-config`)
 - SQLx queries are compile-time checked - update offline cache if needed
 - Frontend uses Apollo Client - run codegen after schema changes
 - Don't mix admin/customer Keycloak realms
@@ -118,4 +120,4 @@ For detailed patterns on `Idempotent<T>`, `idempotency_guard!`, and infallible q
 - For anything related to traces, spans, performance, latency, errors, jobs, or runtime behavior — whether asked by the user or needed during your own investigation — delegate to the `lana-trace-analyzer` subagent. Do not query tracing backends directly.
 
 ## Frontend
-- Do not edit es.json, let lingo.dev github action do it.
+- Translation files: `en.json` is the source of truth. `es.json` must have matching keys for TypeScript compilation — add keys with placeholder text, lingo.dev action will fix translations.
