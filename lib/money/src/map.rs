@@ -1,73 +1,10 @@
 use std::collections::{HashMap, HashSet, hash_map};
-use std::fmt;
 use std::ops::Index;
-use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-// ---------------------------------------------------------------------------
-// CurrencyCode — runtime currency identifier
-// ---------------------------------------------------------------------------
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct CurrencyCode(&'static str);
-
-impl CurrencyCode {
-    pub const USD: Self = Self("USD");
-    pub const BTC: Self = Self("BTC");
-
-    const ALL: &[Self] = &[Self::USD, Self::BTC];
-
-    pub fn iso(&self) -> &'static str {
-        self.0
-    }
-}
-
-impl fmt::Display for CurrencyCode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl From<CurrencyCode> for &'static str {
-    fn from(code: CurrencyCode) -> Self {
-        code.0
-    }
-}
-
-impl FromStr for CurrencyCode {
-    type Err = ParseCurrencyCodeError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::ALL
-            .iter()
-            .find(|c| c.0 == s)
-            .copied()
-            .ok_or_else(|| ParseCurrencyCodeError::UnknownCurrencyCode(s.to_string()))
-    }
-}
-
-impl TryFrom<String> for CurrencyCode {
-    type Error = ParseCurrencyCodeError;
-
-    fn try_from(s: String) -> Result<Self, Self::Error> {
-        s.parse()
-    }
-}
-
-impl Serialize for CurrencyCode {
-    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.0.serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for CurrencyCode {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let s = <&str>::deserialize(deserializer)?;
-        s.parse().map_err(serde::de::Error::custom)
-    }
-}
+use super::code::CurrencyCode;
 
 // ---------------------------------------------------------------------------
 // CurrencySet — typed set of allowed currencies
@@ -106,12 +43,6 @@ impl CurrencySet {
 // ---------------------------------------------------------------------------
 // Errors
 // ---------------------------------------------------------------------------
-
-#[derive(Error, Debug)]
-pub enum ParseCurrencyCodeError {
-    #[error("ParseCurrencyCodeError - UnknownCurrencyCode: {0}")]
-    UnknownCurrencyCode(String),
-}
 
 #[derive(Error, Debug)]
 pub enum CurrencyMapError {
