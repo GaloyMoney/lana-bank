@@ -170,6 +170,10 @@ checksums:
     Sidebar/footer/version: d640a8609bd8374f70e40f862250cb70
     Sidebar/footer/logOut: 9a236bb8f8bec867ec0d0950d38bcc71
     Sidebar/footer/language: 277fd1a41cc237a437cd1d5e4a80463b
+    Sidebar/footer/theme: 21fe00b7a518089576fb83c08631107a
+    Sidebar/footer/themeLight: bb78ea2c6edd8662676c81a8a13ecb93
+    Sidebar/footer/themeDark: 73e6e208ba628b26e90fcf6dce15e1b2
+    Sidebar/footer/themeSystem: 803281c327a02a2feba182f4a2b38311
     UserBlock/settings: 8df6777277469c1fd88cc18dde2f1cc3
     UserBlock/logout: 07948fdf20705e04a7bf68ab197512bf
     UserBlock/profile: d7878693f91303a438852d617f6d35df
