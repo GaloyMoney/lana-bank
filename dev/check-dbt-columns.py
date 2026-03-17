@@ -192,7 +192,7 @@ def extract_source_columns_from_dbt(sql: str) -> list[SourceRef]:
 
     # Strategy: find CTEs or subqueries that SELECT FROM a source placeholder,
     # then collect all Column nodes within that SELECT.
-    # Find SELECTs that read directly from a source placeholder
+    # Find SELECT statements that read directly from a source placeholder
     source_selects: list[tuple[str, exp.Select]] = []
     for select in parsed.find_all(exp.Select):
         from_clause = select.find(exp.From)
