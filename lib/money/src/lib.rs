@@ -2,6 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod error;
+mod map;
 
 use std::{fmt, marker::PhantomData};
 
@@ -12,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 
 pub use error::ConversionError;
+pub use map::*;
 
 // ---------------------------------------------------------------------------
 // Currency trait + marker types
@@ -20,7 +22,7 @@ pub use error::ConversionError;
 pub trait Currency:
     'static + Copy + Clone + Send + Sync + fmt::Debug + PartialEq + Eq + std::hash::Hash
 {
-    const CODE: &'static str;
+    const CODE: CurrencyCode;
     const MINOR_UNITS_PER_MAJOR: u64;
 }
 
@@ -28,7 +30,7 @@ pub trait Currency:
 pub struct Usd;
 
 impl Currency for Usd {
-    const CODE: &'static str = "USD";
+    const CODE: CurrencyCode = CurrencyCode::USD;
     const MINOR_UNITS_PER_MAJOR: u64 = 100;
 }
 
@@ -36,7 +38,7 @@ impl Currency for Usd {
 pub struct Btc;
 
 impl Currency for Btc {
-    const CODE: &'static str = "BTC";
+    const CODE: CurrencyCode = CurrencyCode::BTC;
     const MINOR_UNITS_PER_MAJOR: u64 = 100_000_000;
 }
 
