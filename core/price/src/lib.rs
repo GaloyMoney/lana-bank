@@ -31,8 +31,6 @@ pub use provider::{
 use jobs::fetch_price;
 use provider::{NewPriceProvider, PriceProviderRepo};
 
-pub const PRICE_BOOTSTRAP: audit::SystemActor = audit::SystemActor::new("price-bootstrap");
-
 #[derive(Clone)]
 pub struct Price {
     receiver: watch::Receiver<Option<PriceOfOneBTC>>,
@@ -120,6 +118,33 @@ impl Price {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct BootstrapPriceProvider {
+    name: &'static str,
+    provider: &'static str,
+    config: PriceProviderConfig,
+    should_activate: bool,
+}
+
+fn bootstrap_price_providers() -> [BootstrapPriceProvider; 2] {
+    [
+        BootstrapPriceProvider {
+            name: "Bitfinex",
+            provider: "bitfinex",
+            config: PriceProviderConfig::Bitfinex,
+            should_activate: true,
+        },
+        BootstrapPriceProvider {
+            name: "Manual Price",
+            provider: "manual-price",
+            config: PriceProviderConfig::ManualPrice {
+                usd_cents_per_btc: 0,
+            },
+            should_activate: false,
+        },
+    ]
+}
+
 pub struct CorePrice<Perms, E>
 where
     Perms: PermissionCheck,
@@ -157,35 +182,39 @@ where
         let fetch_job_spawner =
             jobs.add_initializer(fetch_price::FetchPriceJobInit::new(&providers, outbox));
 
-        // Auto-bootstrap: if no providers exist, create a default Bitfinex provider
-        let mut db = providers.begin_op().await?;
-        let existing = providers
-            .list_by_id_in_op(&mut db, Default::default(), Default::default())
-            .await?;
-        if existing.entities.is_empty() {
+        // Auto-bootstrap: ensure all known provider types exist.
+        for bootstrap_provider in bootstrap_price_providers() {
+            if providers
+                .maybe_find_by_provider(bootstrap_provider.provider)
+                .await?
+                .is_some()
+            {
+                continue;
+            }
+
+            let mut db = providers.begin_op().await?;
             let new_provider = NewPriceProvider::builder()
                 .id(PriceProviderId::new())
-                .name("Bitfinex".to_string())
-                .config(PriceProviderConfig::Bitfinex)
+                .name(bootstrap_provider.name.to_string())
+                .config(bootstrap_provider.config.clone())
                 .build()
                 .expect("should always build a new price provider");
 
-            authz
-                .audit()
-                .record_system_entry_in_op(
-                    &mut db,
-                    PRICE_BOOTSTRAP,
-                    CorePriceObject::all_providers(),
-                    CorePriceAction::PROVIDER_CREATE,
-                )
-                .await?;
-
-            let mut provider = providers.create_in_op(&mut db, new_provider).await?;
-            if provider.activate().did_execute() {
-                providers.update_in_op(&mut db, &mut provider).await?;
+            match providers.create_in_op(&mut db, new_provider).await {
+                Ok(mut provider) => {
+                    if bootstrap_provider.should_activate {
+                        if provider.activate().did_execute() {
+                            providers.update_in_op(&mut db, &mut provider).await?;
+                        }
+                    } else if provider.deactivate().did_execute() {
+                        providers.update_in_op(&mut db, &mut provider).await?;
+                    }
+                    db.commit().await?;
+                }
+                Err(e) if e.was_duplicate() => continue,
+                Err(e) => return Err(e.into()),
             }
         }
-        db.commit().await?;
 
         // Spawn a single fetch job (the runner loads the active provider from the repo)
         fetch_job_spawner
@@ -208,37 +237,6 @@ where
 
     pub fn price(&self) -> &Price {
         &self.price
-    }
-
-    #[record_error_severity]
-    #[tracing::instrument(name = "core.price.create_provider", skip(self))]
-    pub async fn create_provider(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        name: String,
-        config: PriceProviderConfig,
-    ) -> Result<provider::PriceProvider, PriceError>
-    where
-        E: Send + Sync + 'static,
-    {
-        self.authz
-            .enforce_permission(
-                sub,
-                CorePriceObject::all_providers(),
-                CorePriceAction::PROVIDER_CREATE,
-            )
-            .await?;
-
-        let new_provider = NewPriceProvider::builder()
-            .id(PriceProviderId::new())
-            .name(name)
-            .config(config)
-            .build()
-            .expect("should always build a new price provider");
-
-        let provider = self.providers.create(new_provider).await?;
-
-        Ok(provider)
     }
 
     #[record_error_severity]

@@ -1972,27 +1972,6 @@
         "deactivateFailed": "Failed to deactivate price provider"
       }
     },
-    "create": {
-      "title": "Add New Price Provider",
-      "description": "Add a new price feed provider",
-      "fields": {
-        "type": "Provider",
-        "name": "Name",
-        "usdPerBtc": "USD per BTC"
-      },
-      "placeholders": {
-        "selectType": "Select a Provider",
-        "name": "Enter a display name",
-        "usdPerBtc": "Enter price in USD"
-      },
-      "buttons": {
-        "create": "Add Price Provider"
-      },
-      "success": "Price provider added successfully",
-      "errors": {
-        "failed": "Failed to create price provider"
-      }
-    },
     "updateConfig": {
       "title": "Update Price Provider Config",
       "description": "Update the configuration for this price provider",

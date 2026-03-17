@@ -2055,11 +2055,6 @@ input ManualPriceConfigInput {
 	usdCentsPerBtc: Int!
 }
 
-input ManualPriceCreateInput {
-	name: String!
-	usdCentsPerBtc: Int!
-}
-
 input ManualTransactionEntryInput {
 	accountRef: String!
 	amount: Decimal!
@@ -2138,7 +2133,6 @@ type Mutation {
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	priceProviderActivate(priceProviderId: UUID!): PriceProviderActivatePayload!
 	priceProviderConfigUpdate(input: PriceProviderConfigUpdateInput!): PriceProviderConfigUpdatePayload!
-	priceProviderCreate(input: PriceProviderCreateInput!): PriceProviderCreatePayload!
 	priceProviderDeactivate(priceProviderId: UUID!): PriceProviderDeactivatePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
 	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
@@ -2436,15 +2430,6 @@ type PriceProviderConnection {
 	Information to aid in pagination.
 	"""
 	pageInfo: PageInfo!
-}
-
-input PriceProviderCreateInput @oneOf {
-	bitfinex: BitfinexCreateInput
-	manualPrice: ManualPriceCreateInput
-}
-
-type PriceProviderCreatePayload {
-	priceProvider: PriceProvider!
 }
 
 type PriceProviderDeactivatePayload {
