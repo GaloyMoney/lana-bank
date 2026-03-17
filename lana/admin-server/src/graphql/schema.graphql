@@ -1953,6 +1953,7 @@ type Liquidation {
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	expectedToReceive: UsdCents!
 	id: ID!
+	initiallyEstimatedToLiquidate: Satoshis!
 	liquidationId: UUID!
 	receivedProceeds: [LiquidationProceedsReceived!]!
 	sentCollateral: [LiquidationCollateralSent!]!
@@ -1991,6 +1992,20 @@ type LiquidationEdge {
 	The item at the end of the edge
 	"""
 	node: Liquidation!
+}
+
+type LiquidationPayment {
+	targetCvl: CvlPct!
+	toLiquidate: Satoshis!
+	toReceive: UsdCents!
+}
+
+input LiquidationPaymentCalculateInput {
+	liquidationId: UUID!
+	outstanding: UsdCents!
+	targetCvl: CVLPctValue
+	toLiquidate: Satoshis
+	toReceive: UsdCents
 }
 
 type LiquidationProceedsReceived {
@@ -2637,6 +2652,7 @@ type Query {
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(after: String, first: Int!, templateCode: String!): LedgerTransactionConnection!
 	liquidation(id: UUID!): Liquidation
+	liquidationPaymentCalculate(input: LiquidationPaymentCalculateInput!): LiquidationPayment!
 	liquidations(after: String, first: Int!, sort: LiquidationsSort = {by: CREATED_AT, direction: DESC}): LiquidationConnection!
 	loanAgreement(id: UUID!): LoanAgreement
 	me: Me!

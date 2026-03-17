@@ -17,8 +17,9 @@ use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::TransactionId as LedgerTxId;
 use core_credit_collection::CoreCreditCollectionEvent;
+use core_credit_terms::CVLPct;
 use core_custody::{CoreCustodyEvent, WalletId as CustodyWalletId};
-use core_price::PriceOfOneBTC;
+use core_price::{Price, PriceOfOneBTC};
 use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
 use money::{Satoshis, UsdCents};
@@ -38,7 +39,7 @@ pub use {
         FacilityLedgerAccountIdsForLiquidation, FacilityProceedsFromLiquidationAccountId,
         InternalAccountSetDetails, LiquidationProceedsAccountIds,
     },
-    liquidation::Liquidation,
+    liquidation::{Liquidation, LiquidationPaymentAmounts},
     primitives::*,
     public::CoreCreditCollateralEvent,
     repo::{LiquidationsSortBy, liquidation_cursor},
@@ -62,6 +63,7 @@ where
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
     clock: ClockHandle,
+    price: Arc<Price>,
 }
 
 impl<Perms, E> Clone for Collaterals<Perms, E>
@@ -78,6 +80,7 @@ where
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
             clock: self.clock.clone(),
+            price: self.price.clone(),
         }
     }
 }
@@ -104,6 +107,7 @@ where
         account_sets: ledger::CollateralAccountSets,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
+        price: Arc<Price>,
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
 
@@ -143,6 +147,7 @@ where
             repo,
             ledger,
             clock,
+            price,
         })
     }
 
@@ -506,6 +511,52 @@ where
 
         Ok(self.repo.list_liquidations(query, sort).await?)
     }
+
+    #[record_error_severity]
+    #[instrument(name = "collateral.calculate_liquidation_payment", skip(self, sub))]
+    pub async fn calculate_liquidation_payment(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        liquidation_id: LiquidationId,
+        outstanding: UsdCents,
+        to_receive: Option<UsdCents>,
+        to_liquidate: Option<Satoshis>,
+        target_cvl: Option<CVLPct>,
+    ) -> Result<LiquidationPaymentAmounts, CollateralError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditCollateralObject::liquidation(liquidation_id),
+                CoreCreditCollateralAction::LIQUIDATION_READ,
+            )
+            .await?;
+
+        let liquidation = self
+            .repo
+            .find_liquidation_by_id(liquidation_id)
+            .await?
+            .ok_or(CollateralError::LiquidationNotFound)?;
+
+        let collateral = self.repo.find_by_id(liquidation.collateral_id).await?;
+        let price = self.price.usd_cents_per_btc().await;
+
+        LiquidationPaymentAmounts::calculate(
+            outstanding,
+            collateral.amount,
+            price,
+            to_receive,
+            to_liquidate,
+            target_cvl,
+        )
+        .ok_or_else(|| CollateralError::InvalidLiquidationPaymentCalculationInput)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct LiquidationPaymentCalculation {
+    pub to_liquidate: Satoshis,
+    pub to_receive: UsdCents,
+    pub target_cvl: CVLPct,
 }
 
 #[derive(Clone, Debug)]

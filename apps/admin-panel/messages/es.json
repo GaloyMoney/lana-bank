@@ -23,6 +23,7 @@
     "submit": "Enviar",
     "apply": "Aplicar",
     "set": "Establecer",
+    "reset": "Restablecer",
     "copiedToClipboard": "Copiado al portapapeles",
     "showIds": "Mostrar IDs",
     "hideIds": "Ocultar IDs",
@@ -1443,6 +1444,7 @@
           "customerEmail": "Correo Electrónico del Cliente",
           "status": "Estado",
           "expectedToReceive": "Esperado a recibir",
+          "initiallyEstimatedToLiquidate": "Estimado para Liquidar",
           "sentTotal": "Total enviado",
           "amountReceived": "Total recibido",
           "createdAt": "Fecha de registro"
@@ -1452,6 +1454,39 @@
           "recordPaymentReceived": "Registrar pago recibido",
           "viewMoreDetails": "Ver más detalles"
         }
+      },
+      "calculator": {
+        "title": "Calculadora de Pago de Liquidación",
+        "description": "Calcula el tercer valor dados dos de los siguientes: monto a recibir, colateral a liquidar o CVL objetivo",
+        "fields": {
+          "toReceive": "A Recibir",
+          "toReceivePlaceholder": "Ingrese el monto en USD",
+          "toLiquidate": "A Liquidar",
+          "toLiquidatePlaceholder": "Ingrese el monto en BTC",
+          "targetCvl": "CVL Objetivo",
+          "targetCvlPlaceholder": "Ingrese el porcentaje"
+        },
+        "buttons": {
+          "calculate": "Calcular",
+          "calculatePayment": "Calculadora de Pagos",
+          "cancel": "Cancelar"
+        },
+        "validation": {
+          "twoFieldsRequired": "Por favor, complete exactamente 2 campos para calcular el tercero",
+          "invalidAmount": "Por favor, ingrese un monto positivo válido",
+          "invalidCvl": "Por favor, ingrese un porcentaje de CVL válido"
+        },
+        "results": {
+          "title": "Resultados del Cálculo",
+          "toReceive": "A Recibir",
+          "toLiquidate": "A Liquidar",
+          "targetCvl": "CVL Objetivo",
+          "infinite": "Infinito"
+        },
+        "errors": {
+          "calculationFailed": "Error en el cálculo: {error}"
+        },
+        "success": "Cálculo completado exitosamente"
       },
       "CollateralSent": {
         "title": "Garantía enviada",

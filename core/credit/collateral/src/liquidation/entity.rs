@@ -39,6 +39,7 @@ pub struct Liquidation {
     pub collateral_id: CollateralId,
     pub account_ids: LiquidationProceedsAccountIds,
     pub expected_to_receive: UsdCents,
+    pub initially_estimated_to_liquidate: Satoshis,
     pub sent_total: Satoshis,
     pub amount_received: UsdCents,
 
@@ -139,6 +140,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                     id,
                     collateral_id,
                     initially_expected_to_receive,
+                    initially_estimated_to_liquidate,
                     account_ids,
                     ..
                 } => {
@@ -147,6 +149,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                         .collateral_id(*collateral_id)
                         .account_ids(*account_ids)
                         .expected_to_receive(*initially_expected_to_receive)
+                        .initially_estimated_to_liquidate(*initially_estimated_to_liquidate)
                 }
                 LiquidationEvent::CollateralSentOut { amount, .. } => {
                     amount_sent += *amount;

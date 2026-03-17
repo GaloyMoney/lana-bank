@@ -2099,7 +2099,6 @@ checksums:
     admin/queries/liquidation: 64b583252bf6b49d84a94491f46e9041
     admin/queries/liquidations: 23b89777137bd48c3cd6db47128ea1bb
     admin/queries/custodians: 08d8ba21ee87c87fb1ed5c3d5623f2cb
-    admin/queries/priceProviders: 8bcd48f146f5666378504c2e5582332c
     admin/queries/committee: 488c6d9ce31c5985e54e6cc6fa713fe1
     admin/queries/committees: 82f21b67055d50dc76b3a01ff1ec6e2f
     admin/queries/policy: f2fbea6efcde1b8bdfb7908e9cdd7b08
@@ -2138,6 +2137,7 @@ checksums:
     admin/queries/prospect: f725b18bc0bfa5dfb49f1894ac988218
     admin/queries/prospectByPublicId: 524ed95bd38049b4d73db4153869e4a6
     admin/queries/prospects: 6f97af521306bb7041e1ffe5a5cfec57
+    admin/queries/liquidationPaymentCalculate: df644a3d475d03721b65c07fcc37e2c6
     admin/mutations/customerDocumentCreate: 54f38c1f40cfcbb082aa03c19e17662d
     admin/mutations/prospectKycLinkCreate: 87021b4f0f0f80bec03a9cae3d4bf826
     admin/mutations/userCreate: f59572f3c4e75bffa1fd77a0a5a5b436
@@ -2185,10 +2185,6 @@ checksums:
     admin/mutations/liquidationRecordProceedsReceived: 47123330cd03e6f421b60f2164284591
     admin/mutations/custodianCreate: d6b765e72ebc16a8b1c9110973cebb6c
     admin/mutations/custodianConfigUpdate: 7285bab249259e681a52e7e090af7535
-    admin/mutations/priceProviderCreate: f5b7c051016db8f88a152b9c89a4403a
-    admin/mutations/priceProviderConfigUpdate: 23dc26e87e1d27e74bcafab47898caa5
-    admin/mutations/priceProviderActivate: 20d7920ac0cb13552d36a10d6587750c
-    admin/mutations/priceProviderDeactivate: 6b338e757bde90dd4b40f54cda12b054
     admin/mutations/committeeCreate: 1485f3f278d023b47cf3b1b578e6fe42
     admin/mutations/committeeAddUser: 0d4fa9cf0fc40ad9503b6d7ebb8d610b
     admin/mutations/committeeRemoveUser: f1909d1a31577f7aa23ea3b2e6da31f9

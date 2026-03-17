@@ -59,7 +59,7 @@ serve_env_core = {
 local_resource(
     "core",
     labels = ["core"],
-    serve_cmd = "cd .. && make setup-db run-server",
+    serve_cmd = "cd .. && make setup-db run-server-normal",
     serve_env = serve_env_core,
     readiness_probe = probe(
         initial_delay_secs = 3,

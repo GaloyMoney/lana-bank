@@ -685,6 +685,28 @@ impl Query {
         )
     }
 
+    async fn liquidation_payment_calculate(
+        &self,
+        ctx: &Context<'_>,
+        input: LiquidationPaymentCalculateInput,
+    ) -> async_graphql::Result<LiquidationPayment> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let amounts = app
+            .credit()
+            .collaterals()
+            .calculate_liquidation_payment(
+                sub,
+                input.liquidation_id.into(),
+                input.outstanding,
+                input.to_receive,
+                input.to_liquidate,
+                input.target_cvl.map(|x| x.into()),
+            )
+            .await?;
+
+        Ok(amounts.into())
+    }
+
     async fn custodians(
         &self,
         ctx: &Context<'_>,

@@ -81,7 +81,8 @@
       "availableReportDefinitions": "Returns the report definitions that can be generated manually, including output formats and whether an as-of date is required",
       "prospect": "Fetches a specific prospect by their unique identifier",
       "prospectByPublicId": "Fetches a prospect by their public-facing identifier",
-      "prospects": "Returns a paginated and filterable list of all prospects"
+      "prospects": "Returns a paginated and filterable list of all prospects",
+      "liquidationPaymentCalculate": "Calculates the amounts of liquidation payment"
     },
     "mutations": {
       "customerDocumentCreate": "Uploads and attaches a document to a customer's profile",

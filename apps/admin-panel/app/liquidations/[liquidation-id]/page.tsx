@@ -33,6 +33,7 @@ gql`
     liquidationId
     collateralId
     expectedToReceive
+    initiallyEstimatedToLiquidate
     sentTotal
     amountReceived
     createdAt

@@ -5,11 +5,13 @@ use crate::{
     graphql::{
         event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
         loader::LanaDataLoader,
+        terms::{CVLPct, CVLPctValue},
     },
     primitives::*,
 };
 pub use lana_app::credit::{
-    Liquidation as DomainLiquidation, LiquidationsSortBy as DomainLiquidationsSortBy,
+    Liquidation as DomainLiquidation, LiquidationPaymentAmounts,
+    LiquidationsSortBy as DomainLiquidationsSortBy,
 };
 
 use super::{Collateral, SortDirection};
@@ -21,6 +23,7 @@ pub struct Liquidation {
     liquidation_id: UUID,
     collateral_id: UUID,
     expected_to_receive: UsdCents,
+    initially_estimated_to_liquidate: Satoshis,
     sent_total: Satoshis,
     amount_received: UsdCents,
     created_at: Timestamp,
@@ -37,6 +40,7 @@ impl From<DomainLiquidation> for Liquidation {
             liquidation_id: UUID::from(liquidation.id),
             collateral_id: UUID::from(liquidation.collateral_id),
             expected_to_receive: liquidation.expected_to_receive,
+            initially_estimated_to_liquidate: liquidation.initially_estimated_to_liquidate,
             sent_total: liquidation.sent_total,
             amount_received: liquidation.amount_received,
             created_at: liquidation.created_at().into(),
@@ -100,6 +104,32 @@ impl Liquidation {
             .await?
             .expect("Collateral not found");
         Ok(collateral)
+    }
+}
+
+#[derive(InputObject)]
+pub struct LiquidationPaymentCalculateInput {
+    pub liquidation_id: UUID,
+    pub outstanding: UsdCents,
+    pub to_receive: Option<UsdCents>,
+    pub to_liquidate: Option<Satoshis>,
+    pub target_cvl: Option<CVLPctValue>,
+}
+
+#[derive(SimpleObject)]
+pub struct LiquidationPayment {
+    pub to_liquidate: Satoshis,
+    pub to_receive: UsdCents,
+    pub target_cvl: CVLPct,
+}
+
+impl From<LiquidationPaymentAmounts> for LiquidationPayment {
+    fn from(amounts: LiquidationPaymentAmounts) -> Self {
+        Self {
+            to_liquidate: amounts.to_liquidate,
+            to_receive: amounts.to_receive,
+            target_cvl: amounts.target_cvl.into(),
+        }
     }
 }
 
