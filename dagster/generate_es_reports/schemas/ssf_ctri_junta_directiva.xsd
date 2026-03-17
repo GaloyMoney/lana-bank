@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- NOTE: This is NOT an official SSF validator schema. It was derived from
+     the NRP-41 CTRI schemas and adapted for NRP-92 fields. Replace with
+     the official SSF NRP-92 XSD once published. -->
+<xs:schema 
+   elementFormDefault="qualified"
+   targetNamespace="http://validador.ssf.gob.sv/ctri/junta_directiva"
+   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:tns="http://validador.ssf.gob.sv/ctri/junta_directiva">
+   <xs:element name="ctri">
+      <xs:complexType>
+         <xs:sequence maxOccurs="unbounded" minOccurs="1">
+            <xs:element name="junta_directiva">
+               <xs:complexType>
+                  <xs:all maxOccurs="1" minOccurs="1">
+                     <xs:element name="documento_deudor">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Documento Deudor
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="14"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="documento_miembro">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Documento Miembro]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="14"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="cod_cargo">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código del Cargo
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="2"/>
+                             <xs:enumeration value="01"/>
+                             <xs:enumeration value="02"/>
+                             <xs:enumeration value="03"/>
+                             <xs:enumeration value="04"/>
+                             <xs:enumeration value="05"/>
+                             <xs:enumeration value="06"/>
+                             <xs:enumeration value="07"/>
+                             <xs:enumeration value="08"/>
+                             <xs:enumeration value="09"/>
+                             <xs:enumeration value="10"/>
+                             <xs:enumeration value="11"/>
+                             <xs:enumeration value="12"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="fecha_inicial_jd" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Fecha Inicial Período
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:date">
+                             <xs:maxInclusive value="9999-12-31"/>
+                             <xs:minInclusive value="1800-01-01"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="fecha_final_jd" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Fecha Final Período
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:date">
+                             <xs:minInclusive value="1800-01-01"/>
+                             <xs:maxInclusive value="9999-12-31"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="numero_credencial" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Número de la Credencial
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="17"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                  </xs:all>
+               </xs:complexType>
+            </xs:element>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

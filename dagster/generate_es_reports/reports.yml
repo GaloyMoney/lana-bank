@@ -21,6 +21,8 @@ report_jobs:
     friendly_name: "persona"
     source_table: report_nrp_92_01_persona
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_persona
       - type: csv
 
   - norm: nrp_92
@@ -28,6 +30,8 @@ report_jobs:
     friendly_name: "referencia"
     source_table: report_nrp_92_02_referencia
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_referencia
       - type: csv
 
   - norm: nrp_92
@@ -35,6 +39,8 @@ report_jobs:
     friendly_name: "referencia_garantia"
     source_table: report_nrp_92_03_referencia_garantia
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_referencia_garantia
       - type: csv
 
   - norm: nrp_92
@@ -42,6 +48,8 @@ report_jobs:
     friendly_name: "garantia_hipotecaria"
     source_table: report_nrp_92_04_garantia_hipotecaria
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_hipotecaria
       - type: csv
 
   - norm: nrp_92
@@ -49,6 +57,8 @@ report_jobs:
     friendly_name: "garantia_fiduciaria"
     source_table: report_nrp_92_05_garantia_fiduciaria
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_fiduciaria
       - type: csv
 
   - norm: nrp_92
@@ -56,6 +66,8 @@ report_jobs:
     friendly_name: "garantia_aval"
     source_table: report_nrp_92_06_garantia_aval
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_aval
       - type: csv
 
   - norm: nrp_92
@@ -63,6 +75,8 @@ report_jobs:
     friendly_name: "garantia_pignorada"
     source_table: report_nrp_92_07_garantia_pignorada
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_pignorada
       - type: csv
 
   - norm: nrp_92
@@ -70,6 +84,8 @@ report_jobs:
     friendly_name: "garantia_prenda"
     source_table: report_nrp_92_08_garantia_prenda
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_prenda
       - type: csv
 
   - norm: nrp_92
@@ -77,6 +93,8 @@ report_jobs:
     friendly_name: "garantia_bono"
     source_table: report_nrp_92_09_garantia_bono
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_bono
       - type: csv
 
   - norm: nrp_92
@@ -84,6 +102,8 @@ report_jobs:
     friendly_name: "garantia_fondo"
     source_table: report_nrp_92_10_garantia_fondo
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_fondo
       - type: csv
 
   - norm: nrp_92
@@ -91,6 +111,8 @@ report_jobs:
     friendly_name: "referencia_gasto"
     source_table: report_nrp_92_11_referencia_gasto
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_referencia_gasto
       - type: csv
 
   - norm: nrp_92
@@ -98,6 +120,8 @@ report_jobs:
     friendly_name: "referencia_unidad"
     source_table: report_nrp_92_12_referencia_unidad
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_referencia_unidad
       - type: csv
 
   - norm: nrp_92
@@ -105,6 +129,8 @@ report_jobs:
     friendly_name: "referencia_cancelada"
     source_table: report_nrp_92_13_referencia_cancelada
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_referencia_cancelada
       - type: csv
 
   - norm: nrp_92
@@ -112,6 +138,8 @@ report_jobs:
     friendly_name: "socios_sociedades"
     source_table: report_nrp_92_14_socios_sociedades
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_socios_sociedades
       - type: csv
 
   - norm: nrp_92
@@ -119,6 +147,8 @@ report_jobs:
     friendly_name: "junta_directiva"
     source_table: report_nrp_92_15_junta_directiva
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_junta_directiva
       - type: csv
 
   - norm: nrp_92
@@ -126,6 +156,8 @@ report_jobs:
     friendly_name: "garantia_criptomonedas"
     source_table: report_nrp_92_16_garantia_criptomonedas
     outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_criptomonedas
       - type: csv
 
   #--- NRP-51 Reports ---
