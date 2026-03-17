@@ -62,40 +62,8 @@ pub struct BitfinexCreateInput {
 }
 
 #[derive(InputObject)]
-pub struct ManualPriceCreateInput {
-    name: String,
-    usd_cents_per_btc: u64,
-}
-
-#[derive(InputObject)]
 pub struct ManualPriceConfigInput {
     usd_cents_per_btc: u64,
-}
-
-#[derive(OneofObject)]
-pub enum PriceProviderCreateInput {
-    Bitfinex(BitfinexCreateInput),
-    ManualPrice(ManualPriceCreateInput),
-}
-
-impl PriceProviderCreateInput {
-    pub fn name(&self) -> &str {
-        match self {
-            PriceProviderCreateInput::Bitfinex(conf) => &conf.name,
-            PriceProviderCreateInput::ManualPrice(conf) => &conf.name,
-        }
-    }
-}
-
-impl From<PriceProviderCreateInput> for DomainPriceProviderConfig {
-    fn from(input: PriceProviderCreateInput) -> Self {
-        match input {
-            PriceProviderCreateInput::Bitfinex(_) => DomainPriceProviderConfig::Bitfinex,
-            PriceProviderCreateInput::ManualPrice(conf) => DomainPriceProviderConfig::ManualPrice {
-                usd_cents_per_btc: conf.usd_cents_per_btc,
-            },
-        }
-    }
 }
 
 #[derive(OneofObject)]
@@ -120,8 +88,6 @@ pub struct PriceProviderConfigUpdateInput {
     pub price_provider_id: UUID,
     pub config: PriceProviderConfigInput,
 }
-
-crate::mutation_payload! { PriceProviderCreatePayload, price_provider: PriceProvider }
 
 crate::mutation_payload! { PriceProviderConfigUpdatePayload, price_provider: PriceProvider }
 

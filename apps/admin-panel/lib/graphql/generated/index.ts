@@ -2124,11 +2124,6 @@ export type ManualPriceConfigInput = {
   usdCentsPerBtc: Scalars['Int']['input'];
 };
 
-export type ManualPriceCreateInput = {
-  name: Scalars['String']['input'];
-  usdCentsPerBtc: Scalars['Int']['input'];
-};
-
 export type ManualTransactionEntryInput = {
   accountRef: Scalars['String']['input'];
   amount: Scalars['Decimal']['input'];
@@ -2210,7 +2205,6 @@ export type Mutation = {
   policyAssignCommittee: PolicyAssignCommitteePayload;
   priceProviderActivate: PriceProviderActivatePayload;
   priceProviderConfigUpdate: PriceProviderConfigUpdatePayload;
-  priceProviderCreate: PriceProviderCreatePayload;
   priceProviderDeactivate: PriceProviderDeactivatePayload;
   prospectClose: ProspectClosePayload;
   prospectConvert: ProspectConvertPayload;
@@ -2474,11 +2468,6 @@ export type MutationPriceProviderActivateArgs = {
 
 export type MutationPriceProviderConfigUpdateArgs = {
   input: PriceProviderConfigUpdateInput;
-};
-
-
-export type MutationPriceProviderCreateArgs = {
-  input: PriceProviderCreateInput;
 };
 
 
@@ -2834,15 +2823,6 @@ export type PriceProviderConnection = {
   nodes: Array<PriceProvider>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
-};
-
-export type PriceProviderCreateInput =
-  { bitfinex: BitfinexCreateInput; manualPrice?: never; }
-  |  { bitfinex?: never; manualPrice: ManualPriceCreateInput; };
-
-export type PriceProviderCreatePayload = {
-  __typename?: 'PriceProviderCreatePayload';
-  priceProvider: PriceProvider;
 };
 
 export type PriceProviderDeactivatePayload = {
@@ -5470,13 +5450,6 @@ export type PoliciesQuery = { __typename?: 'Query', policies: { __typename?: 'Po
           | { __typename: 'AutoApproval' }
           | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string } }
          } }>, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
-
-export type PriceProviderCreateMutationVariables = Exact<{
-  input: PriceProviderCreateInput;
-}>;
-
-
-export type PriceProviderCreateMutation = { __typename?: 'Mutation', priceProviderCreate: { __typename?: 'PriceProviderCreatePayload', priceProvider: { __typename?: 'PriceProvider', id: string, priceProviderId: string, name: string, createdAt: string } } };
 
 export type PriceProviderFieldsFragment = { __typename?: 'PriceProvider', id: string, priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean, latestPrice?: UsdCents | null };
 
@@ -12916,44 +12889,6 @@ export type PoliciesQueryHookResult = ReturnType<typeof usePoliciesQuery>;
 export type PoliciesLazyQueryHookResult = ReturnType<typeof usePoliciesLazyQuery>;
 export type PoliciesSuspenseQueryHookResult = ReturnType<typeof usePoliciesSuspenseQuery>;
 export type PoliciesQueryResult = Apollo.QueryResult<PoliciesQuery, PoliciesQueryVariables>;
-export const PriceProviderCreateDocument = gql`
-    mutation PriceProviderCreate($input: PriceProviderCreateInput!) {
-  priceProviderCreate(input: $input) {
-    priceProvider {
-      id
-      priceProviderId
-      name
-      createdAt
-    }
-  }
-}
-    `;
-export type PriceProviderCreateMutationFn = Apollo.MutationFunction<PriceProviderCreateMutation, PriceProviderCreateMutationVariables>;
-
-/**
- * __usePriceProviderCreateMutation__
- *
- * To run a mutation, you first call `usePriceProviderCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `usePriceProviderCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [priceProviderCreateMutation, { data, loading, error }] = usePriceProviderCreateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function usePriceProviderCreateMutation(baseOptions?: Apollo.MutationHookOptions<PriceProviderCreateMutation, PriceProviderCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<PriceProviderCreateMutation, PriceProviderCreateMutationVariables>(PriceProviderCreateDocument, options);
-      }
-export type PriceProviderCreateMutationHookResult = ReturnType<typeof usePriceProviderCreateMutation>;
-export type PriceProviderCreateMutationResult = Apollo.MutationResult<PriceProviderCreateMutation>;
-export type PriceProviderCreateMutationOptions = Apollo.BaseMutationOptions<PriceProviderCreateMutation, PriceProviderCreateMutationVariables>;
 export const PriceProvidersDocument = gql`
     query PriceProviders($first: Int!, $after: String, $sort: PriceProvidersSort) {
   priceProviders(first: $first, after: $after, sort: $sort) {

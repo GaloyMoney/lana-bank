@@ -2318,21 +2318,6 @@ impl Mutation {
         )
     }
 
-    async fn price_provider_create(
-        &self,
-        ctx: &Context<'_>,
-        input: PriceProviderCreateInput,
-    ) -> async_graphql::Result<PriceProviderCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            PriceProviderCreatePayload,
-            PriceProvider,
-            ctx,
-            app.core_price()
-                .create_provider(sub, input.name().to_owned(), input.into())
-        )
-    }
-
     async fn price_provider_config_update(
         &self,
         ctx: &Context<'_>,
