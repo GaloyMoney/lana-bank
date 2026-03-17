@@ -301,16 +301,6 @@ def search_column_mismatches(
     return mismatches
 
 
-def find_downstream_models(dbt_models_dir: Path, staging_model_name: str) -> list[str]:
-    """Find dbt models that reference a given staging model via ref()."""
-    downstream = []
-    for sql_file in dbt_models_dir.rglob("*.sql"):
-        content = sql_file.read_text()
-        if f"ref('{staging_model_name}')" in content or f'ref("{staging_model_name}")' in content:
-            downstream.append(sql_file.stem)
-    return downstream
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Validate dbt staging models against PostgreSQL migration schemas"
