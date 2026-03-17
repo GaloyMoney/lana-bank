@@ -49,7 +49,7 @@ where
                     ExportSumsubDepositConfig {
                         deposit_account_id: entity.deposit_account_id,
                         deposit_id: entity.id,
-                        amount: entity.amount,
+                        amount: entity.amount.usd().unwrap_or(core_deposit::UsdCents::ZERO),
                     },
                     entity.deposit_account_id.to_string(),
                 )
@@ -68,7 +68,7 @@ where
                     ExportSumsubWithdrawalConfig {
                         deposit_account_id: entity.deposit_account_id,
                         withdrawal_id: entity.id,
-                        amount: entity.amount,
+                        amount: entity.amount.usd().unwrap_or(core_deposit::UsdCents::ZERO),
                     },
                     entity.deposit_account_id.to_string(),
                 )

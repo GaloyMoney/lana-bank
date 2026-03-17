@@ -6,7 +6,7 @@ CREATE TABLE core_withdrawal_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
-  amount BIGINT,
+  amount JSONB,
   approval_process_id UUID,
   approved BOOLEAN,
   deposit_account_id UUID,
@@ -57,7 +57,7 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.amount := (NEW.event ->> 'amount')::BIGINT;
+    new_row.amount := (NEW.event -> 'amount');
     new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
     new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
     new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
@@ -91,7 +91,7 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.amount := (NEW.event ->> 'amount')::BIGINT;
+      new_row.amount := (NEW.event -> 'amount');
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);

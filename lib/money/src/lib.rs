@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod currency_bag;
 mod error;
 
 use std::{fmt, marker::PhantomData};
@@ -11,7 +12,8 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-pub use error::ConversionError;
+pub use currency_bag::CurrencyBag;
+pub use error::{ConversionError, CurrencyBagError};
 
 // ---------------------------------------------------------------------------
 // Currency trait + marker types

@@ -64,6 +64,14 @@ impl DepositAccount {
         self.status == DepositAccountStatus::Frozen
     }
 
+    pub fn supports_usd(&self) -> bool {
+        self.account_ids.usd.is_some()
+    }
+
+    pub fn supports_btc(&self) -> bool {
+        self.account_ids.btc.is_some()
+    }
+
     pub(crate) fn update_activity(&mut self, activity: Activity) -> Idempotent<()> {
         if self.activity == Activity::Escheatable {
             return Idempotent::AlreadyApplied;
@@ -147,7 +155,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                     builder = builder
                         .id(*id)
                         .account_holder_id(*account_holder_id)
-                        .account_ids(*account_ids)
+                        .account_ids(account_ids.clone())
                         .status(*status)
                         .activity(*activity)
                         .public_id(public_id.clone())
@@ -228,7 +236,7 @@ mod tests {
         vec![DepositAccountEvent::Initialized {
             id,
             account_holder_id: DepositAccountHolderId::new(),
-            account_ids: DepositAccountLedgerAccountIds::new(id),
+            account_ids: DepositAccountLedgerAccountIds::new(id, true, false),
             status: DepositAccountStatus::Active,
             activity: Activity::Active,
             public_id: PublicId::new("1"),

@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
-use money::UsdCents;
+use money::CurrencyBag;
 
 use crate::{
     primitives::{DepositAccountId, DepositId, DepositStatus, PublicId},
@@ -26,7 +26,7 @@ use super::entity::*;
         reference(ty = "String", create(accessor = "reference()")),
         public_id(ty = "PublicId", list_by),
         status(ty = "DepositStatus", list_for, update(accessor = "status()")),
-        amount(ty = "UsdCents", list_by, update(persist = false))
+        amount(ty = "CurrencyBag", update(persist = false))
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -88,7 +88,6 @@ impl From<(DepositsSortBy, &Deposit)> for deposit_cursor::DepositsCursor {
             DepositsSortBy::PublicId => {
                 deposit_cursor::DepositsByPublicIdCursor::from(deposit).into()
             }
-            DepositsSortBy::Amount => deposit_cursor::DepositsByAmountCursor::from(deposit).into(),
         }
     }
 }

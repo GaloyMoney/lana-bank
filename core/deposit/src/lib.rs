@@ -29,6 +29,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerO
 use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
+use money::CurrencyBag;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use public_id::PublicIds;
 
@@ -62,8 +63,8 @@ pub use public::*;
 use publisher::DepositPublisher;
 use withdrawal::*;
 pub use withdrawal::{
-    Withdrawal, WithdrawalStatus, WithdrawalsByAmountCursor, WithdrawalsByCreatedAtCursor,
-    WithdrawalsCursor, WithdrawalsFilters, WithdrawalsSortBy,
+    Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor, WithdrawalsCursor,
+    WithdrawalsFilters, WithdrawalsSortBy,
 };
 
 #[cfg(feature = "json-schema")]
@@ -159,8 +160,13 @@ where
         let ledger_arc = Arc::new(ledger);
         let internal_domain_configs_arc = Arc::new(internal_domain_configs.clone());
 
-        let approve_withdrawal =
-            ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, ledger_arc.as_ref());
+        let approve_withdrawal = ApproveWithdrawal::new(
+            &withdrawals,
+            &accounts,
+            authz.audit(),
+            governance,
+            ledger_arc.as_ref(),
+        );
 
         let execute_withdraw_approval_spawner = jobs.add_initializer(
             ExecuteWithdrawApprovalJobInitializer::new(&approve_withdrawal),
@@ -257,7 +263,7 @@ where
             .create_in_op(&mut op, DEPOSIT_ACCOUNT_REF_TARGET, account_id)
             .await?;
 
-        let account_ids = DepositAccountLedgerAccountIds::new(account_id);
+        let account_ids = DepositAccountLedgerAccountIds::new(account_id, true, false);
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
@@ -377,6 +383,7 @@ where
             )
             .await?;
         self.check_account_active(deposit_account_id).await?;
+        let account = self.deposit_accounts.find_by_id(deposit_account_id).await?;
         let deposit_id = DepositId::new();
         let mut op = self.deposits.begin_op().await?;
         let public_id = self
@@ -384,17 +391,24 @@ where
             .create_in_op(&mut op, DEPOSIT_REF_TARGET, deposit_id)
             .await?;
 
+        let currency_bag = CurrencyBag::new().with_usd_amount(amount);
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
             .ledger_transaction_id(deposit_id)
             .deposit_account_id(deposit_account_id)
-            .amount(amount)
+            .amount(currency_bag)
             .public_id(public_id.id)
             .reference(reference)
             .build()?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
         self.ledger
-            .record_deposit_in_op(&mut op, deposit_id, amount, deposit_account_id, sub)
+            .record_deposit_in_op(
+                &mut op,
+                deposit_id,
+                &currency_bag,
+                &account.account_ids,
+                sub,
+            )
             .await?;
         op.commit().await?;
         Ok(deposit)
@@ -418,6 +432,7 @@ where
             )
             .await?;
         self.check_account_active(deposit_account_id).await?;
+        let account = self.deposit_accounts.find_by_id(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
         let mut op = self.withdrawals.begin_op().await?;
         let public_id = self
@@ -425,10 +440,11 @@ where
             .create_in_op(&mut op, WITHDRAWAL_REF_TARGET, withdrawal_id)
             .await?;
 
+        let currency_bag = CurrencyBag::new().with_usd_amount(amount);
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
             .deposit_account_id(deposit_account_id)
-            .amount(amount)
+            .amount(currency_bag)
             .approval_process_id(withdrawal_id)
             .public_id(public_id.id)
             .reference(reference)
@@ -448,7 +464,13 @@ where
             .await?;
 
         self.ledger
-            .initiate_withdrawal_in_op(&mut op, withdrawal_id, amount, deposit_account_id, sub)
+            .initiate_withdrawal_in_op(
+                &mut op,
+                withdrawal_id,
+                &currency_bag,
+                &account.account_ids,
+                sub,
+            )
             .await?;
 
         op.commit().await?;
@@ -478,9 +500,13 @@ where
             .await?;
 
         if let es_entity::Idempotent::Executed(deposit_reversal_data) = deposit.revert() {
+            let account = self
+                .deposit_accounts
+                .find_by_id(deposit.deposit_account_id)
+                .await?;
             self.deposits.update_in_op(&mut op, &mut deposit).await?;
             self.ledger
-                .revert_deposit_in_op(&mut op, deposit_reversal_data, sub)
+                .revert_deposit_in_op(&mut op, deposit_reversal_data, &account.account_ids, sub)
                 .await?;
             op.commit().await?;
         }
@@ -511,11 +537,20 @@ where
             .await?;
 
         if let Ok(es_entity::Idempotent::Executed(withdrawal_reversal_data)) = withdrawal.revert() {
+            let account = self
+                .deposit_accounts
+                .find_by_id(withdrawal.deposit_account_id)
+                .await?;
             self.withdrawals
                 .update_in_op(&mut op, &mut withdrawal)
                 .await?;
             self.ledger
-                .revert_withdrawal_in_op(&mut op, withdrawal_reversal_data, sub)
+                .revert_withdrawal_in_op(
+                    &mut op,
+                    withdrawal_reversal_data,
+                    &account.account_ids,
+                    sub,
+                )
                 .await?;
             op.commit().await?;
         }
@@ -545,6 +580,10 @@ where
         let es_entity::Idempotent::Executed(tx_id) = withdrawal.confirm()? else {
             return Ok(withdrawal);
         };
+        let account = self
+            .deposit_accounts
+            .find_by_id(withdrawal.deposit_account_id)
+            .await?;
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
             .await?;
@@ -555,8 +594,8 @@ where
                 id,
                 tx_id,
                 withdrawal.id.to_string(),
-                withdrawal.amount,
-                withdrawal.deposit_account_id,
+                &withdrawal.amount,
+                &account.account_ids,
                 format!("lana:withdraw:{}:confirm", withdrawal.id),
                 sub,
             )
@@ -590,6 +629,10 @@ where
         let es_entity::Idempotent::Executed(tx_id) = withdrawal.cancel()? else {
             return Ok(withdrawal);
         };
+        let account = self
+            .deposit_accounts
+            .find_by_id(withdrawal.deposit_account_id)
+            .await?;
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
             .await?;
@@ -598,8 +641,8 @@ where
                 &mut op,
                 id,
                 tx_id,
-                withdrawal.amount,
-                withdrawal.deposit_account_id,
+                &withdrawal.amount,
+                &account.account_ids,
                 sub,
             )
             .await?;
@@ -790,7 +833,8 @@ where
                 CoreDepositAction::DEPOSIT_ACCOUNT_CLOSE,
             )
             .await?;
-        let balance = self.ledger.balance(account_id).await?;
+        let account = self.deposit_accounts.find_by_id(account_id).await?;
+        let balance = self.ledger.balance(&account.account_ids).await?;
         if !balance.is_zero() {
             return Err(DepositAccountError::BalanceIsNotZero.into());
         }
@@ -832,7 +876,8 @@ where
             )
             .await?;
 
-        let balance = self.ledger.balance(account_id).await?;
+        let account = self.deposit_accounts.find_by_id(account_id).await?;
+        let balance = self.ledger.balance(&account.account_ids).await?;
         Ok(balance)
     }
 

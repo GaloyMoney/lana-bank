@@ -24,3 +24,20 @@ impl ErrorSeverity for ConversionError {
         }
     }
 }
+
+#[derive(Error, Debug)]
+pub enum CurrencyBagError {
+    #[error("CurrencyBagError - CurrencyNotSupported: {0}")]
+    CurrencyNotSupported(&'static str),
+    #[error("CurrencyBagError - InsufficientBalance: {0}")]
+    InsufficientBalance(&'static str),
+}
+
+impl ErrorSeverity for CurrencyBagError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::CurrencyNotSupported(_) => Level::WARN,
+            Self::InsufficientBalance(_) => Level::WARN,
+        }
+    }
+}

@@ -128,7 +128,7 @@ async fn deposit() -> anyhow::Result<()> {
     // NOTE: test when 0 balance
     let balance = deposit.account_balance(&DummySubject, account.id).await?;
     assert_eq!(
-        balance.settled,
+        balance.settled.usd().unwrap(),
         UsdCents::try_from_usd(dec!(1000000)).unwrap()
     );
 
@@ -162,7 +162,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
     // NOTE: test when 0 balance
     let balance = deposit.account_balance(&DummySubject, account.id).await?;
     assert_eq!(
-        balance.settled,
+        balance.settled.usd().unwrap(),
         UsdCents::try_from_usd(dec!(1000000)).unwrap()
     );
 
@@ -170,7 +170,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
     deposit.revert_deposit(&DummySubject, res.id).await?;
     let balance = deposit.account_balance(&DummySubject, account.id).await?;
 
-    assert_eq!(balance.settled, UsdCents::ZERO);
+    assert_eq!(balance.settled.usd().unwrap(), UsdCents::ZERO);
 
     Ok(())
 }

@@ -58,8 +58,8 @@ pub struct DepositAccountBalance {
 impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
     fn from(balance: lana_app::deposit::DepositAccountBalance) -> Self {
         Self {
-            settled: balance.settled,
-            pending: balance.pending,
+            settled: balance.settled.usd().unwrap_or_default(),
+            pending: balance.pending.usd().unwrap_or_default(),
         }
     }
 }
@@ -188,11 +188,15 @@ impl DepositAccount {
         event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
-    async fn ledger_accounts(&self) -> DepositAccountLedgerAccounts {
-        DepositAccountLedgerAccounts {
-            deposit_account_id: self.entity.account_ids.deposit_account_id.into(),
-            frozen_deposit_account_id: self.entity.account_ids.frozen_deposit_account_id.into(),
-        }
+    async fn ledger_accounts(&self) -> Option<DepositAccountLedgerAccounts> {
+        self.entity
+            .account_ids
+            .usd
+            .as_ref()
+            .map(|ids| DepositAccountLedgerAccounts {
+                deposit_account_id: ids.deposit_account_id.into(),
+                frozen_deposit_account_id: ids.frozen_deposit_account_id.into(),
+            })
     }
 }
 

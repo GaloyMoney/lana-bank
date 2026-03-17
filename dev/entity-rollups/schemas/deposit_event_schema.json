@@ -1,5 +1,26 @@
 {
   "$defs": {
+    "CurrencyBag": {
+      "properties": {
+        "btc": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "usd": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "DepositStatus": {
       "enum": [
         "Confirmed",
@@ -13,9 +34,7 @@
     {
       "properties": {
         "amount": {
-          "format": "uint64",
-          "minimum": 0,
-          "type": "integer"
+          "$ref": "#/$defs/CurrencyBag"
         },
         "deposit_account_id": {
           "format": "uuid",

@@ -8,7 +8,7 @@
       ],
       "type": "string"
     },
-    "DepositAccountLedgerAccountIds": {
+    "CurrencyLedgerAccountIds": {
       "properties": {
         "deposit_account_id": {
           "format": "uuid",
@@ -23,6 +23,31 @@
         "deposit_account_id",
         "frozen_deposit_account_id"
       ],
+      "type": "object"
+    },
+    "DepositAccountLedgerAccountIds": {
+      "properties": {
+        "btc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CurrencyLedgerAccountIds"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "usd": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CurrencyLedgerAccountIds"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
       "type": "object"
     },
     "DepositAccountStatus": {

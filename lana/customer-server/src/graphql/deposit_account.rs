@@ -43,8 +43,8 @@ pub struct DepositAccountBalance {
 impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
     fn from(balance: lana_app::deposit::DepositAccountBalance) -> Self {
         Self {
-            settled: balance.settled,
-            pending: balance.pending,
+            settled: balance.settled.usd().unwrap_or_default(),
+            pending: balance.pending.usd().unwrap_or_default(),
         }
     }
 }

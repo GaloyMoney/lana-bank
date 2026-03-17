@@ -36,6 +36,8 @@ pub enum DepositLedgerError {
     NonAccountMemberFoundInAccountSet(String),
     #[error("DepositLedgerError - JournalIdMismatch: Account sets have wrong JournalId")]
     JournalIdMismatch,
+    #[error("DepositLedgerError - CurrencyNotSupported: {0}")]
+    CurrencyNotSupported(&'static str),
 }
 
 impl ErrorSeverity for DepositLedgerError {
@@ -62,6 +64,7 @@ impl ErrorSeverity for DepositLedgerError {
             Self::MismatchedTxMetadata(_) => Level::WARN,
             Self::NonAccountMemberFoundInAccountSet(_) => Level::ERROR,
             Self::JournalIdMismatch => Level::ERROR,
+            Self::CurrencyNotSupported(_) => Level::WARN,
         }
     }
 }

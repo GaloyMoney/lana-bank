@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use es_entity::*;
-use money::UsdCents;
+use money::CurrencyBag;
 
 use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId, DepositStatus, PublicId};
 
@@ -17,7 +17,7 @@ pub enum DepositEvent {
         id: DepositId,
         ledger_tx_id: CalaTransactionId,
         deposit_account_id: DepositAccountId,
-        amount: UsdCents,
+        amount: CurrencyBag,
         reference: String,
         status: DepositStatus,
         public_id: PublicId,
@@ -33,7 +33,7 @@ pub struct DepositReversalData {
     pub entity_id: DepositId,
     pub ledger_tx_id: CalaTransactionId,
     pub credit_account_id: DepositAccountId,
-    pub amount: UsdCents,
+    pub amount: CurrencyBag,
     pub correlation_id: String,
     pub external_id: String,
 }
@@ -43,7 +43,7 @@ pub struct DepositReversalData {
 pub struct Deposit {
     pub id: DepositId,
     pub deposit_account_id: DepositAccountId,
-    pub amount: UsdCents,
+    pub amount: CurrencyBag,
     pub reference: String,
     pub public_id: PublicId,
     events: EntityEvents<DepositEvent>,
@@ -137,8 +137,7 @@ pub struct NewDeposit {
     pub(super) ledger_transaction_id: CalaTransactionId,
     #[builder(setter(into))]
     pub(super) deposit_account_id: DepositAccountId,
-    #[builder(setter(into))]
-    pub(super) amount: UsdCents,
+    pub(super) amount: CurrencyBag,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
     reference: Option<String>,
@@ -162,8 +161,8 @@ impl NewDeposit {
 
 impl NewDepositBuilder {
     fn validate(&self) -> Result<(), String> {
-        match self.amount {
-            Some(amount) if amount.is_zero() => Err("Deposit amount cannot be zero".to_string()),
+        match &self.amount {
+            Some(amount) if amount.is_empty() => Err("Deposit amount cannot be zero".to_string()),
             _ => Ok(()),
         }
     }
@@ -190,13 +189,17 @@ impl IntoEvents<DepositEvent> for NewDeposit {
 mod test {
     use super::*;
 
+    fn usd_amount(cents: u64) -> CurrencyBag {
+        CurrencyBag::new().with_usd_amount(money::UsdCents::from(cents))
+    }
+
     #[test]
     fn errors_when_zero_amount_deposit_amount_is_passed() {
         let deposit = NewDeposit::builder()
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(UsdCents::ZERO)
+            .amount(CurrencyBag::new().with_usd())
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
             .build();
@@ -229,7 +232,7 @@ mod test {
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(UsdCents::ONE)
+            .amount(usd_amount(1))
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
             .build();
@@ -243,7 +246,7 @@ mod test {
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(UsdCents::ONE)
+            .amount(usd_amount(1))
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
             .build()

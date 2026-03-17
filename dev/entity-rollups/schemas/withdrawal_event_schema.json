@@ -1,5 +1,26 @@
 {
   "$defs": {
+    "CurrencyBag": {
+      "properties": {
+        "btc": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "usd": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "WithdrawalStatus": {
       "enum": [
         "PendingApproval",
@@ -17,9 +38,7 @@
     {
       "properties": {
         "amount": {
-          "format": "uint64",
-          "minimum": 0,
-          "type": "integer"
+          "$ref": "#/$defs/CurrencyBag"
         },
         "approval_process_id": {
           "format": "uuid",

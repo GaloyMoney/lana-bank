@@ -23,7 +23,7 @@ impl From<DomainDeposit> for Deposit {
             id: deposit.id.to_global_id(),
             deposit_id: UUID::from(deposit.id),
             account_id: UUID::from(deposit.deposit_account_id),
-            amount: deposit.amount,
+            amount: deposit.amount.usd().unwrap_or_default(),
             created_at: deposit.created_at().into(),
 
             entity: Arc::new(deposit),

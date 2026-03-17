@@ -102,7 +102,8 @@ where
         )
         .await?;
 
-        let balance = self.ledger.balance(account_id).await?;
+        let account = self.accounts.find_by_id(account_id).await?;
+        let balance = self.ledger.balance(&account.account_ids).await?;
         Ok(balance)
     }
 

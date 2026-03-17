@@ -32,6 +32,8 @@ pub enum WithdrawalError {
     AuditError(#[from] audit::error::AuditError),
     #[error("WithdrawalError - NotConfirmed: {0}")]
     NotConfirmed(WithdrawalId),
+    #[error("WithdrawalError - DepositAccountFindError: {0}")]
+    DepositAccountFindError(#[from] crate::account::DepositAccountFindError),
 }
 
 impl ErrorSeverity for WithdrawalError {
@@ -48,6 +50,7 @@ impl ErrorSeverity for WithdrawalError {
             Self::NotApproved(_) => Level::WARN,
             Self::AuditError(e) => e.severity(),
             Self::NotConfirmed(_) => Level::WARN,
+            Self::DepositAccountFindError(_) => Level::ERROR,
         }
     }
 }

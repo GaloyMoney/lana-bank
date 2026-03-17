@@ -3,8 +3,10 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
+use money::CurrencyBag;
+
 use crate::{
-    primitives::{DepositAccountId, UsdCents, WithdrawalId},
+    primitives::{DepositAccountId, WithdrawalId},
     withdrawal::{Withdrawal, WithdrawalStatus},
 };
 
@@ -13,7 +15,7 @@ use crate::{
 pub struct PublicWithdrawal {
     pub id: WithdrawalId,
     pub deposit_account_id: DepositAccountId,
-    pub amount: UsdCents,
+    pub amount: CurrencyBag,
     pub status: WithdrawalStatus,
 }
 

@@ -12,6 +12,7 @@ use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreDepositAction, CoreDepositObject, WithdrawalAction,
+    account::DepositAccountRepo,
     ledger::DepositLedger,
     primitives::WithdrawalId,
     public::CoreDepositEvent,
@@ -29,6 +30,7 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     repo: WithdrawalRepo<E>,
+    deposit_accounts: DepositAccountRepo<E>,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
     ledger: DepositLedger,
@@ -41,6 +43,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
+            deposit_accounts: self.deposit_accounts.clone(),
             audit: self.audit.clone(),
             governance: self.governance.clone(),
             ledger: self.ledger.clone(),
@@ -59,12 +62,14 @@ where
 {
     pub fn new(
         repo: &WithdrawalRepo<E>,
+        deposit_accounts: &DepositAccountRepo<E>,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
         ledger: &DepositLedger,
     ) -> Self {
         Self {
             repo: repo.clone(),
+            deposit_accounts: deposit_accounts.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
             ledger: ledger.clone(),
@@ -90,14 +95,18 @@ where
             .await?;
         match withdraw.approval_process_concluded(approved) {
             es_entity::Idempotent::Executed(Some(denied_tx_id)) => {
+                let account = self
+                    .deposit_accounts
+                    .find_by_id(withdraw.deposit_account_id)
+                    .await?;
                 self.repo.update_in_op(&mut *op, &mut withdraw).await?;
                 self.ledger
                     .deny_withdrawal_in_op(
                         &mut *op,
                         withdraw.id,
                         denied_tx_id,
-                        withdraw.amount,
-                        withdraw.deposit_account_id,
+                        &withdraw.amount,
+                        &account.account_ids,
                         &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
                             crate::primitives::DEPOSIT_APPROVAL,
                         ),

@@ -104,14 +104,17 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         .await?;
 
     let balance = deposit.account_balance(&DummySubject, account.id).await?;
-    assert_eq!(balance.settled, deposit_amount - withdrawal_amount);
-    assert_eq!(balance.pending, withdrawal_amount);
+    assert_eq!(
+        balance.settled.usd().unwrap(),
+        deposit_amount - withdrawal_amount
+    );
+    assert_eq!(balance.pending.usd().unwrap(), withdrawal_amount);
 
     deposit
         .cancel_withdrawal(&DummySubject, withdrawal.id)
         .await?;
     let balance = deposit.account_balance(&DummySubject, account.id).await?;
-    assert_eq!(balance.settled, deposit_amount);
+    assert_eq!(balance.settled.usd().unwrap(), deposit_amount);
 
     Ok(())
 }

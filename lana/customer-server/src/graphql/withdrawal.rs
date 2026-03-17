@@ -25,7 +25,7 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
             created_at: withdraw.created_at().into(),
             account_id: withdraw.deposit_account_id.into(),
             withdrawal_id: UUID::from(withdraw.id),
-            amount: withdraw.amount,
+            amount: withdraw.amount.usd().unwrap_or_default(),
             status: withdraw.status(),
             entity: Arc::new(withdraw),
         }

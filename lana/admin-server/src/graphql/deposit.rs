@@ -40,7 +40,7 @@ impl From<DomainDeposit> for Deposit {
             id: deposit.id.to_global_id(),
             deposit_id: UUID::from(deposit.id),
             account_id: UUID::from(deposit.deposit_account_id),
-            amount: deposit.amount,
+            amount: deposit.amount.usd().unwrap_or_default(),
             created_at: deposit.created_at().into(),
 
             entity: Arc::new(deposit),
@@ -141,7 +141,6 @@ pub struct DepositsFilter {
 pub enum DepositsSortBy {
     #[default]
     CreatedAt,
-    Amount,
     PublicId,
 }
 
@@ -149,7 +148,6 @@ impl From<DepositsSortBy> for DomainDepositsSortBy {
     fn from(by: DepositsSortBy) -> Self {
         match by {
             DepositsSortBy::CreatedAt => DomainDepositsSortBy::CreatedAt,
-            DepositsSortBy::Amount => DomainDepositsSortBy::Amount,
             DepositsSortBy::PublicId => DomainDepositsSortBy::PublicId,
         }
     }

@@ -1,17 +1,12 @@
-use money::UsdCents;
+use money::CurrencyBag;
 
 pub struct DepositAccountBalance {
-    pub settled: UsdCents,
-    pub pending: UsdCents,
+    pub settled: CurrencyBag,
+    pub pending: CurrencyBag,
 }
 
 impl DepositAccountBalance {
-    pub const ZERO: Self = DepositAccountBalance {
-        settled: UsdCents::ZERO,
-        pending: UsdCents::ZERO,
-    };
-
     pub fn is_zero(&self) -> bool {
-        self.settled.is_zero() && self.pending.is_zero()
+        self.settled.is_empty() && self.pending.is_empty()
     }
 }

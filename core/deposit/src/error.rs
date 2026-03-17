@@ -42,6 +42,8 @@ pub enum CoreDepositError {
     DepositAccountFrozen,
     #[error("CoreDepositError - DepositAccountClosed")]
     DepositAccountClosed,
+    #[error("CoreDepositError - CurrencyNotSupported: {0}")]
+    CurrencyNotSupported(String),
     #[error("CoreDepositError - WithdrawalBuilderError: {0}")]
     WithdrawalBuilderError(#[from] super::NewWithdrawalBuilderError),
     #[error("CoreDepositError - DepositBuilderError: {0}")]
@@ -159,6 +161,7 @@ impl ErrorSeverity for CoreDepositError {
             Self::DepositConfigAlreadyExists => Level::WARN,
             Self::DepositAccountFrozen => Level::WARN,
             Self::DepositAccountClosed => Level::WARN,
+            Self::CurrencyNotSupported(_) => Level::WARN,
             Self::WithdrawalBuilderError(_) => Level::ERROR,
             Self::DepositBuilderError(_) => Level::ERROR,
             Self::PublicIdError(e) => e.severity(),

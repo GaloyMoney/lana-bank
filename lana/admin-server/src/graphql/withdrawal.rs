@@ -44,7 +44,7 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
             account_id: withdraw.deposit_account_id.into(),
             withdrawal_id: UUID::from(withdraw.id),
             approval_process_id: UUID::from(withdraw.approval_process_id),
-            amount: withdraw.amount,
+            amount: withdraw.amount.usd().unwrap_or_default(),
             status: withdraw.status(),
             entity: Arc::new(withdraw),
         }
@@ -160,7 +160,6 @@ pub struct WithdrawalsFilter {
 pub enum WithdrawalsSortBy {
     #[default]
     CreatedAt,
-    Amount,
     PublicId,
 }
 
@@ -168,7 +167,6 @@ impl From<WithdrawalsSortBy> for DomainWithdrawalsSortBy {
     fn from(by: WithdrawalsSortBy) -> Self {
         match by {
             WithdrawalsSortBy::CreatedAt => DomainWithdrawalsSortBy::CreatedAt,
-            WithdrawalsSortBy::Amount => DomainWithdrawalsSortBy::Amount,
             WithdrawalsSortBy::PublicId => DomainWithdrawalsSortBy::PublicId,
         }
     }
