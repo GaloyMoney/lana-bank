@@ -104,6 +104,9 @@ checksums:
     Configurations/time/description: aae09268c51480cddf28a2d9d9c4e9f7
     Configurations/time/currentDate: ddba5d3270d4a6394d29721025a04400
     Configurations/time/currentTime: 9b305d24a89fd53c07b95b1026c4013b
+    Configurations/time/browserTime: 4c1b4302f5aa4353b52bafce5cc0993a
+    Configurations/time/timezone: 370780b854bdbef55320f977a4fb9ddb
+    Configurations/time/endOfDayTime: 58166f24f1d9436c1db2f0daeb7cb5f9
     Configurations/time/nextEndOfDay: d782252d4a08b51063438f89d4e5d446
     Configurations/time/loadError: 3574080c5420fb78cdf2be7c6afbf958
     Configurations/notification-email-from-email/title: 52f3f83e83a55f5e81d17f1990c2cf5c

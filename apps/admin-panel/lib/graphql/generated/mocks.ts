@@ -3711,7 +3711,9 @@ export const mockTime = (overrides?: Partial<Time>, _relationshipsToOmit: Set<st
         __typename: 'Time',
         currentDate: overrides && overrides.hasOwnProperty('currentDate') ? overrides.currentDate! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         currentTime: overrides && overrides.hasOwnProperty('currentTime') ? overrides.currentTime! : generateMockValue.timestamp(),
+        endOfDayTime: overrides && overrides.hasOwnProperty('endOfDayTime') ? overrides.endOfDayTime! : faker.lorem.word(),
         nextEndOfDayAt: overrides && overrides.hasOwnProperty('nextEndOfDayAt') ? overrides.nextEndOfDayAt! : generateMockValue.timestamp(),
+        timezone: overrides && overrides.hasOwnProperty('timezone') ? overrides.timezone! : faker.lorem.word(),
     };
 };
 

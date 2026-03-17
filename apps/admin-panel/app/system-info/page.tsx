@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useEffect } from "react"
+
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 import { LoaderCircle } from "lucide-react"
@@ -36,6 +38,8 @@ gql`
       currentDate
       currentTime
       nextEndOfDayAt
+      timezone
+      endOfDayTime
     }
   }
 `
@@ -121,6 +125,17 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   )
 }
 
+function useBrowserTime() {
+  const [now, setNow] = useState<string>("")
+  useEffect(() => {
+    const update = () => setNow(new Date().toLocaleString())
+    update()
+    const id = setInterval(update, 1000)
+    return () => clearInterval(id)
+  }, [])
+  return now
+}
+
 type TimeCardProps = {
   time?: Time
   loading: boolean
@@ -129,6 +144,7 @@ type TimeCardProps = {
 
 function TimeCard({ time, loading, error }: TimeCardProps) {
   const tTime = useTranslations("Configurations.time")
+  const browserTime = useBrowserTime()
 
   return (
     <Card>
@@ -151,6 +167,9 @@ function TimeCard({ time, loading, error }: TimeCardProps) {
               label={tTime("currentTime")}
               value={formatDate(time.currentTime)}
             />
+            <InfoRow label={tTime("browserTime")} value={browserTime} />
+            <InfoRow label={tTime("timezone")} value={time.timezone} />
+            <InfoRow label={tTime("endOfDayTime")} value={time.endOfDayTime} />
             <InfoRow
               label={tTime("nextEndOfDay")}
               value={formatDate(time.nextEndOfDayAt)}

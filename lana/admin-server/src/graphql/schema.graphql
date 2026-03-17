@@ -2994,9 +2994,17 @@ type Time {
 	"""
 	currentTime: Timestamp!
 	"""
+	Configured end-of-day time in HH:MM:SS format.
+	"""
+	endOfDayTime: String!
+	"""
 	Timestamp when the next end-of-day boundary will be reached.
 	"""
 	nextEndOfDayAt: Timestamp!
+	"""
+	IANA timezone identifier for the environment (e.g. "America/New_York").
+	"""
+	timezone: String!
 }
 
 """

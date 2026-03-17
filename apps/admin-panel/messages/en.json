@@ -128,6 +128,9 @@
       "description": "Inspect the current environment clock and, when manual time is enabled, advance it to the next configured end-of-day boundary.",
       "currentDate": "Current date",
       "currentTime": "Current time",
+      "browserTime": "Browser time",
+      "timezone": "Timezone",
+      "endOfDayTime": "End of day time",
       "nextEndOfDay": "Next end of day",
       "loadError": "Could not load time"
     },
