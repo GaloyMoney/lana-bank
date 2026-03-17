@@ -7,6 +7,7 @@
     "queries": {
       "appConfig": "Returns the YAML-serialized runtime configuration for the environment",
       "buildInfo": "Returns build version, profile, and target information for the running server",
+      "time": "Returns the current environment clock state, including the current business date, current time, and the next configured end-of-day boundary",
       "me": "Returns the current authenticated user's information and visible navigation items",
       "dashboard": "Retrieves dashboard statistics including active facilities, pending facilities, total disbursed amount, and total collateral",
       "user": "Fetches a specific user by their unique identifier",
