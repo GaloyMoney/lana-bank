@@ -24,7 +24,6 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import { camelToScreamingSnake } from "@/lib/utils"
-import Balance from "@/components/balance/balance"
 
 gql`
   query Customers(
@@ -46,12 +45,6 @@ gql`
           applicantId
           customerType
           createdAt
-          depositAccount {
-            balance {
-              settled
-              pending
-            }
-          }
         }
         cursor
       }
@@ -83,12 +76,14 @@ const CustomersList = () => {
     {
       key: "email",
       label: t("columns.email"),
-      labelClassName: "w-[30%]",
+      labelClassName: "w-[25%]",
+      sortable: true,
     },
     {
       key: "telegramHandle",
       label: t("columns.telegramHandle"),
-      labelClassName: "w-[30%]",
+      labelClassName: "w-[25%]",
+      sortable: true,
     },
     {
       key: "status",
@@ -108,16 +103,6 @@ const CustomersList = () => {
       label: t("columns.createdAt"),
       sortable: true,
       render: (createdAt) => formatDate(createdAt),
-    },
-    {
-      key: "depositAccount",
-      label: t("columns.depositAccount"),
-      render: (depositAccount) =>
-        depositAccount?.balance?.settled ? (
-          <Balance amount={depositAccount?.balance?.settled} currency="usd" />
-        ) : (
-          <>-</>
-        ),
     },
   ]
 

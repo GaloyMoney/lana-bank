@@ -33,7 +33,10 @@ pub use party::{Party, PartyRepo};
 pub use primitives::*;
 pub use prospect::{Prospect, ProspectRepo, ProspectsFilters, ProspectsSortBy, prospect_cursor};
 pub use public::*;
-pub use repo::{CustomerRepo, CustomersFilters, CustomersSortBy, Sort, customer_cursor::*};
+pub use repo::{
+    CustomerRepo, CustomersFilters, CustomersSortBy as RepoCustomersSortBy, Sort, customer_cursor,
+    customer_cursor::*,
+};
 
 pub const CUSTOMER_DOCUMENT: DocumentType = DocumentType::new("customer_document");
 
@@ -47,6 +50,32 @@ pub mod event_schema {
 use party::publisher::PartyPublisher;
 use prospect::publisher::ProspectPublisher;
 use publisher::*;
+
+use crate::prospect::{
+    RepoProspectsSortBy,
+    prospect_cursor::{ProspectsByIdCursor, ProspectsCursor},
+};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CustomersSortBy {
+    CreatedAt,
+    Email,
+    TelegramHandle,
+}
+
+impl From<(CustomersSortBy, &entity::Customer)> for customer_cursor::CustomersCursor {
+    fn from(customer_with_sort: (CustomersSortBy, &entity::Customer)) -> Self {
+        let (sort, customer) = customer_with_sort;
+        match sort {
+            CustomersSortBy::CreatedAt => {
+                customer_cursor::CustomersByCreatedAtCursor::from(customer).into()
+            }
+            CustomersSortBy::Email | CustomersSortBy::TelegramHandle => {
+                customer_cursor::CustomersByIdCursor::from(customer).into()
+            }
+        }
+    }
+}
 
 pub struct Customers<Perms, E>
 where
@@ -324,7 +353,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CustomersCursor>,
         filter: CustomersFilters,
-        sort: impl Into<Sort<CustomersSortBy>> + std::fmt::Debug,
+        sort: es_entity::Sort<CustomersSortBy>,
     ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersCursor>, CustomerError> {
         self.authz
             .enforce_permission(
@@ -333,10 +362,45 @@ where
                 CoreCustomerAction::CUSTOMER_LIST,
             )
             .await?;
-        Ok(self
-            .repo
-            .list_for_filters(filter, sort.into(), query)
-            .await?)
+
+        let build_party_sort_result = |entities: Vec<Customer>, has_next_page: bool| {
+            let end_cursor = if has_next_page {
+                entities
+                    .last()
+                    .map(|c| customer_cursor::CustomersByIdCursor { id: c.id }.into())
+            } else {
+                None
+            };
+            es_entity::PaginatedQueryRet {
+                entities,
+                has_next_page,
+                end_cursor,
+            }
+        };
+
+        match sort.by {
+            CustomersSortBy::Email => {
+                let (entities, has_next_page) = self
+                    .repo
+                    .list_by_party_email(&filter, sort.direction, query)
+                    .await?;
+                Ok(build_party_sort_result(entities, has_next_page))
+            }
+            CustomersSortBy::TelegramHandle => {
+                let (entities, has_next_page) = self
+                    .repo
+                    .list_by_party_telegram(&filter, sort.direction, query)
+                    .await?;
+                Ok(build_party_sort_result(entities, has_next_page))
+            }
+            CustomersSortBy::CreatedAt => {
+                let repo_sort = es_entity::Sort {
+                    by: RepoCustomersSortBy::CreatedAt,
+                    direction: sort.direction,
+                };
+                Ok(self.repo.list_for_filters(filter, repo_sort, query).await?)
+            }
+        }
     }
 
     #[record_error_severity]
@@ -864,13 +928,10 @@ where
     pub async fn list_prospects(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<prospect::prospect_cursor::ProspectsCursor>,
-        filter: prospect::ProspectsFilters,
-        sort: impl Into<Sort<ProspectsSortBy>> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<Prospect, prospect::prospect_cursor::ProspectsCursor>,
-        CustomerError,
-    > {
+        query: es_entity::PaginatedQueryArgs<ProspectsCursor>,
+        filter: ProspectsFilters,
+        sort: es_entity::Sort<ProspectsSortBy>,
+    ) -> Result<es_entity::PaginatedQueryRet<Prospect, ProspectsCursor>, CustomerError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -878,10 +939,48 @@ where
                 CoreCustomerAction::PROSPECT_LIST,
             )
             .await?;
-        Ok(self
-            .prospect_repo
-            .list_for_filters(filter, sort.into(), query)
-            .await?)
+
+        let build_party_sort_result = |entities: Vec<Prospect>, has_next_page: bool| {
+            let end_cursor = if has_next_page {
+                entities
+                    .last()
+                    .map(|p| ProspectsByIdCursor { id: p.id }.into())
+            } else {
+                None
+            };
+            es_entity::PaginatedQueryRet {
+                entities,
+                has_next_page,
+                end_cursor,
+            }
+        };
+
+        match sort.by {
+            ProspectsSortBy::Email => {
+                let (entities, has_next_page) = self
+                    .prospect_repo
+                    .list_by_party_email(&filter, sort.direction, query)
+                    .await?;
+                Ok(build_party_sort_result(entities, has_next_page))
+            }
+            ProspectsSortBy::TelegramHandle => {
+                let (entities, has_next_page) = self
+                    .prospect_repo
+                    .list_by_party_telegram(&filter, sort.direction, query)
+                    .await?;
+                Ok(build_party_sort_result(entities, has_next_page))
+            }
+            ProspectsSortBy::CreatedAt => {
+                let repo_sort = es_entity::Sort {
+                    by: RepoProspectsSortBy::CreatedAt,
+                    direction: sort.direction,
+                };
+                Ok(self
+                    .prospect_repo
+                    .list_for_filters(filter, repo_sort, query)
+                    .await?)
+            }
+        }
     }
 
     #[record_error_severity]

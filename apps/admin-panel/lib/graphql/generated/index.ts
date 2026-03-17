@@ -1301,7 +1301,9 @@ export type CustomersSort = {
 };
 
 export enum CustomersSortBy {
-  CreatedAt = 'CREATED_AT'
+  CreatedAt = 'CREATED_AT',
+  Email = 'EMAIL',
+  TelegramHandle = 'TELEGRAM_HANDLE'
 }
 
 export type CvlPct = FiniteCvlPct | InfiniteCvlPct;
@@ -2979,7 +2981,9 @@ export type ProspectsSort = {
 };
 
 export enum ProspectsSortBy {
-  CreatedAt = 'CREATED_AT'
+  CreatedAt = 'CREATED_AT',
+  Email = 'EMAIL',
+  TelegramHandle = 'TELEGRAM_HANDLE'
 }
 
 export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Prospect | Withdrawal;
@@ -4792,7 +4796,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, status: CustomerStatus, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, status: CustomerStatus, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -9831,12 +9835,6 @@ export const CustomersDocument = gql`
         applicantId
         customerType
         createdAt
-        depositAccount {
-          balance {
-            settled
-            pending
-          }
-        }
       }
       cursor
     }

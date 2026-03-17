@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT c.id AS \"id: CustomerId\"\n                       FROM core_customers c\n                       JOIN core_parties pa ON pa.id = c.party_id\n                       WHERE ($1::text IS NULL OR c.status = $1)\n                         AND ($2::text IS NULL OR c.customer_type = $2)\n                         AND (\n                           $3::uuid IS NULL\n                           OR (pa.email, c.id) < (\n                             (SELECT pa2.email FROM core_customers c2 JOIN core_parties pa2 ON pa2.id = c2.party_id WHERE c2.id = $3),\n                             $3\n                           )\n                         )\n                       ORDER BY pa.email DESC, c.id DESC\n                       LIMIT $4",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: CustomerId",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "d6a1588240bc9b9ab244164580249859bbce91aa8af129189bb9a009669c7e97"
+}

@@ -7,7 +7,7 @@ use obix::out::OutboxEventMarker;
 
 use crate::{primitives::*, public::CoreCustomerEvent};
 
-use super::{entity::*, publisher::*};
+use super::{entity::*, error::*, publisher::*};
 
 #[derive(EsRepo)]
 #[es_repo(
@@ -63,23 +63,165 @@ where
     ) -> Result<(), sqlx::Error> {
         self.publisher.publish_in_op(db, entity, new_events).await
     }
-}
 
-impl From<(ProspectsSortBy, &Prospect)> for prospect_cursor::ProspectsCursor {
-    fn from(prospect_with_sort: (ProspectsSortBy, &Prospect)) -> Self {
-        let (sort, prospect) = prospect_with_sort;
-        match sort {
-            ProspectsSortBy::CreatedAt => {
-                prospect_cursor::ProspectsByCreatedAtCursor::from(prospect).into()
-            }
-            ProspectsSortBy::Id => prospect_cursor::ProspectsByIdCursor::from(prospect).into(),
-            ProspectsSortBy::PublicId => {
-                prospect_cursor::ProspectsByPublicIdCursor::from(prospect).into()
-            }
-            ProspectsSortBy::PartyId => {
-                prospect_cursor::ProspectsByPartyIdCursor::from(prospect).into()
-            }
+    fn cursor_to_id(cursor: prospect_cursor::ProspectsCursor) -> ProspectId {
+        match cursor {
+            prospect_cursor::ProspectsCursor::Byid(c) => c.id,
+            prospect_cursor::ProspectsCursor::Bycreated_at(c) => c.id,
+            prospect_cursor::ProspectsCursor::Bypublic_id(c) => c.id,
+            prospect_cursor::ProspectsCursor::Byparty_id(c) => c.id,
         }
+    }
+
+    pub async fn list_by_party_email(
+        &self,
+        filter: &ProspectsFilters,
+        direction: ListDirection,
+        query: PaginatedQueryArgs<prospect_cursor::ProspectsCursor>,
+    ) -> Result<(Vec<Prospect>, bool), ProspectError> {
+        let first = query.first;
+        let after_id = query.after.map(Self::cursor_to_id);
+        let limit = first as i64 + 1;
+        let stage = filter.stage.as_ref().map(|s| s.to_string());
+        let customer_type = filter.customer_type.as_ref().map(|ct| ct.to_string());
+
+        let ids = match direction {
+            ListDirection::Ascending => {
+                sqlx::query_scalar!(
+                    r#"SELECT p.id AS "id: ProspectId"
+                       FROM core_prospects p
+                       JOIN core_parties pa ON pa.id = p.party_id
+                       WHERE ($1::text IS NULL OR p.stage = $1)
+                         AND ($2::text IS NULL OR p.customer_type = $2)
+                         AND (
+                           $3::uuid IS NULL
+                           OR (pa.email, p.id) > (
+                             (SELECT pa2.email FROM core_prospects p2 JOIN core_parties pa2 ON pa2.id = p2.party_id WHERE p2.id = $3),
+                             $3
+                           )
+                         )
+                       ORDER BY pa.email ASC, p.id ASC
+                       LIMIT $4"#,
+                    stage,
+                    customer_type,
+                    after_id as Option<ProspectId>,
+                    limit,
+                )
+                .fetch_all(self.pool())
+                .await?
+            }
+            ListDirection::Descending => {
+                sqlx::query_scalar!(
+                    r#"SELECT p.id AS "id: ProspectId"
+                       FROM core_prospects p
+                       JOIN core_parties pa ON pa.id = p.party_id
+                       WHERE ($1::text IS NULL OR p.stage = $1)
+                         AND ($2::text IS NULL OR p.customer_type = $2)
+                         AND (
+                           $3::uuid IS NULL
+                           OR (pa.email, p.id) < (
+                             (SELECT pa2.email FROM core_prospects p2 JOIN core_parties pa2 ON pa2.id = p2.party_id WHERE p2.id = $3),
+                             $3
+                           )
+                         )
+                       ORDER BY pa.email DESC, p.id DESC
+                       LIMIT $4"#,
+                    stage,
+                    customer_type,
+                    after_id as Option<ProspectId>,
+                    limit,
+                )
+                .fetch_all(self.pool())
+                .await?
+            }
+        };
+
+        self.hydrate_ordered(ids, first).await
+    }
+
+    pub async fn list_by_party_telegram(
+        &self,
+        filter: &ProspectsFilters,
+        direction: ListDirection,
+        query: PaginatedQueryArgs<prospect_cursor::ProspectsCursor>,
+    ) -> Result<(Vec<Prospect>, bool), ProspectError> {
+        let first = query.first;
+        let after_id = query.after.map(Self::cursor_to_id);
+        let limit = first as i64 + 1;
+        let stage = filter.stage.as_ref().map(|s| s.to_string());
+        let customer_type = filter.customer_type.as_ref().map(|ct| ct.to_string());
+
+        let ids = match direction {
+            ListDirection::Ascending => {
+                sqlx::query_scalar!(
+                    r#"SELECT p.id AS "id: ProspectId"
+                       FROM core_prospects p
+                       JOIN core_parties pa ON pa.id = p.party_id
+                       WHERE ($1::text IS NULL OR p.stage = $1)
+                         AND ($2::text IS NULL OR p.customer_type = $2)
+                         AND (
+                           $3::uuid IS NULL
+                           OR (pa.telegram_handle, p.id) > (
+                             (SELECT pa2.telegram_handle FROM core_prospects p2 JOIN core_parties pa2 ON pa2.id = p2.party_id WHERE p2.id = $3),
+                             $3
+                           )
+                         )
+                       ORDER BY pa.telegram_handle ASC, p.id ASC
+                       LIMIT $4"#,
+                    stage,
+                    customer_type,
+                    after_id as Option<ProspectId>,
+                    limit,
+                )
+                .fetch_all(self.pool())
+                .await?
+            }
+            ListDirection::Descending => {
+                sqlx::query_scalar!(
+                    r#"SELECT p.id AS "id: ProspectId"
+                       FROM core_prospects p
+                       JOIN core_parties pa ON pa.id = p.party_id
+                       WHERE ($1::text IS NULL OR p.stage = $1)
+                         AND ($2::text IS NULL OR p.customer_type = $2)
+                         AND (
+                           $3::uuid IS NULL
+                           OR (pa.telegram_handle, p.id) < (
+                             (SELECT pa2.telegram_handle FROM core_prospects p2 JOIN core_parties pa2 ON pa2.id = p2.party_id WHERE p2.id = $3),
+                             $3
+                           )
+                         )
+                       ORDER BY pa.telegram_handle DESC, p.id DESC
+                       LIMIT $4"#,
+                    stage,
+                    customer_type,
+                    after_id as Option<ProspectId>,
+                    limit,
+                )
+                .fetch_all(self.pool())
+                .await?
+            }
+        };
+
+        self.hydrate_ordered(ids, first).await
+    }
+
+    async fn hydrate_ordered(
+        &self,
+        ids: Vec<ProspectId>,
+        first: usize,
+    ) -> Result<(Vec<Prospect>, bool), ProspectError> {
+        let has_next_page = ids.len() > first;
+        let ids: Vec<ProspectId> = ids.into_iter().take(first).collect();
+
+        let mut entities_map: std::collections::HashMap<ProspectId, Prospect> =
+            self.find_all(&ids).await?;
+
+        let ordered: Vec<Prospect> = ids
+            .iter()
+            .filter_map(|id| entities_map.remove(id))
+            .collect();
+
+        Ok((ordered, has_next_page))
     }
 }
 

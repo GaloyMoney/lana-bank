@@ -266,12 +266,16 @@ crate::mutation_payload! { CustomerClosePayload, customer: Customer }
 pub enum CustomersSortBy {
     #[default]
     CreatedAt,
+    Email,
+    TelegramHandle,
 }
 
 impl From<CustomersSortBy> for DomainCustomersSortBy {
     fn from(by: CustomersSortBy) -> Self {
         match by {
             CustomersSortBy::CreatedAt => DomainCustomersSortBy::CreatedAt,
+            CustomersSortBy::Email => DomainCustomersSortBy::Email,
+            CustomersSortBy::TelegramHandle => DomainCustomersSortBy::TelegramHandle,
         }
     }
 }

@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT p.id AS \"id: ProspectId\"\n                       FROM core_prospects p\n                       JOIN core_parties pa ON pa.id = p.party_id\n                       WHERE ($1::text IS NULL OR p.stage = $1)\n                         AND ($2::text IS NULL OR p.customer_type = $2)\n                         AND (\n                           $3::uuid IS NULL\n                           OR (pa.telegram_handle, p.id) > (\n                             (SELECT pa2.telegram_handle FROM core_prospects p2 JOIN core_parties pa2 ON pa2.id = p2.party_id WHERE p2.id = $3),\n                             $3\n                           )\n                         )\n                       ORDER BY pa.telegram_handle ASC, p.id ASC\n                       LIMIT $4",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: ProspectId",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e1af90ce2ea724675095c6828b9451d29be9a0691d984879d58fdb08665ea8b8"
+}
