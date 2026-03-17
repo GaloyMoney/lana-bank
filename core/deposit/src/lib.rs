@@ -886,23 +886,9 @@ where
         }
     }
 
-    /// Returns a page of non-escheatable deposit account IDs,
-    /// using keyset cursor pagination ordered by (created_at, id).
-    #[record_error_severity]
-    #[instrument(name = "deposit.list_account_ids_not_escheatable", skip(self))]
-    pub async fn list_account_ids_not_escheatable(
-        &self,
-        after: Option<(DateTime<Utc>, DepositAccountId)>,
-        limit: i64,
-    ) -> Result<Vec<(DepositAccountId, DateTime<Utc>)>, CoreDepositError> {
-        Ok(self
-            .deposit_accounts
-            .list_account_ids_not_escheatable(after, limit)
-            .await?)
-    }
-
     /// Returns a page of non-escheatable deposit account IDs within an
-    /// existing database operation, using keyset cursor pagination.
+    /// existing database operation, using keyset cursor pagination
+    /// ordered by (created_at, id).
     #[record_error_severity]
     #[instrument(
         name = "deposit.list_account_ids_not_escheatable_in_op",
