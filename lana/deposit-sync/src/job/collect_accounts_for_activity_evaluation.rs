@@ -134,7 +134,7 @@ where
         loop {
             let rows = self
                 .deposits
-                .list_account_ids_for_activity_evaluation(state.last_cursor, PAGE_SIZE)
+                .list_account_ids_not_escheatable(state.last_cursor, PAGE_SIZE)
                 .await?;
 
             if rows.is_empty() {

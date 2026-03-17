@@ -886,11 +886,11 @@ where
         }
     }
 
-    /// Returns a page of non-escheatable deposit account IDs for activity evaluation,
+    /// Returns a page of non-escheatable deposit account IDs,
     /// using keyset cursor pagination ordered by (created_at, id).
     #[record_error_severity]
-    #[instrument(name = "deposit.list_account_ids_for_activity_evaluation", skip(self))]
-    pub async fn list_account_ids_for_activity_evaluation(
+    #[instrument(name = "deposit.list_account_ids_not_escheatable", skip(self))]
+    pub async fn list_account_ids_not_escheatable(
         &self,
         after: Option<(DateTime<Utc>, DepositAccountId)>,
         limit: i64,
