@@ -8,7 +8,7 @@ use job::*;
 use lana_events::LanaEvent;
 use tracing_macros::record_error_severity;
 
-use crate::email::job::sender::{EmailSenderConfig, EmailSenderJobSpawner};
+use crate::email::job::sender::EmailSenderJobSpawner;
 use crate::email::templates::{EmailType, RoleCreatedEmailData};
 
 pub const ROLE_CREATED_EMAIL_COMMAND: JobType =
@@ -100,32 +100,13 @@ where
             role_name: self.config.role_name.clone(),
         };
 
-        let mut has_next_page = true;
-        let mut after = None;
-        while has_next_page {
-            let es_entity::PaginatedQueryRet {
-                entities: users,
-                has_next_page: next_page,
-                end_cursor,
-            } = self
-                .users
-                .list_users_without_audit(
-                    es_entity::PaginatedQueryArgs { first: 20, after },
-                    es_entity::ListDirection::Descending,
-                )
-                .await?;
-            (after, has_next_page) = (end_cursor, next_page);
-
-            for user in users {
-                let email_config = EmailSenderConfig {
-                    recipient: user.email,
-                    email_type: EmailType::RoleCreated(email_data.clone()),
-                };
-                self.email_sender_job_spawner
-                    .spawn_in_op(&mut op, JobId::new(), email_config)
-                    .await?;
-            }
-        }
+        super::spawn_email_to_all_users(
+            &self.users,
+            &self.email_sender_job_spawner,
+            &mut op,
+            EmailType::RoleCreated(email_data),
+        )
+        .await?;
 
         Ok(JobCompletion::CompleteWithOp(op))
     }

@@ -122,36 +122,19 @@ where
             initially_expected_to_receive: self.config.initially_expected_to_receive,
         };
 
-        let mut has_next_page = true;
-        let mut after = None;
-        while has_next_page {
-            let es_entity::PaginatedQueryRet {
-                entities: users,
-                has_next_page: next_page,
-                end_cursor,
-            } = self
-                .users
-                .list_users_without_audit(
-                    es_entity::PaginatedQueryArgs { first: 20, after },
-                    es_entity::ListDirection::Descending,
-                )
-                .await?;
-            (after, has_next_page) = (end_cursor, next_page);
+        let email_type = EmailType::PartialLiquidationInitiated(email_data);
 
-            for user in users {
-                let email_config = EmailSenderConfig {
-                    recipient: user.email,
-                    email_type: EmailType::PartialLiquidationInitiated(email_data.clone()),
-                };
-                self.email_sender_job_spawner
-                    .spawn_in_op(&mut op, JobId::new(), email_config)
-                    .await?;
-            }
-        }
+        super::spawn_email_to_all_users(
+            &self.users,
+            &self.email_sender_job_spawner,
+            &mut op,
+            email_type.clone(),
+        )
+        .await?;
 
         let email_config = EmailSenderConfig {
             recipient: party.email,
-            email_type: EmailType::PartialLiquidationInitiated(email_data),
+            email_type,
         };
         self.email_sender_job_spawner
             .spawn_in_op(&mut op, JobId::new(), email_config)
