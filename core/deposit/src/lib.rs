@@ -886,9 +886,6 @@ where
         }
     }
 
-    /// Returns a page of non-escheatable deposit account IDs within an
-    /// existing database operation, using keyset cursor pagination
-    /// ordered by (created_at, id).
     #[record_error_severity]
     #[instrument(
         name = "deposit.list_account_ids_not_escheatable_in_op",
@@ -906,8 +903,6 @@ where
             .await?)
     }
 
-    /// Evaluates a single deposit account's activity status and updates it
-    /// within the provided database operation if a change is needed.
     #[record_error_severity]
     #[instrument(name = "deposit.evaluate_and_update_account_activity_in_op", skip(self, op), fields(%account_id, closing_time = %closing_time))]
     pub async fn evaluate_and_update_account_activity_in_op(
