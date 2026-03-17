@@ -1,4 +1,4 @@
-use tracing::{instrument, Span};
+use tracing::{Span, instrument};
 
 use core_time_events::CoreTimeEvent;
 use job::JobType;

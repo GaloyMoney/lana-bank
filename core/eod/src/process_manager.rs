@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
@@ -16,13 +14,20 @@ use crate::{
 
 pub const EOD_PROCESS_MANAGER_JOB_TYPE: JobType = JobType::new("task.eod.process-manager");
 
-/// Polling interval when checking child job completion.
-const POLL_INTERVAL: Duration = Duration::from_secs(5);
-
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EodProcessManagerConfig {
     pub date: NaiveDate,
+}
+
+/// Structured result set on the process manager job upon completion.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EodProcessManagerResult {
+    pub date: NaiveDate,
+    pub phase1_obligation: JobTerminalState,
+    pub phase1_deposit: JobTerminalState,
+    pub phase2_credit_facility: JobTerminalState,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -33,11 +38,20 @@ pub enum EodProcessState {
         obligation_job: JobId,
         deposit_job: JobId,
     },
-    SpawningPhase2,
+    SpawningPhase2 {
+        phase1_obligation: JobTerminalState,
+        phase1_deposit: JobTerminalState,
+    },
     AwaitingPhase2 {
+        phase1_obligation: JobTerminalState,
+        phase1_deposit: JobTerminalState,
         credit_facility_job: JobId,
     },
     Completed,
+    Failed {
+        phase: u8,
+        failed: Vec<(String, JobTerminalState)>,
+    },
 }
 
 pub struct EodProcessManagerJobInit {
@@ -150,47 +164,55 @@ impl JobRunner for EodProcessManagerJobRunner {
                 current_job
                     .update_execution_state_in_op(&mut op, &new_state)
                     .await?;
-                Ok(JobCompletion::RescheduleInWithOp(op, POLL_INTERVAL))
+                Ok(JobCompletion::RescheduleNowWithOp(op))
             }
             EodProcessState::AwaitingPhase1 {
                 obligation_job,
                 deposit_job,
             } => {
-                let obligation_completed = match self.jobs.find(obligation_job).await {
-                    Ok(job) => job.completed(),
-                    Err(e) => {
-                        tracing::warn!(
-                            job_id = %obligation_job,
-                            error = %e,
-                            "Could not find obligation child job, will retry"
-                        );
-                        false
-                    }
-                };
-                let deposit_completed = match self.jobs.find(deposit_job).await {
-                    Ok(job) => job.completed(),
-                    Err(e) => {
-                        tracing::warn!(
-                            job_id = %deposit_job,
-                            error = %e,
-                            "Could not find deposit child job, will retry"
-                        );
-                        false
-                    }
-                };
+                if current_job.cancellation_requested() {
+                    tracing::info!("EOD process manager cancelled during phase 1");
+                    return Ok(JobCompletion::Complete);
+                }
 
-                if obligation_completed && deposit_completed {
-                    let new_state = EodProcessState::SpawningPhase2;
+                let (obligation_result, deposit_result) = tokio::join!(
+                    self.jobs.await_completion(obligation_job),
+                    self.jobs.await_completion(deposit_job),
+                );
+                let obligation_terminal = obligation_result?;
+                let deposit_terminal = deposit_result?;
+
+                let mut failed = Vec::new();
+                if obligation_terminal != JobTerminalState::Completed {
+                    failed.push(("obligation-transition".to_string(), obligation_terminal));
+                }
+                if deposit_terminal != JobTerminalState::Completed {
+                    failed.push(("deposit-activity".to_string(), deposit_terminal));
+                }
+
+                if !failed.is_empty() {
+                    let new_state = EodProcessState::Failed { phase: 1, failed };
                     let mut op = current_job.begin_op().await?;
                     current_job
                         .update_execution_state_in_op(&mut op, &new_state)
                         .await?;
                     Ok(JobCompletion::RescheduleNowWithOp(op))
                 } else {
-                    Ok(JobCompletion::RescheduleIn(POLL_INTERVAL))
+                    let new_state = EodProcessState::SpawningPhase2 {
+                        phase1_obligation: obligation_terminal,
+                        phase1_deposit: deposit_terminal,
+                    };
+                    let mut op = current_job.begin_op().await?;
+                    current_job
+                        .update_execution_state_in_op(&mut op, &new_state)
+                        .await?;
+                    Ok(JobCompletion::RescheduleNowWithOp(op))
                 }
             }
-            EodProcessState::SpawningPhase2 => {
+            EodProcessState::SpawningPhase2 {
+                phase1_obligation,
+                phase1_deposit,
+            } => {
                 let credit_facility_job =
                     job_id::eod_child_id(&self.config.date, "credit-facility");
 
@@ -209,41 +231,65 @@ impl JobRunner for EodProcessManagerJobRunner {
                 }
 
                 let new_state = EodProcessState::AwaitingPhase2 {
+                    phase1_obligation,
+                    phase1_deposit,
                     credit_facility_job,
                 };
                 let mut op = current_job.begin_op().await?;
                 current_job
                     .update_execution_state_in_op(&mut op, &new_state)
                     .await?;
-                Ok(JobCompletion::RescheduleInWithOp(op, POLL_INTERVAL))
+                Ok(JobCompletion::RescheduleNowWithOp(op))
             }
             EodProcessState::AwaitingPhase2 {
+                phase1_obligation,
+                phase1_deposit,
                 credit_facility_job,
             } => {
-                let completed = match self.jobs.find(credit_facility_job).await {
-                    Ok(job) => job.completed(),
-                    Err(e) => {
-                        tracing::warn!(
-                            job_id = %credit_facility_job,
-                            error = %e,
-                            "Could not find credit facility child job, will retry"
-                        );
-                        false
-                    }
-                };
+                if current_job.cancellation_requested() {
+                    tracing::info!("EOD process manager cancelled during phase 2");
+                    return Ok(JobCompletion::Complete);
+                }
 
-                if completed {
-                    let new_state = EodProcessState::Completed;
+                let credit_facility_terminal =
+                    self.jobs.await_completion(credit_facility_job).await?;
+
+                if credit_facility_terminal != JobTerminalState::Completed {
+                    let new_state = EodProcessState::Failed {
+                        phase: 2,
+                        failed: vec![("credit-facility".to_string(), credit_facility_terminal)],
+                    };
                     let mut op = current_job.begin_op().await?;
                     current_job
                         .update_execution_state_in_op(&mut op, &new_state)
                         .await?;
                     Ok(JobCompletion::RescheduleNowWithOp(op))
                 } else {
-                    Ok(JobCompletion::RescheduleIn(POLL_INTERVAL))
+                    let result = EodProcessManagerResult {
+                        date: self.config.date,
+                        phase1_obligation,
+                        phase1_deposit,
+                        phase2_credit_facility: credit_facility_terminal,
+                    };
+                    current_job.set_result(&result).await?;
+
+                    let new_state = EodProcessState::Completed;
+                    let mut op = current_job.begin_op().await?;
+                    current_job
+                        .update_execution_state_in_op(&mut op, &new_state)
+                        .await?;
+                    Ok(JobCompletion::RescheduleNowWithOp(op))
                 }
             }
             EodProcessState::Completed => Ok(JobCompletion::Complete),
+            EodProcessState::Failed { phase, ref failed } => {
+                tracing::error!(
+                    phase,
+                    ?failed,
+                    "EOD process manager failed — manual intervention required"
+                );
+                Ok(JobCompletion::Complete)
+            }
         }
     }
 }
