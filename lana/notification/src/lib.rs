@@ -18,7 +18,7 @@ use obix::out::OutboxEventJobConfig;
 
 pub use config::NotificationConfig;
 use email::EmailNotification;
-use email::job::{EMAIL_LISTENER_JOB, EmailEventListenerHandler};
+use email::job::EMAIL_LISTENER_JOB;
 pub use email::{NotificationFromEmail, NotificationFromName};
 
 pub struct Notification<AuthzType>
@@ -72,7 +72,7 @@ where
         customers: &Customers<AuthzType, LanaEvent>,
         domain_configs: &ExposedDomainConfigsReadOnly,
     ) -> Result<Self, NotificationError> {
-        let email = EmailNotification::init(
+        let handler = EmailNotification::<AuthzType>::init(
             jobs,
             domain_configs,
             config.email.clone(),
@@ -83,11 +83,7 @@ where
         .await?;
 
         outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(EMAIL_LISTENER_JOB),
-                EmailEventListenerHandler::new(&email),
-            )
+            .register_event_handler(jobs, OutboxEventJobConfig::new(EMAIL_LISTENER_JOB), handler)
             .await?;
 
         Ok(Self {

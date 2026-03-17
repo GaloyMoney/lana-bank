@@ -5,52 +5,43 @@ use lana_events::{
 };
 use obix::out::{OutboxEventHandler, PersistentOutboxEvent};
 
-use job::JobType;
+use job::{JobId, JobSpawner, JobType};
 
-use crate::email::EmailNotification;
+use super::deposit_account_created_email::DepositAccountCreatedEmailConfig;
+use super::obligation_overdue_email::ObligationOverdueEmailConfig;
+use super::partial_liquidation_email::PartialLiquidationEmailConfig;
+use super::role_created_email::RoleCreatedEmailConfig;
+use super::under_margin_call_email::UnderMarginCallEmailConfig;
 
 pub const EMAIL_LISTENER_JOB: JobType = JobType::new("outbox.email-listener");
 
-pub struct EmailEventListenerHandler<Perms>
-where
-    Perms: authz::PermissionCheck,
-{
-    email_notification: EmailNotification<Perms>,
+pub struct EmailEventListenerHandler {
+    obligation_overdue: JobSpawner<ObligationOverdueEmailConfig>,
+    partial_liquidation: JobSpawner<PartialLiquidationEmailConfig>,
+    under_margin_call: JobSpawner<UnderMarginCallEmailConfig>,
+    deposit_account_created: JobSpawner<DepositAccountCreatedEmailConfig>,
+    role_created: JobSpawner<RoleCreatedEmailConfig>,
 }
 
-impl<Perms> EmailEventListenerHandler<Perms>
-where
-    Perms: authz::PermissionCheck,
-{
-    pub fn new(email_notification: &EmailNotification<Perms>) -> Self {
+impl EmailEventListenerHandler {
+    pub fn new(
+        obligation_overdue: JobSpawner<ObligationOverdueEmailConfig>,
+        partial_liquidation: JobSpawner<PartialLiquidationEmailConfig>,
+        under_margin_call: JobSpawner<UnderMarginCallEmailConfig>,
+        deposit_account_created: JobSpawner<DepositAccountCreatedEmailConfig>,
+        role_created: JobSpawner<RoleCreatedEmailConfig>,
+    ) -> Self {
         Self {
-            email_notification: email_notification.clone(),
+            obligation_overdue,
+            partial_liquidation,
+            under_margin_call,
+            deposit_account_created,
+            role_created,
         }
     }
 }
 
-impl<Perms> OutboxEventHandler<LanaEvent> for EmailEventListenerHandler<Perms>
-where
-    Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
-        + From<core_credit_collection::CoreCreditCollectionAction>
-        + From<core_credit_collateral::CoreCreditCollateralAction>
-        + From<core_customer::CoreCustomerAction>
-        + From<core_access::CoreAccessAction>
-        + From<core_deposit::CoreDepositAction>
-        + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>,
-    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
-        + From<core_credit_collection::CoreCreditCollectionObject>
-        + From<core_credit_collateral::CoreCreditCollateralObject>
-        + From<core_customer::CustomerObject>
-        + From<core_access::CoreAccessObject>
-        + From<core_deposit::CoreDepositObject>
-        + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>,
-    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
-        From<core_access::UserId>,
-{
+impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
     #[instrument(name = "notification.email_listener_job.process_message_in_op", parent = None, skip(self, op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
@@ -67,12 +58,16 @@ where
 
                 let credit_facility_id: core_credit::CreditFacilityId =
                     entity.beneficiary_id.into();
-                self.email_notification
-                    .send_obligation_overdue_notification_in_op(
+                self.obligation_overdue
+                    .spawn_with_queue_id_in_op(
                         op,
-                        &entity.id,
-                        &credit_facility_id,
-                        &entity.outstanding_amount,
+                        JobId::new(),
+                        ObligationOverdueEmailConfig {
+                            obligation_id: entity.id,
+                            credit_facility_id,
+                            outstanding_amount: entity.outstanding_amount,
+                        },
+                        entity.id.to_string(),
                     )
                     .await?;
             }
@@ -87,14 +82,19 @@ where
                     .liquidation_trigger
                     .as_ref()
                     .expect("liquidation_trigger must be set for PartialLiquidationInitiated");
-                self.email_notification
-                    .send_partial_liquidation_initiated_notification_in_op(
+                self.partial_liquidation
+                    .spawn_with_queue_id_in_op(
                         op,
-                        &entity.id,
-                        &entity.customer_id,
-                        &trigger.trigger_price,
-                        &trigger.initially_estimated_to_liquidate,
-                        &trigger.initially_expected_to_receive,
+                        JobId::new(),
+                        PartialLiquidationEmailConfig {
+                            credit_facility_id: entity.id,
+                            customer_id: entity.customer_id,
+                            trigger_price: trigger.trigger_price,
+                            initially_estimated_to_liquidate: trigger
+                                .initially_estimated_to_liquidate,
+                            initially_expected_to_receive: trigger.initially_expected_to_receive,
+                        },
+                        entity.id.to_string(),
                     )
                     .await?;
             }
@@ -109,16 +109,20 @@ where
 
                 let collateralization = &entity.collateralization;
                 let effective = event.recorded_at.date_naive();
-                self.email_notification
-                    .send_under_margin_call_notification_in_op(
+                self.under_margin_call
+                    .spawn_with_queue_id_in_op(
                         op,
-                        &entity.id,
-                        &entity.customer_id,
-                        &effective,
-                        &collateralization.collateral,
-                        &collateralization.outstanding.disbursed,
-                        &collateralization.outstanding.interest,
-                        &collateralization.price_at_state_change,
+                        JobId::new(),
+                        UnderMarginCallEmailConfig {
+                            credit_facility_id: entity.id,
+                            customer_id: entity.customer_id,
+                            effective_date: effective,
+                            collateral: collateralization.collateral,
+                            outstanding_disbursed: collateralization.outstanding.disbursed,
+                            outstanding_interest: collateralization.outstanding.interest,
+                            price: collateralization.price_at_state_change,
+                        },
+                        entity.id.to_string(),
                     )
                     .await?;
             }
@@ -129,11 +133,15 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", deposit_event.as_ref());
 
-                self.email_notification
-                    .send_deposit_account_created_notification_in_op(
+                self.deposit_account_created
+                    .spawn_with_queue_id_in_op(
                         op,
-                        &entity.id,
-                        &entity.account_holder_id,
+                        JobId::new(),
+                        DepositAccountCreatedEmailConfig {
+                            account_id: entity.id,
+                            account_holder_id: entity.account_holder_id,
+                        },
+                        entity.id.to_string(),
                     )
                     .await?;
             }
@@ -142,8 +150,16 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", access_event.as_ref());
 
-                self.email_notification
-                    .send_role_created_notification_in_op(op, &entity.id, &entity.name)
+                self.role_created
+                    .spawn_with_queue_id_in_op(
+                        op,
+                        JobId::new(),
+                        RoleCreatedEmailConfig {
+                            role_id: entity.id,
+                            role_name: entity.name.clone(),
+                        },
+                        entity.id.to_string(),
+                    )
                     .await?;
             }
             _ => {}
