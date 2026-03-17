@@ -234,7 +234,6 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         pool.clone(),
         config.app,
         app_clock.clock.clone(),
-        app_clock.controller.is_some(),
         domain_config_settings.into_iter().map(|s| (s.key, s.value)),
     )
     .await

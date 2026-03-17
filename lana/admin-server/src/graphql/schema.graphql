@@ -2969,10 +2969,6 @@ type TermsTemplateUpdatePayload {
 
 type Time {
 	"""
-	Whether the environment clock can be advanced manually.
-	"""
-	canAdvanceToNextEndOfDay: Boolean!
-	"""
 	Current business date for the environment clock.
 	"""
 	currentDate: Date!

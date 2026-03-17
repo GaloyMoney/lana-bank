@@ -81,7 +81,6 @@ impl LanaApp {
         pool: PgPool,
         config: AppConfig,
         clock: es_entity::clock::ClockHandle,
-        has_clock_controller: bool,
         startup_domain_configs: impl IntoIterator<Item = (String, serde_json::Value)>,
     ) -> Result<Self, ApplicationError> {
         sqlx::migrate!()
@@ -157,7 +156,6 @@ impl LanaApp {
             &mut jobs,
             &outbox,
             &clock,
-            has_clock_controller,
         )
         .await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());

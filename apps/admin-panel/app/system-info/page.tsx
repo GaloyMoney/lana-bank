@@ -36,7 +36,6 @@ gql`
       currentDate
       currentTime
       nextEndOfDayAt
-      canAdvanceToNextEndOfDay
     }
   }
 `
@@ -129,7 +128,6 @@ type TimeCardProps = {
 }
 
 function TimeCard({ time, loading, error }: TimeCardProps) {
-  const t = useTranslations("SystemInfo")
   const tTime = useTranslations("Configurations.time")
 
   return (
@@ -152,10 +150,6 @@ function TimeCard({ time, loading, error }: TimeCardProps) {
             <InfoRow
               label={tTime("currentTime")}
               value={formatDate(time.currentTime)}
-            />
-            <InfoRow
-              label={t("timeMode")}
-              value={time.canAdvanceToNextEndOfDay ? t("simulated") : t("realtime")}
             />
             <InfoRow
               label={tTime("nextEndOfDay")}

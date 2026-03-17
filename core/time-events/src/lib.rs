@@ -28,7 +28,6 @@ pub struct TimeState {
     pub current_date: NaiveDate,
     pub current_time: DateTime<Utc>,
     pub next_end_of_day_at: DateTime<Utc>,
-    pub can_advance_to_next_end_of_day: bool,
 }
 
 #[derive(Clone)]
@@ -38,7 +37,6 @@ where
 {
     authz: Perms,
     clock: ClockHandle,
-    has_clock_controller: bool,
     domain_configs: ExposedDomainConfigsReadOnly,
 }
 
@@ -56,7 +54,6 @@ where
         jobs: &mut job::Jobs,
         outbox: &Outbox<E>,
         clock: &ClockHandle,
-        has_clock_controller: bool,
     ) -> Result<Self, TimeEventsError>
     where
         E: OutboxEventMarker<CoreTimeEvent>,
@@ -75,7 +72,6 @@ where
         Ok(Self {
             authz: authz.clone(),
             clock: clock.clone(),
-            has_clock_controller,
             domain_configs: domain_configs.clone(),
         })
     }
@@ -111,7 +107,6 @@ where
             current_date: schedule.current_day(),
             current_time,
             next_end_of_day_at: schedule.next_closing(),
-            can_advance_to_next_end_of_day: self.has_clock_controller,
         })
     }
 }

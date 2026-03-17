@@ -3784,8 +3784,6 @@ export type TermsTemplateUpdatePayload = {
 
 export type Time = {
   __typename?: 'Time';
-  /** Whether the environment clock can be advanced manually. */
-  canAdvanceToNextEndOfDay: Scalars['Boolean']['output'];
   /** Current business date for the environment clock. */
   currentDate: Scalars['Date']['output'];
   /** Current environment timestamp. */
@@ -5666,7 +5664,7 @@ export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: string, build
 export type GetTimeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetTimeQuery = { __typename?: 'Query', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, canAdvanceToNextEndOfDay: boolean } };
+export type GetTimeQuery = { __typename?: 'Query', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string } };
 
 export type TermsTemplateEventHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -14073,7 +14071,6 @@ export const GetTimeDocument = gql`
     currentDate
     currentTime
     nextEndOfDayAt
-    canAdvanceToNextEndOfDay
   }
 }
     `;

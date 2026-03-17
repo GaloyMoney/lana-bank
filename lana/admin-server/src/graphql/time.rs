@@ -10,8 +10,6 @@ pub struct Time {
     current_time: Timestamp,
     /// Timestamp when the next end-of-day boundary will be reached.
     next_end_of_day_at: Timestamp,
-    /// Whether the environment clock can be advanced manually.
-    can_advance_to_next_end_of_day: bool,
 }
 
 impl From<lana_app::time_events::TimeState> for Time {
@@ -20,7 +18,6 @@ impl From<lana_app::time_events::TimeState> for Time {
             current_date: value.current_date.into(),
             current_time: value.current_time.into(),
             next_end_of_day_at: value.next_end_of_day_at.into(),
-            can_advance_to_next_end_of_day: value.can_advance_to_next_end_of_day,
         }
     }
 }
