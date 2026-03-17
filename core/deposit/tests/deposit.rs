@@ -390,9 +390,7 @@ async fn apply_activity_reclassifications(
     pool: &sqlx::PgPool,
     now: DateTime<Utc>,
 ) -> anyhow::Result<()> {
-    let accounts = deposit
-        .list_account_ids_for_activity_evaluation(None, 100)
-        .await?;
+    let accounts = deposit.list_account_ids_not_escheatable(None, 100).await?;
     for (account_id, _) in accounts {
         let mut op = es_entity::DbOp::init(pool).await?;
         deposit
