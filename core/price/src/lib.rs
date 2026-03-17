@@ -6,7 +6,7 @@ pub mod jobs;
 mod primitives;
 pub mod provider;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use futures::StreamExt;
 use job::Jobs;
@@ -30,8 +30,6 @@ pub use provider::{
 
 use jobs::fetch_price;
 use provider::{NewPriceProvider, PriceProviderRepo};
-
-pub const PRICE_BOOTSTRAP: audit::SystemActor = audit::SystemActor::new("price-bootstrap");
 
 #[derive(Clone)]
 pub struct Price {
@@ -120,6 +118,44 @@ impl Price {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct BootstrapPriceProvider {
+    name: &'static str,
+    provider: &'static str,
+    config: PriceProviderConfig,
+    should_activate: bool,
+}
+
+fn bootstrap_price_providers() -> [BootstrapPriceProvider; 2] {
+    [
+        BootstrapPriceProvider {
+            name: "Bitfinex",
+            provider: "bitfinex",
+            config: PriceProviderConfig::Bitfinex,
+            should_activate: true,
+        },
+        BootstrapPriceProvider {
+            name: "Manual Price",
+            provider: "manual-price",
+            config: PriceProviderConfig::ManualPrice {
+                usd_cents_per_btc: 0,
+            },
+            should_activate: false,
+        },
+    ]
+}
+
+fn missing_bootstrap_providers<'a>(
+    existing_provider_kinds: impl IntoIterator<Item = &'a str>,
+) -> Vec<BootstrapPriceProvider> {
+    let existing_provider_kinds = existing_provider_kinds.into_iter().collect::<HashSet<_>>();
+
+    bootstrap_price_providers()
+        .into_iter()
+        .filter(|provider| !existing_provider_kinds.contains(provider.provider))
+        .collect()
+}
+
 pub struct CorePrice<Perms, E>
 where
     Perms: PermissionCheck,
@@ -157,55 +193,64 @@ where
         let fetch_job_spawner =
             jobs.add_initializer(fetch_price::FetchPriceJobInit::new(&providers, outbox));
 
-        // Auto-bootstrap: ensure all known provider types exist
-        let providers_to_bootstrap: &[(&str, PriceProviderConfig, bool)] = &[
-            ("Bitfinex", PriceProviderConfig::Bitfinex, true),
-            (
-                "Manual Price",
-                PriceProviderConfig::ManualPrice {
-                    usd_cents_per_btc: 0,
-                },
-                false,
-            ),
-        ];
+        // Auto-bootstrap: ensure all known provider types exist.
+        loop {
+            let mut existing_provider_kinds = Vec::new();
+            for bootstrap_provider in bootstrap_price_providers() {
+                if providers
+                    .maybe_find_by_provider(bootstrap_provider.provider)
+                    .await?
+                    .is_some()
+                {
+                    existing_provider_kinds.push(bootstrap_provider.provider);
+                }
+            }
 
-        for (name, config, should_activate) in providers_to_bootstrap {
+            let providers_to_bootstrap =
+                missing_bootstrap_providers(existing_provider_kinds.iter().copied());
+            if providers_to_bootstrap.is_empty() {
+                break;
+            }
+
             let mut db = providers.begin_op().await?;
+            let mut retry_bootstrap = false;
 
-            authz
-                .audit()
-                .record_system_entry_in_op(
-                    &mut db,
-                    PRICE_BOOTSTRAP,
-                    CorePriceObject::all_providers(),
-                    CorePriceAction::PROVIDER_CREATE,
-                )
-                .await?;
+            for bootstrap_provider in providers_to_bootstrap {
+                let new_provider = NewPriceProvider::builder()
+                    .id(PriceProviderId::new())
+                    .name(bootstrap_provider.name.to_string())
+                    .config(bootstrap_provider.config.clone())
+                    .build()
+                    .expect("should always build a new price provider");
 
-            let new_provider = NewPriceProvider::builder()
-                .id(PriceProviderId::new())
-                .name(name.to_string())
-                .config(config.clone())
-                .build()
-                .expect("should always build a new price provider");
-
-            match providers.create_in_op(&mut db, new_provider).await {
-                Ok(mut provider) => {
-                    if *should_activate {
-                        if provider.activate().did_execute() {
+                match providers.create_in_op(&mut db, new_provider).await {
+                    Ok(mut provider) => {
+                        if bootstrap_provider.should_activate {
+                            if provider.activate().did_execute() {
+                                providers.update_in_op(&mut db, &mut provider).await?;
+                            }
+                        } else if provider.deactivate().did_execute() {
                             providers.update_in_op(&mut db, &mut provider).await?;
                         }
-                    } else if provider.deactivate().did_execute() {
-                        providers.update_in_op(&mut db, &mut provider).await?;
                     }
-                    db.commit().await?;
+                    Err(e) if e.was_duplicate() => {
+                        tracing::info!(
+                            name = bootstrap_provider.name,
+                            "price provider already exists, retrying bootstrap"
+                        );
+                        retry_bootstrap = true;
+                        break;
+                    }
+                    Err(e) => return Err(e.into()),
                 }
-                Err(e) if e.was_duplicate() => {
-                    tracing::info!("price provider '{name}' already exists, skipping bootstrap");
-                    continue;
-                }
-                Err(e) => return Err(e.into()),
             }
+
+            if retry_bootstrap {
+                continue;
+            }
+
+            db.commit().await?;
+            break;
         }
 
         // Spawn a single fetch job (the runner loads the active provider from the repo)
@@ -355,6 +400,37 @@ where
             )
             .await?;
         Ok(self.providers.find_all(ids).await?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn missing_bootstrap_providers_returns_all_known_types_when_none_exist() {
+        let missing = missing_bootstrap_providers(std::iter::empty::<&str>());
+
+        assert_eq!(
+            missing
+                .into_iter()
+                .map(|provider| provider.name)
+                .collect::<Vec<_>>(),
+            vec!["Bitfinex", "Manual Price"]
+        );
+    }
+
+    #[test]
+    fn missing_bootstrap_providers_matches_existing_provider_kind() {
+        let missing = missing_bootstrap_providers(["manual-price"]);
+
+        assert_eq!(
+            missing
+                .into_iter()
+                .map(|provider| provider.name)
+                .collect::<Vec<_>>(),
+            vec!["Bitfinex"]
+        );
     }
 }
 
