@@ -117,6 +117,7 @@
       "depositAccountClose": "Closes a deposit account",
       "termsTemplateCreate": "Creates a new credit facility terms template",
       "termsTemplateUpdate": "Updates an existing credit facility terms template",
+      "timeAdvanceToNextEndOfDay": "Advances a manually controlled environment clock to the next configured end-of-day boundary and returns the updated time state",
       "creditModuleConfigure": "Configures the credit module's chart of accounts mappings",
       "creditFacilityProposalCreate": "Creates a new credit facility proposal for a customer",
       "creditFacilityProposalCustomerApprovalConclude": "Concludes the customer approval step of a credit facility proposal",

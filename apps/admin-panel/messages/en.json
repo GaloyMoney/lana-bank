@@ -132,7 +132,11 @@
       "timezone": "Timezone",
       "endOfDayTime": "End of day time",
       "nextEndOfDay": "Next end of day",
-      "loadError": "Could not load time"
+      "loadError": "Could not load time",
+      "advanceToNextEndOfDay": "Advance to next EOD",
+      "advanceSuccess": "Time advanced to the next end of day",
+      "advanceError": "Could not advance time",
+      "advanceErrorWithReason": "Could not advance time: {error}"
     },
     "notification-email-from-email": {
       "title": "Notification from email",
@@ -3222,6 +3226,9 @@
     "enabledFeatures": "Enabled Features",
     "loading": "Loading...",
     "unavailable": "Unable to fetch server info",
-    "appConfig": "Application Configuration"
+    "appConfig": "Application Configuration",
+    "timeMode": "Time mode",
+    "realtime": "Realtime",
+    "manual": "Manual"
   }
 }

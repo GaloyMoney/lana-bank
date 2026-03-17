@@ -5,11 +5,14 @@ import { useState, useEffect } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 import { LoaderCircle } from "lucide-react"
+import { toast } from "sonner"
 
+import { Button } from "@lana/web/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@lana/web/ui/card"
@@ -17,12 +20,23 @@ import { formatDate } from "@lana/web/utils"
 
 import {
   type Time,
+  GetTimeDocument,
   useGetBuildInfoQuery,
   useGetTimeQuery,
+  useTimeAdvanceToNextEndOfDayMutation,
 } from "@/lib/graphql/generated"
 import { env } from "@/env"
 
 gql`
+  fragment SystemInfoTimeFields on Time {
+    currentDate
+    currentTime
+    nextEndOfDayAt
+    timezone
+    endOfDayTime
+    canAdvanceToNextEndOfDay
+  }
+
   query GetBuildInfo {
     buildInfo {
       version
@@ -35,17 +49,22 @@ gql`
 
   query GetTime {
     time {
-      currentDate
-      currentTime
-      nextEndOfDayAt
-      timezone
-      endOfDayTime
+      ...SystemInfoTimeFields
+    }
+  }
+
+  mutation TimeAdvanceToNextEndOfDay {
+    timeAdvanceToNextEndOfDay {
+      time {
+        ...SystemInfoTimeFields
+      }
     }
   }
 `
 
 export default function SystemInfoPage() {
   const t = useTranslations("SystemInfo")
+  const tTime = useTranslations("Configurations.time")
   const appVersion = env.NEXT_PUBLIC_APP_VERSION
 
   const { data, loading } = useGetBuildInfoQuery()
@@ -57,6 +76,31 @@ export default function SystemInfoPage() {
   } = useGetTimeQuery()
 
   const time = timeData?.time
+
+  const [advanceToNextEndOfDay, { loading: advanceLoading }] =
+    useTimeAdvanceToNextEndOfDayMutation({
+      update(cache, { data: mutationData }) {
+        if (mutationData?.timeAdvanceToNextEndOfDay?.time) {
+          cache.writeQuery({
+            query: GetTimeDocument,
+            data: { time: mutationData.timeAdvanceToNextEndOfDay.time },
+          })
+        }
+      },
+    })
+
+  const handleAdvanceToNextEndOfDay = async () => {
+    try {
+      await advanceToNextEndOfDay()
+      toast.success(tTime("advanceSuccess"))
+    } catch (err) {
+      if (err instanceof Error && err.message) {
+        toast.error(tTime("advanceErrorWithReason", { error: err.message }))
+      } else {
+        toast.error(tTime("advanceError"))
+      }
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -94,7 +138,13 @@ export default function SystemInfoPage() {
         </CardContent>
       </Card>
 
-      <TimeCard time={time} loading={timeLoading} error={timeError} />
+      <TimeCard
+        time={time}
+        loading={timeLoading}
+        error={timeError}
+        onAdvance={handleAdvanceToNextEndOfDay}
+        advanceLoading={advanceLoading}
+      />
 
       <Card>
         <CardHeader>
@@ -140,9 +190,12 @@ type TimeCardProps = {
   time?: Time
   loading: boolean
   error?: Error
+  onAdvance: () => void
+  advanceLoading: boolean
 }
 
-function TimeCard({ time, loading, error }: TimeCardProps) {
+function TimeCard({ time, loading, error, onAdvance, advanceLoading }: TimeCardProps) {
+  const t = useTranslations("SystemInfo")
   const tTime = useTranslations("Configurations.time")
   const browserTime = useBrowserTime()
 
@@ -174,9 +227,23 @@ function TimeCard({ time, loading, error }: TimeCardProps) {
               label={tTime("nextEndOfDay")}
               value={formatDate(time.nextEndOfDayAt)}
             />
+            <InfoRow
+              label={t("timeMode")}
+              value={time.canAdvanceToNextEndOfDay ? t("manual") : t("realtime")}
+            />
           </div>
         ) : null}
       </CardContent>
+      {time?.canAdvanceToNextEndOfDay && (
+        <CardFooter>
+          <Button onClick={onAdvance} disabled={advanceLoading}>
+            {advanceLoading ? (
+              <LoaderCircle className="animate-spin mr-2 h-4 w-4" />
+            ) : null}
+            {tTime("advanceToNextEndOfDay")}
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   )
 }

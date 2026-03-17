@@ -2064,6 +2064,7 @@ checksums:
   3d24ad833a0d72ca91d363f51010c597:
     admin/queries/appConfig: 6a0bb4e3524793b5f064b2f1c7de707d
     admin/queries/buildInfo: 8b7883b3e4b76a5401173a7956bccfa9
+    admin/queries/time: cb23db10e23b5f01d63b7abdcf4a0fc6
     admin/queries/me: d9a4f3b87b65112adf2741b8b3228e2b
     admin/queries/dashboard: 89bf1f5251b12a5738ef7dcf912e1989
     admin/queries/user: 737f0557ba25ae68b6f4eb69d63f9312
@@ -2099,6 +2100,7 @@ checksums:
     admin/queries/liquidation: 64b583252bf6b49d84a94491f46e9041
     admin/queries/liquidations: 23b89777137bd48c3cd6db47128ea1bb
     admin/queries/custodians: 08d8ba21ee87c87fb1ed5c3d5623f2cb
+    admin/queries/priceProviders: 8bcd48f146f5666378504c2e5582332c
     admin/queries/committee: 488c6d9ce31c5985e54e6cc6fa713fe1
     admin/queries/committees: 82f21b67055d50dc76b3a01ff1ec6e2f
     admin/queries/policy: f2fbea6efcde1b8bdfb7908e9cdd7b08
@@ -2170,6 +2172,7 @@ checksums:
     admin/mutations/depositAccountClose: 0697ee6cb40e8fbfd4ea3764590f4b0c
     admin/mutations/termsTemplateCreate: 96dcea28e27133cbaa34edbaea29d690
     admin/mutations/termsTemplateUpdate: 4a91a37a1cd68c1149b51ca339648323
+    admin/mutations/timeAdvanceToNextEndOfDay: f159ecf95454ffb5f2ccaee9f30706b3
     admin/mutations/creditModuleConfigure: 0f1003228062146ba87f5ce235fc0393
     admin/mutations/creditFacilityProposalCreate: 94244b82937c32483f0df94a1136298a
     admin/mutations/creditFacilityProposalCustomerApprovalConclude: a7e2c7acbedaafae5c0e0263ff914842
@@ -2185,6 +2188,10 @@ checksums:
     admin/mutations/liquidationRecordProceedsReceived: 47123330cd03e6f421b60f2164284591
     admin/mutations/custodianCreate: d6b765e72ebc16a8b1c9110973cebb6c
     admin/mutations/custodianConfigUpdate: 7285bab249259e681a52e7e090af7535
+    admin/mutations/priceProviderCreate: f5b7c051016db8f88a152b9c89a4403a
+    admin/mutations/priceProviderConfigUpdate: 23dc26e87e1d27e74bcafab47898caa5
+    admin/mutations/priceProviderActivate: 20d7920ac0cb13552d36a10d6587750c
+    admin/mutations/priceProviderDeactivate: 6b338e757bde90dd4b40f54cda12b054
     admin/mutations/committeeCreate: 1485f3f278d023b47cf3b1b578e6fe42
     admin/mutations/committeeAddUser: 0d4fa9cf0fc40ad9503b6d7ebb8d610b
     admin/mutations/committeeRemoveUser: f1909d1a31577f7aa23ea3b2e6da31f9

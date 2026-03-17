@@ -117,6 +117,7 @@
       "depositAccountClose": "Cierra una cuenta de deposito",
       "termsTemplateCreate": "Crea una nueva plantilla de terminos de facilidad crediticia",
       "termsTemplateUpdate": "Actualiza una plantilla de terminos de facilidad crediticia existente",
+      "timeAdvanceToNextEndOfDay": "Avanza un reloj de entorno controlado manualmente al siguiente límite configurado de fin de día y devuelve el estado de tiempo actualizado",
       "creditModuleConfigure": "Configura los mapeos del catalogo de cuentas del modulo de credito",
       "creditFacilityProposalCreate": "Crea una nueva propuesta de facilidad crediticia para un cliente",
       "creditFacilityProposalCustomerApprovalConclude": "Concluye el paso de aprobacion del cliente de una propuesta de facilidad crediticia",

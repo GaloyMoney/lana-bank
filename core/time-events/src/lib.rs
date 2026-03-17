@@ -11,8 +11,10 @@ use authz::PermissionCheck;
 use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
 use chrono_tz::Tz;
 use domain_config::{DomainConfigAction, DomainConfigObject, ExposedDomainConfigsReadOnly};
-use es_entity::clock::ClockHandle;
+use es_entity::clock::{ClockController, ClockHandle};
 use obix::{Outbox, out::OutboxEventMarker};
+use std::{sync::Arc, time::Duration};
+use tokio::sync::Mutex;
 use tracing_macros::record_error_severity;
 
 use crate::{
@@ -31,6 +33,7 @@ pub struct TimeState {
     pub next_end_of_day_at: DateTime<Utc>,
     pub timezone: Tz,
     pub end_of_day_time: NaiveTime,
+    pub can_advance_to_next_end_of_day: bool,
 }
 
 #[derive(Clone)]
@@ -40,6 +43,8 @@ where
 {
     authz: Perms,
     clock: ClockHandle,
+    clock_controller: Option<ClockController>,
+    manual_advance_guard: Arc<Mutex<()>>,
     domain_configs: ExposedDomainConfigsReadOnly,
 }
 
@@ -57,6 +62,7 @@ where
         jobs: &mut job::Jobs,
         outbox: &Outbox<E>,
         clock: &ClockHandle,
+        clock_controller: Option<ClockController>,
     ) -> Result<Self, TimeEventsError>
     where
         E: OutboxEventMarker<CoreTimeEvent>,
@@ -75,6 +81,8 @@ where
         Ok(Self {
             authz: authz.clone(),
             clock: clock.clone(),
+            clock_controller,
+            manual_advance_guard: Arc::new(Mutex::new(())),
             domain_configs: domain_configs.clone(),
         })
     }
@@ -93,6 +101,65 @@ where
             )
             .await?;
 
+        self.state_inner().await
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(
+        name = "core_time_events.advance_to_next_end_of_day",
+        skip(self),
+        fields(next_end_of_day_at = tracing::field::Empty)
+    )]
+    pub async fn advance_to_next_end_of_day(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<TimeState, TimeEventsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                DomainConfigObject::all_exposed_configs(),
+                DomainConfigAction::EXPOSED_CONFIG_WRITE,
+            )
+            .await?;
+
+        let Some(controller) = self.clock_controller.as_ref() else {
+            return Err(TimeEventsError::TimeAdvanceUnavailable);
+        };
+
+        // Serialize manual clock advancement so concurrent requests cannot
+        // compute the same target and double-advance the shared clock.
+        // FIXME: The long-term fix is to reject another move-to-next-day request
+        // until all processing for the current EOD has completed.
+        let _manual_advance_guard = self.manual_advance_guard.lock().await;
+
+        let before = self.state_inner().await?;
+        tracing::Span::current().record(
+            "next_end_of_day_at",
+            tracing::field::display(before.next_end_of_day_at),
+        );
+
+        let advance_by = (before.next_end_of_day_at - before.current_time)
+            .to_std()
+            .map_err(|_| {
+                TimeEventsError::TimeAdvanceFailed(
+                    "Next end of day is not in the future".to_string(),
+                )
+            })?;
+
+        let _ = controller.advance(advance_by).await;
+
+        let after = self.state_inner().await?;
+        if advance_by > Duration::ZERO && after.current_time < before.next_end_of_day_at {
+            return Err(TimeEventsError::TimeAdvanceFailed(
+                "Artificial clock is not manually advanceable".to_string(),
+            ));
+        }
+
+        Ok(after)
+    }
+
+    /// Internal state query without authorization check.
+    async fn state_inner(&self) -> Result<TimeState, TimeEventsError> {
         let current_time = self.clock.now();
         let timezone = self
             .domain_configs
@@ -112,6 +179,7 @@ where
             next_end_of_day_at: schedule.next_closing(),
             timezone,
             end_of_day_time: closing_time,
+            can_advance_to_next_end_of_day: self.clock_controller.is_some(),
         })
     }
 }
