@@ -209,10 +209,11 @@ where
                     } else if provider.deactivate().did_execute() {
                         providers.update_in_op(&mut db, &mut provider).await?;
                     }
+                    db.commit().await?;
                 }
+                Err(e) if e.was_duplicate() => continue,
                 Err(e) => return Err(e.into()),
             }
-            db.commit().await?;
         }
 
         // Spawn a single fetch job (the runner loads the active provider from the repo)
