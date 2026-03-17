@@ -1213,17 +1213,6 @@ checksums:
     PriceProviders/table/success/deactivated: 21fb9d67675bb4cd83b2947f46121e47
     PriceProviders/table/errors/activateFailed: da357a654afb28c3e85878c52271f9bb
     PriceProviders/table/errors/deactivateFailed: 3bd06fb294e2709f07bf678fdaff7ccc
-    PriceProviders/create/title: d6f48f8513f622e8453141862cc49f13
-    PriceProviders/create/description: aadcac995aecf3c5b3d8763b64770e91
-    PriceProviders/create/fields/type: d7bb643922dba7960bfb99ec1d746bdd
-    PriceProviders/create/fields/name: 9368b5a047572b6051f334af5aa76819
-    PriceProviders/create/fields/usdPerBtc: 873afce013b1635c729db3f6c8a2de61
-    PriceProviders/create/placeholders/selectType: 3da3d6949ee679103818e2f9619e3aeb
-    PriceProviders/create/placeholders/name: 82cfd01ec74495e62b820568c46270f4
-    PriceProviders/create/placeholders/usdPerBtc: 0400821a2da829f0fbccf68716a33451
-    PriceProviders/create/buttons/create: b4757d548e97d67c3d3d64f3aec41464
-    PriceProviders/create/success: 6e0738b8145f3a0f09ce8fa9ed58a21a
-    PriceProviders/create/errors/failed: 9c91536412c789a125dea854d379aeec
     PriceProviders/updateConfig/title: 9315d119d3f9f95fa63f96c90c8fd4be
     PriceProviders/updateConfig/description: af53e3491b146dd1e82d331efa0955af
     PriceProviders/updateConfig/fields/usdPerBtc: 873afce013b1635c729db3f6c8a2de61

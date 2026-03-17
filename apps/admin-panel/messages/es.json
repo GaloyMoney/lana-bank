@@ -1972,27 +1972,6 @@
         "deactivateFailed": "Error al desactivar el proveedor de precios"
       }
     },
-    "create": {
-      "title": "Agregar Nuevo Proveedor de Precios",
-      "description": "Agregar un nuevo proveedor de precios",
-      "fields": {
-        "type": "Proveedor",
-        "name": "Nombre",
-        "usdPerBtc": "USD por BTC"
-      },
-      "placeholders": {
-        "selectType": "Seleccionar un proveedor",
-        "name": "Ingrese un nombre de visualización",
-        "usdPerBtc": "Ingrese el precio en USD"
-      },
-      "buttons": {
-        "create": "Agregar Proveedor de Precios"
-      },
-      "success": "Proveedor de precios agregado exitosamente",
-      "errors": {
-        "failed": "Error al crear el proveedor de precios"
-      }
-    },
     "updateConfig": {
       "title": "Actualizar Configuración del Proveedor de Precios",
       "description": "Actualizar la configuración de este proveedor de precios",
