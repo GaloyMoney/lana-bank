@@ -200,7 +200,10 @@ where
                     }
                     db.commit().await?;
                 }
-                Err(e) if e.was_duplicate() => continue,
+                Err(e) if e.was_duplicate() => {
+                    tracing::info!("price provider '{name}' already exists, skipping bootstrap");
+                    continue;
+                }
                 Err(e) => return Err(e.into()),
             }
         }
