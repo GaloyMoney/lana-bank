@@ -8,8 +8,6 @@ github_token: ((github.api_token))
 github_app_id: ((github.github_app_id))
 github_app_private_key: ((github.github_app_private_key))
 
-concourse_locks_git_uri: git@github.com:GaloyMoney/galoy-concourse-locks.git
-
 git_charts_uri: git@github.com:GaloyMoney/galoy-private-charts.git
 git_charts_branch: main
 git_charts_bot_branch: bot-bump-lana-bank-image
@@ -17,9 +15,6 @@ git_charts_bot_branch: bot-bump-lana-bank-image
 gar_registry: us.gcr.io/galoyorg
 gar_registry_user: ((gar-creds.username))
 gar_registry_password: ((gar-creds.password))
-
-docker_registry_user: ((docker-creds.username))
-docker_registry_password: ((docker-creds.password))
 
 cachix_auth_token: ((read-cachix-token.token))
 cachix_cache_name: galoymoney
