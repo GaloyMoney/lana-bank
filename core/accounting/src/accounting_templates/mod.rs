@@ -59,6 +59,40 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "core_accounting.accounting_template.create", skip(self))]
+    pub async fn create(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        code: String,
+        name: String,
+        values: AccountingTemplateValues,
+    ) -> Result<AccountingTemplate, AccountingTemplateError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_accounting_templates(),
+                CoreAccountingAction::ACCOUNTING_TEMPLATE_CREATE,
+            )
+            .await?;
+
+        let code = AccountingTemplateValues::validate_code(code)?;
+        let name = AccountingTemplateValues::validate_name(name)?;
+        values.validate()?;
+
+        let id = AccountingTemplateId::new();
+        let new_template = NewAccountingTemplate {
+            id: id.clone(),
+            code,
+            name,
+            values,
+        };
+
+        let template = self.repo.create(new_template).await?;
+
+        Ok(template)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "core_accounting.accounting_template.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
