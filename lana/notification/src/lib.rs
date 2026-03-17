@@ -17,7 +17,6 @@ use lana_events::LanaEvent;
 use obix::out::OutboxEventJobConfig;
 
 pub use config::NotificationConfig;
-use email::EmailNotification;
 use email::job::EMAIL_LISTENER_JOB;
 pub use email::{NotificationFromEmail, NotificationFromName};
 
@@ -72,7 +71,7 @@ where
         customers: &Customers<AuthzType, LanaEvent>,
         domain_configs: &ExposedDomainConfigsReadOnly,
     ) -> Result<Self, NotificationError> {
-        let handler = EmailNotification::<AuthzType>::init(
+        let handler = email::init::<AuthzType>(
             jobs,
             domain_configs,
             config.email.clone(),
