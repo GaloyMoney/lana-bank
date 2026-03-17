@@ -1,4 +1,4 @@
-{% macro npb4_17_18_tipos_de_prestamos(key) %}
+{% macro nrp_92_12_tipos_de_prestamos(key) %}
 {{ return({
 	"Crédito decreciente": "CD",
 	"Crédito rotativo": "CR",
@@ -7,7 +7,6 @@
 	"Créditos interbancarios": "CI",
 	"Descuento de letras o factoraje": "DI",
 	"Créditos de tesorería": "CT",
-	"Créditos Nuevo amanecer": "NA",
 	"Sobregiros autorizados": "SA",
 	"Sobregiros ocasionales": "SO",
 	"Créditos puente": "CU",

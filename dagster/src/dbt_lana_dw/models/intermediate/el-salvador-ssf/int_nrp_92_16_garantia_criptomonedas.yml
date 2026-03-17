@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: int_nrp_41_03_referencia_garantia
+  - name: int_nrp_92_16_garantia_criptomonedas
     columns:
       - name: num_referencia
         tests:

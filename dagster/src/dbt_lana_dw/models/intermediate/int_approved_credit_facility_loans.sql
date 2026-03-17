@@ -9,7 +9,10 @@ with
             max(credit_facility_modified_at) as most_recent_collateral_deposit_at,
             any_value(
                 collateral_amount_btc having max credit_facility_modified_at
-            ) as most_recent_collateral_deposit_amount_btc
+            ) as most_recent_collateral_deposit_amount_btc,
+            any_value(
+                price_usd_per_btc having min credit_facility_modified_at
+            ) as initial_price_usd_per_btc
         from {{ ref("int_core_credit_facility_events_rollup_sequence") }}
         group by credit_facility_id
     ),
@@ -137,6 +140,9 @@ with
             disbursal_settled_recorded_at as disbursal_start_date,
             credit_facility_maturity_at as disbursal_end_date,
             most_recent_collateral_deposit_at,
+            initial_price_usd_per_btc,
+            price_usd_per_btc as latest_price_usd_per_btc,
+            credit_facility_modified_at as latest_price_timestamp,
 
             customer_id,
             facility_account_id,
@@ -161,6 +167,9 @@ with
             coalesce(cf_total_interest_paid_usd, 0) as cf_total_interest_paid_usd,
             coalesce(cf_total_disbursal_paid_usd, 0) as cf_total_disbursal_paid_usd,
             coalesce(collateral_amount_usd, 0) as cf_total_collateral_amount_usd,
+            coalesce(
+                disbursal_ratio * collateral_amount_btc, 0
+            ) as collateral_amount_btc,
             coalesce(
                 disbursal_ratio * collateral_amount_usd, 0
             ) as collateral_amount_usd,

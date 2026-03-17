@@ -1,4 +1,4 @@
-{% macro npb4_17_08_formas_de_pago(key) %}
+{% macro nrp_92_06_formas_de_pago(key) %}
 {{ return({
 	"Anual": "A",
 	"Semestral": "E",
@@ -11,5 +11,5 @@
 	"Al Vencimiento": "V",
 	"Pactada": "P",
 	"Otras": "O",
-}.get(key, "O")) }}
+}.get(key)) }}
 {% endmacro %}

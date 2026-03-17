@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- NOTE: This is NOT an official SSF validator schema. It was derived from
+     the NRP-41 CTRI schemas and adapted for NRP-92 fields. Replace with
+     the official SSF NRP-92 XSD once published. -->
 <xs:schema elementFormDefault="qualified"
    targetNamespace="http://validador.ssf.gob.sv/ctri/referencia"
    xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -9,10 +12,10 @@
             <xs:element name="referencia">
                <xs:complexType>
                   <xs:all maxOccurs="1" minOccurs="1">
-                     <xs:element name="nit_deudor">
+                     <xs:element name="documento_deudor">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
-Nit Deudor
+Documento Deudor
 ]]></xs:documentation>
                         </xs:annotation>
                         <xs:simpleType>
@@ -346,19 +349,7 @@ Periodo de Gracia Interes
                            </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
-                     <xs:element name="garante" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation><![CDATA[
-Garante
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:string">
-                              <xs:maxLength value="10"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="emision" nillable="true">
+                     <xs:element name="emisión" nillable="true">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
 Denominación de Emisión
@@ -491,7 +482,6 @@ Tipo de Préstamo
                               <xs:enumeration value="NR"/>
                               <xs:enumeration value="TC"/>
                               <xs:enumeration value="CT"/>
-                              <xs:enumeration value="NA"/>
                               <xs:enumeration value="SO"/>
                               <xs:enumeration value="SA"/>
                               <xs:enumeration value="DI"/>
@@ -917,190 +907,8 @@ Categoria de Riesgo por Referencia
                               <xs:enumeration value="D1"/>
                               <xs:enumeration value="D2"/>
                               <xs:enumeration value="E"/>
-                              <xs:enumeration value="E1"/>
-                              <xs:enumeration value="E2"/>
-                              <xs:enumeration value="E3"/>
                               <xs:whiteSpace value="collapse"/>
                               <xs:enumeration value=""/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="reserva_constituir" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation><![CDATA[
-Reserva acumulada a constituir COVID
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:decimal">
-                              <xs:fractionDigits value="2"/>
-                              <xs:totalDigits value="12"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="porcentaje_reserva" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation><![CDATA[
-Porcentaje de la Reserva constituida COVID
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:decimal">
-                              <xs:fractionDigits value="2"/>
-                              <xs:totalDigits value="6"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="pago_cuota" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation>
-							   <![CDATA[
-Monto de cuota pagada por el cliente en el mes COVID
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:decimal">
-                              <xs:fractionDigits value="2"/>
-                              <xs:totalDigits value="12"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="fecha_pago" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation>
-							   <![CDATA[
-Fecha en la que el cliente pagó la cuota por créditos COVID
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:date">
-                              <xs:minInclusive value="1800-01-01"/>
-                              <xs:maxInclusive value="9999-12-31"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="porcenta_reserva_descon" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation>
-							   <![CDATA[
-Porcentaje de reserva a descontar de los créditos agropecuarios NRP-26
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:decimal">
-                              <xs:fractionDigits value="2"/>
-                              <xs:totalDigits value="6"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="porcenta_adiciona_descon" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation>
-							   <![CDATA[
-Porcentaje de reserva a descontar adicional de los créditos agropecuarios NRP-26
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:decimal">
-                              <xs:fractionDigits value="2"/>
-                              <xs:totalDigits value="6"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="depto_destino_credito" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation><![CDATA[
-Departamento Destino del Crédito
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:string">                            
-                              <xs:enumeration value="01"/>
-                              <xs:enumeration value="02"/>
-                              <xs:enumeration value="03"/>
-                              <xs:enumeration value="04"/>                              
-                              <xs:enumeration value="05"/>
-                              <xs:enumeration value="06"/>
-                              <xs:enumeration value="07"/>
-                              <xs:enumeration value="08"/>
-                              <xs:enumeration value="09"/>
-                              <xs:enumeration value="10"/>
-                              <xs:enumeration value="11"/>
-                              <xs:enumeration value="12"/>                              
-                              <xs:enumeration value="13"/>
-                              <xs:enumeration value="14"/>
-                              <xs:enumeration value=""/>     
-                              <xs:maxLength value="2"/>
-                              <xs:whiteSpace value="collapse"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="porc_reserva_referencia" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation>
-                              <![CDATA[
-Porcentaje de reserva por Referencia
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:decimal">
-                              <xs:fractionDigits value="2"/>
-                              <xs:totalDigits value="6"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="calculo_brecha" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation>
-                              <![CDATA[
-Cálculo de la Brecha
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:decimal">
-                              <xs:fractionDigits value="2"/>
-                              <xs:totalDigits value="12"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="ajuste_brecha" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation>
-                              <![CDATA[
-Ajuste de la Brecha
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:decimal">
-                              <xs:fractionDigits value="2"/>
-                              <xs:totalDigits value="12"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="programa_asist_cafe" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation><![CDATA[
-Programa de Asistencia al Café
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:string">
-                              <xs:maxLength value="2"/>
-                              <xs:whiteSpace value="collapse"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="fecha_cump_cafe" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation>
-                              <![CDATA[
-Fecha de Cumplimiento a asistencia del café
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:date">
-                              <xs:minInclusive value="1900-01-01"/>
-                              <xs:maxInclusive value="9999-12-31"/>
                            </xs:restriction>
                         </xs:simpleType>
                      </xs:element>

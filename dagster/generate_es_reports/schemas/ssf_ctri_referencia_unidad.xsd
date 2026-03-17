@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- NOTE: This is NOT an official SSF validator schema. It was derived from
+     the NRP-41 CTRI schemas and adapted for NRP-92 fields. Replace with
+     the official SSF NRP-92 XSD once published. -->
 <xs:schema 
    elementFormDefault="qualified"
    targetNamespace="http://validador.ssf.gob.sv/ctri/referencia_unidad"
@@ -75,9 +78,9 @@ Cantidad de la Unidad]]>
                         </xs:annotation>
                         <xs:simpleType>
                           <xs:restriction base="xs:decimal">
-                             <xs:totalDigits value="9"/>
+                             <xs:totalDigits value="10"/>
                              <xs:fractionDigits value="2"/>
-                             <xs:maxInclusive value="9999999.99"/>
+                             <xs:maxInclusive value="99999999.99"/>
                           </xs:restriction>
                         </xs:simpleType>
                      </xs:element>

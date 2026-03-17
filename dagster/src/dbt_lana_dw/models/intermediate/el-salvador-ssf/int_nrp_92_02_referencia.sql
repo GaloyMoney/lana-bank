@@ -87,10 +87,10 @@ select
     customer_public_ids.id as customer_id,
     disbursement_public_ids.id as disbursal_id,
     disbursement_public_ids.id as reference_id,
-    customer_public_ids.id as `nit_deudor`,
-    '{{ npb4_17_01_tipos_de_cartera("Cartera propia Ley Acceso al Crédito (19)") }}'
-    as `cod_cartera`,
-    '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
+    customer_public_ids.id as `documento_deudor`,
+    -- NRP-92 Tabla 1: these loans belong to the bank's own portfolio.
+    '01' as `cod_cartera`,
+    '{{ nrp_92_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
     disbursement_public_ids.id as `num_referencia`,
     loan_amount_usd as `monto_referencia`,
     remaining_balance_usd,
@@ -112,15 +112,14 @@ select
     interest_overdue_date as `fecha_inicio_mora_i`,
     case
         when accrual_cycle_interval = 'end_of_month'
-        then '{{ npb4_17_08_formas_de_pago("Anual") }}'
+        then '{{ nrp_92_06_formas_de_pago("Anual") }}'
     end as `pago_capital`,
     case
         when accrual_cycle_interval = 'end_of_month'
-        then '{{ npb4_17_08_formas_de_pago("Mensual") }}'
+        then '{{ nrp_92_06_formas_de_pago("Mensual") }}'
     end as `pago_interes`,
     cast(null as int64) as `periodo_gracia_k`,
     cast(null as int64) as `periodo_gracia_i`,
-    cast(null as string) as `garante`,
     cast(null as string) as `emisión`,
 
     -- join to customer identities's country_of_residence_code?
@@ -150,7 +149,7 @@ select
     -- "A" for adjustable, "F" for fixed
     'F' as `tipo_tasa_interes`,
 
-    '{{ npb4_17_18_tipos_de_prestamos("Crédito decreciente") }}' as `tipo_prestamo`,
+    '{{ nrp_92_12_tipos_de_prestamos("Crédito decreciente") }}' as `tipo_prestamo`,
     '{{ npb4_17_21_fuentes_de_recursos("Recursos propios de la entidad") }}'
     as `codigo_recurso`,
     cast(null as date) as `ultima_fecha_venc`,
@@ -175,7 +174,7 @@ select
     cast(null as numeric) as `adelanto_capital`,
 
     -- Corresponds to the reference balance[2.6]
-    -- less the proportional value of the guarantees[3.6 / 2.59]
+    -- less the proportional value of the guarantees[3.6 / 2.58]
     -- (saldo_referencia - valor_garantia_proporcional)
     net_risk,
     net_risk as `riesgo_neto`,
@@ -186,11 +185,12 @@ select
     cast(null as string) as `clase_tarjeta_credito`,
     cast(null as string) as `producto_tarjeta_credito`,
 
-    -- Sum of the proportional values ​​of each guarantee[3.6]
+    -- Sum of the proportional values of each guarantee[3.6]
     collateral_amount_usd,
     collateral_amount_usd as `valor_garantia_cons`,
 
     cast(null as string) as `distrito_otorgamiento`,
+    reserve_percentage,
     reserve,
     reserve as `reserva_referencia`,
     cast(null as string) as `etapa_judicial`,
@@ -198,20 +198,7 @@ select
     duration_value as `plazo_credito`,
     'SO' as `orden_descuento`,
     risk_category_ref,
-    risk_category_ref as `categoria_riesgo_ref`,
-    cast(null as numeric) as `reserva_constituir`,
-    cast(null as numeric) as `porcentaje_reserva`,
-    cast(null as numeric) as `pago_cuota`,
-    cast(null as date) as `fecha_pago`,
-    cast(null as numeric) as `porcenta_reserva_descon`,
-    cast(null as numeric) as `porcenta_adiciona_descon`,
-    cast(null as string) as `depto_destino_credito`,
-    reserve_percentage,
-    reserve_percentage as `porc_reserva_referencia`,
-    cast(null as numeric) as `calculo_brecha`,
-    cast(null as numeric) as `ajuste_brecha`,
-    cast(null as string) as `programa_asist_cafe`,
-    cast(null as date) as `fecha_cump_cafe`
+    risk_category_ref as `categoria_riesgo_ref`
 
 from final
 left join

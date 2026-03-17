@@ -33,6 +33,8 @@ SUMSUB_ALL_MODELS=(
   "report_nrsf_03_08_resumen_de_depositos_garantizados"
   "int_nrp_41_01_persona"
   "report_nrp_41_01_persona"
+  "int_nrp_92_01_persona"
+  "report_nrp_92_01_persona"
   "report_reporte_de_cambios_de_estado"
   "report_other_estado_de_cuenta_de_prestamo"
   "report_other_reporte_de_cartera_de_prestamos"

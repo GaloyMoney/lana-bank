@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- NOTE: This is NOT an official SSF validator schema. It was derived from
+     the NRP-41 CTRI schemas and adapted for NRP-92 fields. Replace with
+     the official SSF NRP-92 XSD once published. -->
 <xs:schema 
    elementFormDefault="qualified"
    targetNamespace="http://validador.ssf.gob.sv/ctri/referencia_garantia"
@@ -73,6 +76,21 @@ Tipo de Garantía
                         <xs:simpleType>
                           <xs:restriction base="xs:string">
                              <xs:length value="2"/>
+                             <xs:enumeration value="HA"/>
+                             <xs:enumeration value="HC"/>
+                             <xs:enumeration value="FI"/>
+                             <xs:enumeration value="PR"/>
+                             <xs:enumeration value="PI"/>
+                             <xs:enumeration value="FG"/>
+                             <xs:enumeration value="FB"/>
+                             <xs:enumeration value="CC"/>
+                             <xs:enumeration value="AV"/>
+                             <xs:enumeration value="BP"/>
+                             <xs:enumeration value="PD"/>
+                             <xs:enumeration value="PV"/>
+                             <xs:enumeration value="PC"/>
+                             <xs:enumeration value="ST"/>
+                             <xs:enumeration value="AF"/>
                              <xs:whiteSpace value="collapse"/>
                           </xs:restriction>
                         </xs:simpleType>

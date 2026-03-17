@@ -1,4 +1,4 @@
-{% macro npb4_17_02_tipos_de_activos_de_riesgo(key) %}
+{% macro nrp_92_02_tipos_de_activos_de_riesgo(key) %}
 {{ return({
 	"Préstamos": "PD",
 	"Cuentas por cobrar": "CP",

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- NOTE: This is NOT an official SSF validator schema. It was derived from
+     the NRP-41 CTRI schemas and adapted for NRP-92 fields. Replace with
+     the official SSF NRP-92 XSD once published. -->
 <xs:schema 
    elementFormDefault="qualified"
    targetNamespace="http://validador.ssf.gob.sv/ctri/socios_sociedades"
@@ -10,10 +13,10 @@
             <xs:element name="socios_sociedades">
                <xs:complexType>
                   <xs:all maxOccurs="1" minOccurs="1">
-                     <xs:element name="nit_deudor">
+                     <xs:element name="documento_deudor">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
-Nit del Deudor
+Documento del Deudor
 ]]></xs:documentation>
                         </xs:annotation>
                         <xs:simpleType>
@@ -24,10 +27,10 @@ Nit del Deudor
                           </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
-                     <xs:element name="nit_socio">
+                     <xs:element name="documento_socio">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
-Nit del Socio
+Documento del Socio
 ]]></xs:documentation>
                         </xs:annotation>
                         <xs:simpleType>

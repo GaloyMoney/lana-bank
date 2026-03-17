@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- NOTE: This is NOT an official SSF validator schema. It was derived from
+     the NRP-41 CTRI schemas and adapted for NRP-92 fields. Replace with
+     the official SSF NRP-92 XSD once published. -->
 <xs:schema elementFormDefault="qualified" targetNamespace="http://validador.ssf.gob.sv/ctri/persona" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://validador.ssf.gob.sv/ctri/persona">
    <xs:element name="ctri">
       <xs:complexType>
@@ -6,10 +9,10 @@
             <xs:element name="persona">
                <xs:complexType>
                   <xs:all maxOccurs="1" minOccurs="1">
-                     <xs:element name="nit_persona">
+                     <xs:element name="numero_documento">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
-Nit de la Persona
+Número de Documento
 ]]></xs:documentation>
                         </xs:annotation>
                         <xs:simpleType>
@@ -20,16 +23,20 @@ Nit de la Persona
                           </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
-                     <xs:element name="dui" nillable="true">
+                     <xs:element name="tipo_identificador">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
-DUI
+Tipo de Identificador
 ]]></xs:documentation>
                         </xs:annotation>
                         <xs:simpleType>
                           <xs:restriction base="xs:string">
-                             <xs:maxLength value="9"/>
-                             <xs:pattern value="([0-9])+"/>
+                             <xs:length value="1"/>
+                             <xs:enumeration value="N"/>
+                             <xs:enumeration value="F"/>
+                             <xs:enumeration value="U"/>
+                             <xs:enumeration value="P"/>
+                             <xs:whiteSpace value="collapse"/>
                           </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
@@ -114,6 +121,8 @@ Tipo de Persona
                         <xs:simpleType>
                           <xs:restriction base="xs:string">
                              <xs:length value="1"/>
+                             <xs:enumeration value="1"/>
+                             <xs:enumeration value="2"/>
                              <xs:whiteSpace value="collapse"/>
                           </xs:restriction>
                         </xs:simpleType>
@@ -132,31 +141,6 @@ Tipo de Relacion
                              <xs:enumeration value="1"/>
                              <xs:enumeration value="2"/>
                              <xs:enumeration value=""/>
-                          </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="tipo_identificador">
-                        <xs:annotation>
-                           <xs:documentation><![CDATA[
-Tipo de Identificador
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                          <xs:restriction base="xs:string">
-                             <xs:length value="1"/>
-                             <xs:whiteSpace value="collapse"/>
-                          </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="nit_anterior" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation><![CDATA[
-Nit Anterior
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                          <xs:restriction base="xs:string">
-                             <xs:maxLength value="14"/>
                           </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
@@ -251,9 +235,6 @@ Categoria de Riesgo
                              <xs:enumeration value="D1"/>
                              <xs:enumeration value="D2"/>
                              <xs:enumeration value="E"/>
-                             <xs:enumeration value="E1"/>
-                             <xs:enumeration value="E2"/>
-                             <xs:enumeration value="E3"/>
                              <xs:whiteSpace value="collapse"/>
                              <xs:enumeration value=""/>
                           </xs:restriction>
@@ -355,10 +336,10 @@ Sexo
                           </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
-                     <xs:element name="ocupacion" nillable="true">
+                     <xs:element name="ocupación" nillable="true">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
-Ocupacion
+Ocupación
 ]]></xs:documentation>
                         </xs:annotation>
                         <xs:simpleType>
@@ -391,33 +372,6 @@ Nacionalidad
                            </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
-                     <xs:element name="nit_desactualizado" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation><![CDATA[
-NIT Desactualizado
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:string">
-                              <xs:maxLength value="14"/>
-                              <xs:minLength value="1"/>
-                              <xs:whiteSpace value="collapse"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
-                     <xs:element name="tipo_ident_anterior" nillable="true">
-                        <xs:annotation>
-                           <xs:documentation><![CDATA[
-Tipo de Identificador anterior
-]]></xs:documentation>
-                        </xs:annotation>
-                        <xs:simpleType>
-                           <xs:restriction base="xs:string">
-                              <xs:length value="1"/>                              
-                              <xs:whiteSpace value="collapse"/>
-                           </xs:restriction>
-                        </xs:simpleType>
-                     </xs:element>
                      <xs:element name="distrito_residencia" nillable="true">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
@@ -431,7 +385,19 @@ Distrito Residencia
                            </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
-                     
+                     <xs:element name="documento_anterior" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Documento Anterior
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                           <xs:restriction base="xs:string">
+                              <xs:maxLength value="14"/>
+                           </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+
                   </xs:all>
                </xs:complexType>
             </xs:element>

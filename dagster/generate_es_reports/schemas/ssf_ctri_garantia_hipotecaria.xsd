@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- NOTE: This is NOT an official SSF validator schema. It was derived from
+     the NRP-41 CTRI schemas and adapted for NRP-92 fields. Replace with
+     the official SSF NRP-92 XSD once published. -->
 <xs:schema 
    elementFormDefault="qualified"
    targetNamespace="http://validador.ssf.gob.sv/ctri/garantia_hipotecaria"
@@ -21,6 +24,17 @@ Identificación de la Garantía
                              <xs:maxLength value="20"/>
                              <xs:minLength value="1"/>
                              <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="pais_garantia" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+País de la Garantía
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:int">
                           </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
@@ -90,7 +104,7 @@ Código Ubicación
                           </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
-                     <xs:element name="descripcion" nillable="true">
+                     <xs:element name="descripción" nillable="true">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
 Descripción

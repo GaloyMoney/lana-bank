@@ -13,7 +13,7 @@ with
             net_risk,
             reserve_percentage,
             reserve
-        from {{ ref("int_nrp_41_02_referencia") }}
+        from {{ ref("int_nrp_92_02_referencia") }}
     )
 
 select *

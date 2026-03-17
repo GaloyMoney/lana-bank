@@ -13,11 +13,11 @@ with
 
 select
     disbursement_public_ids.id as `num_referencia`,
-    '{{ npb4_17_01_tipos_de_cartera("Cartera propia Ley Acceso al Crédito (19)") }}'
-    as `cod_cartera`,
-    '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
+    -- NRP-92 Tabla 1: these loans belong to the bank's own portfolio.
+    '01' as `cod_cartera`,
+    '{{ nrp_92_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
     disbursement_public_ids.id as `identificacion_garantia`,
-    '{{ npb4_17_09_tipos_de_garantias("Pignorada - Depósito de dinero") }}'
+    '{{ nrp_92_07_tipos_de_garantias("Prenda sobre Criptomonedas") }}'
     as `tipo_garantia`,
     coalesce(
         safe_divide(collateral_amount_usd, loan_amount_usd) * 100, 1

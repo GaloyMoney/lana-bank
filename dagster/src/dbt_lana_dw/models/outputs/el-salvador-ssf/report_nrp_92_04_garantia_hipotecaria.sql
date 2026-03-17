@@ -1,7 +1,9 @@
 with
     dummy as (
+
         select
             null as `identificacion_garantia`,
+            null as `pais_garantia`,
             null as `numero_registro`,
             null as `nit_propietario`,
             null as `fecha_registro`,

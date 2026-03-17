@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- NOTE: This is NOT an official SSF validator schema. It was derived from
+     the NRP-41 CTRI schemas and adapted for NRP-92 fields. Replace with
+     the official SSF NRP-92 XSD once published. -->
 <xs:schema 
    elementFormDefault="qualified"
    targetNamespace="http://validador.ssf.gob.sv/ctri/garantia_fiduciaria"
@@ -50,10 +53,10 @@ Código Activo
                           </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
-                     <xs:element name="nit_fiador_codeudor">
+                     <xs:element name="documento_fiador">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
-Nit Fiador Codeudor
+Documento Fiador
 ]]></xs:documentation>
                         </xs:annotation>
                         <xs:simpleType>
@@ -64,7 +67,7 @@ Nit Fiador Codeudor
                           </xs:restriction>
                         </xs:simpleType>
                      </xs:element>
-                     <xs:element name="fiador_codeudor">
+                     <xs:element name="fiador">
                         <xs:annotation>
                            <xs:documentation><![CDATA[
 Tipo
