@@ -30,6 +30,7 @@ core-credit-collection = { path = "collection" }
 core-time-events = { workspace = true }
 core-credit-collateral = { path = "collateral" }
 core-credit-terms = { path = "terms" }
+core-eod = { workspace = true }
 core-custody = { workspace = true }
 governance = { workspace = true }
 chart-primitives = { workspace = true }

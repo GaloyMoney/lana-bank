@@ -2,6 +2,7 @@ pub mod activate;
 pub mod allocate_payment;
 pub mod collateralization_from_events;
 pub mod collect_facilities_for_accrual;
+pub mod credit_facility_eod;
 pub mod credit_facility_liquidations;
 pub mod credit_facility_maturity;
 pub mod end_of_day;
