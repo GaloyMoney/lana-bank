@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
 use job::*;
@@ -9,19 +9,7 @@ pub const DEPOSIT_ACTIVITY_JOB_TYPE: JobType = JobType::new("task.eod.deposit-ac
 #[serde(rename_all = "camelCase")]
 pub struct DepositActivityConfig {
     pub date: NaiveDate,
-}
-
-#[derive(Default, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum DepositActivityState {
-    #[default]
-    Collecting,
-    Tracking {
-        total: usize,
-        completed: usize,
-        entity_jobs: Vec<JobId>,
-    },
-    Completed,
+    pub closing_time: DateTime<Utc>,
 }
 
 pub type DepositActivityJobSpawner = JobSpawner<DepositActivityConfig>;

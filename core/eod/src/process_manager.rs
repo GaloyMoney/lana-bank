@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chrono::NaiveDate;
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
@@ -18,6 +18,7 @@ pub const EOD_PROCESS_MANAGER_JOB_TYPE: JobType = JobType::new("task.eod.process
 #[serde(rename_all = "camelCase")]
 pub struct EodProcessManagerConfig {
     pub date: NaiveDate,
+    pub closing_time: DateTime<Utc>,
 }
 
 /// Structured result set on the process manager job upon completion.
@@ -148,6 +149,7 @@ impl JobRunner for EodProcessManagerJobRunner {
                         deposit_job,
                         DepositActivityConfig {
                             date: self.config.date,
+                            closing_time: self.config.closing_time,
                         },
                     )
                     .await
