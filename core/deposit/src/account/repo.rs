@@ -80,6 +80,26 @@ where
         after: Option<(chrono::DateTime<chrono::Utc>, DepositAccountId)>,
         limit: i64,
     ) -> Result<Vec<(DepositAccountId, chrono::DateTime<chrono::Utc>)>, DepositAccountError> {
+        self.list_account_ids_not_escheatable_using(self.pool(), after, limit)
+            .await
+    }
+
+    pub async fn list_account_ids_not_escheatable_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        after: Option<(chrono::DateTime<chrono::Utc>, DepositAccountId)>,
+        limit: i64,
+    ) -> Result<Vec<(DepositAccountId, chrono::DateTime<chrono::Utc>)>, DepositAccountError> {
+        self.list_account_ids_not_escheatable_using(op.as_executor(), after, limit)
+            .await
+    }
+
+    async fn list_account_ids_not_escheatable_using<'e>(
+        &self,
+        executor: impl sqlx::PgExecutor<'e>,
+        after: Option<(chrono::DateTime<chrono::Utc>, DepositAccountId)>,
+        limit: i64,
+    ) -> Result<Vec<(DepositAccountId, chrono::DateTime<chrono::Utc>)>, DepositAccountError> {
         let (after_created_at, after_id) = match after {
             Some((ts, id)) => (Some(ts), Some(id)),
             None => (None, None),
@@ -95,7 +115,7 @@ where
             after_id as Option<DepositAccountId>,
             limit,
         )
-        .fetch_all(self.pool())
+        .fetch_all(executor)
         .await?;
         Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }

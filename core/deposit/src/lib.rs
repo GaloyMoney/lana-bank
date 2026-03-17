@@ -901,6 +901,25 @@ where
             .await?)
     }
 
+    /// Returns a page of non-escheatable deposit account IDs within an
+    /// existing database operation, using keyset cursor pagination.
+    #[record_error_severity]
+    #[instrument(
+        name = "deposit.list_account_ids_not_escheatable_in_op",
+        skip(self, op)
+    )]
+    pub async fn list_account_ids_not_escheatable_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        after: Option<(DateTime<Utc>, DepositAccountId)>,
+        limit: i64,
+    ) -> Result<Vec<(DepositAccountId, DateTime<Utc>)>, CoreDepositError> {
+        Ok(self
+            .deposit_accounts
+            .list_account_ids_not_escheatable_in_op(op, after, limit)
+            .await?)
+    }
+
     /// Evaluates a single deposit account's activity status and updates it
     /// within the provided database operation if a change is needed.
     #[record_error_severity]

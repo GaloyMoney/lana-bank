@@ -132,9 +132,10 @@ where
             .unwrap_or_default();
 
         loop {
+            let mut op = current_job.begin_op().await?;
             let rows = self
                 .deposits
-                .list_account_ids_not_escheatable(state.last_cursor, PAGE_SIZE)
+                .list_account_ids_not_escheatable_in_op(&mut op, state.last_cursor, PAGE_SIZE)
                 .await?;
 
             if rows.is_empty() {
@@ -155,7 +156,6 @@ where
                 })
                 .collect();
 
-            let mut op = current_job.begin_op().await?;
             self.evaluate_spawner
                 .spawn_all_in_op(&mut op, specs)
                 .await?;
