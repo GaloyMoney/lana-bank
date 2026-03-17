@@ -15,7 +15,7 @@ use lana_app::app::AppConfig;
 
 /// Time configuration for the application clock
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "mode", rename_all = "snake_case")]
 pub enum TimeConfig {
     /// Use real system time
     #[default]

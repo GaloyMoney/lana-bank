@@ -22,7 +22,7 @@ app:
     deposit_config_path: "./bats/accounting-init/deposit-module-config.json"
     chart_of_accounts_integration_config_path: "./bats/accounting-init/accounting-base-config.json"
 time:
-  type: manual
+  mode: manual
   start_at: 2023-01-01T00:00:00Z
 bootstrap:
   active: true
