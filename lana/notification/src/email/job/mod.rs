@@ -1,13 +1,13 @@
-pub mod deposit_account_created_email;
+pub(crate) mod deposit_account_created_email;
 mod event_listener;
-pub mod obligation_overdue_email;
-pub mod partial_liquidation_email;
-pub mod role_created_email;
-pub mod sender;
-pub mod under_margin_call_email;
+pub(crate) mod obligation_overdue_email;
+pub(crate) mod partial_liquidation_email;
+pub(crate) mod role_created_email;
+pub(crate) mod sender;
+pub(crate) mod under_margin_call_email;
 
-pub use event_listener::*;
-pub use sender::*;
+pub(crate) use event_listener::*;
+pub(crate) use sender::*;
 
 use audit::AuditSvc;
 use core_access::user::Users;
