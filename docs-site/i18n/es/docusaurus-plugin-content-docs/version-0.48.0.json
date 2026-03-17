@@ -1,0 +1,226 @@
+{
+  "version.label": {
+    "message": "0.48.0",
+    "description": "The label for version 0.48.0"
+  },
+  "sidebar.docsSidebar.category.Getting Started": {
+    "message": "Comenzando",
+    "description": "The label for category 'Getting Started' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.For Platform Engineers": {
+    "message": "Para Ingenieros de Plataforma",
+    "description": "The label for category 'For Platform Engineers' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Credit Management": {
+    "message": "Gestión de Crédito",
+    "description": "The label for category 'Credit Management' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Accounting": {
+    "message": "Contabilidad",
+    "description": "The label for category 'Accounting' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Data Models (ERDs)": {
+    "message": "Modelos de Datos (ERDs)",
+    "description": "The label for category 'Data Models (ERDs)' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Reference": {
+    "message": "Referencia",
+    "description": "The label for category 'Reference' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.admin-operations-group": {
+    "message": "Operaciones",
+    "description": "The label for category 'Operations' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.admin-types-group": {
+    "message": "Tipos",
+    "description": "The label for category 'Types' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.customer-operations-group": {
+    "message": "Operaciones",
+    "description": "The label for category 'Operations' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.customer-types-group": {
+    "message": "Tipos",
+    "description": "The label for category 'Types' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-operations-directives": {
+    "message": "Directivas",
+    "description": "The label for category 'Directives' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-operations-directives.link.generated-index.title": {
+    "message": "Resumen de directivas",
+    "description": "The generated-index page title for category 'Directives' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-operations-mutations": {
+    "message": "Mutaciones",
+    "description": "The label for category 'Mutations' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-operations-mutations.link.generated-index.title": {
+    "message": "Resumen de mutaciones",
+    "description": "The generated-index page title for category 'Mutations' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-operations-queries": {
+    "message": "Consultas",
+    "description": "The label for category 'Queries' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-operations-queries.link.generated-index.title": {
+    "message": "Resumen de consultas",
+    "description": "The generated-index page title for category 'Queries' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-directives": {
+    "message": "Directivas",
+    "description": "The label for category 'Directives' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-directives.link.generated-index.title": {
+    "message": "Resumen de directivas",
+    "description": "The generated-index page title for category 'Directives' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-enums": {
+    "message": "Enumeraciones",
+    "description": "The label for category 'Enums' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-enums.link.generated-index.title": {
+    "message": "Resumen de enumeraciones",
+    "description": "The generated-index page title for category 'Enums' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-inputs": {
+    "message": "Entradas",
+    "description": "The label for category 'Inputs' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-inputs.link.generated-index.title": {
+    "message": "Resumen de entradas",
+    "description": "The generated-index page title for category 'Inputs' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-objects": {
+    "message": "Objetos",
+    "description": "The label for category 'Objects' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-objects.link.generated-index.title": {
+    "message": "Resumen de objetos",
+    "description": "The generated-index page title for category 'Objects' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-scalars": {
+    "message": "Escalares",
+    "description": "The label for category 'Scalars' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-scalars.link.generated-index.title": {
+    "message": "Resumen de escalares",
+    "description": "The generated-index page title for category 'Scalars' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-unions": {
+    "message": "Uniones",
+    "description": "The label for category 'Unions' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-admin-api-types-unions.link.generated-index.title": {
+    "message": "Resumen de uniones",
+    "description": "The generated-index page title for category 'Unions' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-operations-directives": {
+    "message": "Directivas",
+    "description": "The label for category 'Directives' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-operations-directives.link.generated-index.title": {
+    "message": "Resumen de directivas",
+    "description": "The generated-index page title for category 'Directives' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-operations-queries": {
+    "message": "Consultas",
+    "description": "The label for category 'Queries' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-operations-queries.link.generated-index.title": {
+    "message": "Resumen de consultas",
+    "description": "The generated-index page title for category 'Queries' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-types-directives": {
+    "message": "Directivas",
+    "description": "The label for category 'Directives' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-types-directives.link.generated-index.title": {
+    "message": "Resumen de directivas",
+    "description": "The generated-index page title for category 'Directives' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-types-enums": {
+    "message": "Enumeraciones",
+    "description": "The label for category 'Enums' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-types-enums.link.generated-index.title": {
+    "message": "Resumen de enumeraciones",
+    "description": "The generated-index page title for category 'Enums' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-types-objects": {
+    "message": "Objetos",
+    "description": "The label for category 'Objects' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-types-objects.link.generated-index.title": {
+    "message": "Resumen de objetos",
+    "description": "The generated-index page title for category 'Objects' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-types-scalars": {
+    "message": "Escalares",
+    "description": "The label for category 'Scalars' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-types-scalars.link.generated-index.title": {
+    "message": "Resumen de escalares",
+    "description": "The generated-index page title for category 'Scalars' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-types-unions": {
+    "message": "Uniones",
+    "description": "The label for category 'Unions' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.for-developers-customer-api-types-unions.link.generated-index.title": {
+    "message": "Resumen de uniones",
+    "description": "The generated-index page title for category 'Unions' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Technical Documentation": {
+    "message": "Documentación Técnica",
+    "description": "The label for category 'Technical Documentation' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Customer Management": {
+    "message": "Gestión de Clientes",
+    "description": "The label for category 'Customer Management' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Deposits and Withdrawals": {
+    "message": "Depósitos y Retiros",
+    "description": "The label for category 'Deposits and Withdrawals' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Approvals and Governance": {
+    "message": "Aprobaciones y Gobernanza",
+    "description": "The label for category 'Approvals and Governance' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Financial Reports": {
+    "message": "Informes Financieros",
+    "description": "The label for category 'Financial Reports' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.For Internal Developers": {
+    "message": "Para Desarrolladores Internos",
+    "description": "The label for category 'For Internal Developers' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Frontend Applications": {
+    "message": "Aplicaciones Frontend",
+    "description": "The label for category 'Frontend Applications' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Domain Architecture": {
+    "message": "Arquitectura de Dominio",
+    "description": "The label for category 'Domain Architecture' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Infrastructure": {
+    "message": "Infraestructura",
+    "description": "The label for category 'Infrastructure' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.For External Developers": {
+    "message": "Para Desarrolladores Externos",
+    "description": "The label for category 'For External Developers' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.APIs": {
+    "message": "APIs",
+    "description": "The label for category 'APIs' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.System Architecture": {
+    "message": "Arquitectura del Sistema",
+    "description": "The label for category 'System Architecture' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Release Engineering": {
+    "message": "Ingeniería de Lanzamiento",
+    "description": "The label for category 'Release Engineering' in sidebar 'docsSidebar'"
+  }
+}
