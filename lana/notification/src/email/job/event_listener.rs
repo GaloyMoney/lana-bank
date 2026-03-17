@@ -81,7 +81,7 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
                 let trigger = entity
                     .liquidation_trigger
                     .as_ref()
-                    .expect("liquidation_trigger must be set for PartialLiquidationInitiated");
+                    .ok_or("liquidation_trigger must be set for PartialLiquidationInitiated")?;
                 self.partial_liquidation
                     .spawn_with_queue_id_in_op(
                         op,
