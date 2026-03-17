@@ -3788,8 +3788,12 @@ export type Time = {
   currentDate: Scalars['Date']['output'];
   /** Current environment timestamp. */
   currentTime: Scalars['Timestamp']['output'];
+  /** Configured end-of-day time in HH:MM:SS format. */
+  endOfDayTime: Scalars['String']['output'];
   /** Timestamp when the next end-of-day boundary will be reached. */
   nextEndOfDayAt: Scalars['Timestamp']['output'];
+  /** IANA timezone identifier for the environment (e.g. "America/New_York"). */
+  timezone: Scalars['String']['output'];
 };
 
 export type Total = {
@@ -5664,7 +5668,7 @@ export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: string, build
 export type GetTimeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetTimeQuery = { __typename?: 'Query', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string } };
+export type GetTimeQuery = { __typename?: 'Query', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string } };
 
 export type TermsTemplateEventHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -14071,6 +14075,8 @@ export const GetTimeDocument = gql`
     currentDate
     currentTime
     nextEndOfDayAt
+    timezone
+    endOfDayTime
   }
 }
     `;

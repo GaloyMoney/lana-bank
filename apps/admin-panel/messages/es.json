@@ -127,6 +127,9 @@
       "description": "Consulta el reloj actual del entorno y, cuando el tiempo manual esté habilitado, avánzalo al siguiente fin de día configurado.",
       "currentDate": "Fecha actual",
       "currentTime": "Hora actual",
+      "browserTime": "Hora del navegador",
+      "timezone": "Zona horaria",
+      "endOfDayTime": "Hora de fin de día",
       "nextEndOfDay": "Próximo fin de día",
       "loadError": "No se pudo cargar el tiempo"
     },

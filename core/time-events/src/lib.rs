@@ -8,7 +8,8 @@ mod jobs;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
+use chrono_tz::Tz;
 use domain_config::{DomainConfigAction, DomainConfigObject, ExposedDomainConfigsReadOnly};
 use es_entity::clock::ClockHandle;
 use obix::{Outbox, out::OutboxEventMarker};
@@ -28,6 +29,8 @@ pub struct TimeState {
     pub current_date: NaiveDate,
     pub current_time: DateTime<Utc>,
     pub next_end_of_day_at: DateTime<Utc>,
+    pub timezone: Tz,
+    pub end_of_day_time: NaiveTime,
 }
 
 #[derive(Clone)]
@@ -107,6 +110,8 @@ where
             current_date: schedule.current_day(),
             current_time,
             next_end_of_day_at: schedule.next_closing(),
+            timezone,
+            end_of_day_time: closing_time,
         })
     }
 }
