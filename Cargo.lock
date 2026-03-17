@@ -1581,7 +1581,10 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
+ "core-time-events",
+ "es-entity",
  "job",
+ "obix",
  "serde",
  "thiserror 2.0.18",
  "tracing",

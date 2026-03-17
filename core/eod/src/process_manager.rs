@@ -5,13 +5,18 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use job::*;
+use job::{error::JobError, *};
 
-use crate::job_id;
+use crate::{
+    credit_facility_eod::{CreditFacilityEodConfig, CreditFacilityEodJobSpawner},
+    deposit_activity::{DepositActivityConfig, DepositActivityJobSpawner},
+    job_id,
+    obligation_transition::{ObligationTransitionConfig, ObligationTransitionJobSpawner},
+};
 
 pub const EOD_PROCESS_MANAGER_JOB_TYPE: JobType = JobType::new("task.eod.process-manager");
 
-/// Polling interval when checking execution state for child completion.
+/// Polling interval when checking child job completion.
 const POLL_INTERVAL: Duration = Duration::from_secs(5);
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -20,44 +25,41 @@ pub struct EodProcessManagerConfig {
     pub date: NaiveDate,
 }
 
-/// Status of a child sub-process, tracked inline in the PM's execution state.
-///
-/// Updated externally by outbox event handlers when children complete or fail.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub enum ChildJobStatus {
-    Running,
-    Completed,
-    Failed(String),
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub enum EodProcessState {
     #[default]
     SpawningPhase1,
     AwaitingPhase1 {
         obligation_job: JobId,
-        obligation_status: ChildJobStatus,
         deposit_job: JobId,
-        deposit_status: ChildJobStatus,
     },
     SpawningPhase2,
     AwaitingPhase2 {
         credit_facility_job: JobId,
-        credit_facility_status: ChildJobStatus,
     },
     Completed,
-    Failed {
-        phase: u8,
-        reason: String,
-    },
 }
 
-#[derive(Default)]
-pub struct EodProcessManagerJobInit {}
+pub struct EodProcessManagerJobInit {
+    jobs: Jobs,
+    obligation_spawner: ObligationTransitionJobSpawner,
+    deposit_spawner: DepositActivityJobSpawner,
+    credit_facility_spawner: CreditFacilityEodJobSpawner,
+}
 
 impl EodProcessManagerJobInit {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(
+        jobs: &Jobs,
+        obligation_spawner: ObligationTransitionJobSpawner,
+        deposit_spawner: DepositActivityJobSpawner,
+        credit_facility_spawner: CreditFacilityEodJobSpawner,
+    ) -> Self {
+        Self {
+            jobs: jobs.clone(),
+            obligation_spawner,
+            deposit_spawner,
+            credit_facility_spawner,
+        }
     }
 }
 
@@ -75,12 +77,20 @@ impl JobInitializer for EodProcessManagerJobInit {
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(EodProcessManagerJobRunner {
             config: job.config()?,
+            jobs: self.jobs.clone(),
+            obligation_spawner: self.obligation_spawner.clone(),
+            deposit_spawner: self.deposit_spawner.clone(),
+            credit_facility_spawner: self.credit_facility_spawner.clone(),
         }))
     }
 }
 
 struct EodProcessManagerJobRunner {
     config: EodProcessManagerConfig,
+    jobs: Jobs,
+    obligation_spawner: ObligationTransitionJobSpawner,
+    deposit_spawner: DepositActivityJobSpawner,
+    credit_facility_spawner: CreditFacilityEodJobSpawner,
 }
 
 #[async_trait]
@@ -104,23 +114,37 @@ impl JobRunner for EodProcessManagerJobRunner {
                     job_id::eod_child_id(&self.config.date, "obligation-transition");
                 let deposit_job = job_id::eod_child_id(&self.config.date, "deposit-activity");
 
-                // TODO(Phase 2): spawn obligation-transition child job
-                // match self.obligation_spawner.spawn(obligation_job, config).await {
-                //     Ok(_) | Err(JobError::DuplicateId(_)) => {}
-                //     Err(e) => return Err(e.into()),
-                // }
+                match self
+                    .obligation_spawner
+                    .spawn(
+                        obligation_job,
+                        ObligationTransitionConfig {
+                            date: self.config.date,
+                        },
+                    )
+                    .await
+                {
+                    Ok(_) | Err(JobError::DuplicateId(_)) => {}
+                    Err(e) => return Err(e.into()),
+                }
 
-                // TODO(Phase 2): spawn deposit-activity child job
-                // match self.deposit_spawner.spawn(deposit_job, config).await {
-                //     Ok(_) | Err(JobError::DuplicateId(_)) => {}
-                //     Err(e) => return Err(e.into()),
-                // }
+                match self
+                    .deposit_spawner
+                    .spawn(
+                        deposit_job,
+                        DepositActivityConfig {
+                            date: self.config.date,
+                        },
+                    )
+                    .await
+                {
+                    Ok(_) | Err(JobError::DuplicateId(_)) => {}
+                    Err(e) => return Err(e.into()),
+                }
 
                 let new_state = EodProcessState::AwaitingPhase1 {
                     obligation_job,
-                    obligation_status: ChildJobStatus::Running,
                     deposit_job,
-                    deposit_status: ChildJobStatus::Running,
                 };
                 let mut op = current_job.begin_op().await?;
                 current_job
@@ -129,51 +153,63 @@ impl JobRunner for EodProcessManagerJobRunner {
                 Ok(JobCompletion::RescheduleInWithOp(op, POLL_INTERVAL))
             }
             EodProcessState::AwaitingPhase1 {
-                obligation_status,
-                deposit_status,
-                ..
+                obligation_job,
+                deposit_job,
             } => {
-                // Statuses are updated by outbox event handlers.
-                // Check whether all Phase 1 children have reached a terminal state.
-                match (&obligation_status, &deposit_status) {
-                    (ChildJobStatus::Completed, ChildJobStatus::Completed) => {
-                        let new_state = EodProcessState::SpawningPhase2;
-                        let mut op = current_job.begin_op().await?;
-                        current_job
-                            .update_execution_state_in_op(&mut op, &new_state)
-                            .await?;
-                        Ok(JobCompletion::RescheduleNowWithOp(op))
+                let obligation_completed = match self.jobs.find(obligation_job).await {
+                    Ok(job) => job.completed(),
+                    Err(e) => {
+                        tracing::warn!(
+                            job_id = %obligation_job,
+                            error = %e,
+                            "Could not find obligation child job, will retry"
+                        );
+                        false
                     }
-                    (ChildJobStatus::Failed(reason), _) | (_, ChildJobStatus::Failed(reason)) => {
-                        let new_state = EodProcessState::Failed {
-                            phase: 1,
-                            reason: reason.clone(),
-                        };
-                        let mut op = current_job.begin_op().await?;
-                        current_job
-                            .update_execution_state_in_op(&mut op, &new_state)
-                            .await?;
-                        Ok(JobCompletion::RescheduleNowWithOp(op))
+                };
+                let deposit_completed = match self.jobs.find(deposit_job).await {
+                    Ok(job) => job.completed(),
+                    Err(e) => {
+                        tracing::warn!(
+                            job_id = %deposit_job,
+                            error = %e,
+                            "Could not find deposit child job, will retry"
+                        );
+                        false
                     }
-                    _ => {
-                        // At least one child still running — poll again
-                        Ok(JobCompletion::RescheduleIn(POLL_INTERVAL))
-                    }
+                };
+
+                if obligation_completed && deposit_completed {
+                    let new_state = EodProcessState::SpawningPhase2;
+                    let mut op = current_job.begin_op().await?;
+                    current_job
+                        .update_execution_state_in_op(&mut op, &new_state)
+                        .await?;
+                    Ok(JobCompletion::RescheduleNowWithOp(op))
+                } else {
+                    Ok(JobCompletion::RescheduleIn(POLL_INTERVAL))
                 }
             }
             EodProcessState::SpawningPhase2 => {
                 let credit_facility_job =
                     job_id::eod_child_id(&self.config.date, "credit-facility");
 
-                // TODO(Phase 2): spawn credit-facility-eod child job
-                // match self.credit_spawner.spawn(credit_facility_job, config).await {
-                //     Ok(_) | Err(JobError::DuplicateId(_)) => {}
-                //     Err(e) => return Err(e.into()),
-                // }
+                match self
+                    .credit_facility_spawner
+                    .spawn(
+                        credit_facility_job,
+                        CreditFacilityEodConfig {
+                            date: self.config.date,
+                        },
+                    )
+                    .await
+                {
+                    Ok(_) | Err(JobError::DuplicateId(_)) => {}
+                    Err(e) => return Err(e.into()),
+                }
 
                 let new_state = EodProcessState::AwaitingPhase2 {
                     credit_facility_job,
-                    credit_facility_status: ChildJobStatus::Running,
                 };
                 let mut op = current_job.begin_op().await?;
                 current_job
@@ -182,33 +218,32 @@ impl JobRunner for EodProcessManagerJobRunner {
                 Ok(JobCompletion::RescheduleInWithOp(op, POLL_INTERVAL))
             }
             EodProcessState::AwaitingPhase2 {
-                credit_facility_status,
-                ..
-            } => match &credit_facility_status {
-                ChildJobStatus::Completed => {
+                credit_facility_job,
+            } => {
+                let completed = match self.jobs.find(credit_facility_job).await {
+                    Ok(job) => job.completed(),
+                    Err(e) => {
+                        tracing::warn!(
+                            job_id = %credit_facility_job,
+                            error = %e,
+                            "Could not find credit facility child job, will retry"
+                        );
+                        false
+                    }
+                };
+
+                if completed {
                     let new_state = EodProcessState::Completed;
                     let mut op = current_job.begin_op().await?;
                     current_job
                         .update_execution_state_in_op(&mut op, &new_state)
                         .await?;
                     Ok(JobCompletion::RescheduleNowWithOp(op))
+                } else {
+                    Ok(JobCompletion::RescheduleIn(POLL_INTERVAL))
                 }
-                ChildJobStatus::Failed(reason) => {
-                    let new_state = EodProcessState::Failed {
-                        phase: 2,
-                        reason: reason.clone(),
-                    };
-                    let mut op = current_job.begin_op().await?;
-                    current_job
-                        .update_execution_state_in_op(&mut op, &new_state)
-                        .await?;
-                    Ok(JobCompletion::RescheduleNowWithOp(op))
-                }
-                ChildJobStatus::Running => Ok(JobCompletion::RescheduleIn(POLL_INTERVAL)),
-            },
-            EodProcessState::Completed | EodProcessState::Failed { .. } => {
-                Ok(JobCompletion::Complete)
             }
+            EodProcessState::Completed => Ok(JobCompletion::Complete),
         }
     }
 }
