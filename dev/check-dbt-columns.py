@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-Validates that dbt staging models only reference columns that exist in upstream
-PostgreSQL source tables (rollup tables and other core tables).
+Validates dbt staging models against PostgreSQL migration schemas.
 
-Parses migration SQL to extract CREATE TABLE column definitions, then uses
-sqlglot to parse dbt staging SQL and extract column references from source CTEs.
+Checks for three kinds of issues:
+  - SELECT * usage in staging models (columns must be listed explicitly)
+  - References to source tables with no CREATE TABLE in migrations
+  - References to columns that don't exist in the source table
+
+Uses sqlglot to parse both migration DDL and dbt SQL (after stripping Jinja).
 
 Usage:
     python dev/check-dbt-columns.py
@@ -12,14 +15,24 @@ Usage:
 """
 
 import argparse
+import logging
 import re
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import sqlglot
 from sqlglot import exp
 
-# dlt always adds these columns to every table it loads
+# Suppress sqlglot warnings for unsupported syntax (e.g. CREATE TRIGGER)
+logging.getLogger("sqlglot").setLevel(logging.ERROR)
+
+MIGRATIONS_DIR = "lana/app/migrations"
+DBT_STAGING_DIR = "dagster/src/dbt_lana_dw/models/staging"
+
+CORE_SETUP_MIGRATION = "20240517074612_core_setup.sql"
+SQLGLOT_DIALECT = "bigquery"
+
 DLT_COLUMNS = {"_dlt_load_id", "_dlt_id"}
 
 # Tables whose schema is managed externally (CALA, inbox, bitfinex, sumsub).
@@ -40,36 +53,52 @@ SKIP_TABLES = {
 }
 
 
-# ---------------------------------------------------------------------------
-# Migration parsing (CREATE TABLE -> column names)
-# ---------------------------------------------------------------------------
+@dataclass
+class TableSchema:
+    name: str
+    columns: set[str] = field(default_factory=set)
+
+
+class TableSchemas:
+    """Map of table name -> known columns, built from migration files."""
+
+    def __init__(self) -> None:
+        self._tables: dict[str, TableSchema] = {}
+
+    def __contains__(self, table_name: str) -> bool:
+        return table_name in self._tables
+
+    def columns_for(self, table_name: str) -> set[str]:
+        return self._tables[table_name].columns
+
+    def add(self, schema: TableSchema) -> None:
+        self._tables[schema.name] = schema
+
+    def add_columns_to_all(self, columns: set[str]) -> None:
+        for schema in self._tables.values():
+            schema.columns |= columns
+
+    def items(self) -> list[tuple[str, set[str]]]:
+        return [(s.name, s.columns) for s in self._tables.values()]
+
+    def __len__(self) -> int:
+        return len(self._tables)
 
 
 def parse_create_table(sql: str) -> dict[str, set[str]]:
     """Extract column names from CREATE TABLE statements in migration SQL."""
     tables = {}
-    pattern = re.compile(
-        r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)\s*\((.*?)\);",
-        re.DOTALL | re.IGNORECASE,
-    )
-    for match in pattern.finditer(sql):
-        tbl_name = match.group(1)
-        body = match.group(2)
+    for statement in sqlglot.parse(sql, dialect="postgres"):
+        if not isinstance(statement, exp.Create):
+            continue
+        table_node = statement.find(exp.Table)
+        if not table_node:
+            continue
         columns = set()
-        for line in body.split("\n"):
-            line = line.strip()
-            if not line or line.startswith("--") or line.startswith("/*"):
-                continue
-            if any(
-                line.upper().startswith(kw)
-                for kw in ("PRIMARY", "UNIQUE", "FOREIGN", "CHECK", "CONSTRAINT", ")")
-            ):
-                continue
-            col_match = re.match(r"(\w+)\s+", line)
-            if col_match:
-                columns.add(col_match.group(1).lower())
+        for col_def in statement.find_all(exp.ColumnDef):
+            columns.add(col_def.name.lower())
         if columns:
-            tables[tbl_name] = columns
+            tables[table_node.name] = columns
     return tables
 
 
@@ -85,56 +114,51 @@ def parse_create_table_from_comment(sql: str) -> dict[str, set[str]]:
     return tables
 
 
-def load_migration_schemas(migrations_dir: Path) -> dict[str, set[str]]:
+def load_migration_schemas(migrations_dir: Path) -> TableSchemas:
     """Load column schemas from all migration files, latest wins."""
-    schemas: dict[str, set[str]] = {}
+    schemas = TableSchemas()
 
     for migration_file in sorted(migrations_dir.glob("*.sql")):
         sql = migration_file.read_text()
         filename = migration_file.name
 
         if "_create_" in filename and "events_rollup" in filename:
-            schemas.update(parse_create_table(sql))
+            for name, cols in parse_create_table(sql).items():
+                schemas.add(TableSchema(name=name, columns=cols))
         elif "_update_" in filename and "events_rollup" in filename:
-            tables = parse_create_table_from_comment(sql)
-            if tables:
-                schemas.update(tables)
-        elif filename == "20240517074612_core_setup.sql":
-            schemas.update(parse_create_table(sql))
+            for name, cols in parse_create_table_from_comment(sql).items():
+                schemas.add(TableSchema(name=name, columns=cols))
+        elif filename == CORE_SETUP_MIGRATION:
+            for name, cols in parse_create_table(sql).items():
+                schemas.add(TableSchema(name=name, columns=cols))
 
     return schemas
 
 
-# ---------------------------------------------------------------------------
-# dbt SQL parsing (sqlglot-based column extraction)
-# ---------------------------------------------------------------------------
+_SOURCE_PATTERN = re.compile(
+    r"\{\{\s*source\(\s*[\"']lana[\"']\s*,\s*[\"'](\w+)[\"']\s*\)\s*\}\}"
+)
 
 
-def preprocess_dbt_sql(sql: str) -> tuple[str, dict[str, str]]:
-    """Replace dbt Jinja expressions with parseable SQL and track source tables.
+def extract_source_map(sql: str) -> dict[str, str]:
+    """Extract a mapping of placeholder table names to real source table names.
 
-    Returns (clean_sql, {cte_table_alias: source_table_name}).
+    Each {{ source("lana", "TABLE") }} becomes __source__TABLE -> TABLE.
     """
-    source_map: dict[str, str] = {}
+    return {
+        f"__source__{m.group(1)}": m.group(1) for m in _SOURCE_PATTERN.finditer(sql)
+    }
 
-    # Replace {{ source("lana", "TABLE") }} with a placeholder table name
-    def replace_source(m: re.Match) -> str:
-        table_name = m.group(1)
-        placeholder = f"__source__{table_name}"
-        source_map[placeholder] = table_name
-        return placeholder
 
-    clean = re.sub(
-        r"\{\{\s*source\(\s*[\"']lana[\"']\s*,\s*[\"'](\w+)[\"']\s*\)\s*\}\}",
-        replace_source,
-        sql,
-    )
+def strip_jinja(sql: str) -> str:
+    """Replace Jinja expressions with parseable SQL.
 
-    # Remove remaining Jinja blocks (config, ref, etc.)
+    source() calls become placeholder table names; all other Jinja is removed.
+    """
+    clean = _SOURCE_PATTERN.sub(lambda m: f"__source__{m.group(1)}", sql)
     clean = re.sub(r"\{\{.*?\}\}", "", clean, flags=re.DOTALL)
     clean = re.sub(r"\{%.*?%\}", "", clean, flags=re.DOTALL)
-
-    return clean, source_map
+    return clean
 
 
 def find_columns_from_source(node: exp.Expression) -> set[str]:
@@ -145,140 +169,135 @@ def find_columns_from_source(node: exp.Expression) -> set[str]:
     return columns
 
 
-def extract_source_columns_from_dbt(sql: str) -> list[tuple[str, list[str]]]:
-    """Parse a dbt staging SQL file and extract (source_table, [columns]) pairs.
+@dataclass
+class SourceRef:
+    table: str
+    columns: list[str]
+    has_star: bool
+
+
+def extract_source_columns_from_dbt(sql: str) -> list[SourceRef]:
+    """Parse a dbt staging SQL file and extract source table + column references.
 
     Uses sqlglot to properly parse the SQL AST, handling CASE, nested functions, etc.
     """
-    clean_sql, source_map = preprocess_dbt_sql(sql)
-
+    source_map = extract_source_map(sql)
     if not source_map:
         return []
 
-    try:
-        parsed = sqlglot.parse_one(clean_sql, dialect="bigquery")
-    except sqlglot.errors.ParseError:
-        return []
+    clean_sql = strip_jinja(sql)
+    parsed = sqlglot.parse_one(clean_sql, dialect=SQLGLOT_DIALECT)
 
     results = []
 
     # Strategy: find CTEs or subqueries that SELECT FROM a source placeholder,
     # then collect all Column nodes within that SELECT.
+    # Find SELECTs that read directly from a source placeholder
+    source_selects: list[tuple[str, exp.Select]] = []
     for select in parsed.find_all(exp.Select):
         from_clause = select.find(exp.From)
         if not from_clause:
             continue
-
         table_node = from_clause.find(exp.Table)
         if not table_node:
             continue
-
-        table_ref = table_node.name
-        if table_ref not in source_map:
+        if table_node.name not in source_map:
             continue
+        source_table = source_map[table_node.name]
+        has_star = any(isinstance(e, exp.Star) for e in select.expressions)
+        source_selects.append((source_table, select, has_star))
 
-        source_table = source_map[table_ref]
-
-        # Collect column names from this SELECT's expressions
+    # Extract column references from each source SELECT
+    for source_table, select, has_star in source_selects:
         columns = []
-        for select_expr in select.expressions:
-            # Find all column references in this expression
-            for col in select_expr.find_all(exp.Column):
-                col_name = col.name.lower()
-                if col_name not in columns:
-                    columns.append(col_name)
-
-            # Handle Star (SELECT *)
-            if isinstance(select_expr, exp.Star):
-                columns = []
-                break
-
-        if columns:
-            results.append((source_table, columns))
+        for col in select.find_all(exp.Column):
+            col_name = col.name.lower()
+            if col_name not in columns:
+                columns.append(col_name)
+        results.append(SourceRef(table=source_table, columns=columns, has_star=has_star))
 
     return results
 
 
-# ---------------------------------------------------------------------------
-# Validation and reporting
-# ---------------------------------------------------------------------------
+@dataclass
+class SelectStarUsage:
+    dbt_file: str
+    source_table: str
 
 
+@dataclass
+class MissingSource:
+    dbt_file: str
+    source_table: str
+
+
+@dataclass
 class ColumnMismatch:
-    def __init__(
-        self,
-        dbt_file: str,
-        source_table: str,
-        missing_columns: list[str],
-        available_columns: set[str],
-    ):
-        self.dbt_file = dbt_file
-        self.source_table = source_table
-        self.missing_columns = missing_columns
-        self.available_columns = available_columns
+    dbt_file: str
+    source_table: str
+    missing_columns: list[str]
+    available_columns: set[str]
 
 
-def validate(
-    migrations_dir: Path, dbt_staging_dir: Path, verbose: bool = False
-) -> list[ColumnMismatch]:
-    """Compare dbt column refs against migration schemas."""
+@dataclass
+class DbtSourceRef:
+    dbt_file: str
+    source: SourceRef
 
-    schemas = load_migration_schemas(migrations_dir)
 
-    if verbose:
-        print(f"Loaded schemas for {len(schemas)} tables from migrations")
-        for tbl, cols in sorted(schemas.items()):
-            print(f"  {tbl}: {sorted(cols)}")
-        print()
-
-    # dlt adds metadata columns to every table
-    for tbl in schemas:
-        schemas[tbl] |= DLT_COLUMNS
-
-    mismatches = []
-
+def _collect_dbt_source_refs(dbt_staging_dir: Path) -> list[DbtSourceRef]:
+    """Collect source references from all dbt staging files, skipping external tables."""
+    results = []
     for dbt_file in sorted(dbt_staging_dir.rglob("*.sql")):
         sql = dbt_file.read_text()
-        source_refs = extract_source_columns_from_dbt(sql)
-
-        for source_table, referenced_columns in source_refs:
-            if source_table in SKIP_TABLES:
+        rel_path = str(dbt_file.relative_to(dbt_staging_dir.parents[2]))
+        for ref in extract_source_columns_from_dbt(sql):
+            if ref.table in SKIP_TABLES:
                 continue
+            results.append(DbtSourceRef(dbt_file=rel_path, source=ref))
+    return results
 
-            if source_table not in schemas:
-                if verbose:
-                    print(
-                        f"  WARN: {dbt_file.name} references source '{source_table}' "
-                        f"but no CREATE TABLE found in migrations (may be external)"
-                    )
-                continue
 
-            available = schemas[source_table]
-            missing = [c for c in referenced_columns if c not in available]
+def search_select_star_usages(source_refs: list[DbtSourceRef]) -> list[SelectStarUsage]:
+    """Find dbt staging models that use SELECT * from a source table."""
+    return [
+        SelectStarUsage(dbt_file=entry.dbt_file, source_table=entry.source.table)
+        for entry in source_refs
+        if entry.source.has_star
+    ]
 
-            if missing:
-                mismatches.append(
-                    ColumnMismatch(
-                        dbt_file=str(dbt_file.relative_to(dbt_staging_dir.parents[2])),
-                        source_table=source_table,
-                        missing_columns=missing,
-                        available_columns=available,
-                    )
+
+def search_table_mismatches(
+    schemas: TableSchemas, source_refs: list[DbtSourceRef]
+) -> list[MissingSource]:
+    """Find dbt staging models that reference source tables with no known schema."""
+    return [
+        MissingSource(dbt_file=entry.dbt_file, source_table=entry.source.table)
+        for entry in source_refs
+        if entry.source.table not in schemas
+    ]
+
+
+def search_column_mismatches(
+    schemas: TableSchemas, source_refs: list[DbtSourceRef]
+) -> list[ColumnMismatch]:
+    """Find dbt staging models that reference columns missing from the source table."""
+    mismatches = []
+    for entry in source_refs:
+        if entry.source.has_star or entry.source.table not in schemas:
+            continue
+        available = schemas.columns_for(entry.source.table)
+        missing = [c for c in entry.source.columns if c not in available]
+        if missing:
+            mismatches.append(
+                ColumnMismatch(
+                    dbt_file=entry.dbt_file,
+                    source_table=entry.source.table,
+                    missing_columns=missing,
+                    available_columns=available,
                 )
-            elif verbose:
-                print(f"  OK: {dbt_file.name} -> {source_table}")
-
+            )
     return mismatches
-
-
-def find_downstream_models(dbt_models_dir: Path, staging_model_name: str) -> list[str]:
-    """Find dbt models that reference a given staging model via ref()."""
-    downstream = []
-    for sql_file in dbt_models_dir.rglob("*.sql"):
-        content = sql_file.read_text()
-        if f"ref('{staging_model_name}')" in content or f'ref("{staging_model_name}")' in content:
-            downstream.append(sql_file.stem)
-    return downstream
 
 
 def main():
@@ -287,18 +306,13 @@ def main():
     )
     parser.add_argument(
         "--migrations-dir",
-        default="lana/app/migrations",
+        default=MIGRATIONS_DIR,
         help="Path to SQL migration files",
     )
     parser.add_argument(
         "--dbt-dir",
-        default="dagster/src/dbt_lana_dw/models/staging",
+        default=DBT_STAGING_DIR,
         help="Path to dbt staging models directory",
-    )
-    parser.add_argument(
-        "--dbt-models-dir",
-        default="dagster/src/dbt_lana_dw/models",
-        help="Path to all dbt models (for downstream impact analysis)",
     )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     args = parser.parse_args()
@@ -306,7 +320,6 @@ def main():
     repo_root = Path(__file__).resolve().parent.parent
     migrations_dir = repo_root / args.migrations_dir
     dbt_staging_dir = repo_root / args.dbt_dir
-    dbt_models_dir = repo_root / args.dbt_models_dir
 
     if not migrations_dir.exists():
         print(f"Error: migrations directory not found: {migrations_dir}", file=sys.stderr)
@@ -315,27 +328,59 @@ def main():
         print(f"Error: dbt staging directory not found: {dbt_staging_dir}", file=sys.stderr)
         sys.exit(1)
 
-    mismatches = validate(migrations_dir, dbt_staging_dir, verbose=args.verbose)
+    schemas = load_migration_schemas(migrations_dir)
 
-    if not mismatches:
+    if args.verbose:
+        print(f"Loaded schemas for {len(schemas)} tables from migrations")
+        for tbl, cols in sorted(schemas.items()):
+            print(f"  {tbl}: {sorted(cols)}")
+        print()
+
+    # dlt adds metadata columns to every table
+    schemas.add_columns_to_all(DLT_COLUMNS)
+
+    source_refs = _collect_dbt_source_refs(dbt_staging_dir)
+    star_usages = search_select_star_usages(source_refs)
+    missing_sources = search_table_mismatches(schemas, source_refs)
+    column_mismatches = search_column_mismatches(schemas, source_refs)
+
+    has_issues = star_usages or missing_sources or column_mismatches
+
+    if not has_issues:
         print("All dbt staging models reference valid source columns.")
         sys.exit(0)
 
-    print(f"\nColumn mismatch{'es' if len(mismatches) > 1 else ''} detected:\n")
-
-    for m in mismatches:
-        print(f"  {m.dbt_file}")
-        print(f"    source: {m.source_table}")
-        print(f"    missing columns: {', '.join(m.missing_columns)}")
-        print(f"    available columns: {', '.join(sorted(m.available_columns - DLT_COLUMNS))}")
-
-        staging_model_name = Path(m.dbt_file).stem
-        if dbt_models_dir.exists():
-            downstream = find_downstream_models(dbt_models_dir, staging_model_name)
-            if downstream:
-                print(f"    downstream impact: {' -> '.join(downstream)}")
+    print()
+    if star_usages:
+        print(f"--- SELECT * not allowed ({len(star_usages)}) ---")
         print()
+        for s in star_usages:
+            print(f"  Model: {s.dbt_file}")
+            print(f"  Source: {s.source_table}")
+            print(f"  SELECT * prevents column validation; list columns explicitly.")
+            print()
 
+    if missing_sources:
+        print(f"--- Missing source tables ({len(missing_sources)}) ---")
+        print()
+        for m in missing_sources:
+            print(f"  Model: {m.dbt_file}")
+            print(f"  Source: {m.source_table}")
+            print(f"  No CREATE TABLE found in migrations for this source.")
+            print()
+
+    if column_mismatches:
+        print(f"--- Column mismatches ({len(column_mismatches)}) ---")
+        print()
+        for m in column_mismatches:
+            print(f"  Model:     {m.dbt_file}")
+            print(f"  Source:    {m.source_table}")
+            print(f"  Missing:   {', '.join(m.missing_columns)}")
+            print(f"  Available: {', '.join(sorted(m.available_columns - DLT_COLUMNS))}")
+            print()
+
+    total = len(star_usages) + len(missing_sources) + len(column_mismatches)
+    print(f"Found {total} issue{'s' if total > 1 else ''}.")
     sys.exit(1)
 
 
