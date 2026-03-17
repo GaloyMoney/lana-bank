@@ -60,6 +60,7 @@ async fn manual_clock_advance_publishes_end_of_day_event() -> anyhow::Result<()>
     .await?;
 
     let time_events = TimeEvents::init(
+        &authz,
         &domain_configs,
         &mut jobs,
         &outbox,
@@ -68,9 +69,11 @@ async fn manual_clock_advance_publishes_end_of_day_event() -> anyhow::Result<()>
     )
     .await?;
 
+    let sub = authz::dummy::DummySubject;
+
     jobs.start_poll().await?;
 
-    let initial_state = time_events.state().await?;
+    let initial_state = time_events.state(&sub).await?;
     let expected_day = NaiveDate::from_ymd_opt(2024, 1, 1).expect("valid date");
     let expected_closing = Utc
         .with_ymd_and_hms(2024, 1, 1, 18, 0, 0)
@@ -86,7 +89,7 @@ async fn manual_clock_advance_publishes_end_of_day_event() -> anyhow::Result<()>
 
     let mut listener = outbox.listen_persisted(None);
 
-    let advanced_state = time_events.advance_to_next_end_of_day().await?;
+    let advanced_state = time_events.advance_to_next_end_of_day(&sub).await?;
     assert_eq!(advanced_state.current_time, expected_closing);
     assert_eq!(
         advanced_state.current_date, expected_day,

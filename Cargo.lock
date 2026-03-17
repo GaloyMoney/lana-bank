@@ -1656,6 +1656,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "audit",
  "authz",
  "chrono",
  "chrono-tz",

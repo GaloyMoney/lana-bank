@@ -2,7 +2,6 @@ mod config;
 mod error;
 
 use core_credit::PaymentSourceAccountId;
-use domain_config::{DomainConfigAction, DomainConfigObject};
 use es_entity::clock::{ClockController, ClockHandle};
 use sqlx::PgPool;
 use tracing::{Instrument, instrument};
@@ -154,6 +153,7 @@ impl LanaApp {
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
         let core_price = CorePrice::init(&pool, &authz, &mut jobs, &outbox, clock.clone()).await?;
         let time_events = TimeEvents::init(
+            &authz,
             &exposed_domain_configs_readonly,
             &mut jobs,
             &outbox,
@@ -450,17 +450,21 @@ impl LanaApp {
     }
 
     #[record_error_severity]
-    #[instrument(name = "lana.app.time_events", skip(self))]
-    pub async fn time_events(
+    #[instrument(name = "lana.app.time_state", skip(self))]
+    pub async fn time_state(
         &self,
         sub: &Subject,
-        action: DomainConfigAction,
-    ) -> Result<TimeEvents, ApplicationError> {
-        self.authz
-            .enforce_permission(sub, DomainConfigObject::all_exposed_configs(), action)
-            .await?;
+    ) -> Result<crate::time_events::TimeState, ApplicationError> {
+        Ok(self.time_events.state(sub).await?)
+    }
 
-        Ok(self.time_events.clone())
+    #[record_error_severity]
+    #[instrument(name = "lana.app.time_advance_to_next_end_of_day", skip(self))]
+    pub async fn time_advance_to_next_end_of_day(
+        &self,
+        sub: &Subject,
+    ) -> Result<crate::time_events::TimeState, ApplicationError> {
+        Ok(self.time_events.advance_to_next_end_of_day(sub).await?)
     }
 
     pub async fn get_visible_nav_items(
