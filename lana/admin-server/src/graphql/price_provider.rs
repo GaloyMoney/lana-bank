@@ -3,6 +3,7 @@ use async_graphql::*;
 use es_entity::Sort;
 
 use crate::{graphql::primitives::SortDirection, primitives::*};
+use lana_app::price::jobs::fetch_price::fetch_price_from_single;
 
 pub use lana_app::price::{
     PriceProvider as DomainPriceProvider, PriceProviderConfig as DomainPriceProviderConfig,
@@ -42,6 +43,16 @@ impl PriceProvider {
 
     async fn active(&self) -> bool {
         self.entity.active()
+    }
+
+    async fn latest_price(&self) -> Option<UsdCents> {
+        if !self.entity.active() {
+            return None;
+        }
+        fetch_price_from_single(&self.entity)
+            .await
+            .ok()
+            .map(|p| p.into_inner())
     }
 }
 

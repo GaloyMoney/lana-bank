@@ -2785,6 +2785,7 @@ export type PriceProvider = {
   active: Scalars['Boolean']['output'];
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
+  latestPrice?: Maybe<Scalars['UsdCents']['output']>;
   name: Scalars['String']['output'];
   priceProviderId: Scalars['UUID']['output'];
   provider: Scalars['String']['output'];
@@ -5441,7 +5442,7 @@ export type PriceProviderCreateMutationVariables = Exact<{
 
 export type PriceProviderCreateMutation = { __typename?: 'Mutation', priceProviderCreate: { __typename?: 'PriceProviderCreatePayload', priceProvider: { __typename?: 'PriceProvider', id: string, priceProviderId: string, name: string, createdAt: string } } };
 
-export type PriceProviderFieldsFragment = { __typename?: 'PriceProvider', id: string, priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean };
+export type PriceProviderFieldsFragment = { __typename?: 'PriceProvider', id: string, priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean, latestPrice?: UsdCents | null };
 
 export type PriceProvidersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5450,7 +5451,7 @@ export type PriceProvidersQueryVariables = Exact<{
 }>;
 
 
-export type PriceProvidersQuery = { __typename?: 'Query', priceProviders: { __typename?: 'PriceProviderConnection', edges: Array<{ __typename?: 'PriceProviderEdge', cursor: string, node: { __typename?: 'PriceProvider', id: string, priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type PriceProvidersQuery = { __typename?: 'Query', priceProviders: { __typename?: 'PriceProviderConnection', edges: Array<{ __typename?: 'PriceProviderEdge', cursor: string, node: { __typename?: 'PriceProvider', id: string, priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean, latestPrice?: UsdCents | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type PriceProviderActivateMutationVariables = Exact<{
   priceProviderId: Scalars['UUID']['input'];
@@ -6914,6 +6915,7 @@ export const PriceProviderFieldsFragmentDoc = gql`
   name
   provider
   active
+  latestPrice
 }
     `;
 export const ProspectDetailsFragmentFragmentDoc = gql`

@@ -1909,6 +1909,7 @@
         "name": "Name",
         "provider": "Provider",
         "status": "Status",
+        "latestPrice": "Latest Price",
         "created": "Created"
       },
       "status": {

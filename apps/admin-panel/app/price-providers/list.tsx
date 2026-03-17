@@ -20,6 +20,7 @@ import {
   usePriceProviderActivateMutation,
   usePriceProviderDeactivateMutation,
 } from "@/lib/graphql/generated"
+import Balance from "@/components/balance/balance"
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
@@ -35,6 +36,7 @@ gql`
     name
     provider
     active
+    latestPrice
   }
 
   query PriceProviders($first: Int!, $after: String, $sort: PriceProvidersSort) {
@@ -170,6 +172,16 @@ const columns = (
         {active ? t("status.active") : t("status.inactive")}
       </Badge>
     ),
+  },
+  {
+    key: "latestPrice",
+    label: t("headers.latestPrice"),
+    render: (latestPrice) =>
+      latestPrice != null ? (
+        <Balance amount={latestPrice} currency="usd" />
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      ),
   },
   {
     key: "createdAt",
