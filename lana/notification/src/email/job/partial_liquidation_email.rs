@@ -56,22 +56,10 @@ where
 impl<Perms> JobInitializer for PartialLiquidationEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<core_credit::CoreCreditAction>
-        + From<core_credit_collection::CoreCreditCollectionAction>
-        + From<core_credit_collateral::CoreCreditCollateralAction>
-        + From<core_customer::CoreCustomerAction>
-        + From<core_access::CoreAccessAction>
-        + From<core_deposit::CoreDepositAction>
-        + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_credit::CoreCreditObject>
-        + From<core_credit_collection::CoreCreditCollectionObject>
-        + From<core_credit_collateral::CoreCreditCollateralObject>
-        + From<core_customer::CustomerObject>
-        + From<core_access::CoreAccessObject>
-        + From<core_deposit::CoreDepositObject>
-        + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<core_customer::CoreCustomerAction> + From<core_access::CoreAccessAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<core_customer::CustomerObject> + From<core_access::CoreAccessObject>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: From<core_access::UserId>,
 {
     type Config = PartialLiquidationEmailConfig;
@@ -108,22 +96,10 @@ where
 impl<Perms> JobRunner for PartialLiquidationEmailRunner<Perms>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<core_credit::CoreCreditAction>
-        + From<core_credit_collection::CoreCreditCollectionAction>
-        + From<core_credit_collateral::CoreCreditCollateralAction>
-        + From<core_customer::CoreCustomerAction>
-        + From<core_access::CoreAccessAction>
-        + From<core_deposit::CoreDepositAction>
-        + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_credit::CoreCreditObject>
-        + From<core_credit_collection::CoreCreditCollectionObject>
-        + From<core_credit_collateral::CoreCreditCollateralObject>
-        + From<core_customer::CustomerObject>
-        + From<core_access::CoreAccessObject>
-        + From<core_deposit::CoreDepositObject>
-        + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<core_customer::CoreCustomerAction> + From<core_access::CoreAccessAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<core_customer::CustomerObject> + From<core_access::CoreAccessObject>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: From<core_access::UserId>,
 {
     #[record_error_severity]
