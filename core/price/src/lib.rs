@@ -194,27 +194,21 @@ where
             jobs.add_initializer(fetch_price::FetchPriceJobInit::new(&providers, outbox));
 
         // Auto-bootstrap: ensure all known provider types exist.
-        loop {
-            let mut existing_provider_kinds = Vec::new();
-            for bootstrap_provider in bootstrap_price_providers() {
-                if providers
-                    .maybe_find_by_provider(bootstrap_provider.provider)
-                    .await?
-                    .is_some()
-                {
-                    existing_provider_kinds.push(bootstrap_provider.provider);
-                }
+        let mut existing_provider_kinds = Vec::new();
+        for bootstrap_provider in bootstrap_price_providers() {
+            if providers
+                .maybe_find_by_provider(bootstrap_provider.provider)
+                .await?
+                .is_some()
+            {
+                existing_provider_kinds.push(bootstrap_provider.provider);
             }
+        }
 
-            let providers_to_bootstrap =
-                missing_bootstrap_providers(existing_provider_kinds.iter().copied());
-            if providers_to_bootstrap.is_empty() {
-                break;
-            }
-
+        let providers_to_bootstrap =
+            missing_bootstrap_providers(existing_provider_kinds.iter().copied());
+        if !providers_to_bootstrap.is_empty() {
             let mut db = providers.begin_op().await?;
-            let mut retry_bootstrap = false;
-
             for bootstrap_provider in providers_to_bootstrap {
                 let new_provider = NewPriceProvider::builder()
                     .id(PriceProviderId::new())
@@ -233,24 +227,11 @@ where
                             providers.update_in_op(&mut db, &mut provider).await?;
                         }
                     }
-                    Err(e) if e.was_duplicate() => {
-                        tracing::info!(
-                            name = bootstrap_provider.name,
-                            "price provider already exists, retrying bootstrap"
-                        );
-                        retry_bootstrap = true;
-                        break;
-                    }
                     Err(e) => return Err(e.into()),
                 }
             }
 
-            if retry_bootstrap {
-                continue;
-            }
-
             db.commit().await?;
-            break;
         }
 
         // Spawn a single fetch job (the runner loads the active provider from the repo)
