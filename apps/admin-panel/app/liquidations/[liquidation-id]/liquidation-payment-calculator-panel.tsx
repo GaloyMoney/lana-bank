@@ -35,6 +35,9 @@ gql`
           isInfinite
         }
       }
+      price
+      effectiveLiquidationPrice
+      liquidationPremiumPct
     }
   }
 `
@@ -72,6 +75,9 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
     toReceive: UsdCents
     toLiquidate: Satoshis
     targetCvl: CvlPct
+    price: UsdCents
+    effectiveLiquidationPrice: UsdCents
+    liquidationPremiumPct: number
   } | null>(null)
 
   const [error, setError] = useState<string | null>(null)
@@ -146,6 +152,11 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
           toReceive: result.data.liquidationPaymentCalculate.toReceive,
           toLiquidate: result.data.liquidationPaymentCalculate.toLiquidate,
           targetCvl: result.data.liquidationPaymentCalculate.targetCvl,
+          price: result.data.liquidationPaymentCalculate.price,
+          effectiveLiquidationPrice:
+            result.data.liquidationPaymentCalculate.effectiveLiquidationPrice,
+          liquidationPremiumPct:
+            result.data.liquidationPaymentCalculate.liquidationPremiumPct,
         })
         toast.success(t("success"))
       }
@@ -250,7 +261,7 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
           {results && (
             <div className={`bg-muted rounded-md p-4 space-y-3 transition-opacity duration-200 ${loading ? 'opacity-50' : 'opacity-100'}`}>
               <h4 className="font-semibold text-sm">{t("results.title")}</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                 <div className="flex flex-col gap-1">
                   <span className="text-muted-foreground">
                     {t("results.toReceive")}
@@ -272,6 +283,30 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
                     {t("results.targetCvl")}
                   </span>
                   <span className="font-medium">{formatCvl(results.targetCvl)}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-muted-foreground">
+                    {t("results.price")}
+                  </span>
+                  <span className="font-medium">
+                    <Balance amount={results.price} currency="usd" />
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-muted-foreground">
+                    {t("results.effectiveLiquidationPrice")}
+                  </span>
+                  <span className="font-medium">
+                    <Balance amount={results.effectiveLiquidationPrice} currency="usd" />
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-muted-foreground">
+                    {t("results.liquidationPremiumPct")}
+                  </span>
+                  <span className="font-medium">
+                    {Number(results.liquidationPremiumPct).toFixed(2)}%
+                  </span>
                 </div>
               </div>
             </div>

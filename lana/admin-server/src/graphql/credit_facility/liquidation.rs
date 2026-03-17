@@ -5,6 +5,7 @@ use crate::{
     graphql::{
         event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
         loader::LanaDataLoader,
+        primitives::Decimal,
         terms::{CVLPct, CVLPctValue},
     },
     primitives::*,
@@ -121,14 +122,27 @@ pub struct LiquidationPayment {
     pub to_liquidate: Satoshis,
     pub to_receive: UsdCents,
     pub target_cvl: CVLPct,
+    pub price: UsdCents,
+    pub effective_liquidation_price: UsdCents,
+    pub liquidation_premium_pct: Decimal,
 }
 
 impl From<LiquidationPaymentAmounts> for LiquidationPayment {
     fn from(amounts: LiquidationPaymentAmounts) -> Self {
+        let effective_liquidation_price = amounts
+            .effective_liquidation_price()
+            .unwrap_or(amounts.price);
+        let liquidation_premium_pct = amounts
+            .liquidation_premium_pct()
+            .unwrap_or(rust_decimal::Decimal::ZERO);
+
         Self {
             to_liquidate: amounts.to_liquidate,
             to_receive: amounts.to_receive,
             target_cvl: amounts.target_cvl.into(),
+            price: amounts.price.into_inner(),
+            effective_liquidation_price: effective_liquidation_price.into_inner(),
+            liquidation_premium_pct: liquidation_premium_pct.into(),
         }
     }
 }

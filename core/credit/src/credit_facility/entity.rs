@@ -384,7 +384,7 @@ impl CreditFacility {
 
         let amount = balances.total_outstanding();
 
-        let payment = LiquidationPaymentAmounts::calculate_liquidation_payment(
+        let payment = LiquidationPaymentAmounts::calculate_optimal_payment(
             amount,
             price,
             self.terms.initial_cvl,

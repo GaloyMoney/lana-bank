@@ -2506,6 +2506,9 @@ export const mockLiquidationPayment = (overrides?: Partial<LiquidationPayment>, 
     relationshipsToOmit.add('LiquidationPayment');
     return {
         __typename: 'LiquidationPayment',
+        effectiveLiquidationPrice: overrides && overrides.hasOwnProperty('effectiveLiquidationPrice') ? overrides.effectiveLiquidationPrice! : generateMockValue.usdCents(),
+        liquidationPremiumPct: overrides && overrides.hasOwnProperty('liquidationPremiumPct') ? overrides.liquidationPremiumPct! : faker.lorem.word(),
+        price: overrides && overrides.hasOwnProperty('price') ? overrides.price! : generateMockValue.usdCents(),
         targetCvl: overrides && overrides.hasOwnProperty('targetCvl') ? overrides.targetCvl! : relationshipsToOmit.has('FiniteCvlPct') ? {} as FiniteCvlPct : mockFiniteCvlPct({}, relationshipsToOmit),
         toLiquidate: overrides && overrides.hasOwnProperty('toLiquidate') ? overrides.toLiquidate! : generateMockValue.satoshis(),
         toReceive: overrides && overrides.hasOwnProperty('toReceive') ? overrides.toReceive! : generateMockValue.usdCents(),

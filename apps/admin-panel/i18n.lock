@@ -933,6 +933,9 @@ checksums:
     Liquidations/LiquidationDetails/calculator/results/toLiquidate: 08a50d7df6ce6106a93d7579164bcfa0
     Liquidations/LiquidationDetails/calculator/results/targetCvl: 1c5ca403faf25b31b3336ad39934fa0b
     Liquidations/LiquidationDetails/calculator/results/infinite: 7bb50c6d5f8c7eab6360f1debc9dff32
+    Liquidations/LiquidationDetails/calculator/results/price: 2c254d00cfeeeabc166cb6ba41c2e771
+    Liquidations/LiquidationDetails/calculator/results/effectiveLiquidationPrice: 775220c16f546e4ce451d38206fb3052
+    Liquidations/LiquidationDetails/calculator/results/liquidationPremiumPct: e2baa3361cb3f4ae25e9f504ed8e5054
     Liquidations/LiquidationDetails/calculator/errors/calculationFailed: f5945d4b95e91e184e8448faa6f5cb3a
     Liquidations/LiquidationDetails/calculator/success: c726f2c36e0dd609ccacfc3ccffcea27
     Liquidations/LiquidationDetails/CollateralSent/title: 3ceee0dbfa639450fd55bc2c3278ea82
