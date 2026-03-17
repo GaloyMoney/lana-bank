@@ -27,6 +27,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
+    jobs: Jobs,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner,
     maturity_spawner: CreditFacilityMaturityJobSpawner,
@@ -40,11 +41,13 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(
+        jobs: &Jobs,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner,
         maturity_spawner: CreditFacilityMaturityJobSpawner,
     ) -> Self {
         Self {
+            jobs: jobs.clone(),
             credit_facility_repo,
             process_accrual_cycle_spawner,
             maturity_spawner,
@@ -72,6 +75,7 @@ where
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityEodJobRunner {
             config: job.config()?,
+            jobs: self.jobs.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             process_accrual_cycle_spawner: self.process_accrual_cycle_spawner.clone(),
             maturity_spawner: self.maturity_spawner.clone(),
@@ -87,6 +91,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     config: CreditFacilityEodConfig,
+    jobs: Jobs,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner,
     maturity_spawner: CreditFacilityMaturityJobSpawner,
@@ -94,35 +99,37 @@ where
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+enum CreditFacilityEodState {
+    #[default]
+    Collecting(CreditFacilityEodCollectingState),
+    Tracking {
+        accrual_job_ids: Vec<JobId>,
+        maturity_job_ids: Vec<JobId>,
+    },
+}
+
+#[derive(Default, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct CreditFacilityEodCollectingState {
     accrual_cursor: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
     maturity_cursor: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
-    accrual_jobs_spawned: usize,
-    maturity_jobs_spawned: usize,
+    accrual_job_ids: Vec<JobId>,
+    maturity_job_ids: Vec<JobId>,
     accrual_done: bool,
 }
 
-#[async_trait]
-impl<E> JobRunner for CreditFacilityEodJobRunner<E>
+impl<E> CreditFacilityEodJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    #[instrument(
-        name = "eod.credit-facility-eod.run",
-        skip(self, current_job),
-        fields(date = %self.config.date)
-    )]
-    async fn run(
+    async fn run_collecting(
         &self,
         mut current_job: CurrentJob,
+        mut state: CreditFacilityEodCollectingState,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
-            .execution_state::<CreditFacilityEodCollectingState>()?
-            .unwrap_or_default();
-
         // Phase: Collect accrual facilities
         if !state.accrual_done {
             loop {
@@ -141,7 +148,10 @@ where
                 if rows.is_empty() {
                     state.accrual_done = true;
                     current_job
-                        .update_execution_state_in_op(&mut op, &state)
+                        .update_execution_state_in_op(
+                            &mut op,
+                            &CreditFacilityEodState::Collecting(state.clone()),
+                        )
                         .await?;
                     op.commit().await?;
                     break;
@@ -155,6 +165,7 @@ where
                             "interest-accrual",
                             &(*id).into(),
                         );
+                        state.accrual_job_ids.push(job_id);
                         JobSpec::new(
                             job_id,
                             ProcessAccrualCycleJobConfig {
@@ -165,14 +176,16 @@ where
                     })
                     .collect();
 
-                state.accrual_jobs_spawned += specs.len();
                 self.process_accrual_cycle_spawner
                     .spawn_all_in_op(&mut op, specs)
                     .await?;
 
                 state.accrual_cursor = rows.last().map(|(id, ts)| (*ts, *id));
                 current_job
-                    .update_execution_state_in_op(&mut op, &state)
+                    .update_execution_state_in_op(
+                        &mut op,
+                        &CreditFacilityEodState::Collecting(state.clone()),
+                    )
                     .await?;
                 op.commit().await?;
             }
@@ -197,6 +210,7 @@ where
                         "credit-maturity",
                         &(*id).into(),
                     );
+                    state.maturity_job_ids.push(job_id);
                     JobSpec::new(
                         job_id,
                         CreditFacilityMaturityJobConfig {
@@ -207,7 +221,6 @@ where
                 })
                 .collect();
 
-            state.maturity_jobs_spawned += specs.len();
             let mut op = current_job.begin_op().await?;
             self.maturity_spawner
                 .spawn_all_in_op(&mut op, specs)
@@ -215,17 +228,105 @@ where
 
             state.maturity_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
-                .update_execution_state_in_op(&mut op, &state)
+                .update_execution_state_in_op(
+                    &mut op,
+                    &CreditFacilityEodState::Collecting(state.clone()),
+                )
                 .await?;
             op.commit().await?;
         }
 
         tracing::info!(
-            accrual_jobs = state.accrual_jobs_spawned,
-            maturity_jobs = state.maturity_jobs_spawned,
-            "Credit facility EOD collection complete"
+            accrual_jobs = state.accrual_job_ids.len(),
+            maturity_jobs = state.maturity_job_ids.len(),
+            "Credit facility EOD collection complete, transitioning to tracking"
         );
 
+        // Transition to Tracking state
+        let new_state = CreditFacilityEodState::Tracking {
+            accrual_job_ids: state.accrual_job_ids,
+            maturity_job_ids: state.maturity_job_ids,
+        };
+        let mut op = current_job.begin_op().await?;
+        current_job
+            .update_execution_state_in_op(&mut op, &new_state)
+            .await?;
+        Ok(JobCompletion::RescheduleNowWithOp(op))
+    }
+
+    async fn run_tracking(
+        &self,
+        current_job: CurrentJob,
+        accrual_job_ids: Vec<JobId>,
+        maturity_job_ids: Vec<JobId>,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let all_job_ids: Vec<JobId> = accrual_job_ids
+            .into_iter()
+            .chain(maturity_job_ids)
+            .collect();
+
+        tracing::info!(
+            total_jobs = all_job_ids.len(),
+            "Awaiting completion of per-entity credit facility jobs"
+        );
+
+        let results = futures::future::try_join_all(
+            all_job_ids.iter().map(|id| self.jobs.await_completion(*id)),
+        )
+        .await?;
+
+        let failed: Vec<_> = all_job_ids
+            .iter()
+            .zip(results.iter())
+            .filter(|(_, state)| *state != &JobTerminalState::Completed)
+            .map(|(id, state)| (*id, state.clone()))
+            .collect();
+
+        if !failed.is_empty() {
+            tracing::error!(
+                ?failed,
+                "Some credit facility EOD per-entity jobs did not complete successfully"
+            );
+            return Err(format!("{} credit facility EOD entity jobs failed", failed.len()).into());
+        }
+
+        tracing::info!("All credit facility EOD per-entity jobs completed");
         Ok(JobCompletion::Complete)
+    }
+}
+
+#[async_trait]
+impl<E> JobRunner for CreditFacilityEodJobRunner<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
+{
+    #[instrument(
+        name = "eod.credit-facility-eod.run",
+        skip(self, current_job),
+        fields(date = %self.config.date)
+    )]
+    async fn run(
+        &self,
+        mut current_job: CurrentJob,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let state = current_job
+            .execution_state::<CreditFacilityEodState>()?
+            .unwrap_or_default();
+
+        match state {
+            CreditFacilityEodState::Collecting(collecting) => {
+                self.run_collecting(current_job, collecting).await
+            }
+            CreditFacilityEodState::Tracking {
+                accrual_job_ids,
+                maturity_job_ids,
+            } => {
+                self.run_tracking(current_job, accrual_job_ids, maturity_job_ids)
+                    .await
+            }
+        }
     }
 }

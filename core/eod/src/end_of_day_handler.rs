@@ -1,7 +1,7 @@
-use tracing::{Span, instrument};
+use tracing::{instrument, Span};
 
 use core_time_events::CoreTimeEvent;
-use job::JobType;
+use job::{JobSpec, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{job_id, process_manager::EodProcessManagerJobSpawner};
@@ -39,18 +39,15 @@ where
             Span::current().record("event_type", e.as_ref());
 
             let job_id = job_id::eod_manager_id(day);
-            match self
-                .pm_spawner
-                .spawn_in_op(
-                    op,
-                    job_id,
-                    crate::process_manager::EodProcessManagerConfig {
-                        date: *day,
-                        closing_time: *closing_time,
-                    },
-                )
-                .await
-            {
+            let spec = JobSpec::new(
+                job_id,
+                crate::process_manager::EodProcessManagerConfig {
+                    date: *day,
+                    closing_time: *closing_time,
+                },
+            )
+            .queue_id("eod-manager".to_string());
+            match self.pm_spawner.spawn_all_in_op(op, vec![spec]).await {
                 Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
                 Err(e) => return Err(e.into()),
             }

@@ -11,18 +11,4 @@ pub struct CreditFacilityEodConfig {
     pub date: NaiveDate,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum CreditFacilityEodState {
-    #[default]
-    Collecting,
-    Tracking {
-        accrual_jobs: Vec<JobId>,
-        maturity_jobs: Vec<JobId>,
-        completed_count: usize,
-        total_count: usize,
-    },
-    Completed,
-}
-
 pub type CreditFacilityEodJobSpawner = JobSpawner<CreditFacilityEodConfig>;

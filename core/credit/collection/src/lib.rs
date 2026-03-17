@@ -141,6 +141,7 @@ where
 
         // New EOD child job — spawned by the EOD process manager
         let obligation_transition_spawner = jobs.add_initializer(ObligationTransitionJobInit::new(
+            jobs,
             obligations_arc.as_ref(),
             transition_spawner,
         ));

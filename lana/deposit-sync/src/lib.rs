@@ -95,8 +95,11 @@ where
             .await?;
 
         // New EOD child job — spawned by the EOD process manager
-        let deposit_activity_spawner =
-            jobs.add_initializer(DepositActivityJobInit::new(deposits, evaluate_spawner));
+        let deposit_activity_spawner = jobs.add_initializer(DepositActivityJobInit::new(
+            jobs,
+            deposits,
+            evaluate_spawner,
+        ));
 
         let export_sumsub_deposit_spawner = jobs.add_initializer(
             ExportSumsubDepositJobInitializer::new(sumsub_client.clone(), deposits, customers),

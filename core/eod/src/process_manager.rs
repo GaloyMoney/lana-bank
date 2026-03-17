@@ -48,6 +48,9 @@ pub enum EodProcessState {
         phase1_deposit: JobTerminalState,
         credit_facility_job: JobId,
     },
+    Cancelling {
+        phase: u8,
+    },
     Completed,
     Failed {
         phase: u8,
@@ -173,8 +176,13 @@ impl JobRunner for EodProcessManagerJobRunner {
                 deposit_job,
             } => {
                 if current_job.cancellation_requested() {
-                    tracing::info!("EOD process manager cancelled during phase 1");
-                    return Ok(JobCompletion::Complete);
+                    tracing::info!("EOD process manager cancellation requested during phase 1");
+                    let new_state = EodProcessState::Cancelling { phase: 1 };
+                    let mut op = current_job.begin_op().await?;
+                    current_job
+                        .update_execution_state_in_op(&mut op, &new_state)
+                        .await?;
+                    return Ok(JobCompletion::RescheduleNowWithOp(op));
                 }
 
                 let (obligation_result, deposit_result) = tokio::join!(
@@ -249,8 +257,13 @@ impl JobRunner for EodProcessManagerJobRunner {
                 credit_facility_job,
             } => {
                 if current_job.cancellation_requested() {
-                    tracing::info!("EOD process manager cancelled during phase 2");
-                    return Ok(JobCompletion::Complete);
+                    tracing::info!("EOD process manager cancellation requested during phase 2");
+                    let new_state = EodProcessState::Cancelling { phase: 2 };
+                    let mut op = current_job.begin_op().await?;
+                    current_job
+                        .update_execution_state_in_op(&mut op, &new_state)
+                        .await?;
+                    return Ok(JobCompletion::RescheduleNowWithOp(op));
                 }
 
                 let credit_facility_terminal =
@@ -282,6 +295,16 @@ impl JobRunner for EodProcessManagerJobRunner {
                         .await?;
                     Ok(JobCompletion::RescheduleNowWithOp(op))
                 }
+            }
+            EodProcessState::Cancelling { phase } => {
+                // TODO: Once the job library exposes a cancel API, use it here
+                // to cancel running child jobs and await their acknowledgment.
+                tracing::warn!(
+                    phase,
+                    "EOD process manager entering cancelling state — \
+                     child job cancellation not yet implemented"
+                );
+                Ok(JobCompletion::Complete)
             }
             EodProcessState::Completed => Ok(JobCompletion::Complete),
             EodProcessState::Failed { phase, ref failed } => {

@@ -11,17 +11,4 @@ pub struct ObligationTransitionConfig {
     pub date: NaiveDate,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum ObligationTransitionState {
-    #[default]
-    Collecting,
-    Tracking {
-        total: usize,
-        completed: usize,
-        entity_jobs: Vec<JobId>,
-    },
-    Completed,
-}
-
 pub type ObligationTransitionJobSpawner = JobSpawner<ObligationTransitionConfig>;
