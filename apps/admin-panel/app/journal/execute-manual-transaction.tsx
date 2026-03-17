@@ -120,7 +120,6 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
         },
       })
     } catch (error) {
-      console.error("Error executing manual transaction:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else if (executeManualTransactionError) {
