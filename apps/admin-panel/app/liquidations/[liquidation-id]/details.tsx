@@ -17,6 +17,7 @@ import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 
 import { GetLiquidationDetailsQuery } from "@/lib/graphql/generated"
+import { UsdCents } from "@/types"
 
 type LiquidationDetailsProps = {
   liquidation: NonNullable<GetLiquidationDetailsQuery["liquidation"]>
@@ -100,7 +101,7 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
         open={calculatorOpen}
         onClose={() => setCalculatorOpen(false)}
         liquidationId={liquidation.liquidationId}
-        outstanding={liquidation.collateral.creditFacility?.balance?.outstanding?.usdBalance ?? 0}
+        outstanding={liquidation.collateral.creditFacility?.balance?.outstanding?.usdBalance ?? 0 as UsdCents}
         defaultToReceive={liquidation.expectedToReceive}
         defaultToLiquidate={liquidation.initiallyEstimatedToLiquidate}
       />

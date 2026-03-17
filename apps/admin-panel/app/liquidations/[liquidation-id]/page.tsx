@@ -97,22 +97,6 @@ gql`
       ...LiquidationDetails
     }
   }
-
-  query LiquidationPaymentCalculate($input: LiquidationPaymentCalculateInput!) {
-    liquidationPaymentCalculate(input: $input) {
-      toReceive
-      toLiquidate
-      targetCvl {
-        __typename
-        ... on FiniteCvlPct {
-          value
-        }
-        ... on InfiniteCvlPct {
-          isInfinite
-        }
-      }
-    }
-  }
 `
 
 function LiquidationPage({

@@ -17,7 +17,9 @@ import {
   LiquidationPaymentCalculateInput,
   FiniteCvlPct,
 } from "@/lib/graphql/generated"
-import { currencyConverter } from "@/lib/utils"
+import { currencyConverter, CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
+import { UsdCents, Satoshis } from "@/types"
 
 gql`
   query LiquidationPaymentCalculate($input: LiquidationPaymentCalculateInput!) {
@@ -41,9 +43,9 @@ type LiquidationPaymentCalculatorPanelProps = {
   open: boolean
   onClose: () => void
   liquidationId: string
-  outstanding: number
-  defaultToReceive?: number
-  defaultToLiquidate?: number
+  outstanding: UsdCents
+  defaultToReceive: UsdCents
+  defaultToLiquidate: Satoshis
 }
 
 export const LiquidationPaymentCalculatorPanel: React.FC<
@@ -63,18 +65,18 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
     useLiquidationPaymentCalculateLazyQuery()
 
   const [toReceive, setToReceive] = useState(
-    defaultToReceive ? (defaultToReceive / 100).toString() : ""
+    defaultToReceive ? (defaultToReceive / CENTS_PER_USD).toString() : ""
   )
   const [toLiquidate, setToLiquidate] = useState(
     defaultToLiquidate
-      ? (defaultToLiquidate / 100000000).toString()
+      ? (defaultToLiquidate / SATS_PER_BTC).toString()
       : ""
   )
   const [targetCvl, setTargetCvl] = useState("")
 
   const [results, setResults] = useState<{
-    toReceive: number
-    toLiquidate: number
+    toReceive: UsdCents
+    toLiquidate: Satoshis
     targetCvl: CvlPct
   } | null>(null)
 
@@ -83,9 +85,9 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
   // Reset form when opened
   useEffect(() => {
     if (open) {
-      setToReceive(defaultToReceive ? (defaultToReceive / 100).toString() : "")
+      setToReceive(defaultToReceive ? (defaultToReceive / CENTS_PER_USD).toString() : "")
       setToLiquidate(
-        defaultToLiquidate ? (defaultToLiquidate / 100000000).toString() : ""
+        defaultToLiquidate ? (defaultToLiquidate / SATS_PER_BTC).toString() : ""
       )
       setTargetCvl("")
       setResults(null)
@@ -110,8 +112,7 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
 
     const input: LiquidationPaymentCalculateInput = {
       liquidationId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      outstanding: outstanding as any,
+      outstanding,
     }
 
     if (toReceive !== "") {
@@ -120,8 +121,7 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
         setError(t("validation.invalidAmount"))
         return
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      input.toReceive = Math.round(toReceiveNum * 100) as any
+      input.toReceive = currencyConverter.usdToCents(toReceiveNum)
     }
 
     if (toLiquidate !== "") {
@@ -130,8 +130,7 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
         setError(t("validation.invalidAmount"))
         return
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      input.toLiquidate = currencyConverter.btcToSatoshi(toLiquidateNum) as any
+      input.toLiquidate = currencyConverter.btcToSatoshi(toLiquidateNum)
     }
 
     if (targetCvl !== "") {
@@ -140,8 +139,7 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
         setError(t("validation.invalidCvl"))
         return
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      input.targetCvl = targetCvlNum as any
+      input.targetCvl = targetCvlNum
     }
 
     try {
@@ -170,9 +168,9 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
   }
 
   const handleReset = () => {
-    setToReceive(defaultToReceive ? (defaultToReceive / 100).toString() : "")
+    setToReceive(defaultToReceive ? (defaultToReceive / CENTS_PER_USD).toString() : "")
     setToLiquidate(
-      defaultToLiquidate ? (defaultToLiquidate / 100000000).toString() : ""
+      defaultToLiquidate ? (defaultToLiquidate / SATS_PER_BTC).toString() : ""
     )
     setTargetCvl("")
     setResults(null)
@@ -268,7 +266,7 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
                     {t("results.toReceive")}
                   </span>
                   <span className="font-medium">
-                    ${(results.toReceive / 100).toFixed(2)} USD
+                    <Balance amount={results.toReceive} currency="usd" />
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -276,7 +274,7 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
                     {t("results.toLiquidate")}
                   </span>
                   <span className="font-medium">
-                    {(results.toLiquidate / 100000000).toFixed(8)} BTC
+                    <Balance amount={results.toLiquidate} currency="btc" />
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
