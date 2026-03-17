@@ -82,7 +82,7 @@ where
     skip_all,
     fields(provider_name)
 )]
-async fn fetch_price_from_single(
+pub async fn fetch_price_from_single(
     provider: &crate::provider::PriceProvider,
 ) -> Result<PriceOfOneBTC, PriceProviderError> {
     tracing::Span::current().record("provider_name", provider.name.as_str());

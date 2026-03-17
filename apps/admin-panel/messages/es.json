@@ -1909,6 +1909,7 @@
         "name": "Nombre",
         "provider": "Proveedor",
         "status": "Estado",
+        "latestPrice": "Último Precio",
         "created": "Creado"
       },
       "status": {

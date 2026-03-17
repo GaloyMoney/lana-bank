@@ -2955,6 +2955,7 @@ export const mockPriceProvider = (overrides?: Partial<PriceProvider>, _relations
         active: overrides && overrides.hasOwnProperty('active') ? overrides.active! : faker.datatype.boolean(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        latestPrice: overrides && overrides.hasOwnProperty('latestPrice') ? overrides.latestPrice! : generateMockValue.usdCents(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         priceProviderId: overrides && overrides.hasOwnProperty('priceProviderId') ? overrides.priceProviderId! : generateMockValue.uuid(),
         provider: overrides && overrides.hasOwnProperty('provider') ? overrides.provider! : faker.lorem.word(),

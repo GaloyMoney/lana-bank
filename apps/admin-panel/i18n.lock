@@ -1172,6 +1172,7 @@ checksums:
     PriceProviders/table/headers/name: 9368b5a047572b6051f334af5aa76819
     PriceProviders/table/headers/provider: d7bb643922dba7960bfb99ec1d746bdd
     PriceProviders/table/headers/status: 4e1fcce15854d824919b4a582c697c90
+    PriceProviders/table/headers/latestPrice: 97b64bd05bc72e00068290813ce3f80c
     PriceProviders/table/headers/created: 6045b4ff97fb7dca19ebadfa2e34a700
     PriceProviders/table/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     PriceProviders/table/status/inactive: 239e3b722db75bbafc6c628a2685eed2

@@ -2384,6 +2384,7 @@ type PriceProvider {
 	active: Boolean!
 	createdAt: Timestamp!
 	id: ID!
+	latestPrice: UsdCents
 	name: String!
 	priceProviderId: UUID!
 	provider: String!
