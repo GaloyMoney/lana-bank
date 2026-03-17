@@ -57,6 +57,7 @@ core-customer = { path = "core/customer" }
 core-deposit = { path = "core/deposit" }
 core-price = { path = "core/price" }
 core-report = { path = "core/report" }
+core-eod = { path = "core/eod" }
 core-time-events = { path = "core/time-events" }
 document-storage = { path = "core/document-storage" }
 governance = { path = "core/governance" }
@@ -123,7 +124,7 @@ sqlx = { version = "0.8", features = [
   "json",
 ] }
 thiserror = "2.0.18"
-uuid = { version = "1.21", features = ["serde", "v4"] }
+uuid = { version = "1.21", features = ["serde", "v4", "v5"] }
 log = "0.4"
 tracing = "0.1.44"
 tracing-opentelemetry = "0.32.1"
