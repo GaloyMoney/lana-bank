@@ -54,7 +54,7 @@ gotenberg-down:
 
 run-server-normal:
 	cargo run --features mock-custodian --bin lana-cli -- --config ./bats/lana.yml \
-		--set time.type=realtime \
+		--set time.mode=realtime \
 		> >(tee .e2e-logs) 2>&1
 
 run-server:
