@@ -235,7 +235,11 @@
       "appName": "Lana Bank",
       "version": "v{version}",
       "logOut": "Cerrar sesión",
-      "language": "Idioma"
+      "language": "Idioma",
+      "theme": "Tema",
+      "themeLight": "Claro",
+      "themeDark": "Oscuro",
+      "themeSystem": "Sistema"
     }
   },
   "UserBlock": {

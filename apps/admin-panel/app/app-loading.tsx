@@ -46,7 +46,7 @@ export const AppLoading: React.FC<React.PropsWithChildren> = ({ children }) => {
         <div
           className={`
             fixed inset-0 z-50 flex items-center justify-center
-            bg-white transition-opacity duration-500 ease-in-out
+            bg-background transition-opacity duration-500 ease-in-out
             ${isLoading ? "opacity-100" : "opacity-0"}
           `}
         >

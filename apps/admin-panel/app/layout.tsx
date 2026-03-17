@@ -5,6 +5,7 @@ import type { Metadata } from "next"
 import { NextIntlClientProvider } from "next-intl"
 import { getLocale, getMessages } from "next-intl/server"
 import { InterTight } from "@lana/web/fonts"
+import { ThemeProvider } from "next-themes"
 
 import AppLoading from "./app-loading"
 import { Authenticated } from "./auth/session"
@@ -22,11 +23,18 @@ const RootLayout: React.FC<React.PropsWithChildren> = async ({ children }) => {
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${InterTight.className} antialiased bg-background`}>
-        <NextIntlClientProvider messages={messages}>
-          <AppLoading>
-            <Authenticated>{children}</Authenticated>
-          </AppLoading>
-        </NextIntlClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NextIntlClientProvider messages={messages}>
+            <AppLoading>
+              <Authenticated>{children}</Authenticated>
+            </AppLoading>
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

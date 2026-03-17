@@ -1,8 +1,9 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { ChevronsUpDown, LogOut, Globe } from "lucide-react"
+import { ChevronsUpDown, LogOut, Globe, Sun, Moon, Laptop } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
+import { useTheme } from "next-themes"
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 import { Badge } from "@lana/web/ui/badge"
@@ -40,6 +41,7 @@ export function UserBlock() {
   const { logout } = useLogout()
   const { data, loading } = useAvatarQuery()
   const locale = useLocale()
+  const { theme, setTheme } = useTheme()
   const t = useTranslations("Sidebar.footer")
 
   const switchLocale = (newLocale: string) => {
@@ -115,6 +117,32 @@ export function UserBlock() {
             >
               <Globe className="mr-2 h-4 w-4" />
               Español
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="font-normal text-sm">
+              {t("theme")}
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => setTheme("light")}
+              className={theme === "light" ? "bg-accent" : ""}
+            >
+              <Sun className="mr-2 h-4 w-4" />
+              {t("themeLight")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setTheme("dark")}
+              className={theme === "dark" ? "bg-accent" : ""}
+            >
+              <Moon className="mr-2 h-4 w-4" />
+              {t("themeDark")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setTheme("system")}
+              className={theme === "system" ? "bg-accent" : ""}
+            >
+              <Laptop className="mr-2 h-4 w-4" />
+              {t("themeSystem")}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />

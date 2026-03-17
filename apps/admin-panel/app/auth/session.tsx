@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 
 import { ApolloProvider } from "@apollo/client"
+import { Toaster } from "@lana/web/ui/sonner"
 
 import { AppLayout } from "../app-layout"
 import { BreadcrumbProvider } from "../breadcrumb-provider"
@@ -12,7 +13,6 @@ import { useAppLoading } from "../app-loading"
 import { initKeycloak, logout } from "./keycloak"
 import IdleSessionGuard from "./idle-session-guard"
 
-import { Toast } from "@/components/toast"
 import { makeClient } from "@/lib/apollo-client/client"
 
 type Props = {
@@ -66,7 +66,7 @@ export const Authenticated: React.FC<Props> = ({ children }) => {
   return (
     <BreadcrumbProvider>
       <ApolloProvider client={client}>
-        <Toast />
+        <Toaster />
         <AppLayout>
           <IdleSessionGuard />
           {children}
