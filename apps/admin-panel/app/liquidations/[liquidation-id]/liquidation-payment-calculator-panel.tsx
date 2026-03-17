@@ -64,14 +64,8 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
   const [calculatePayment, { loading }] =
     useLiquidationPaymentCalculateLazyQuery()
 
-  const [toReceive, setToReceive] = useState(
-    defaultToReceive ? (defaultToReceive / CENTS_PER_USD).toString() : ""
-  )
-  const [toLiquidate, setToLiquidate] = useState(
-    defaultToLiquidate
-      ? (defaultToLiquidate / SATS_PER_BTC).toString()
-      : ""
-  )
+  const [toReceive, setToReceive] = useState((defaultToReceive / CENTS_PER_USD).toString())
+  const [toLiquidate, setToLiquidate] = useState((defaultToLiquidate / SATS_PER_BTC).toString())
   const [targetCvl, setTargetCvl] = useState("")
 
   const [results, setResults] = useState<{
@@ -85,10 +79,8 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
   // Reset form when opened
   useEffect(() => {
     if (open) {
-      setToReceive(defaultToReceive ? (defaultToReceive / CENTS_PER_USD).toString() : "")
-      setToLiquidate(
-        defaultToLiquidate ? (defaultToLiquidate / SATS_PER_BTC).toString() : ""
-      )
+      setToReceive((defaultToReceive / CENTS_PER_USD).toString())
+      setToLiquidate((defaultToLiquidate / SATS_PER_BTC).toString())
       setTargetCvl("")
       setResults(null)
       setError(null)
@@ -168,10 +160,8 @@ export const LiquidationPaymentCalculatorPanel: React.FC<
   }
 
   const handleReset = () => {
-    setToReceive(defaultToReceive ? (defaultToReceive / CENTS_PER_USD).toString() : "")
-    setToLiquidate(
-      defaultToLiquidate ? (defaultToLiquidate / SATS_PER_BTC).toString() : ""
-    )
+    setToReceive((defaultToReceive / CENTS_PER_USD).toString())
+    setToLiquidate((defaultToLiquidate / SATS_PER_BTC).toString())
     setTargetCvl("")
     setResults(null)
     setError(null)
