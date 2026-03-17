@@ -76,14 +76,16 @@ where
         deposits: &CoreDeposit<Perms, E>,
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
-    ) -> Result<Self, DepositSyncError> {
+    ) -> Result<(Self, core_eod::deposit_activity::DepositActivityJobSpawner), DepositSyncError>
+    {
         let evaluate_spawner =
             jobs.add_initializer(EvaluateDepositAccountActivityJobInit::new(deposits));
 
         let collect_spawner = jobs.add_initializer(
-            CollectAccountsForActivityEvaluationJobInit::new(deposits, evaluate_spawner),
+            CollectAccountsForActivityEvaluationJobInit::new(deposits, evaluate_spawner.clone()),
         );
 
+        // Legacy handler kept for backward compatibility with in-flight jobs
         outbox
             .register_event_handler(
                 jobs,
@@ -91,6 +93,10 @@ where
                 DepositEndOfDayHandler::new(collect_spawner),
             )
             .await?;
+
+        // New EOD child job — spawned by the EOD process manager
+        let deposit_activity_spawner =
+            jobs.add_initializer(DepositActivityJobInit::new(deposits, evaluate_spawner));
 
         let export_sumsub_deposit_spawner = jobs.add_initializer(
             ExportSumsubDepositJobInitializer::new(sumsub_client.clone(), deposits, customers),
@@ -111,9 +117,12 @@ where
             )
             .await?;
 
-        Ok(Self {
-            _phantom: std::marker::PhantomData,
-            _outbox: outbox.clone(),
-        })
+        Ok((
+            Self {
+                _phantom: std::marker::PhantomData,
+                _outbox: outbox.clone(),
+            },
+            deposit_activity_spawner,
+        ))
     }
 }

@@ -42,6 +42,7 @@ pub use ledger::error::CollectionLedgerError;
 
 use obligation::jobs::{
     end_of_day::{OBLIGATION_END_OF_DAY, ObligationEndOfDayHandler},
+    obligation_transition::ObligationTransitionJobInit,
     process_obligations::ProcessObligationsJobInit,
     transition_obligation::TransitionObligationJobInit,
 };
@@ -101,7 +102,13 @@ where
         publisher: &CollectionPublisher<E>,
         outbox: &Outbox<E>,
         clock: ClockHandle,
-    ) -> Result<Self, CoreCreditCollectionError> {
+    ) -> Result<
+        (
+            Self,
+            core_eod::obligation_transition::ObligationTransitionJobSpawner,
+        ),
+        CoreCreditCollectionError,
+    > {
         let ledger =
             CollectionLedger::init(cala, journal_id, payments_made_omnibus_account_id).await?;
         let ledger_arc = Arc::new(ledger);
@@ -120,9 +127,10 @@ where
 
         let process_obligations_spawner = jobs.add_initializer(ProcessObligationsJobInit::new(
             obligations_arc.as_ref(),
-            transition_spawner,
+            transition_spawner.clone(),
         ));
 
+        // Legacy handler kept for backward compatibility with in-flight jobs
         outbox
             .register_event_handler(
                 jobs,
@@ -131,12 +139,21 @@ where
             )
             .await?;
 
+        // New EOD child job — spawned by the EOD process manager
+        let obligation_transition_spawner = jobs.add_initializer(ObligationTransitionJobInit::new(
+            obligations_arc.as_ref(),
+            transition_spawner,
+        ));
+
         let payments = Payments::new(pool, authz, ledger_arc, clock, publisher);
         let payments_arc = Arc::new(payments);
 
-        Ok(Self {
-            obligations: obligations_arc,
-            payments: payments_arc,
-        })
+        Ok((
+            Self {
+                obligations: obligations_arc,
+                payments: payments_arc,
+            },
+            obligation_transition_spawner,
+        ))
     }
 }

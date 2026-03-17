@@ -227,7 +227,7 @@ impl LanaApp {
         )
         .await?;
 
-        let deposit_sync = DepositSync::init(
+        let (deposit_sync, deposit_activity_spawner) = DepositSync::init(
             &mut jobs,
             &outbox,
             &deposits,
@@ -247,7 +247,7 @@ impl LanaApp {
         )
         .await?;
 
-        let credit = Credit::init(
+        let (credit, obligation_transition_spawner, credit_facility_eod_spawner) = Credit::init(
             &pool,
             &governance,
             &mut jobs,
@@ -288,6 +288,21 @@ impl LanaApp {
         .await?;
 
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
+            .await?;
+
+        // Wire EOD process manager
+        let eod_pm_spawner = jobs.add_initializer(core_eod::EodProcessManagerJobInit::new(
+            &jobs,
+            obligation_transition_spawner,
+            deposit_activity_spawner,
+            credit_facility_eod_spawner,
+        ));
+        outbox
+            .register_event_handler(
+                &mut jobs,
+                obix::out::OutboxEventJobConfig::new(core_eod::end_of_day_handler::EOD_END_OF_DAY),
+                core_eod::end_of_day_handler::EndOfDayHandler::new(eod_pm_spawner),
+            )
             .await?;
 
         jobs.start_poll().await?;

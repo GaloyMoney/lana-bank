@@ -138,7 +138,13 @@ where
         outbox: &Outbox<E>,
         clock: ClockHandle,
         collaterals: Arc<core_credit_collateral::Collaterals<Perms, E>>,
-    ) -> Result<Self, CreditFacilityError>
+    ) -> Result<
+        (
+            Self,
+            core_eod::credit_facility_eod::CreditFacilityEodJobSpawner,
+        ),
+        CreditFacilityError,
+    >
     where
         E: OutboxEventMarker<core_time_events::CoreTimeEvent>,
     {
@@ -182,7 +188,7 @@ where
         let collect_facilities_for_accrual_spawner = jobs.add_initializer(
             jobs::collect_facilities_for_accrual::CollectFacilitiesForAccrualJobInit::new(
                 repo.as_ref(),
-                process_accrual_cycle_spawner,
+                process_accrual_cycle_spawner.clone(),
             ),
         );
 
@@ -193,6 +199,7 @@ where
             ),
         );
 
+        // Legacy handler kept for backward compatibility with in-flight jobs
         outbox
             .register_event_handler(
                 jobs,
@@ -203,6 +210,14 @@ where
                 ),
             )
             .await?;
+
+        // New EOD child job — spawned by the EOD process manager
+        let credit_facility_eod_spawner =
+            jobs.add_initializer(jobs::credit_facility_eod::CreditFacilityEodJobInit::new(
+                repo.clone(),
+                process_accrual_cycle_spawner,
+                maturity_spawner,
+            ));
 
         let record_liquidation_started_spawner = jobs.add_initializer(
             jobs::record_liquidation_started::RecordLiquidationStartedJobInitializer::new(
@@ -232,19 +247,22 @@ where
             )
             .await?;
 
-        Ok(Self {
-            repo,
-            collaterals,
-            collections,
-            pending_credit_facilities,
-            disbursals,
-            authz,
-            ledger,
-            price,
-            governance,
-            public_ids,
-            clock,
-        })
+        Ok((
+            Self {
+                repo,
+                collaterals,
+                collections,
+                pending_credit_facilities,
+                disbursals,
+                authz,
+                ledger,
+                price,
+                governance,
+                public_ids,
+                clock,
+            },
+            credit_facility_eod_spawner,
+        ))
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, CreditFacilityError> {

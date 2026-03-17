@@ -185,7 +185,14 @@ where
         public_ids: &PublicIds,
         domain_configs: &ExposedDomainConfigsReadOnly,
         internal_domain_configs: &InternalDomainConfigs,
-    ) -> Result<Self, CoreCreditError>
+    ) -> Result<
+        (
+            Self,
+            core_eod::obligation_transition::ObligationTransitionJobSpawner,
+            core_eod::credit_facility_eod::CreditFacilityEodJobSpawner,
+        ),
+        CoreCreditError,
+    >
     where
         E: OutboxEventMarker<CoreTimeEvent>,
     {
@@ -207,7 +214,7 @@ where
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
-        let collections = CoreCreditCollection::init(
+        let (collections, obligation_transition_spawner) = CoreCreditCollection::init(
             pool,
             authz_arc.clone(),
             cala,
@@ -273,7 +280,7 @@ where
         .await?;
         let disbursals_arc = Arc::new(disbursals);
 
-        let credit_facilities = CreditFacilities::init(
+        let (credit_facilities, credit_facility_eod_spawner) = CreditFacilities::init(
             pool,
             authz_arc.clone(),
             collections_arc.clone(),
@@ -358,27 +365,31 @@ where
             )
             .await?;
 
-        Ok(Self {
-            clock,
-            authz: authz_arc,
-            customer: customer_arc,
-            credit_facility_proposals: proposals_arc,
-            pending_credit_facilities: pending_credit_facilities_arc,
-            facilities: facilities_arc,
-            collections: collections_arc,
-            collaterals: collaterals_arc,
-            custody: custody_arc,
-            disbursals: disbursals_arc,
-            histories: histories_arc,
-            repayment_plans: repayment_plans_arc,
-            governance: governance_arc,
-            ledger: ledger_arc,
-            price: price_arc,
-            domain_configs: domain_configs.clone(),
-            cala: cala_arc,
-            chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
-            public_ids: public_ids_arc,
-        })
+        Ok((
+            Self {
+                clock,
+                authz: authz_arc,
+                customer: customer_arc,
+                credit_facility_proposals: proposals_arc,
+                pending_credit_facilities: pending_credit_facilities_arc,
+                facilities: facilities_arc,
+                collections: collections_arc,
+                collaterals: collaterals_arc,
+                custody: custody_arc,
+                disbursals: disbursals_arc,
+                histories: histories_arc,
+                repayment_plans: repayment_plans_arc,
+                governance: governance_arc,
+                ledger: ledger_arc,
+                price: price_arc,
+                domain_configs: domain_configs.clone(),
+                cala: cala_arc,
+                chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
+                public_ids: public_ids_arc,
+            },
+            obligation_transition_spawner,
+            credit_facility_eod_spawner,
+        ))
     }
 
     pub fn collections(&self) -> &CoreCreditCollection<Perms, E> {
