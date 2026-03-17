@@ -1981,9 +1981,6 @@ checksums:
     SystemInfo/title: 52c3996b6a3f37c8334027372c1d9723
     SystemInfo/frontend: 64cd32a0bf23670a162c4209b6e7fda9
     SystemInfo/backend: 3fbd08ffd1724ca0549c7036a5543165
-    SystemInfo/timeMode: 356ca984fb63c8869323c926e2eb512f
-    SystemInfo/realtime: 3046bcbad707f45b03cbd74f1bf2f069
-    SystemInfo/simulated: d489c39d7ea28bbb888ec334dc7251ac
     SystemInfo/version: 501b826ddd956aae42ef8e3f6865e4a6
     SystemInfo/buildProfile: 450f969561e804dd932f2ac6f62c241d
     SystemInfo/buildTarget: 4accf07e06d04aa646cc009654ad878c
