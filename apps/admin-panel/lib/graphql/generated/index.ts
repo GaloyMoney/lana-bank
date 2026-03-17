@@ -3053,6 +3053,11 @@ export type Query = {
   roles: RoleConnection;
   termsTemplate?: Maybe<TermsTemplate>;
   termsTemplates: Array<TermsTemplate>;
+  /**
+   * Returns the current environment clock state, including the next
+   * configured end-of-day boundary.
+   */
+  time: Time;
   transactionTemplates: TransactionTemplateConnection;
   trialBalance: TrialBalance;
   user?: Maybe<User>;
@@ -3775,6 +3780,16 @@ export type TermsTemplateUpdateInput = {
 export type TermsTemplateUpdatePayload = {
   __typename?: 'TermsTemplateUpdatePayload';
   termsTemplate: TermsTemplate;
+};
+
+export type Time = {
+  __typename?: 'Time';
+  /** Current business date for the environment clock. */
+  currentDate: Scalars['Date']['output'];
+  /** Current environment timestamp. */
+  currentTime: Scalars['Timestamp']['output'];
+  /** Timestamp when the next end-of-day boundary will be reached. */
+  nextEndOfDayAt: Scalars['Timestamp']['output'];
 };
 
 export type Total = {
@@ -5645,6 +5660,11 @@ export type GetBuildInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: string, buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
+
+export type GetTimeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetTimeQuery = { __typename?: 'Query', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string } };
 
 export type TermsTemplateEventHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -14045,6 +14065,50 @@ export type GetBuildInfoQueryHookResult = ReturnType<typeof useGetBuildInfoQuery
 export type GetBuildInfoLazyQueryHookResult = ReturnType<typeof useGetBuildInfoLazyQuery>;
 export type GetBuildInfoSuspenseQueryHookResult = ReturnType<typeof useGetBuildInfoSuspenseQuery>;
 export type GetBuildInfoQueryResult = Apollo.QueryResult<GetBuildInfoQuery, GetBuildInfoQueryVariables>;
+export const GetTimeDocument = gql`
+    query GetTime {
+  time {
+    currentDate
+    currentTime
+    nextEndOfDayAt
+  }
+}
+    `;
+
+/**
+ * __useGetTimeQuery__
+ *
+ * To run a query within a React component, call `useGetTimeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTimeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTimeQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetTimeQuery(baseOptions?: Apollo.QueryHookOptions<GetTimeQuery, GetTimeQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTimeQuery, GetTimeQueryVariables>(GetTimeDocument, options);
+      }
+export function useGetTimeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTimeQuery, GetTimeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTimeQuery, GetTimeQueryVariables>(GetTimeDocument, options);
+        }
+// @ts-ignore
+export function useGetTimeSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetTimeQuery, GetTimeQueryVariables>): Apollo.UseSuspenseQueryResult<GetTimeQuery, GetTimeQueryVariables>;
+export function useGetTimeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTimeQuery, GetTimeQueryVariables>): Apollo.UseSuspenseQueryResult<GetTimeQuery | undefined, GetTimeQueryVariables>;
+export function useGetTimeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTimeQuery, GetTimeQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetTimeQuery, GetTimeQueryVariables>(GetTimeDocument, options);
+        }
+export type GetTimeQueryHookResult = ReturnType<typeof useGetTimeQuery>;
+export type GetTimeLazyQueryHookResult = ReturnType<typeof useGetTimeLazyQuery>;
+export type GetTimeSuspenseQueryHookResult = ReturnType<typeof useGetTimeSuspenseQuery>;
+export type GetTimeQueryResult = Apollo.QueryResult<GetTimeQuery, GetTimeQueryVariables>;
 export const TermsTemplateEventHistoryDocument = gql`
     query TermsTemplateEventHistory($id: UUID!, $first: Int!, $after: String) {
   termsTemplate(id: $id) {

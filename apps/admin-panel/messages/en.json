@@ -122,6 +122,14 @@
       "invalidJson": "Enter valid JSON",
       "invalidValue": "Enter a valid value"
     },
+    "time": {
+      "title": "Environment time",
+      "description": "Inspect the current environment clock and, when manual time is enabled, advance it to the next configured end-of-day boundary.",
+      "currentDate": "Current date",
+      "currentTime": "Current time",
+      "nextEndOfDay": "Next end of day",
+      "loadError": "Could not load time"
+    },
     "notification-email-from-email": {
       "title": "Notification from email",
       "description": "From address used for outgoing notification emails."

@@ -2,7 +2,8 @@ use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone, Utc};
 use chrono_tz::Tz;
 use es_entity::clock::ClockHandle;
 #[derive(Clone, Debug)]
-pub(crate) struct ClosingSchedule {
+pub struct ClosingSchedule {
+    current_time: DateTime<Utc>,
     timezone: Tz,
     next_closing: DateTime<Utc>,
 }
@@ -10,12 +11,25 @@ pub(crate) struct ClosingSchedule {
 impl ClosingSchedule {
     pub fn new(timezone: Tz, closing_time_of_day: NaiveTime, clock: &ClockHandle) -> Self {
         let current_time = clock.now();
+        Self::from_time(timezone, closing_time_of_day, current_time)
+    }
+
+    pub fn from_time(
+        timezone: Tz,
+        closing_time_of_day: NaiveTime,
+        current_time: DateTime<Utc>,
+    ) -> Self {
         let next_closing =
             Self::calculate_next_closing(timezone, closing_time_of_day, current_time);
         Self {
+            current_time,
             timezone,
             next_closing,
         }
+    }
+
+    pub fn current_day(&self) -> NaiveDate {
+        self.current_time.with_timezone(&self.timezone).date_naive()
     }
 
     pub fn next_closing(&self) -> DateTime<Utc> {

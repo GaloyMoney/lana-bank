@@ -252,7 +252,8 @@ pub mod gotenberg {
 }
 
 pub mod time_events {
-    pub type TimeEvents = core_time_events::TimeEvents;
+    pub type TimeEvents = core_time_events::TimeEvents<crate::authorization::Authorization>;
+    pub type TimeState = core_time_events::TimeState;
     pub use core_time_events::error;
 }
 

@@ -23,13 +23,24 @@ pub enum TimeConfig {
     Artificial(ArtificialClockConfig),
 }
 
+pub(super) struct AppClock {
+    pub clock: ClockHandle,
+    pub controller: Option<ClockController>,
+}
+
 impl TimeConfig {
-    pub(super) fn into_clock(self) -> (ClockHandle, Option<ClockController>) {
+    pub(super) fn into_clock(self) -> AppClock {
         match self {
-            Self::Realtime => (ClockHandle::realtime(), None),
+            Self::Realtime => AppClock {
+                clock: ClockHandle::realtime(),
+                controller: None,
+            },
             Self::Artificial(cfg) => {
                 let (clock, ctrl) = ClockHandle::artificial(cfg);
-                (clock, Some(ctrl))
+                AppClock {
+                    clock,
+                    controller: Some(ctrl),
+                }
             }
         }
     }

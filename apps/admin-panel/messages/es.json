@@ -122,6 +122,14 @@
       "invalidJson": "Ingresa un JSON válido",
       "invalidValue": "Ingresa un valor válido"
     },
+    "time": {
+      "title": "Tiempo del entorno",
+      "description": "Consulta el reloj actual del entorno y, cuando el tiempo manual esté habilitado, avánzalo al siguiente fin de día configurado.",
+      "currentDate": "Fecha actual",
+      "currentTime": "Hora actual",
+      "nextEndOfDay": "Próximo fin de día",
+      "loadError": "No se pudo cargar el tiempo"
+    },
     "notification-email-from-email": {
       "title": "Correo del remitente de notificaciones",
       "description": "Dirección usada como remitente en los correos de notificación."
