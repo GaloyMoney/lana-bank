@@ -25,6 +25,7 @@ type TestSetup = (
     TestOutbox,
     job::Jobs,
     TestExposedDomainConfigs,
+    sqlx::PgPool,
 );
 
 async fn setup() -> anyhow::Result<TestSetup> {
@@ -96,14 +97,21 @@ async fn setup_at(start: DateTime<Utc>) -> anyhow::Result<(TestSetup, ClockContr
     .await?;
 
     Ok((
-        (deposit, customers, outbox, jobs, exposed_domain_configs),
+        (
+            deposit,
+            customers,
+            outbox,
+            jobs,
+            exposed_domain_configs,
+            pool,
+        ),
         clock_ctrl,
     ))
 }
 
 #[tokio::test]
 async fn deposit() -> anyhow::Result<()> {
-    let (deposit, customers, _outbox, _jobs, _domain_configs) = setup().await?;
+    let (deposit, customers, _outbox, _jobs, _domain_configs, _pool) = setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -137,7 +145,7 @@ async fn deposit() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn revert_deposit() -> anyhow::Result<()> {
-    let (deposit, customers, _outbox, _jobs, _domain_configs) = setup().await?;
+    let (deposit, customers, _outbox, _jobs, _domain_configs, _pool) = setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -183,7 +191,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
 /// The event contains a snapshot with the deposit account id and account holder id.
 #[tokio::test]
 async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, _jobs, _domain_configs) = setup().await?;
+    let (deposit, customers, outbox, _jobs, _domain_configs, _pool) = setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -219,7 +227,7 @@ async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
 /// The event contains a snapshot with the deposit id, deposit account id, and amount.
 #[tokio::test]
 async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, _jobs, _domain_configs) = setup().await?;
+    let (deposit, customers, outbox, _jobs, _domain_configs, _pool) = setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -266,7 +274,7 @@ async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
 /// via the governance → outbox → jobs pipeline.
 #[tokio::test]
 async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, mut jobs, _domain_configs) = setup().await?;
+    let (deposit, customers, outbox, mut jobs, _domain_configs, _pool) = setup().await?;
     jobs.start_poll().await?;
 
     let customer = customers
@@ -339,7 +347,7 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
 /// The event contains a snapshot with the deposit id, deposit account id, and amount.
 #[tokio::test]
 async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, _jobs, _domain_configs) = setup().await?;
+    let (deposit, customers, outbox, _jobs, _domain_configs, _pool) = setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -375,11 +383,31 @@ async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Test helper that exercises the same code path as the fan-out jobs:
+/// collect non-escheatable accounts, then evaluate and update each one.
+async fn apply_activity_reclassifications(
+    deposit: &TestDeposit,
+    pool: &sqlx::PgPool,
+    now: DateTime<Utc>,
+) -> anyhow::Result<()> {
+    let mut op = es_entity::DbOp::init(pool).await?;
+    let accounts = deposit
+        .list_account_ids_not_escheatable_in_op(&mut op, None, 100)
+        .await?;
+    for (account_id, _) in accounts {
+        deposit
+            .evaluate_and_update_account_activity_in_op(&mut op, account_id, now)
+            .await?;
+    }
+    op.commit().await?;
+    Ok(())
+}
+
 #[tokio::test]
 #[serial_test::file_serial(core_deposit_activity_status)]
 async fn deposit_account_activity_uses_configurable_thresholds() -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap();
-    let ((deposit, customers, _outbox, _jobs, domain_configs), clock_ctrl) =
+    let ((deposit, customers, _outbox, _jobs, domain_configs, pool), clock_ctrl) =
         setup_at(start).await?;
 
     domain_configs
@@ -401,7 +429,7 @@ async fn deposit_account_activity_uses_configurable_thresholds() -> anyhow::Resu
     let account = deposit.create_account(&DummySubject, customer.id).await?;
     let now = start + Duration::days(45);
 
-    deposit.perform_activity_status_update(now).await?;
+    apply_activity_reclassifications(&deposit, &pool, now).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Inactive);
@@ -417,7 +445,7 @@ async fn deposit_account_activity_uses_configurable_thresholds() -> anyhow::Resu
             None,
         )
         .await?;
-    deposit.perform_activity_status_update(now).await?;
+    apply_activity_reclassifications(&deposit, &pool, now).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Active);
@@ -430,7 +458,7 @@ async fn deposit_account_activity_uses_configurable_thresholds() -> anyhow::Resu
 async fn deposit_account_activity_ignores_internal_freeze_and_unfreeze_transactions()
 -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap();
-    let ((deposit, customers, _outbox, _jobs, domain_configs), clock_ctrl) =
+    let ((deposit, customers, _outbox, _jobs, domain_configs, pool), clock_ctrl) =
         setup_at(start).await?;
 
     domain_configs
@@ -460,7 +488,7 @@ async fn deposit_account_activity_ignores_internal_freeze_and_unfreeze_transacti
         .await?;
 
     let inactive_at = start + Duration::days(45);
-    deposit.perform_activity_status_update(inactive_at).await?;
+    apply_activity_reclassifications(&deposit, &pool, inactive_at).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Inactive);
@@ -469,9 +497,7 @@ async fn deposit_account_activity_ignores_internal_freeze_and_unfreeze_transacti
         .advance(std::time::Duration::from_secs(24 * 60 * 60))
         .await;
     deposit.freeze_account(&DummySubject, account.id).await?;
-    deposit
-        .perform_activity_status_update(inactive_at + Duration::days(1))
-        .await?;
+    apply_activity_reclassifications(&deposit, &pool, inactive_at + Duration::days(1)).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Inactive);
@@ -480,9 +506,7 @@ async fn deposit_account_activity_ignores_internal_freeze_and_unfreeze_transacti
         .advance(std::time::Duration::from_secs(24 * 60 * 60))
         .await;
     deposit.unfreeze_account(&DummySubject, account.id).await?;
-    deposit
-        .perform_activity_status_update(inactive_at + Duration::days(2))
-        .await?;
+    apply_activity_reclassifications(&deposit, &pool, inactive_at + Duration::days(2)).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Inactive);
@@ -495,7 +519,7 @@ async fn deposit_account_activity_ignores_internal_freeze_and_unfreeze_transacti
 async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date()
 -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2015, 1, 1, 0, 0, 0).unwrap();
-    let ((deposit, customers, _outbox, _jobs, _domain_configs), clock_ctrl) =
+    let ((deposit, customers, _outbox, _jobs, _domain_configs, pool), clock_ctrl) =
         setup_at(start).await?;
 
     let customer = customers
@@ -510,7 +534,7 @@ async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date(
     let account = deposit.create_account(&DummySubject, customer.id).await?;
     let now = start + Duration::days(4_000);
 
-    deposit.perform_activity_status_update(now).await?;
+    apply_activity_reclassifications(&deposit, &pool, now).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Escheatable);
@@ -526,7 +550,7 @@ async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date(
             None,
         )
         .await?;
-    deposit.perform_activity_status_update(now).await?;
+    apply_activity_reclassifications(&deposit, &pool, now).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Escheatable);
@@ -542,7 +566,7 @@ async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date(
             None,
         )
         .await?;
-    deposit.perform_activity_status_update(now).await?;
+    apply_activity_reclassifications(&deposit, &pool, now).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Escheatable);
@@ -554,7 +578,7 @@ async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date(
 #[serial_test::file_serial(core_deposit_activity_status)]
 async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2015, 1, 1, 0, 0, 0).unwrap();
-    let ((deposit, customers, _outbox, _jobs, _domain_configs), clock_ctrl) =
+    let ((deposit, customers, _outbox, _jobs, _domain_configs, pool), clock_ctrl) =
         setup_at(start).await?;
 
     let customer = customers
@@ -578,7 +602,7 @@ async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::R
 
     let now = start + Duration::days(4_000);
 
-    deposit.perform_activity_status_update(now).await?;
+    apply_activity_reclassifications(&deposit, &pool, now).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Escheatable);
@@ -594,7 +618,7 @@ async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::R
             None,
         )
         .await?;
-    deposit.perform_activity_status_update(now).await?;
+    apply_activity_reclassifications(&deposit, &pool, now).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Escheatable);
@@ -610,7 +634,7 @@ async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::R
             None,
         )
         .await?;
-    deposit.perform_activity_status_update(now).await?;
+    apply_activity_reclassifications(&deposit, &pool, now).await?;
 
     let account = deposit.find_account_by_id_without_audit(account.id).await?;
     assert_eq!(account.activity, Activity::Escheatable);

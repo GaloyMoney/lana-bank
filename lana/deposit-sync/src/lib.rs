@@ -77,11 +77,18 @@ where
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
     ) -> Result<Self, DepositSyncError> {
+        let evaluate_spawner =
+            jobs.add_initializer(EvaluateDepositAccountActivityJobInit::new(deposits));
+
+        let collect_spawner = jobs.add_initializer(
+            CollectAccountsForActivityEvaluationJobInit::new(deposits, evaluate_spawner),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
-                OutboxEventJobConfig::new(UPDATE_DEPOSIT_ACCOUNT_ACTIVITY_STATUS),
-                UpdateDepositAccountActivityStatusHandler::new(deposits),
+                OutboxEventJobConfig::new(DEPOSIT_END_OF_DAY),
+                DepositEndOfDayHandler::new(collect_spawner),
             )
             .await?;
 

@@ -887,36 +887,44 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "deposit.perform_activity_status_update", skip(self))]
-    pub async fn perform_activity_status_update(
+    #[instrument(
+        name = "deposit.list_account_ids_not_escheatable_in_op",
+        skip(self, op)
+    )]
+    pub async fn list_account_ids_not_escheatable_in_op(
         &self,
-        now: DateTime<Utc>,
+        op: &mut es_entity::DbOp<'_>,
+        after: Option<(DateTime<Utc>, DepositAccountId)>,
+        limit: i64,
+    ) -> Result<Vec<(DepositAccountId, DateTime<Utc>)>, CoreDepositError> {
+        Ok(self
+            .deposit_accounts
+            .list_account_ids_not_escheatable_in_op(op, after, limit)
+            .await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "deposit.evaluate_and_update_account_activity_in_op", skip(self, op), fields(%account_id, closing_time = %closing_time))]
+    pub async fn evaluate_and_update_account_activity_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        account_id: DepositAccountId,
+        closing_time: DateTime<Utc>,
     ) -> Result<(), CoreDepositError> {
-        // TODO: Optimize this daily job to avoid scanning all accounts and doing
-        // per-account last-activity lookups.
-        let (inactive_date, escheatable_date) = self.activity_threshold_dates(now).await?;
-        let accounts = self.deposit_accounts.list_all().await?;
-        let mut accounts_to_update = Vec::new();
-
-        for mut account in accounts {
-            let last_activity_date = self.last_activity_date_for_account(&account).await?;
-            let activity = Self::activity_for_last_activity_date(
-                last_activity_date,
-                inactive_date,
-                escheatable_date,
-            );
-
-            if account.update_activity(activity).did_execute() {
-                accounts_to_update.push(account);
-            }
+        let mut account = self
+            .deposit_accounts
+            .find_by_id_in_op(&mut *op, account_id)
+            .await?;
+        let (inactive_date, escheatable_date) = self.activity_threshold_dates(closing_time).await?;
+        let last_activity_date = self.last_activity_date_for_account(&account).await?;
+        let activity = Self::activity_for_last_activity_date(
+            last_activity_date,
+            inactive_date,
+            escheatable_date,
+        );
+        if account.update_activity(activity).did_execute() {
+            self.deposit_accounts.update_in_op(op, &mut account).await?;
         }
-
-        if !accounts_to_update.is_empty() {
-            self.deposit_accounts
-                .update_all(&mut accounts_to_update)
-                .await?;
-        }
-
         Ok(())
     }
 
