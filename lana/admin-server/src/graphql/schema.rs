@@ -1601,6 +1601,18 @@ impl Mutation {
         )
     }
 
+    /// Advances manual environment time to the next configured end-of-day
+    /// boundary and returns the updated clock state.
+    async fn time_advance_to_next_end_of_day(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<TimeAdvanceToNextEndOfDayPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        Ok(TimeAdvanceToNextEndOfDayPayload::from(Time::from(
+            app.time_advance_to_next_end_of_day(sub).await?,
+        )))
+    }
+
     async fn deposit_module_configure(
         &self,
         ctx: &Context<'_>,

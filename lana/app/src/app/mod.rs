@@ -2,6 +2,7 @@ mod config;
 mod error;
 
 use core_credit::PaymentSourceAccountId;
+use es_entity::clock::{ClockController, ClockHandle};
 use sqlx::PgPool;
 use tracing::{Instrument, instrument};
 use tracing_macros::record_error_severity;
@@ -80,7 +81,8 @@ impl LanaApp {
     pub async fn init(
         pool: PgPool,
         config: AppConfig,
-        clock: es_entity::clock::ClockHandle,
+        clock: ClockHandle,
+        clock_controller: Option<ClockController>,
         startup_domain_configs: impl IntoIterator<Item = (String, serde_json::Value)>,
     ) -> Result<Self, ApplicationError> {
         sqlx::migrate!()
@@ -156,6 +158,7 @@ impl LanaApp {
             &mut jobs,
             &outbox,
             &clock,
+            clock_controller,
         )
         .await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
@@ -453,6 +456,15 @@ impl LanaApp {
         sub: &Subject,
     ) -> Result<crate::time_events::TimeState, ApplicationError> {
         Ok(self.time_events.state(sub).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "lana.app.time_advance_to_next_end_of_day", skip(self))]
+    pub async fn time_advance_to_next_end_of_day(
+        &self,
+        sub: &Subject,
+    ) -> Result<crate::time_events::TimeState, ApplicationError> {
+        Ok(self.time_events.advance_to_next_end_of_day(sub).await?)
     }
 
     pub async fn get_visible_nav_items(

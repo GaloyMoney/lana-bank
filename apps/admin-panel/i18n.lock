@@ -109,6 +109,10 @@ checksums:
     Configurations/time/endOfDayTime: 58166f24f1d9436c1db2f0daeb7cb5f9
     Configurations/time/nextEndOfDay: d782252d4a08b51063438f89d4e5d446
     Configurations/time/loadError: 3574080c5420fb78cdf2be7c6afbf958
+    Configurations/time/advanceToNextEndOfDay: 90ebe40d22432142a0dcbed2f45021e0
+    Configurations/time/advanceSuccess: c3b5e3a17590ddf773079cc5dbabf745
+    Configurations/time/advanceError: 10f9cd13af538b0a5425583639e79fb9
+    Configurations/time/advanceErrorWithReason: 1ec501ff637cee03308d42786de8aeb4
     Configurations/notification-email-from-email/title: 52f3f83e83a55f5e81d17f1990c2cf5c
     Configurations/notification-email-from-email/description: 1a4d3315fff2155c42d63353d05fabe4
     Configurations/notification-email-from-name/title: 71cc11e03f84091d642c0ff7f31de611
@@ -2008,6 +2012,9 @@ checksums:
     SystemInfo/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     SystemInfo/unavailable: 2f28882ff148efef4167ca553c841341
     SystemInfo/appConfig: b18c8593851e81202cb2281a14093f3e
+    SystemInfo/timeMode: 356ca984fb63c8869323c926e2eb512f
+    SystemInfo/realtime: 3046bcbad707f45b03cbd74f1bf2f069
+    SystemInfo/manual: 772ff39554ea76c8db86f09b7d96fcb9
   aafe99efd8562d4095906d30010fcd19:
     Permissions/access_viewer/description: e47f0f1513dd3c253c5d1f0ed10c2e58
     Permissions/access_viewer/label: 9cf21f792a7ba07d3a092d992600388c

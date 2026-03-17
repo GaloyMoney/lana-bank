@@ -2216,6 +2216,11 @@ export type Mutation = {
   roleRemovePermissionSets: RoleRemovePermissionSetsPayload;
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
+  /**
+   * Advances manual environment time to the next configured end-of-day
+   * boundary and returns the updated clock state.
+   */
+  timeAdvanceToNextEndOfDay: TimeAdvanceToNextEndOfDayPayload;
   triggerReportRun: ReportRunCreatePayload;
   userCreate: UserCreatePayload;
   userUpdateRole: UserUpdateRolePayload;
@@ -3787,6 +3792,8 @@ export type TermsTemplateUpdatePayload = {
 
 export type Time = {
   __typename?: 'Time';
+  /** Whether the environment clock can be advanced manually. */
+  canAdvanceToNextEndOfDay: Scalars['Boolean']['output'];
   /** Current business date for the environment clock. */
   currentDate: Scalars['Date']['output'];
   /** Current environment timestamp. */
@@ -3797,6 +3804,11 @@ export type Time = {
   nextEndOfDayAt: Scalars['Timestamp']['output'];
   /** IANA timezone identifier for the environment (e.g. "America/New_York"). */
   timezone: Scalars['String']['output'];
+};
+
+export type TimeAdvanceToNextEndOfDayPayload = {
+  __typename?: 'TimeAdvanceToNextEndOfDayPayload';
+  time: Time;
 };
 
 export type Total = {
@@ -5666,6 +5678,8 @@ export type RolesQueryVariables = Exact<{
 
 export type RolesQuery = { __typename?: 'Query', roles: { __typename?: 'RoleConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'RoleEdge', cursor: string, node: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } };
 
+export type SystemInfoTimeFieldsFragment = { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean };
+
 export type GetBuildInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -5674,7 +5688,12 @@ export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: string, build
 export type GetTimeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetTimeQuery = { __typename?: 'Query', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string } };
+export type GetTimeQuery = { __typename?: 'Query', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean } };
+
+export type TimeAdvanceToNextEndOfDayMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TimeAdvanceToNextEndOfDayMutation = { __typename?: 'Mutation', timeAdvanceToNextEndOfDay: { __typename?: 'TimeAdvanceToNextEndOfDayPayload', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean } } };
 
 export type TermsTemplateEventHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -6956,6 +6975,16 @@ export const ProspectDetailsFragmentFragmentDoc = gql`
     email
     customerId
   }
+}
+    `;
+export const SystemInfoTimeFieldsFragmentDoc = gql`
+    fragment SystemInfoTimeFields on Time {
+  currentDate
+  currentTime
+  nextEndOfDayAt
+  timezone
+  endOfDayTime
+  canAdvanceToNextEndOfDay
 }
     `;
 export const TermsTemplateFieldsFragmentDoc = gql`
@@ -14095,14 +14124,10 @@ export type GetBuildInfoQueryResult = Apollo.QueryResult<GetBuildInfoQuery, GetB
 export const GetTimeDocument = gql`
     query GetTime {
   time {
-    currentDate
-    currentTime
-    nextEndOfDayAt
-    timezone
-    endOfDayTime
+    ...SystemInfoTimeFields
   }
 }
-    `;
+    ${SystemInfoTimeFieldsFragmentDoc}`;
 
 /**
  * __useGetTimeQuery__
@@ -14138,6 +14163,40 @@ export type GetTimeQueryHookResult = ReturnType<typeof useGetTimeQuery>;
 export type GetTimeLazyQueryHookResult = ReturnType<typeof useGetTimeLazyQuery>;
 export type GetTimeSuspenseQueryHookResult = ReturnType<typeof useGetTimeSuspenseQuery>;
 export type GetTimeQueryResult = Apollo.QueryResult<GetTimeQuery, GetTimeQueryVariables>;
+export const TimeAdvanceToNextEndOfDayDocument = gql`
+    mutation TimeAdvanceToNextEndOfDay {
+  timeAdvanceToNextEndOfDay {
+    time {
+      ...SystemInfoTimeFields
+    }
+  }
+}
+    ${SystemInfoTimeFieldsFragmentDoc}`;
+export type TimeAdvanceToNextEndOfDayMutationFn = Apollo.MutationFunction<TimeAdvanceToNextEndOfDayMutation, TimeAdvanceToNextEndOfDayMutationVariables>;
+
+/**
+ * __useTimeAdvanceToNextEndOfDayMutation__
+ *
+ * To run a mutation, you first call `useTimeAdvanceToNextEndOfDayMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTimeAdvanceToNextEndOfDayMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [timeAdvanceToNextEndOfDayMutation, { data, loading, error }] = useTimeAdvanceToNextEndOfDayMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTimeAdvanceToNextEndOfDayMutation(baseOptions?: Apollo.MutationHookOptions<TimeAdvanceToNextEndOfDayMutation, TimeAdvanceToNextEndOfDayMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<TimeAdvanceToNextEndOfDayMutation, TimeAdvanceToNextEndOfDayMutationVariables>(TimeAdvanceToNextEndOfDayDocument, options);
+      }
+export type TimeAdvanceToNextEndOfDayMutationHookResult = ReturnType<typeof useTimeAdvanceToNextEndOfDayMutation>;
+export type TimeAdvanceToNextEndOfDayMutationResult = Apollo.MutationResult<TimeAdvanceToNextEndOfDayMutation>;
+export type TimeAdvanceToNextEndOfDayMutationOptions = Apollo.BaseMutationOptions<TimeAdvanceToNextEndOfDayMutation, TimeAdvanceToNextEndOfDayMutationVariables>;
 export const TermsTemplateEventHistoryDocument = gql`
     query TermsTemplateEventHistory($id: UUID!, $first: Int!, $after: String) {
   termsTemplate(id: $id) {

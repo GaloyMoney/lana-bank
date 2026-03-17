@@ -2144,6 +2144,11 @@ type Mutation {
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
+	"""
+	Advances manual environment time to the next configured end-of-day
+	boundary and returns the updated clock state.
+	"""
+	timeAdvanceToNextEndOfDay: TimeAdvanceToNextEndOfDayPayload!
 	triggerReportRun(input: TriggerReportRunInput!): ReportRunCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
@@ -2971,6 +2976,10 @@ type TermsTemplateUpdatePayload {
 
 type Time {
 	"""
+	Whether the environment clock can be advanced manually.
+	"""
+	canAdvanceToNextEndOfDay: Boolean!
+	"""
 	Current business date for the environment clock.
 	"""
 	currentDate: Date!
@@ -2990,6 +2999,10 @@ type Time {
 	IANA timezone identifier for the environment (e.g. "America/New_York").
 	"""
 	timezone: String!
+}
+
+type TimeAdvanceToNextEndOfDayPayload {
+	time: Time!
 }
 
 """

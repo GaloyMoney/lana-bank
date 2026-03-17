@@ -132,7 +132,11 @@
       "timezone": "Zona horaria",
       "endOfDayTime": "Hora de fin de día",
       "nextEndOfDay": "Próximo fin de día",
-      "loadError": "No se pudo cargar el tiempo"
+      "loadError": "No se pudo cargar el tiempo",
+      "advanceToNextEndOfDay": "Avanzar al próximo fin de día",
+      "advanceSuccess": "El tiempo avanzó al próximo fin de día",
+      "advanceError": "No se pudo avanzar el tiempo",
+      "advanceErrorWithReason": "No se pudo avanzar el tiempo: {error}"
     },
     "notification-email-from-email": {
       "title": "Correo del remitente de notificaciones",
@@ -3222,6 +3226,9 @@
     "enabledFeatures": "Funciones Habilitadas",
     "loading": "Cargando...",
     "unavailable": "No se pudo obtener la información del servidor",
-    "appConfig": "Configuración de la Aplicación"
+    "appConfig": "Configuración de la Aplicación",
+    "timeMode": "Modo de tiempo",
+    "realtime": "Tiempo real",
+    "manual": "Manual"
   }
 }
