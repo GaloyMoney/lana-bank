@@ -5,29 +5,27 @@
 //!
 //! ```text
 //! ┌─────────────────────────────────────────────────────────────────────────┐
-//! │                         ProcessAccrualCycleState                             │
+//! │                         ProcessAccrualCycleState                       │
 //! ├─────────────────────────────────────────────────────────────────────────┤
-//! │  AccruePeriod                                                            │
-//! │    • Calculate interest for current accrual period                       │
-//! │    • Record accrual to ledger                                            │
-//! │    • Entity save updates next_accrual_period_end column                  │
-//! │    → cycle complete: transition to AwaitObligationsSync                  │
-//! │    → otherwise: CompleteWithOp (next EndOfDay picks it up)               │
+//! │  AccruePeriod                                                          │
+//! │    • Calculate interest for current accrual period                      │
+//! │    • Record accrual to ledger                                          │
+//! │    • Entity save updates next_accrual_period_end column                │
+//! │    → cycle complete: transition to CompleteCycle                        │
+//! │    → otherwise: CompleteWithOp (next EndOfDay picks it up)              │
 //! ├─────────────────────────────────────────────────────────────────────────┤
-//! │  AwaitObligationsSync                                                    │
-//! │    • Wait for all facility obligations to reach current status           │
-//! │    • Required before cycle completion to ensure consistent state         │
-//! │    → not ready: RescheduleNow                                      │
-//! │    → ready: transition to CompleteCycle                                  │
-//! ├─────────────────────────────────────────────────────────────────────────┤
-//! │  CompleteCycle                                                           │
-//! │    • Finalize the interest accrual cycle                                 │
-//! │    • Create interest obligation (if accrued amount > 0)                  │
-//! │    • Record cycle completion to ledger                                   │
-//! │    • Entity save populates next_accrual_period_end for next cycle        │
-//! │    → CompleteWithOp (next EndOfDay picks up new cycle)                   │
+//! │  CompleteCycle                                                          │
+//! │    • Finalize the interest accrual cycle                                │
+//! │    • Create interest obligation (if accrued amount > 0)                 │
+//! │    • Record cycle completion to ledger                                  │
+//! │    • Entity save populates next_accrual_period_end for next cycle       │
+//! │    → CompleteWithOp (next EndOfDay picks up new cycle)                  │
 //! └─────────────────────────────────────────────────────────────────────────┘
 //! ```
+//!
+//! Note: Obligation transitions are now handled by the EOD process manager
+//! in Phase 1, before credit facility processing begins in Phase 2.
+//! This eliminates the need for AwaitObligationsSync.
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -74,13 +72,6 @@ pub enum ProcessAccrualCycleState {
     /// A cycle may contain multiple periods (e.g., daily accruals within a monthly cycle).
     #[default]
     AccruePeriod,
-
-    /// Wait for facility obligations to be synchronized.
-    ///
-    /// Before completing a cycle, we must ensure all obligations have their
-    /// status updated. This prevents race conditions where an obligation's
-    /// status change could affect the cycle completion logic.
-    AwaitObligationsSync,
 
     /// Complete the current interest accrual cycle.
     ///
@@ -249,9 +240,6 @@ where
 
         match state {
             ProcessAccrualCycleState::AccruePeriod => self.accrue_period(current_job).await,
-            ProcessAccrualCycleState::AwaitObligationsSync => {
-                self.await_obligations_sync(current_job).await
-            }
             ProcessAccrualCycleState::CompleteCycle => self.complete_cycle(current_job).await,
         }
     }
@@ -281,11 +269,11 @@ where
     ///
     /// Calculates interest for the current period and records it to the ledger.
     /// Transitions:
-    /// - If more periods remain in the cycle: reschedule at next period end
-    /// - If cycle is complete: transition to AwaitObligationsSync
+    /// - If more periods remain in the cycle: CompleteWithOp (next EndOfDay picks it up)
+    /// - If cycle is complete: transition to CompleteCycle
     async fn accrue_period(
         &self,
-        current_job: CurrentJob,
+        mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut db = self.credit_facility_repo.begin_op().await?;
 
@@ -318,20 +306,29 @@ where
                         tracing::info!(
                             accrued_count = %confirmed.accrued_count,
                             accrual_idx = %confirmed.accrual_idx,
-                            "All periods accrued, transitioning to await obligations sync"
+                            "All periods accrued, transitioning to complete cycle"
                         );
-                        self.transition_to_await_obligations_sync_in_op(db, current_job)
-                            .await
+                        current_job
+                            .update_execution_state_in_op(
+                                &mut db,
+                                &ProcessAccrualCycleState::CompleteCycle,
+                            )
+                            .await?;
+                        db.commit().await?;
+                        self.complete_cycle(current_job).await
                     }
                 }
             }
             AccrualOutcome::AllPeriodsComplete => {
                 tracing::info!(
                     credit_facility_id = %self.config.credit_facility_id,
-                    "All periods already accrued, transitioning to await obligations sync"
+                    "All periods already accrued, transitioning to complete cycle"
                 );
-                self.transition_to_await_obligations_sync_in_op(db, current_job)
-                    .await
+                current_job
+                    .update_execution_state_in_op(&mut db, &ProcessAccrualCycleState::CompleteCycle)
+                    .await?;
+                db.commit().await?;
+                self.complete_cycle(current_job).await
             }
             AccrualOutcome::NoCycleInProgress => {
                 tracing::info!(
@@ -341,18 +338,6 @@ where
                 Ok(JobCompletion::CompleteWithOp(db))
             }
         }
-    }
-
-    async fn transition_to_await_obligations_sync_in_op(
-        &self,
-        mut db: es_entity::DbOp<'_>,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        current_job
-            .update_execution_state_in_op(&mut db, &ProcessAccrualCycleState::AwaitObligationsSync)
-            .await?;
-        db.commit().await?;
-        self.await_obligations_sync(current_job).await
     }
 
     #[record_error_severity]
@@ -417,35 +402,6 @@ where
             .await?;
 
         Ok(result)
-    }
-
-    /// State: AwaitObligationsSync
-    ///
-    /// Waits for all facility obligations to have their status updated.
-    /// This is required before cycle completion to ensure consistent state.
-    /// Transitions:
-    /// - If obligations not synced: reschedule immediately
-    /// - If obligations synced: transition to CompleteCycle
-    async fn await_obligations_sync(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let obligations_synced = self
-            .collections
-            .obligations()
-            .check_beneficiary_obligations_status_updated(self.config.credit_facility_id.into())
-            .await?;
-
-        if !obligations_synced {
-            tracing::debug!("Obligations not yet synced, rescheduling");
-            return Ok(JobCompletion::RescheduleNow);
-        }
-
-        tracing::debug!("Obligations synced, transitioning to complete cycle");
-        current_job
-            .update_execution_state(&ProcessAccrualCycleState::CompleteCycle)
-            .await?;
-        self.complete_cycle(current_job).await
     }
 
     /// State: CompleteCycle
