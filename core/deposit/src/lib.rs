@@ -915,9 +915,6 @@ where
             .deposit_accounts
             .find_by_id_in_op(&mut *op, account_id)
             .await?;
-        if account.activity == Activity::Escheatable {
-            return Ok(());
-        }
         let (inactive_date, escheatable_date) = self.activity_threshold_dates(closing_time).await?;
         let last_activity_date = self.last_activity_date_for_account(&account).await?;
         let activity = Self::activity_for_last_activity_date(
