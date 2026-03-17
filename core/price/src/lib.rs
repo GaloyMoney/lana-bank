@@ -184,15 +184,15 @@ where
 
         // Auto-bootstrap: ensure all known provider types exist.
         for bootstrap_provider in bootstrap_price_providers() {
-            let mut db = providers.begin_op().await?;
             if providers
-                .maybe_find_by_provider_in_op(&mut db, bootstrap_provider.provider)
+                .maybe_find_by_provider(bootstrap_provider.provider)
                 .await?
                 .is_some()
             {
                 continue;
             }
 
+            let mut db = providers.begin_op().await?;
             let new_provider = NewPriceProvider::builder()
                 .id(PriceProviderId::new())
                 .name(bootstrap_provider.name.to_string())
