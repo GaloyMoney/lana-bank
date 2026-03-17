@@ -15,7 +15,7 @@ teardown_file() {
   from_email="notifications@example.com"
   from_name="Notifier"
 
-  exec_admin_graphql 'notification-email-config'
+  exec_admin_graphql 'domain-configs'
   email_config_id=$(graphql_output '.data.domainConfigs.edges[].node | select(.key == "notification-email-from-email").domainConfigId')
   name_config_id=$(graphql_output '.data.domainConfigs.edges[].node | select(.key == "notification-email-from-name").domainConfigId')
 
@@ -31,7 +31,7 @@ teardown_file() {
     }'
   )
 
-  exec_admin_graphql 'notification-email-config-update' "$variables"
+  exec_admin_graphql 'domain-config-update' "$variables"
 
   updated_email=$(graphql_output '.data.domainConfigUpdate.domainConfig.value')
   [[ "$updated_email" == "$from_email" ]] || exit 1
@@ -48,12 +48,12 @@ teardown_file() {
     }'
   )
 
-  exec_admin_graphql 'notification-email-config-update' "$variables"
+  exec_admin_graphql 'domain-config-update' "$variables"
 
   updated_name=$(graphql_output '.data.domainConfigUpdate.domainConfig.value')
   [[ "$updated_name" == "$from_name" ]] || exit 1
 
-  exec_admin_graphql 'notification-email-config'
+  exec_admin_graphql 'domain-configs'
   current_email=$(graphql_output '.data.domainConfigs.edges[].node | select(.key == "notification-email-from-email").value')
   current_name=$(graphql_output '.data.domainConfigs.edges[].node | select(.key == "notification-email-from-name").value')
   [[ "$current_email" == "$from_email" ]] || exit 1
