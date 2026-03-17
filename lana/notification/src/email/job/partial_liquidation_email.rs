@@ -124,10 +124,10 @@ where
 
         let email_type = EmailType::PartialLiquidationInitiated(email_data);
 
-        super::spawn_email_to_all_users(
+        super::spawn_email_to_all_users_in_op(
+            &mut op,
             &self.users,
             &self.email_sender_job_spawner,
-            &mut op,
             email_type.clone(),
         )
         .await?;

@@ -15,10 +15,10 @@ use obix::out::OutboxEventMarker;
 
 use crate::email::templates::EmailType;
 
-pub(crate) async fn spawn_email_to_all_users<Audit, E>(
+pub(crate) async fn spawn_email_to_all_users_in_op<Audit, E>(
+    op: &mut impl es_entity::AtomicOperation,
     users: &Users<Audit, E>,
     email_sender_job_spawner: &sender::EmailSenderJobSpawner,
-    op: &mut impl es_entity::AtomicOperation,
     email_type: EmailType,
 ) -> Result<(), Box<dyn std::error::Error>>
 where

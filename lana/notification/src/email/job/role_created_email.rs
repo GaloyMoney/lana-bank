@@ -100,10 +100,10 @@ where
             role_name: self.config.role_name.clone(),
         };
 
-        super::spawn_email_to_all_users(
+        super::spawn_email_to_all_users_in_op(
+            &mut op,
             &self.users,
             &self.email_sender_job_spawner,
-            &mut op,
             EmailType::RoleCreated(email_data),
         )
         .await?;
