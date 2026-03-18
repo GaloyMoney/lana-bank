@@ -1,6 +1,6 @@
 CREATE TABLE core_eod_processes (
   id UUID PRIMARY KEY,
-  date DATE NOT NULL,
+  date DATE NOT NULL UNIQUE,
   status VARCHAR NOT NULL DEFAULT 'Initialized',
   created_at TIMESTAMPTZ NOT NULL
 );
@@ -15,5 +15,4 @@ CREATE TABLE core_eod_process_events (
   UNIQUE(id, sequence)
 );
 
-CREATE INDEX idx_core_eod_processes_date ON core_eod_processes(date);
 CREATE INDEX idx_core_eod_processes_status ON core_eod_processes(status);

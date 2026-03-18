@@ -260,6 +260,17 @@ impl EodProcess {
                 })
             }
         }
+        // Verify phase 2 actually completed before allowing completion
+        let phase2_done = self
+            .events
+            .iter_all()
+            .any(|e| matches!(e, EodProcessEvent::Phase2CreditFacilityCompleted { .. }));
+        if !phase2_done {
+            return Err(EodProcessError::InvalidStateTransition {
+                current: self.status(),
+                attempted: "mark_completed",
+            });
+        }
         idempotency_guard!(
             self.events.iter_all(),
             already_applied: EodProcessEvent::Completed { .. },
@@ -448,6 +459,26 @@ mod tests {
         let mut process =
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
         // Cannot mark_completed from Initialized state
+        assert!(process.mark_completed().is_err());
+    }
+
+    #[test]
+    fn mark_completed_requires_phase2_credit_facility_completed() {
+        let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
+        let mut process =
+            EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
+        let job1 = job::JobId::from(uuid::Uuid::new_v4());
+        let job2 = job::JobId::from(uuid::Uuid::new_v4());
+        process.start_phase1(job1, job2).unwrap();
+        process
+            .complete_phase1_obligation(JobTerminalState::Completed)
+            .unwrap();
+        process
+            .complete_phase1_deposit(JobTerminalState::Completed)
+            .unwrap();
+        let job3 = job::JobId::from(uuid::Uuid::new_v4());
+        process.start_phase2(job3).unwrap();
+        // AwaitingPhase2 but Phase2CreditFacilityCompleted not yet recorded
         assert!(process.mark_completed().is_err());
     }
 

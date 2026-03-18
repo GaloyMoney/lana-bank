@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
@@ -209,11 +211,9 @@ where
     /// Jobs.await_completion. This is a temporary fallback until a public
     /// DepositActivityEvaluated event is added — at that point, this should
     /// be replaced with outbox event streaming like the other two children.
-    ///
-    /// Note: shutdown handling is delegated to await_completion internals.
     async fn await_activity_completion(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
         pending_jobs: Vec<(DepositAccountId, JobId)>,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         if pending_jobs.is_empty() {
@@ -230,7 +230,13 @@ where
             .iter()
             .map(|(_, job_id)| self.jobs.await_completion(*job_id))
             .collect();
-        let results = futures::future::join_all(futures).await;
+
+        let results = tokio::select! {
+            results = futures::future::join_all(futures) => results,
+            _ = current_job.shutdown_requested() => {
+                return Ok(JobCompletion::RescheduleIn(Duration::ZERO));
+            }
+        };
 
         for result in results {
             result?;

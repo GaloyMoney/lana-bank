@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -280,11 +281,9 @@ where
     /// Jobs.await_completion. This avoids the multi-period hang that occurred
     /// with outbox event streaming, since InterestAccrualProcess always
     /// completes even when a facility has remaining accrual periods.
-    ///
-    /// Note: shutdown handling is delegated to await_completion internals.
     async fn await_accrual_and_maturity_completions(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
         pending_accrual_jobs: Vec<JobId>,
         pending_maturity_jobs: Vec<JobId>,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
@@ -304,7 +303,13 @@ where
             .chain(pending_maturity_jobs.iter())
             .map(|job_id| self.jobs.await_completion(*job_id))
             .collect();
-        let results = futures::future::join_all(futures).await;
+
+        let results = tokio::select! {
+            results = futures::future::join_all(futures) => results,
+            _ = current_job.shutdown_requested() => {
+                return Ok(JobCompletion::RescheduleIn(Duration::ZERO));
+            }
+        };
 
         for result in results {
             result?;
