@@ -1086,7 +1086,7 @@ input CustomerDocumentArchiveInput {
 }
 
 type CustomerDocumentArchivePayload {
-	document: CustomerDocument!
+	customerDocument: CustomerDocument!
 }
 
 input CustomerDocumentCreateInput {
@@ -1095,7 +1095,7 @@ input CustomerDocumentCreateInput {
 }
 
 type CustomerDocumentCreatePayload {
-	document: CustomerDocument!
+	customerDocument: CustomerDocument!
 }
 
 input CustomerDocumentDeleteInput {
@@ -1253,7 +1253,7 @@ input DepositAccountCloseInput {
 }
 
 type DepositAccountClosePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 type DepositAccountConnection {
@@ -1276,7 +1276,7 @@ input DepositAccountCreateInput {
 }
 
 type DepositAccountCreatePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 """
@@ -1298,7 +1298,7 @@ input DepositAccountFreezeInput {
 }
 
 type DepositAccountFreezePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | FreezeEntry | UnfreezeEntry | UnknownEntry
@@ -1370,7 +1370,7 @@ input DepositAccountUnfreezeInput {
 }
 
 type DepositAccountUnfreezePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 input DepositAccountsFilter {

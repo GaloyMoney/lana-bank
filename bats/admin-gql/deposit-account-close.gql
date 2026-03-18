@@ -1,6 +1,6 @@
 mutation DepositAccountClose($input: DepositAccountCloseInput!) {
   depositAccountClose(input: $input) {
-    account {
+    depositAccount {
       depositAccountId
       status
       balance {

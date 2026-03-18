@@ -1164,7 +1164,7 @@ export type CustomerDocumentArchiveInput = {
 
 export type CustomerDocumentArchivePayload = {
   __typename?: 'CustomerDocumentArchivePayload';
-  document: CustomerDocument;
+  customerDocument: CustomerDocument;
 };
 
 export type CustomerDocumentCreateInput = {
@@ -1174,7 +1174,7 @@ export type CustomerDocumentCreateInput = {
 
 export type CustomerDocumentCreatePayload = {
   __typename?: 'CustomerDocumentCreatePayload';
-  document: CustomerDocument;
+  customerDocument: CustomerDocument;
 };
 
 export type CustomerDocumentDeleteInput = {
@@ -1349,7 +1349,7 @@ export type DepositAccountCloseInput = {
 
 export type DepositAccountClosePayload = {
   __typename?: 'DepositAccountClosePayload';
-  account: DepositAccount;
+  depositAccount: DepositAccount;
 };
 
 export type DepositAccountConnection = {
@@ -1368,7 +1368,7 @@ export type DepositAccountCreateInput = {
 
 export type DepositAccountCreatePayload = {
   __typename?: 'DepositAccountCreatePayload';
-  account: DepositAccount;
+  depositAccount: DepositAccount;
 };
 
 /** An edge in a connection. */
@@ -1386,7 +1386,7 @@ export type DepositAccountFreezeInput = {
 
 export type DepositAccountFreezePayload = {
   __typename?: 'DepositAccountFreezePayload';
-  account: DepositAccount;
+  depositAccount: DepositAccount;
 };
 
 export type DepositAccountHistoryEntry = CancelledWithdrawalEntry | DepositEntry | DisbursalEntry | FreezeEntry | PaymentEntry | UnfreezeEntry | UnknownEntry | WithdrawalEntry;
@@ -1451,7 +1451,7 @@ export type DepositAccountUnfreezeInput = {
 
 export type DepositAccountUnfreezePayload = {
   __typename?: 'DepositAccountUnfreezePayload';
-  account: DepositAccount;
+  depositAccount: DepositAccount;
 };
 
 export type DepositAccountsFilter = {
@@ -4639,7 +4639,7 @@ export type CustomerDocumentCreateMutationVariables = Exact<{
 }>;
 
 
-export type CustomerDocumentCreateMutation = { __typename?: 'Mutation', customerDocumentCreate: { __typename?: 'CustomerDocumentCreatePayload', document: { __typename?: 'CustomerDocument', customerDocumentId: string, customerId: string, filename: string } } };
+export type CustomerDocumentCreateMutation = { __typename?: 'Mutation', customerDocumentCreate: { __typename?: 'CustomerDocumentCreatePayload', customerDocument: { __typename?: 'CustomerDocument', customerDocumentId: string, customerId: string, filename: string } } };
 
 export type GetCustomerDocumentsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4731,7 +4731,7 @@ export type DepositAccountCloseMutationVariables = Exact<{
 }>;
 
 
-export type DepositAccountCloseMutation = { __typename?: 'Mutation', depositAccountClose: { __typename?: 'DepositAccountClosePayload', account: { __typename?: 'DepositAccount', publicId: any, depositAccountId: string, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string } } } };
+export type DepositAccountCloseMutation = { __typename?: 'Mutation', depositAccountClose: { __typename?: 'DepositAccountClosePayload', depositAccount: { __typename?: 'DepositAccount', publicId: any, depositAccountId: string, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string } } } };
 
 export type DepositAccountEventHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4750,7 +4750,7 @@ export type DepositAccountFreezeMutationVariables = Exact<{
 }>;
 
 
-export type DepositAccountFreezeMutation = { __typename?: 'Mutation', depositAccountFreeze: { __typename?: 'DepositAccountFreezePayload', account: { __typename?: 'DepositAccount', depositAccountId: string } } };
+export type DepositAccountFreezeMutation = { __typename?: 'Mutation', depositAccountFreeze: { __typename?: 'DepositAccountFreezePayload', depositAccount: { __typename?: 'DepositAccount', depositAccountId: string } } };
 
 export type DepositAccountDetailsFragmentFragment = { __typename?: 'DepositAccount', publicId: any, depositAccountId: string, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string } };
 
@@ -4777,14 +4777,14 @@ export type DepositAccountUnfreezeMutationVariables = Exact<{
 }>;
 
 
-export type DepositAccountUnfreezeMutation = { __typename?: 'Mutation', depositAccountUnfreeze: { __typename?: 'DepositAccountUnfreezePayload', account: { __typename?: 'DepositAccount', depositAccountId: string } } };
+export type DepositAccountUnfreezeMutation = { __typename?: 'Mutation', depositAccountUnfreeze: { __typename?: 'DepositAccountUnfreezePayload', depositAccount: { __typename?: 'DepositAccount', depositAccountId: string } } };
 
 export type DepositAccountCreateMutationVariables = Exact<{
   input: DepositAccountCreateInput;
 }>;
 
 
-export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, status: CustomerStatus, email: string, telegramHandle: string, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
+export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', depositAccount: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, status: CustomerStatus, email: string, telegramHandle: string, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
 
 export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
 
@@ -9258,7 +9258,7 @@ export type CustomerDocumentDeleteMutationOptions = Apollo.BaseMutationOptions<C
 export const CustomerDocumentCreateDocument = gql`
     mutation CustomerDocumentCreate($file: Upload!, $customerId: UUID!) {
   customerDocumentCreate(input: {file: $file, customerId: $customerId}) {
-    document {
+    customerDocument {
       customerDocumentId
       customerId
       filename
@@ -9805,7 +9805,7 @@ export type DashboardQueryResult = Apollo.QueryResult<DashboardQuery, DashboardQ
 export const DepositAccountCloseDocument = gql`
     mutation DepositAccountClose($input: DepositAccountCloseInput!) {
   depositAccountClose(input: $input) {
-    account {
+    depositAccount {
       ...DepositAccountDetailsFragment
     }
   }
@@ -9887,7 +9887,7 @@ export type DepositAccountEventHistoryQueryResult = Apollo.QueryResult<DepositAc
 export const DepositAccountFreezeDocument = gql`
     mutation DepositAccountFreeze($input: DepositAccountFreezeInput!) {
   depositAccountFreeze(input: $input) {
-    account {
+    depositAccount {
       depositAccountId
     }
   }
@@ -10051,7 +10051,7 @@ export type GetDepositAccountDetailsQueryResult = Apollo.QueryResult<GetDepositA
 export const DepositAccountUnfreezeDocument = gql`
     mutation DepositAccountUnfreeze($input: DepositAccountUnfreezeInput!) {
   depositAccountUnfreeze(input: $input) {
-    account {
+    depositAccount {
       depositAccountId
     }
   }
@@ -10086,7 +10086,7 @@ export type DepositAccountUnfreezeMutationOptions = Apollo.BaseMutationOptions<D
 export const DepositAccountCreateDocument = gql`
     mutation DepositAccountCreate($input: DepositAccountCreateInput!) {
   depositAccountCreate(input: $input) {
-    account {
+    depositAccount {
       depositAccountId
       customer {
         ...CustomerDetailsFragment

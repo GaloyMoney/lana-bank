@@ -104,7 +104,7 @@ crate::mutation_payload! { DepositRecordPayload, deposit: Deposit }
 pub struct DepositAccountCreateInput {
     pub customer_id: UUID,
 }
-crate::mutation_payload! { DepositAccountCreatePayload, account: DepositAccount }
+crate::mutation_payload! { DepositAccountCreatePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositRevertInput {
@@ -116,19 +116,19 @@ crate::mutation_payload! { DepositRevertPayload, deposit: Deposit }
 pub struct DepositAccountFreezeInput {
     pub deposit_account_id: UUID,
 }
-crate::mutation_payload! { DepositAccountFreezePayload, account: DepositAccount }
+crate::mutation_payload! { DepositAccountFreezePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositAccountUnfreezeInput {
     pub deposit_account_id: UUID,
 }
-crate::mutation_payload! { DepositAccountUnfreezePayload, account: DepositAccount }
+crate::mutation_payload! { DepositAccountUnfreezePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositAccountCloseInput {
     pub deposit_account_id: UUID,
 }
-crate::mutation_payload! { DepositAccountClosePayload, account: DepositAccount }
+crate::mutation_payload! { DepositAccountClosePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositsFilter {

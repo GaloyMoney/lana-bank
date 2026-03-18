@@ -50,7 +50,7 @@ pub struct CustomerDocumentCreateInput {
     pub file: Upload,
     pub customer_id: UUID,
 }
-crate::mutation_payload! { CustomerDocumentCreatePayload, document: CustomerDocument }
+crate::mutation_payload! { CustomerDocumentCreatePayload, customer_document: CustomerDocument }
 
 #[derive(InputObject)]
 pub struct CustomerDocumentDownloadLinksGenerateInput {
@@ -87,4 +87,4 @@ pub struct CustomerDocumentDeletePayload {
 pub struct CustomerDocumentArchiveInput {
     pub document_id: UUID,
 }
-crate::mutation_payload! { CustomerDocumentArchivePayload, document: CustomerDocument }
+crate::mutation_payload! { CustomerDocumentArchivePayload, customer_document: CustomerDocument }

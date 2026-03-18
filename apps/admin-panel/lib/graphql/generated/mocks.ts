@@ -1415,7 +1415,7 @@ export const mockCustomerDocumentArchivePayload = (overrides?: Partial<CustomerD
     relationshipsToOmit.add('CustomerDocumentArchivePayload');
     return {
         __typename: 'CustomerDocumentArchivePayload',
-        document: overrides && overrides.hasOwnProperty('document') ? overrides.document! : relationshipsToOmit.has('CustomerDocument') ? {} as CustomerDocument : mockCustomerDocument({}, relationshipsToOmit),
+        customerDocument: overrides && overrides.hasOwnProperty('customerDocument') ? overrides.customerDocument! : relationshipsToOmit.has('CustomerDocument') ? {} as CustomerDocument : mockCustomerDocument({}, relationshipsToOmit),
     };
 };
 
@@ -1433,7 +1433,7 @@ export const mockCustomerDocumentCreatePayload = (overrides?: Partial<CustomerDo
     relationshipsToOmit.add('CustomerDocumentCreatePayload');
     return {
         __typename: 'CustomerDocumentCreatePayload',
-        document: overrides && overrides.hasOwnProperty('document') ? overrides.document! : relationshipsToOmit.has('CustomerDocument') ? {} as CustomerDocument : mockCustomerDocument({}, relationshipsToOmit),
+        customerDocument: overrides && overrides.hasOwnProperty('customerDocument') ? overrides.customerDocument! : relationshipsToOmit.has('CustomerDocument') ? {} as CustomerDocument : mockCustomerDocument({}, relationshipsToOmit),
     };
 };
 
@@ -1644,7 +1644,7 @@ export const mockDepositAccountClosePayload = (overrides?: Partial<DepositAccoun
     relationshipsToOmit.add('DepositAccountClosePayload');
     return {
         __typename: 'DepositAccountClosePayload',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
     };
 };
 
@@ -1672,7 +1672,7 @@ export const mockDepositAccountCreatePayload = (overrides?: Partial<DepositAccou
     relationshipsToOmit.add('DepositAccountCreatePayload');
     return {
         __typename: 'DepositAccountCreatePayload',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
     };
 };
 
@@ -1699,7 +1699,7 @@ export const mockDepositAccountFreezePayload = (overrides?: Partial<DepositAccou
     relationshipsToOmit.add('DepositAccountFreezePayload');
     return {
         __typename: 'DepositAccountFreezePayload',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
     };
 };
 
@@ -1778,7 +1778,7 @@ export const mockDepositAccountUnfreezePayload = (overrides?: Partial<DepositAcc
     relationshipsToOmit.add('DepositAccountUnfreezePayload');
     return {
         __typename: 'DepositAccountUnfreezePayload',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
     };
 };
 
