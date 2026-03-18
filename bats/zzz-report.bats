@@ -11,22 +11,6 @@ teardown_file() {
   stop_server
 }
 
-find_report_run() {
-  local report_definition_id=$1
-  variables=$(jq -n '{ first: 20 }')
-  exec_admin_graphql 'report-runs' "$variables"
-  run_id=$(
-    echo "$output" |
-      jq -r --arg reportDefinitionId "$report_definition_id" '
-        .data.reportRuns.nodes[]
-        | select(.requestedReport.reportDefinitionId == $reportDefinitionId)
-        | .reportRunId
-      ' |
-      head -n 1
-  )
-  [[ "$run_id" != "null" && -n "$run_id" ]] || return 1
-}
-
 wait_for_report_run_complete() {
   local run_id=$1
   variables=$(
@@ -63,21 +47,7 @@ wait_for_report_run_complete() {
   )
   exec_admin_graphql 'report-run-trigger' "$variables"
   echo "reportRunTrigger response: $(graphql_output)"
-
-  # Poll for the report run to appear (async creation, may take a while)
-  retry 60 5 find_report_run "$report_definition_id"
-  variables=$(jq -n '{ first: 20 }')
-  exec_admin_graphql 'report-runs' "$variables"
-  echo "reportRuns response: $(graphql_output)"
-  run_id=$(
-    echo "$output" |
-      jq -r --arg reportDefinitionId "$report_definition_id" '
-        .data.reportRuns.nodes[]
-        | select(.requestedReport.reportDefinitionId == $reportDefinitionId)
-        | .reportRunId
-      ' |
-      head -n 1
-  )
+  run_id=$(graphql_output '.data.reportRunTrigger.reportRun.reportRunId')
   [[ "$run_id" != "null" && -n "$run_id" ]] || exit 1
 
   # Wait for the report run to reach a terminal state (up to ~8 minutes)
