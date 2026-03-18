@@ -341,7 +341,7 @@ mod tests {
 
     #[test]
     fn sum_iterator() {
-        let amounts = vec![
+        let amounts = [
             CalcUsd::from_major(dec!(1.10)),
             CalcUsd::from_major(dec!(2.20)),
             CalcUsd::from_major(dec!(3.30)),
@@ -352,7 +352,7 @@ mod tests {
 
     #[test]
     fn sum_reference_iterator() {
-        let amounts = vec![
+        let amounts = [
             CalcUsd::from_major(dec!(1.10)),
             CalcUsd::from_major(dec!(2.20)),
             CalcUsd::from_major(dec!(3.30)),
