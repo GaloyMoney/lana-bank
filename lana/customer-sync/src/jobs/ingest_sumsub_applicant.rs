@@ -62,19 +62,28 @@ impl JobRunner for IngestSumsubApplicantJobRunner {
     #[record_error_severity]
     #[tracing::instrument(
         name = "customer_sync.ingest_sumsub_applicant_job.process_command",
-        skip(self, _current_job),
+        skip(self, current_job),
         fields(party_id = %self.config.party_id),
     )]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let external_user_id = self.config.party_id.to_string();
-        let applicant = match self
-            .sumsub_client
-            .get_applicant_details(external_user_id.clone())
-            .await
-        {
+        let applicant = match tokio::select! {
+            biased;
+
+            _ = current_job.shutdown_requested() => {
+                tracing::info!(
+                    job_id = %current_job.id(),
+                    job_type = %INGEST_SUMSUB_APPLICANT_COMMAND,
+                    party_id = %self.config.party_id,
+                    "Shutdown signal received"
+                );
+                return Ok(JobCompletion::RescheduleNow);
+            }
+            result = self.sumsub_client.get_applicant_details(external_user_id.clone()) => result,
+        } {
             Ok(applicant) => applicant,
             Err(SumsubError::ApiError { code: 404, description }) => {
                 tracing::info!(
@@ -90,10 +99,37 @@ impl JobRunner for IngestSumsubApplicantJobRunner {
 
         let applicant_id = applicant.id.clone();
         let applicant_raw = serde_json::to_value(&applicant)?;
-        let document_resources = self
-            .sumsub_client
-            .get_applicant_document_resources(&applicant_id)
-            .await?;
+        let document_resources = tokio::select! {
+            biased;
+
+            _ = current_job.shutdown_requested() => {
+                tracing::info!(
+                    job_id = %current_job.id(),
+                    job_type = %INGEST_SUMSUB_APPLICANT_COMMAND,
+                    party_id = %self.config.party_id,
+                    applicant_id = %applicant_id,
+                    "Shutdown signal received"
+                );
+                return Ok(JobCompletion::RescheduleNow);
+            }
+            result = self.sumsub_client.get_applicant_document_resources(&applicant_id) => result?,
+        };
+
+        tokio::select! {
+            biased;
+
+            _ = current_job.shutdown_requested() => {
+                tracing::info!(
+                    job_id = %current_job.id(),
+                    job_type = %INGEST_SUMSUB_APPLICANT_COMMAND,
+                    party_id = %self.config.party_id,
+                    applicant_id = %applicant_id,
+                    "Shutdown signal received"
+                );
+                return Ok(JobCompletion::RescheduleNow);
+            }
+            _ = async {} => {}
+        }
 
         let mut tx = self.pool.begin().await?;
 
@@ -130,6 +166,22 @@ impl JobRunner for IngestSumsubApplicantJobRunner {
         .bind(document_resources)
         .execute(&mut *tx)
         .await?;
+
+        tokio::select! {
+            biased;
+
+            _ = current_job.shutdown_requested() => {
+                tracing::info!(
+                    job_id = %current_job.id(),
+                    job_type = %INGEST_SUMSUB_APPLICANT_COMMAND,
+                    party_id = %self.config.party_id,
+                    applicant_id = %applicant_id,
+                    "Shutdown signal received"
+                );
+                return Ok(JobCompletion::RescheduleNow);
+            }
+            _ = async {} => {}
+        }
 
         tx.commit().await?;
 
