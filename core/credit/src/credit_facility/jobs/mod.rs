@@ -10,3 +10,4 @@ pub mod process_facility_maturities;
 pub mod record_liquidation_proceeds;
 pub mod record_liquidation_started;
 pub mod update_collateralization;
+pub mod update_collateralization_from_price;
