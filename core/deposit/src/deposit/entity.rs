@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use es_entity::*;
-use money::CurrencyAmount;
+use money::Amount;
 
 use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId, DepositStatus, PublicId};
 
@@ -17,7 +17,7 @@ pub enum DepositEvent {
         id: DepositId,
         ledger_tx_id: CalaTransactionId,
         deposit_account_id: DepositAccountId,
-        amount: CurrencyAmount,
+        amount: Amount,
         reference: String,
         status: DepositStatus,
         public_id: PublicId,
@@ -33,7 +33,7 @@ pub struct DepositReversalData {
     pub entity_id: DepositId,
     pub ledger_tx_id: CalaTransactionId,
     pub credit_account_id: DepositAccountId,
-    pub amount: CurrencyAmount,
+    pub amount: Amount,
     pub correlation_id: String,
     pub external_id: String,
 }
@@ -43,7 +43,7 @@ pub struct DepositReversalData {
 pub struct Deposit {
     pub id: DepositId,
     pub deposit_account_id: DepositAccountId,
-    pub amount: CurrencyAmount,
+    pub amount: Amount,
     pub reference: String,
     pub public_id: PublicId,
     events: EntityEvents<DepositEvent>,
@@ -138,7 +138,7 @@ pub struct NewDeposit {
     #[builder(setter(into))]
     pub(super) deposit_account_id: DepositAccountId,
     #[builder(setter(into))]
-    pub(super) amount: CurrencyAmount,
+    pub(super) amount: Amount,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
     reference: Option<String>,
@@ -197,7 +197,7 @@ mod test {
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(CurrencyAmount::usd(UsdCents::ZERO))
+            .amount(Amount::from(UsdCents::ZERO))
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
             .build();
@@ -230,7 +230,7 @@ mod test {
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(CurrencyAmount::usd(UsdCents::ONE))
+            .amount(Amount::from(UsdCents::ONE))
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
             .build();
@@ -244,7 +244,7 @@ mod test {
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(CurrencyAmount::btc(Satoshis::ONE))
+            .amount(Amount::from(Satoshis::ONE))
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
             .build();
@@ -258,7 +258,7 @@ mod test {
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(CurrencyAmount::usd(UsdCents::ONE))
+            .amount(Amount::from(UsdCents::ONE))
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
             .build()

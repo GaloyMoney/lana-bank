@@ -87,8 +87,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
 
     let account = deposit.create_account(&DummySubject, customer.id).await?;
 
-    let deposit_amount =
-        money::CurrencyAmount::from(UsdCents::try_from_usd(dec!(1000000)).unwrap());
+    let deposit_amount = money::Amount::from(UsdCents::try_from_usd(dec!(1000000)).unwrap());
 
     deposit
         .record_deposit(&DummySubject, account.id, deposit_amount, None)

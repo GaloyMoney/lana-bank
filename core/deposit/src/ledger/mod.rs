@@ -27,7 +27,7 @@ use crate::{
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
     history::DepositAccountHistoryEntry,
     primitives::{
-        CalaAccountId, CalaAccountSetId, CurrencyAmount, CurrencyCode, DEPOSIT_ACCOUNT_ENTITY_TYPE,
+        Amount, CalaAccountId, CalaAccountSetId, CurrencyCode, DEPOSIT_ACCOUNT_ENTITY_TYPE,
         DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountType, DepositId, UsdCents, WithdrawalId,
     },
 };
@@ -383,7 +383,7 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: DepositId,
-        amount: CurrencyAmount,
+        amount: Amount,
         credit_account_id: impl Into<AccountId>,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {

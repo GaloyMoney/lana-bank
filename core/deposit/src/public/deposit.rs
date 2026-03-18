@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 
 use crate::{
     deposit::Deposit,
-    primitives::{CurrencyAmount, DepositAccountId, DepositId},
+    primitives::{Amount, DepositAccountId, DepositId},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13,7 +13,7 @@ use crate::{
 pub struct PublicDeposit {
     pub id: DepositId,
     pub deposit_account_id: DepositAccountId,
-    pub amount: CurrencyAmount,
+    pub amount: Amount,
 }
 
 impl From<&Deposit> for PublicDeposit {
