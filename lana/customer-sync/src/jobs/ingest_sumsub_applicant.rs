@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use sumsub::SumsubError;
+use tokio::select;
 
 use job::*;
 
@@ -99,7 +100,7 @@ impl JobRunner for IngestSumsubApplicantJobRunner {
 
         let applicant_id = applicant.id.clone();
         let applicant_raw = serde_json::to_value(&applicant)?;
-        let document_resources = tokio::select! {
+        let document_resources = select! {
             biased;
 
             _ = current_job.shutdown_requested() => {
