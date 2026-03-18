@@ -171,7 +171,7 @@ where
                         first: 10,
                         after: state.after,
                     },
-                    Default::default(),
+                    es_entity::ListDirection::Ascending,
                 )
                 .await?;
 

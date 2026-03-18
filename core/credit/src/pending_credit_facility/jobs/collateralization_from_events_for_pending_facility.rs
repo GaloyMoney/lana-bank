@@ -22,30 +22,13 @@ use super::update_pending_collateralization_from_price::{
 pub const PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("outbox.pending-credit-facility-collateralization-from-events");
 
-pub struct PendingCreditFacilityCollateralizationFromEventsHandler<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
+pub struct PendingCreditFacilityCollateralizationFromEventsHandler {
     update_pending_collateralization: JobSpawner<UpdatePendingCollateralizationConfig>,
     update_pending_collateralization_from_price:
         JobSpawner<UpdatePendingCollateralizationFromPriceConfig>,
-    _phantom: std::marker::PhantomData<E>,
 }
 
-impl<E> PendingCreditFacilityCollateralizationFromEventsHandler<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
+impl PendingCreditFacilityCollateralizationFromEventsHandler {
     pub fn new(
         update_pending_collateralization: JobSpawner<UpdatePendingCollateralizationConfig>,
         update_pending_collateralization_from_price: JobSpawner<
@@ -55,12 +38,11 @@ where
         Self {
             update_pending_collateralization,
             update_pending_collateralization_from_price,
-            _phantom: std::marker::PhantomData,
         }
     }
 }
 
-impl<E> OutboxEventHandler<E> for PendingCreditFacilityCollateralizationFromEventsHandler<E>
+impl<E> OutboxEventHandler<E> for PendingCreditFacilityCollateralizationFromEventsHandler
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>

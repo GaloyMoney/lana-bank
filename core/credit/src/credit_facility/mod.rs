@@ -169,9 +169,7 @@ where
                 OutboxEventJobConfig::new(
                     jobs::collateralization_from_events::CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB,
                 ),
-                jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsHandler::<
-                    E,
-                >::new(
+                jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsHandler::new(
                     update_collateralization_spawner,
                     update_collateralization_from_price_spawner,
                 ),

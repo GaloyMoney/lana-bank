@@ -22,29 +22,12 @@ use super::update_collateralization_from_price::{
 pub const CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("outbox.credit-facility-collateralization");
 
-pub struct CreditFacilityCollateralizationFromEventsHandler<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
+pub struct CreditFacilityCollateralizationFromEventsHandler {
     update_collateralization: JobSpawner<UpdateCollateralizationConfig>,
     update_collateralization_from_price: JobSpawner<UpdateCollateralizationFromPriceConfig>,
-    _phantom: std::marker::PhantomData<E>,
 }
 
-impl<E> CreditFacilityCollateralizationFromEventsHandler<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
+impl CreditFacilityCollateralizationFromEventsHandler {
     pub fn new(
         update_collateralization: JobSpawner<UpdateCollateralizationConfig>,
         update_collateralization_from_price: JobSpawner<UpdateCollateralizationFromPriceConfig>,
@@ -52,12 +35,11 @@ where
         Self {
             update_collateralization,
             update_collateralization_from_price,
-            _phantom: std::marker::PhantomData,
         }
     }
 }
 
-impl<E> OutboxEventHandler<E> for CreditFacilityCollateralizationFromEventsHandler<E>
+impl<E> OutboxEventHandler<E> for CreditFacilityCollateralizationFromEventsHandler
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
