@@ -292,6 +292,7 @@ where
             outbox,
             clock.clone(),
             collaterals_arc.clone(),
+            internal_domain_configs_arc.clone(),
         )
         .await?;
         let facilities_arc = Arc::new(credit_facilities);

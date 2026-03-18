@@ -636,13 +636,14 @@ impl CreditFacility {
     pub(crate) fn record_accrual_on_in_progress_cycle(
         &mut self,
         amount: UsdCents,
+        rounding_strategy: rust_decimal::RoundingStrategy,
     ) -> Result<Idempotent<RecordedAccrualOnCycle>, CreditFacilityError> {
         let accrual = self
             .interest_accrual_cycle_in_progress_mut()
             .ok_or(CreditFacilityError::NoAccrualCycleInProgress)?;
 
         let accrual_data = accrual
-            .record_accrual(amount)?
+            .record_accrual(amount, rounding_strategy)?
             .expect("record_accrual always returns Executed when next_accrual_period is available");
 
         Ok(Idempotent::Executed(RecordedAccrualOnCycle {
@@ -922,6 +923,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
 
 #[cfg(test)]
 mod test {
+    use rust_decimal::RoundingStrategy;
     use rust_decimal_macros::dec;
 
     use super::*;
@@ -1022,7 +1024,7 @@ mod test {
             .interest_accrual_cycle_in_progress_mut()
             .unwrap();
         while accrual.next_accrual_period().is_some() {
-            let _ = accrual.record_accrual(UsdCents::ONE);
+            let _ = accrual.record_accrual(UsdCents::ONE, RoundingStrategy::AwayFromZero);
         }
         let _ = accrual.record_accrual_cycle(accrual.accrual_cycle_data().unwrap());
     }
