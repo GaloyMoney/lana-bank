@@ -278,6 +278,11 @@ expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
+crate = "core-fx"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
 crate = "governance"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
