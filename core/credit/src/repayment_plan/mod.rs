@@ -53,7 +53,7 @@ impl CreditFacilityRepaymentPlan {
             return vec![];
         };
         let facility_amount = self.facility_amount;
-        let structuring_fee = terms.one_time_fee_rate.apply(facility_amount);
+        let structuring_fee = terms.one_time_fee_rate.apply(facility_amount).round_up();
 
         let activated_at = self.activated_at.unwrap_or(now);
         let maturity_date = terms.maturity_date(activated_at);
@@ -134,7 +134,8 @@ impl CreditFacilityRepaymentPlan {
         while let Some(period) = next_interest_period {
             let interest = terms
                 .annual_rate
-                .interest_for_time_period(disbursed_outstanding, period.days());
+                .interest_for_period(disbursed_outstanding, period.days())
+                .round_up();
 
             planned_interest_entries.push(CreditFacilityRepaymentPlanEntry {
                 repayment_type: RepaymentType::Interest,

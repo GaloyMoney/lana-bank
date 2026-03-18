@@ -1,6 +1,6 @@
 use chrono::{DateTime, Datelike, TimeZone, Utc};
 use derive_builder::{Builder, UninitializedFieldError};
-use rust_decimal::{Decimal, prelude::*};
+use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +10,7 @@ use schemars::JsonSchema;
 use crate::{collateralization::*, cvl::CVLPct, effective_date::*};
 
 use core_price::PriceOfOneBTC;
-use money::{Satoshis, UsdCents};
+use money::{CalculationAmount, Satoshis, Usd, UsdCents};
 
 use super::error::TermsError;
 
@@ -25,16 +25,9 @@ pub struct AnnualRatePct(Decimal);
 async_graphql::scalar!(AnnualRatePct);
 
 impl AnnualRatePct {
-    pub fn interest_for_time_period(&self, principal: UsdCents, days: u32) -> UsdCents {
-        let cents = principal.to_usd() * Decimal::from(days) * self.0
-            / Decimal::from(NUMBER_OF_DAYS_IN_YEAR);
-
-        UsdCents::from(
-            cents
-                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
-                .to_u64()
-                .expect("should return a valid integer"),
-        )
+    pub fn interest_for_period(&self, principal: UsdCents, days: u32) -> CalculationAmount<Usd> {
+        principal.to_calc()
+            * (self.0 / dec!(100) * Decimal::from(days) / Decimal::from(NUMBER_OF_DAYS_IN_YEAR))
     }
 }
 
@@ -58,11 +51,8 @@ impl OneTimeFeeRatePct {
         OneTimeFeeRatePct(Decimal::from(pct))
     }
 
-    pub fn apply(&self, amount: UsdCents) -> UsdCents {
-        let fee_as_decimal = (amount.to_usd() * (self.0 / dec!(100)))
-            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
-
-        UsdCents::try_from_usd(fee_as_decimal).expect("Unexpected negative number")
+    pub fn apply(&self, amount: UsdCents) -> CalculationAmount<Usd> {
+        amount.to_calc() * (self.0 / dec!(100))
     }
 }
 
@@ -553,12 +543,18 @@ mod test {
         let terms = terms();
         let principal = UsdCents::try_from_usd(dec!(100)).unwrap();
         let days = 365;
-        let interest = terms.annual_rate.interest_for_time_period(principal, days);
+        let interest = terms
+            .annual_rate
+            .interest_for_period(principal, days)
+            .round_up();
         assert_eq!(interest, UsdCents::from(1200));
 
         let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
         let days = 23;
-        let interest = terms.annual_rate.interest_for_time_period(principal, days);
+        let interest = terms
+            .annual_rate
+            .interest_for_period(principal, days)
+            .round_up();
         assert_eq!(interest, UsdCents::from(757));
     }
 
@@ -642,13 +638,17 @@ mod test {
 
     #[test]
     fn can_apply_one_time_fee() {
-        let fee = OneTimeFeeRatePct(dec!(5)).apply(UsdCents::from(1000));
+        let fee = OneTimeFeeRatePct(dec!(5))
+            .apply(UsdCents::from(1000))
+            .round_up();
         assert_eq!(fee, UsdCents::from(50));
     }
 
     #[test]
     fn one_time_fee_rounds_up() {
-        let fee = OneTimeFeeRatePct(dec!(5.01)).apply(UsdCents::from(1000));
+        let fee = OneTimeFeeRatePct(dec!(5.01))
+            .apply(UsdCents::from(1000))
+            .round_up();
         assert_eq!(fee, UsdCents::from(51));
     }
 

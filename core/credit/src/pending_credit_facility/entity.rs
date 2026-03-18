@@ -299,7 +299,7 @@ impl PendingCreditFacility {
     }
 
     fn structuring_fee(&self) -> UsdCents {
-        self.terms.one_time_fee_rate.apply(self.amount)
+        self.terms.one_time_fee_rate.apply(self.amount).round_up()
     }
 
     fn is_single_disbursal(&self) -> bool {

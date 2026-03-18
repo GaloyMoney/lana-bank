@@ -223,7 +223,8 @@ impl InterestAccrualCycle {
         let interest_for_period = self
             .terms
             .annual_rate
-            .interest_for_time_period(amount, days_in_interest_period);
+            .interest_for_period(amount, days_in_interest_period)
+            .round_up();
 
         let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, self.count_accrued() + 1);
         let interest_accrual = InterestAccrualData {
@@ -727,7 +728,8 @@ mod test {
         let disbursed_outstanding_amount = UsdCents::from(1_000_000_00);
         let expected_daily_interest = default_terms()
             .annual_rate
-            .interest_for_time_period(disbursed_outstanding_amount, 1);
+            .interest_for_period(disbursed_outstanding_amount, 1)
+            .round_up();
 
         let mut accrual = accrual_from(initial_events());
 

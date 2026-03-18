@@ -317,7 +317,7 @@ impl CreditFacility {
 
         Some(StructuringFeeOnActivation {
             tx_id,
-            amount: self.terms.one_time_fee_rate.apply(self.amount),
+            amount: self.terms.one_time_fee_rate.apply(self.amount).round_up(),
         })
     }
 
@@ -1171,7 +1171,10 @@ mod test {
     #[test]
     fn structuring_fee() {
         let credit_facility = facility_from(initial_events());
-        let expected_fee = default_terms().one_time_fee_rate.apply(default_facility());
+        let expected_fee = default_terms()
+            .one_time_fee_rate
+            .apply(default_facility())
+            .round_up();
         assert_eq!(
             credit_facility
                 .structuring_fee_on_activation()
