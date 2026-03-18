@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod calculation_amount;
 mod code;
 mod error;
 mod map;
@@ -13,6 +14,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
+pub use calculation_amount::CalculationAmount;
 pub use code::*;
 pub use error::ConversionError;
 pub use map::*;
@@ -76,6 +78,10 @@ impl<C: Currency> MinorUnits<C> {
 
     pub fn is_zero(self) -> bool {
         self.0 == 0
+    }
+
+    pub fn to_calc(self) -> CalculationAmount<C> {
+        CalculationAmount::from(self)
     }
 }
 
@@ -189,6 +195,18 @@ impl std::ops::Mul<u64> for MinorUnits<Usd> {
     }
 }
 
+impl<C: Currency> std::iter::Sum for MinorUnits<C> {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Self::ZERO, |acc, x| acc + x)
+    }
+}
+
+impl<'a, C: Currency> std::iter::Sum<&'a MinorUnits<C>> for MinorUnits<C> {
+    fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+        iter.fold(Self::ZERO, |acc, x| acc + *x)
+    }
+}
+
 // --- From conversions ---
 
 impl<C: Currency> From<u64> for MinorUnits<C> {
@@ -244,6 +262,10 @@ impl<C: Currency> SignedMinorUnits<C> {
 
     pub fn is_zero(self) -> bool {
         self.0 == 0
+    }
+
+    pub fn to_calc(self) -> CalculationAmount<C> {
+        CalculationAmount::from(self)
     }
 }
 
@@ -524,3 +546,5 @@ pub type UsdCents = MinorUnits<Usd>;
 pub type Satoshis = MinorUnits<Btc>;
 pub type SignedUsdCents = SignedMinorUnits<Usd>;
 pub type SignedSatoshis = SignedMinorUnits<Btc>;
+pub type CalculationUsd = CalculationAmount<Usd>;
+pub type CalculationBtc = CalculationAmount<Btc>;
