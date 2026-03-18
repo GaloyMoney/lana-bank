@@ -1,0 +1,9 @@
+mutation TimeAdvanceToNextEndOfDay {
+  timeAdvanceToNextEndOfDay {
+    time {
+      currentDate
+      currentTime
+      nextEndOfDayAt
+    }
+  }
+}
