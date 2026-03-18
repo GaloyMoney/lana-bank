@@ -31,6 +31,7 @@ core-credit = { workspace = true }
 core-credit-collateral = { workspace = true }
 core-credit-collection = { workspace = true }
 core-deposit = { workspace = true }
+core-eod = { workspace = true }
 core-report = { workspace = true }
 core-price = { workspace = true }
 core-time-events = { workspace = true }
