@@ -34,8 +34,13 @@ mutation ReportFileDownloadLinkGenerate($input: ReportFileGenerateDownloadLinkIn
   }
 }
 
-mutation TriggerReportRun {
-  triggerReportRun {
-    runId
+mutation ReportRunTrigger($input: ReportRunTriggerInput!) {
+  reportRunTrigger(input: $input) {
+    reportRun {
+      reportRunId
+      state
+      runType
+      startTime
+    }
   }
 }

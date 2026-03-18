@@ -244,7 +244,7 @@ fn lookup_query(path: &[&str]) -> Option<QuerySpec> {
         ["report", "find"] => q("FindReportRun", REPORT_DOC),
         ["report", "list"] => q("ReportRunsList", REPORT_DOC),
         ["report", "download-link"] => q("ReportFileDownloadLinkGenerate", REPORT_DOC),
-        ["report", "trigger"] => q("TriggerReportRun", REPORT_DOC),
+        ["report", "trigger"] => q("ReportRunTrigger", REPORT_DOC),
 
         ["iam", "user", "create"] => q("UserCreate", USER_DOC),
         ["iam", "user", "update-role"] => q("UserUpdateRole", USER_DOC),

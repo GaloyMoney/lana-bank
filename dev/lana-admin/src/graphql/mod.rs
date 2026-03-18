@@ -784,7 +784,7 @@ pub struct ReportFileDownloadLinkGenerate;
     query_path = "src/graphql/report.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
-pub struct TriggerReportRun;
+pub struct ReportRunTrigger;
 
 // -- Withdrawal operations --
 

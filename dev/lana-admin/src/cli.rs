@@ -1069,7 +1069,12 @@ pub enum ReportAction {
         extension: String,
     },
     /// Trigger a report run
-    Trigger,
+    Trigger {
+        #[arg(long, help = "Report definition ID")]
+        report_definition_id: String,
+        #[arg(long, help = "Optional as-of date in YYYY-MM-DD format")]
+        as_of_date: Option<String>,
+    },
 }
 
 #[derive(Subcommand)]

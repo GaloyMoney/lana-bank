@@ -104,15 +104,27 @@ pub async fn execute(client: &mut GraphQLClient, action: ReportAction, json: boo
                 output::print_kv(&[("URL", &result.url)]);
             }
         }
-        ReportAction::Trigger => {
-            let vars = trigger_report_run::Variables {};
-            let data = client.execute::<TriggerReportRun>(vars).await?;
-            let result = data.trigger_report_run;
+        ReportAction::Trigger {
+            report_definition_id,
+            as_of_date,
+        } => {
+            let vars = report_run_trigger::Variables {
+                input: report_run_trigger::ReportRunTriggerInput {
+                    report_definition_id,
+                    as_of_date,
+                },
+            };
+            let data = client.execute::<ReportRunTrigger>(vars).await?;
+            let result = data.report_run_trigger.report_run;
             if json {
                 output::print_json(&result)?;
             } else {
-                let run_id = result.run_id.as_deref().unwrap_or("N/A");
-                output::print_kv(&[("Run ID", run_id)]);
+                output::print_kv(&[
+                    ("Report Run ID", &result.report_run_id),
+                    ("State", &format!("{:?}", result.state)),
+                    ("Run Type", &format!("{:?}", result.run_type)),
+                    ("Started At", result.start_time.as_deref().unwrap_or("N/A")),
+                ]);
             }
         }
     }
