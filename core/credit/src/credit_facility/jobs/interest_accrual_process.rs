@@ -189,7 +189,14 @@ impl JobRunner for InterestAccrualProcessRunner {
             }
 
             InterestAccrualProcessState::AwaitingAccrual { accrual_job } => {
-                let accrual_terminal = self.jobs.await_completion(accrual_job).await?;
+                let state = InterestAccrualProcessState::AwaitingAccrual { accrual_job };
+                let accrual_terminal = tokio::select! {
+                    result = self.jobs.await_completion(accrual_job) => result?,
+                    _ = current_job.shutdown_requested() => {
+                        current_job.update_execution_state(&state).await?;
+                        return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
+                    }
+                };
 
                 if accrual_terminal != JobTerminalState::Completed {
                     tracing::error!(
@@ -262,7 +269,17 @@ impl JobRunner for InterestAccrualProcessRunner {
                 accrual_terminal,
                 cycle_job,
             } => {
-                let cycle_terminal = self.jobs.await_completion(cycle_job).await?;
+                let state = InterestAccrualProcessState::AwaitingCycleCompletion {
+                    accrual_terminal,
+                    cycle_job,
+                };
+                let cycle_terminal = tokio::select! {
+                    result = self.jobs.await_completion(cycle_job) => result?,
+                    _ = current_job.shutdown_requested() => {
+                        current_job.update_execution_state(&state).await?;
+                        return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
+                    }
+                };
 
                 let result = InterestAccrualProcessResult {
                     credit_facility_id: self.config.credit_facility_id,
@@ -299,7 +316,11 @@ impl JobRunner for InterestAccrualProcessRunner {
 
             InterestAccrualProcessState::Failed { result } => {
                 current_job.set_result(&result).await?;
-                Ok(JobCompletion::Complete)
+                Err(format!(
+                    "InterestAccrualProcess failed for facility {}: accrual={:?}, cycle={:?}",
+                    result.credit_facility_id, result.accrual_terminal, result.cycle_terminal
+                )
+                .into())
             }
         }
     }

@@ -156,6 +156,35 @@ impl<E> EodProcessManagerJobRunner<E>
 where
     E: OutboxEventMarker<CoreEodEvent>,
 {
+    async fn spawn_phase2(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        process: &mut EodProcess,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let credit_facility_job = job_id::eod_child_id(&self.config.date, "credit-facility");
+
+        match self
+            .credit_facility_spawner
+            .spawn_all_in_op(
+                op,
+                vec![JobSpec::new(
+                    credit_facility_job,
+                    CreditFacilityEodProcessConfig {
+                        date: self.config.date,
+                    },
+                )
+                .queue_id("eod-credit-facility".to_string())],
+            )
+            .await
+        {
+            Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
+            Err(e) => return Err(e.into()),
+        }
+
+        process.start_phase2(credit_facility_job)?;
+        Ok(())
+    }
+
     async fn handle_initialized(
         &self,
         current_job: CurrentJob,
@@ -270,28 +299,7 @@ where
         if obligation_terminal == JobTerminalState::Completed
             && deposit_terminal == JobTerminalState::Completed
         {
-            // Phase 1 success — spawn Phase 2
-            let credit_facility_job = job_id::eod_child_id(&self.config.date, "credit-facility");
-
-            match self
-                .credit_facility_spawner
-                .spawn_all_in_op(
-                    &mut op,
-                    vec![JobSpec::new(
-                        credit_facility_job,
-                        CreditFacilityEodProcessConfig {
-                            date: self.config.date,
-                        },
-                    )
-                    .queue_id("eod-credit-facility".to_string())],
-                )
-                .await
-            {
-                Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
-                Err(e) => return Err(e.into()),
-            }
-
-            process.start_phase2(credit_facility_job)?;
+            self.spawn_phase2(&mut op, &mut process).await?;
         } else {
             tracing::error!(
                 phase = 1,
@@ -318,33 +326,13 @@ where
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         // Phase 1 completed but Phase 2 not started — spawn Phase 2
-        let credit_facility_job = job_id::eod_child_id(&self.config.date, "credit-facility");
-
         let mut op = current_job.begin_op().await?;
-
-        match self
-            .credit_facility_spawner
-            .spawn_all_in_op(
-                &mut op,
-                vec![JobSpec::new(
-                    credit_facility_job,
-                    CreditFacilityEodProcessConfig {
-                        date: self.config.date,
-                    },
-                )
-                .queue_id("eod-credit-facility".to_string())],
-            )
-            .await
-        {
-            Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
-            Err(e) => return Err(e.into()),
-        }
 
         let mut process = self
             .eod_processes
             .find_by_id_in_op(&mut op, self.config.process_id)
             .await?;
-        process.start_phase2(credit_facility_job)?;
+        self.spawn_phase2(&mut op, &mut process).await?;
         self.eod_processes
             .update_in_op(&mut op, &mut process)
             .await?;
