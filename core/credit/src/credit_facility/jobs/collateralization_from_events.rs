@@ -10,7 +10,7 @@ use obix::out::{
     EphemeralOutboxEvent, OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent,
 };
 
-use job::JobType;
+use job::{JobId, JobSpawner, JobType};
 
 use core_credit_collateral::{
     Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
@@ -28,6 +28,8 @@ use crate::{
     primitives::*,
 };
 
+use super::update_collateralization::UpdateCollateralizationConfig;
+
 pub const CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("outbox.credit-facility-collateralization");
 
@@ -41,6 +43,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
+    update_collateralization: JobSpawner<UpdateCollateralizationConfig>,
     repo: Arc<CreditFacilityRepo<E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
     price: Arc<Price>,
@@ -59,6 +62,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(
+        update_collateralization: JobSpawner<UpdateCollateralizationConfig>,
         repo: Arc<CreditFacilityRepo<E>>,
         collaterals: Arc<Collaterals<Perms, E>>,
         price: Arc<Price>,
@@ -66,6 +70,7 @@ where
         authz: Arc<Perms>,
     ) -> Self {
         Self {
+            update_collateralization,
             repo,
             collaterals,
             price,
@@ -91,10 +96,10 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    #[instrument(name = "core_credit.collateralization_job.process_persistent_message", parent = None, skip(self, _op, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
+    #[instrument(name = "core_credit.collateralization_job.process_persistent_message", parent = None, skip(self, op, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        _op: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(event @ CoreCreditCollateralEvent::CollateralUpdated { entity }) =
@@ -108,7 +113,15 @@ where
                 tracing::field::display(entity.secured_loan_id),
             );
 
-            self.update_collateralization_from_events(entity.secured_loan_id)
+            self.update_collateralization
+                .spawn_with_queue_id_in_op(
+                    op,
+                    JobId::new(),
+                    UpdateCollateralizationConfig {
+                        credit_facility_id: entity.secured_loan_id.into(),
+                    },
+                    entity.secured_loan_id.to_string(),
+                )
                 .await?;
         }
 
@@ -129,7 +142,15 @@ where
                 tracing::field::display(beneficiary_id),
             );
 
-            self.update_collateralization_from_events(*beneficiary_id)
+            self.update_collateralization
+                .spawn_with_queue_id_in_op(
+                    op,
+                    JobId::new(),
+                    UpdateCollateralizationConfig {
+                        credit_facility_id: (*beneficiary_id).into(),
+                    },
+                    beneficiary_id.to_string(),
+                )
                 .await?;
         }
 
@@ -173,69 +194,6 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.update_collateralization_from_events",
-        skip(self),
-        fields(credit_facility_id = %credit_facility_id),
-    )]
-    #[es_entity::retry_on_concurrent_modification]
-    pub(super) async fn update_collateralization_from_events(
-        &self,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Display + Copy,
-    ) -> Result<(), crate::credit_facility::error::CreditFacilityError> {
-        let mut op = self.repo.begin_op().await?;
-        // if the pending facility is not collateralized enough to be activated there will be no
-        // credit facility to update the collateralization state for
-        let Some(mut credit_facility) = self
-            .repo
-            .maybe_find_by_id_in_op(&mut op, credit_facility_id.into())
-            .await?
-        else {
-            return Ok(());
-        };
-
-        self.authz
-            .audit()
-            .record_system_entry_in_op(
-                &mut op,
-                crate::primitives::COLLATERALIZATION_SYNC,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
-            )
-            .await?;
-
-        tracing::Span::current().record("credit_facility_id", credit_facility.id.to_string());
-
-        let collateral_account_id = self
-            .collaterals
-            .collateral_ledger_account_ids_in_op(&mut op, credit_facility.collateral_id)
-            .await?
-            .collateral_account_id;
-
-        let balances = self
-            .ledger
-            .get_credit_facility_balance_in_op(
-                &mut op,
-                credit_facility.account_ids,
-                collateral_account_id,
-            )
-            .await?;
-        let price = self.price.usd_cents_per_btc().await;
-
-        if credit_facility
-            .update_collateralization(price, CVLPct::UPGRADE_BUFFER, balances)
-            .did_execute()
-        {
-            self.repo
-                .update_in_op(&mut op, &mut credit_facility)
-                .await?;
-
-            op.commit().await?;
-        }
-        Ok(())
-    }
-
     #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.update_collateralization_from_price_event",
