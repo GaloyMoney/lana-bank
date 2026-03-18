@@ -29,5 +29,4 @@ app:
         testnet4_url: https://mempool.space/testnet4/api/
         signet_url: https://blockstream.info/signet/api/
 time:
-  mode: manual
-  start_at: 2024-01-01T00:00:00Z
+  mode: realtime
