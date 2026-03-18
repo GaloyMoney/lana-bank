@@ -53,6 +53,7 @@
               packagesToDisableTests = [
                 "black"
                 "isort"
+                "pyarrow"
                 "sqlfmt"
                 "weasyprint"
               ];
