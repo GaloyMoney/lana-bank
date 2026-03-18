@@ -154,7 +154,6 @@ where
                     update_pending_collateralization_spawner,
                     repo_arc.clone(),
                     collaterals.clone(),
-                    price.clone(),
                     ledger.clone(),
                 ),
             )

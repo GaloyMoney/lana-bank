@@ -160,6 +160,8 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut op = current_job.begin_op().await?;
 
+        // if the pending facility is not collateralized enough to be activated there will be no
+        // credit facility to update the collateralization state for
         let Some(mut credit_facility) = self
             .repo
             .maybe_find_by_id_in_op(&mut op, self.config.credit_facility_id)

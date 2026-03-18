@@ -17,7 +17,7 @@ use core_credit_collateral::{
 };
 use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 use core_custody::CoreCustodyEvent;
-use core_price::{CorePriceEvent, Price};
+use core_price::CorePriceEvent;
 
 use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent,
@@ -46,7 +46,6 @@ where
     update_collateralization: JobSpawner<UpdateCollateralizationConfig>,
     repo: Arc<CreditFacilityRepo<E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
-    price: Arc<Price>,
     ledger: Arc<CreditLedger>,
     authz: Arc<Perms>,
 }
@@ -65,7 +64,6 @@ where
         update_collateralization: JobSpawner<UpdateCollateralizationConfig>,
         repo: Arc<CreditFacilityRepo<E>>,
         collaterals: Arc<Collaterals<Perms, E>>,
-        price: Arc<Price>,
         ledger: Arc<CreditLedger>,
         authz: Arc<Perms>,
     ) -> Self {
@@ -73,7 +71,6 @@ where
             update_collateralization,
             repo,
             collaterals,
-            price,
             ledger,
             authz,
         }
