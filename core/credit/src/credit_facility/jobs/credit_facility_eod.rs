@@ -311,8 +311,20 @@ where
             }
         };
 
-        for result in results {
-            result?;
+        let mut failed_count = 0usize;
+        for result in &results {
+            let terminal = result.as_ref().map_err(|e| e.to_string())?;
+            if *terminal != job::JobTerminalState::Completed {
+                failed_count += 1;
+            }
+        }
+
+        if failed_count > 0 {
+            return Err(format!(
+                "{failed_count} of {} credit facility EOD child jobs did not complete successfully",
+                results.len()
+            )
+            .into());
         }
 
         tracing::info!("All credit facility EOD per-entity jobs completed");

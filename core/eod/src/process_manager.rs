@@ -325,14 +325,35 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        // Phase 1 completed but Phase 2 not started — spawn Phase 2
         let mut op = current_job.begin_op().await?;
 
         let mut process = self
             .eod_processes
             .find_by_id_in_op(&mut op, self.config.process_id)
             .await?;
-        self.spawn_phase2(&mut op, &mut process).await?;
+
+        // Only spawn Phase 2 if both Phase 1 children actually succeeded
+        let obligation_ok =
+            process.phase1_obligation_terminal() == Some(JobTerminalState::Completed);
+        let deposit_ok = process.phase1_deposit_terminal() == Some(JobTerminalState::Completed);
+
+        if obligation_ok && deposit_ok {
+            self.spawn_phase2(&mut op, &mut process).await?;
+        } else {
+            let reason = format!(
+                "Phase 1 children failed: obligation={:?}, deposit={:?}",
+                process.phase1_obligation_terminal(),
+                process.phase1_deposit_terminal()
+            );
+            tracing::error!(
+                phase = 1,
+                ?obligation_ok,
+                ?deposit_ok,
+                "EOD handle_phase1_complete: phase 1 failed — marking failed"
+            );
+            process.mark_failed(EodPhase::Phase1, reason)?;
+        }
+
         self.eod_processes
             .update_in_op(&mut op, &mut process)
             .await?;

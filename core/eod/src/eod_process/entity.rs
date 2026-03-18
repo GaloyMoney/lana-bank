@@ -287,7 +287,9 @@ impl EodProcess {
         reason: String,
     ) -> Result<Idempotent<()>, EodProcessError> {
         match self.status() {
-            EodProcessStatus::AwaitingPhase1 | EodProcessStatus::AwaitingPhase2 => {}
+            EodProcessStatus::AwaitingPhase1
+            | EodProcessStatus::Phase1Complete
+            | EodProcessStatus::AwaitingPhase2 => {}
             current => {
                 return Err(EodProcessError::InvalidStateTransition {
                     current,
@@ -483,7 +485,7 @@ mod tests {
     }
 
     #[test]
-    fn mark_failed_requires_awaiting_state() {
+    fn mark_failed_from_awaiting_phase1() {
         let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
         let mut process =
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
@@ -492,6 +494,28 @@ mod tests {
         process.start_phase1(job1, job2).unwrap();
         assert!(process
             .mark_failed(EodPhase::Phase1, "test".to_string())
+            .unwrap()
+            .did_execute());
+        assert_eq!(process.status(), EodProcessStatus::Failed);
+    }
+
+    #[test]
+    fn mark_failed_from_phase1_complete() {
+        let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
+        let mut process =
+            EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
+        let job1 = job::JobId::from(uuid::Uuid::new_v4());
+        let job2 = job::JobId::from(uuid::Uuid::new_v4());
+        process.start_phase1(job1, job2).unwrap();
+        process
+            .complete_phase1_obligation(JobTerminalState::Failed)
+            .unwrap();
+        process
+            .complete_phase1_deposit(JobTerminalState::Completed)
+            .unwrap();
+        assert_eq!(process.status(), EodProcessStatus::Phase1Complete);
+        assert!(process
+            .mark_failed(EodPhase::Phase1, "obligation failed".to_string())
             .unwrap()
             .did_execute());
         assert_eq!(process.status(), EodProcessStatus::Failed);
