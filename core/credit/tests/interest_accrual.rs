@@ -416,7 +416,6 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
     assert_eq!(matched.cents, UsdCents::from(329));
     assert_eq!(matched.days, 1);
 
-    // `shutdown()` calls `kill_remaining_jobs`, which rewrites still-running
     ctx.jobs.shutdown().await?;
     cleanup_stale_accrual_jobs(&pool).await?;
     Ok(())
