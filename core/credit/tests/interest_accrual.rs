@@ -222,7 +222,7 @@ async fn create_active_facility_with_clock(
 
     let deposit_account = ctx
         .deposit
-        .create_account(&DummySubject, customer.id)
+        .create_account(&DummySubject, customer.id, [money::CurrencyCode::USD])
         .await?;
 
     let amount = UsdCents::from(1_000_000);

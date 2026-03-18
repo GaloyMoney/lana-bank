@@ -33,7 +33,7 @@
       "Left": [
         "Int8",
         "Uuid",
-        "Int8",
+        "Jsonb",
         "Bool"
       ]
     },

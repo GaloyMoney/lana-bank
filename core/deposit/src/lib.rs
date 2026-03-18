@@ -227,11 +227,12 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "deposit.create_account", skip(self))]
+    #[instrument(name = "deposit.create_account", skip(self, currencies))]
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + Copy + std::fmt::Debug,
+        currencies: impl IntoIterator<Item = CurrencyCode>,
     ) -> Result<DepositAccount, CoreDepositError> {
         self.authz
             .enforce_permission(
@@ -240,6 +241,11 @@ where
                 CoreDepositAction::DEPOSIT_ACCOUNT_CREATE,
             )
             .await?;
+
+        let currencies: Vec<CurrencyCode> = currencies.into_iter().collect();
+        if currencies.is_empty() {
+            return Err(CoreDepositError::NoCurrenciesProvided);
+        }
 
         let customer_id = CustomerId::from(holder_id.into());
 
@@ -257,12 +263,11 @@ where
             .create_in_op(&mut op, DEPOSIT_ACCOUNT_REF_TARGET, account_id)
             .await?;
 
-        let currencies = [CurrencyCode::USD];
-        let mut account_ids = DepositAccountLedgerAccountIds::new(currencies);
-        for currency in currencies {
+        let mut account_ids = DepositAccountLedgerAccountIds::new(currencies.iter().copied());
+        for currency in &currencies {
             account_ids
                 .insert(
-                    currency,
+                    *currency,
                     LedgerAccountPair::new(CalaAccountId::new(), CalaAccountId::new()),
                 )
                 .expect("currency in allowed set");

@@ -710,7 +710,7 @@ pub async fn create_pending_facility(
 
     let deposit_account = ctx
         .deposit
-        .create_account(&DummySubject, customer.id)
+        .create_account(&DummySubject, customer.id, [money::CurrencyCode::USD])
         .await?;
 
     let amount = money::UsdCents::from(1_000_000);
