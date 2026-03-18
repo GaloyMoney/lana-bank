@@ -1121,18 +1121,6 @@
           };
         };
 
-        apps.check-dbt-columns = {
-            type = "app";
-            program = let
-              sqlglot = pkgs.python313Packages.sqlglot;
-              sitePackages = pkgs.python313.sitePackages;
-            in
-              toString (pkgs.writeShellScript "check-dbt-columns" ''
-                export PYTHONPATH="${sqlglot}/${sitePackages}"
-                exec ${pkgs.python313}/bin/python3 dev/check-dbt-columns.py "$@"
-              '');
-          };
-
         apps.default = flake-utils.lib.mkApp {
           drv = lana-cli-debug;
           name = "lana-cli";
