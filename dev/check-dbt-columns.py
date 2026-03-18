@@ -29,7 +29,6 @@ logging.getLogger("sqlglot").setLevel(logging.ERROR)
 
 MIGRATIONS_DIR = "lana/app/migrations"
 DBT_STAGING_DIR = "dagster/src/dbt_lana_dw/models/staging"
-DBT_MODELS_DIR = "dagster/src/dbt_lana_dw/models"
 
 CORE_SETUP_MIGRATION = "20240517074612_core_setup.sql"
 SQLGLOT_DIALECT = "bigquery"
@@ -194,7 +193,7 @@ def extract_source_columns_from_dbt(sql: str) -> list[SourceRef]:
     # Strategy: find CTEs or subqueries that SELECT FROM a source placeholder,
     # then collect all Column nodes within that SELECT.
     # Find SELECT statements that read directly from a source placeholder
-    source_selects: list[tuple[str, exp.Select, bool]] = []
+    source_selects: list[tuple[str, exp.Select]] = []
     for select in parsed.find_all(exp.Select):
         from_clause = select.find(exp.From)
         if not from_clause:
@@ -315,18 +314,12 @@ def main():
         default=DBT_STAGING_DIR,
         help="Path to dbt staging models directory",
     )
-    parser.add_argument(
-        "--dbt-models-dir",
-        default=DBT_MODELS_DIR,
-        help="Path to all dbt models (for downstream impact analysis)",
-    )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent
     migrations_dir = repo_root / args.migrations_dir
     dbt_staging_dir = repo_root / args.dbt_dir
-    dbt_models_dir = repo_root / args.dbt_models_dir
 
     if not migrations_dir.exists():
         print(f"Error: migrations directory not found: {migrations_dir}", file=sys.stderr)
@@ -384,12 +377,6 @@ def main():
             print(f"  Source:    {m.source_table}")
             print(f"  Missing:   {', '.join(m.missing_columns)}")
             print(f"  Available: {', '.join(sorted(m.available_columns - DLT_COLUMNS))}")
-
-            staging_model_name = Path(m.dbt_file).stem
-            if dbt_models_dir.exists():
-                downstream = find_downstream_models(dbt_models_dir, staging_model_name)
-                if downstream:
-                    print(f"  Downstream: {' -> '.join(downstream)}")
             print()
 
     total = len(star_usages) + len(missing_sources) + len(column_mismatches)
