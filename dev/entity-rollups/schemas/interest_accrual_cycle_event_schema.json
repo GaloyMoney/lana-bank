@@ -294,14 +294,31 @@
           "format": "date-time",
           "type": "string"
         },
+        "accumulated_at_regulatory_precision": {
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
+        },
         "amount": {
           "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "days": {
+          "format": "uint32",
           "minimum": 0,
           "type": "integer"
         },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
+        },
+        "principal": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
         },
         "tx_ref": {
           "type": "string"
@@ -316,7 +333,10 @@
         "ledger_tx_id",
         "tx_ref",
         "amount",
-        "accrued_at"
+        "accrued_at",
+        "principal",
+        "days",
+        "accumulated_at_regulatory_precision"
       ],
       "type": "object"
     },
