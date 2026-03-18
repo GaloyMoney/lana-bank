@@ -94,8 +94,8 @@ where
 #[serde(rename_all = "camelCase")]
 enum ObligationTransitionState {
     #[default]
-    Collecting(ObligationTransitionCollectingState),
-    Tracking {
+    SpawningTransitionJobs(SpawningTransitionJobsState),
+    AwaitingTransitions {
         pending: HashSet<ObligationId>,
         start_sequence: i64,
     },
@@ -103,7 +103,7 @@ enum ObligationTransitionState {
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct ObligationTransitionCollectingState {
+struct SpawningTransitionJobsState {
     last_cursor: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
     pending: HashSet<ObligationId>,
 }
@@ -115,11 +115,18 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
 {
-    async fn run_collecting(
+    /// Step 1: Capture the outbox sequence, then query obligations needing
+    /// transition (paginated) and spawn a per-obligation transition job for
+    /// each. Transitions to AwaitingTransitions when all pages are processed.
+    async fn spawn_transition_jobs(
         &self,
         mut current_job: CurrentJob,
-        mut state: ObligationTransitionCollectingState,
+        mut state: SpawningTransitionJobsState,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        // Capture sequence BEFORE spawning any jobs so we never miss a
+        // completion event from a fast-finishing job.
+        let start_sequence = self.outbox.current_sequence().await?;
+
         loop {
             let mut op = current_job.begin_op().await?;
 
@@ -171,21 +178,19 @@ where
             current_job
                 .update_execution_state_in_op(
                     &mut op,
-                    &ObligationTransitionState::Collecting(state.clone()),
+                    &ObligationTransitionState::SpawningTransitionJobs(state.clone()),
                 )
                 .await?;
             op.commit().await?;
         }
 
-        let start_sequence = self.outbox.current_sequence().await?;
-
         tracing::info!(
             entities = state.pending.len(),
             start_sequence,
-            "Obligation transition collection complete, transitioning to tracking"
+            "Obligation transition spawning complete, transitioning to awaiting"
         );
 
-        let new_state = ObligationTransitionState::Tracking {
+        let new_state = ObligationTransitionState::AwaitingTransitions {
             pending: state.pending,
             start_sequence,
         };
@@ -211,7 +216,11 @@ where
         }
     }
 
-    async fn run_tracking(
+    /// Step 2: Stream outbox events from the saved sequence, matching
+    /// obligation transition completion events. Removes completed obligations
+    /// from the pending set and checkpoints on each match. Completes when all
+    /// obligations have transitioned.
+    async fn await_transition_events(
         &self,
         mut current_job: CurrentJob,
         mut pending: HashSet<ObligationId>,
@@ -238,7 +247,7 @@ where
                             if let Some(obligation_id) = Self::extract_obligation_completion(collection_event) {
                                 if pending.remove(&obligation_id) {
                                     start_sequence = event.sequence;
-                                    let state = ObligationTransitionState::Tracking {
+                                    let state = ObligationTransitionState::AwaitingTransitions {
                                         pending: pending.clone(),
                                         start_sequence,
                                     };
@@ -253,6 +262,11 @@ where
                     }
                 }
                 _ = current_job.shutdown_requested() => {
+                    let state = ObligationTransitionState::AwaitingTransitions {
+                        pending,
+                        start_sequence,
+                    };
+                    current_job.update_execution_state(&state).await?;
                     tracing::info!("Shutdown requested, rescheduling obligation transition tracking");
                     return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
                 }
@@ -284,14 +298,14 @@ where
             .unwrap_or_default();
 
         match state {
-            ObligationTransitionState::Collecting(collecting) => {
-                self.run_collecting(current_job, collecting).await
+            ObligationTransitionState::SpawningTransitionJobs(spawning) => {
+                self.spawn_transition_jobs(current_job, spawning).await
             }
-            ObligationTransitionState::Tracking {
+            ObligationTransitionState::AwaitingTransitions {
                 pending,
                 start_sequence,
             } => {
-                self.run_tracking(current_job, pending, start_sequence)
+                self.await_transition_events(current_job, pending, start_sequence)
                     .await
             }
         }
