@@ -1488,7 +1488,10 @@
           "toReceive": "A Recibir",
           "toLiquidate": "A Liquidar",
           "targetCvl": "CVL Objetivo",
-          "infinite": "Infinito"
+          "infinite": "Infinito",
+          "price": "Precio actual de BTC/USD",
+          "effectiveLiquidationPrice": "Precio efectivo de BTC/USD",
+          "liquidationPremiumPct": "Prima de Liquidación"
         },
         "errors": {
           "calculationFailed": "Error en el cálculo: {error}"

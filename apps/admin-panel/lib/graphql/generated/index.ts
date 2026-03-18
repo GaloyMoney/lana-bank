@@ -2056,6 +2056,9 @@ export type LiquidationEdge = {
 
 export type LiquidationPayment = {
   __typename?: 'LiquidationPayment';
+  effectiveLiquidationPrice: Scalars['UsdCents']['output'];
+  liquidationPremiumPct: Scalars['Decimal']['output'];
+  price: Scalars['UsdCents']['output'];
   targetCvl: CvlPct;
   toLiquidate: Scalars['Satoshis']['output'];
   toReceive: Scalars['UsdCents']['output'];
@@ -5224,7 +5227,7 @@ export type LiquidationPaymentCalculateQueryVariables = Exact<{
 }>;
 
 
-export type LiquidationPaymentCalculateQuery = { __typename?: 'Query', liquidationPaymentCalculate: { __typename?: 'LiquidationPayment', toReceive: UsdCents, toLiquidate: Satoshis, targetCvl:
+export type LiquidationPaymentCalculateQuery = { __typename?: 'Query', liquidationPaymentCalculate: { __typename?: 'LiquidationPayment', toReceive: UsdCents, toLiquidate: Satoshis, price: UsdCents, effectiveLiquidationPrice: UsdCents, liquidationPremiumPct: any, targetCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
      } };
@@ -11768,6 +11771,9 @@ export const LiquidationPaymentCalculateDocument = gql`
         isInfinite
       }
     }
+    price
+    effectiveLiquidationPrice
+    liquidationPremiumPct
   }
 }
     `;

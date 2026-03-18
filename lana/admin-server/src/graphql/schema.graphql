@@ -1995,6 +1995,9 @@ type LiquidationEdge {
 }
 
 type LiquidationPayment {
+	effectiveLiquidationPrice: UsdCents!
+	liquidationPremiumPct: Decimal!
+	price: UsdCents!
 	targetCvl: CvlPct!
 	toLiquidate: Satoshis!
 	toReceive: UsdCents!
