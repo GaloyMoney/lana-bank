@@ -28,7 +28,8 @@ use crate::{
     history::DepositAccountHistoryEntry,
     primitives::{
         Amount, CalaAccountId, CalaAccountSetId, CurrencyCode, DEPOSIT_ACCOUNT_ENTITY_TYPE,
-        DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountType, DepositId, UsdCents, WithdrawalId,
+        DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountType, DepositId, Satoshis, UsdCents,
+        WithdrawalId,
     },
 };
 
@@ -774,26 +775,44 @@ impl DepositLedger {
         let mut result =
             DepositAccountBalances::new(account_ids.allowed_currencies().iter().copied());
         for (&currency, pair) in account_ids.iter() {
-            let bal = match currency {
-                c if c == CurrencyCode::USD => {
-                    let account_id: AccountId = pair.active.into();
-                    match self
-                        .cala
-                        .balances()
-                        .find(self.journal_id, account_id, self.usd)
-                        .await
-                    {
-                        Ok(balances) => DepositAccountBalance::Usd {
-                            settled: UsdCents::try_from_usd(balances.settled())?,
-                            pending: UsdCents::try_from_usd(balances.pending())?,
-                        },
-                        Err(cala_ledger::balance::error::BalanceError::NotFound(..)) => {
-                            DepositAccountBalance::zero_usd()
-                        }
-                        Err(e) => return Err(e.into()),
+            let account_id: AccountId = pair.active.into();
+            let bal = match self
+                .cala
+                .balances()
+                .find(self.journal_id, account_id, self.usd)
+                .await
+            {
+                Ok(balances) => match currency {
+                    c if c == CurrencyCode::USD => DepositAccountBalance {
+                        settled: Amount::from(UsdCents::try_from_usd(balances.settled())?),
+                        pending: Amount::from(UsdCents::try_from_usd(balances.pending())?),
+                    },
+                    c if c == CurrencyCode::BTC => DepositAccountBalance {
+                        settled: Amount::from(Satoshis::try_from_btc(balances.settled())?),
+                        pending: Amount::from(Satoshis::try_from_btc(balances.pending())?),
+                    },
+                    _ => {
+                        return Err(DepositLedgerError::UnsupportedCurrency(
+                            currency.to_string(),
+                        ));
                     }
-                }
-                _ => DepositAccountBalance::zero_btc(),
+                },
+                Err(cala_ledger::balance::error::BalanceError::NotFound(..)) => match currency {
+                    c if c == CurrencyCode::USD => DepositAccountBalance {
+                        settled: Amount::from(UsdCents::ZERO),
+                        pending: Amount::from(UsdCents::ZERO),
+                    },
+                    c if c == CurrencyCode::BTC => DepositAccountBalance {
+                        settled: Amount::from(Satoshis::ZERO),
+                        pending: Amount::from(Satoshis::ZERO),
+                    },
+                    _ => {
+                        return Err(DepositLedgerError::UnsupportedCurrency(
+                            currency.to_string(),
+                        ));
+                    }
+                },
+                Err(e) => return Err(e.into()),
             };
             result
                 .insert(currency, bal)
