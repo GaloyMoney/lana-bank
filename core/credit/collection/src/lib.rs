@@ -16,7 +16,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_time_events::CoreTimeEvent;
 use es_entity::clock::ClockHandle;
-use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
+use obix::out::OutboxEventMarker;
 
 pub use error::CoreCreditCollectionError;
 pub use obligation::{
@@ -41,9 +41,7 @@ use ledger::CollectionLedger;
 pub use ledger::error::CollectionLedgerError;
 
 use obligation::jobs::{
-    end_of_day::{OBLIGATION_END_OF_DAY, ObligationEndOfDayHandler},
     obligation_transition::ObligationTransitionJobInit,
-    process_obligations::ProcessObligationsJobInit,
     transition_obligation::TransitionObligationJobInit,
 };
 
@@ -100,7 +98,6 @@ where
         payments_made_omnibus_account_id: CalaAccountId,
         jobs: &mut job::Jobs,
         publisher: &CollectionPublisher<E>,
-        outbox: &Outbox<E>,
         clock: ClockHandle,
     ) -> Result<
         (
@@ -125,21 +122,7 @@ where
         let transition_spawner =
             jobs.add_initializer(TransitionObligationJobInit::new(obligations_arc.as_ref()));
 
-        let process_obligations_spawner = jobs.add_initializer(ProcessObligationsJobInit::new(
-            obligations_arc.as_ref(),
-            transition_spawner.clone(),
-        ));
-
-        // Legacy handler kept for backward compatibility with in-flight jobs
-        outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(OBLIGATION_END_OF_DAY),
-                ObligationEndOfDayHandler::new(process_obligations_spawner),
-            )
-            .await?;
-
-        // New EOD child job — spawned by the EOD process manager
+        // EOD child job — spawned by the EOD process manager
         let obligation_transition_spawner = jobs.add_initializer(ObligationTransitionJobInit::new(
             jobs,
             obligations_arc.as_ref(),

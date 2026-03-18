@@ -185,33 +185,7 @@ where
                 authz.clone(),
             ));
 
-        let collect_facilities_for_accrual_spawner = jobs.add_initializer(
-            jobs::collect_facilities_for_accrual::CollectFacilitiesForAccrualJobInit::new(
-                repo.as_ref(),
-                process_accrual_cycle_spawner.clone(),
-            ),
-        );
-
-        let process_facility_maturities_spawner = jobs.add_initializer(
-            jobs::process_facility_maturities::ProcessFacilityMaturitiesJobInit::new(
-                repo.clone(),
-                maturity_spawner.clone(),
-            ),
-        );
-
-        // Legacy handler kept for backward compatibility with in-flight jobs
-        outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(jobs::end_of_day::FACILITY_END_OF_DAY),
-                jobs::end_of_day::FacilityEndOfDayHandler::new(
-                    collect_facilities_for_accrual_spawner,
-                    process_facility_maturities_spawner,
-                ),
-            )
-            .await?;
-
-        // New EOD child job — spawned by the EOD process manager
+        // EOD child job — spawned by the EOD process manager
         let credit_facility_eod_spawner =
             jobs.add_initializer(jobs::credit_facility_eod::CreditFacilityEodJobInit::new(
                 jobs,

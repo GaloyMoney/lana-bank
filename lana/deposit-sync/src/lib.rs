@@ -81,20 +81,7 @@ where
         let evaluate_spawner =
             jobs.add_initializer(EvaluateDepositAccountActivityJobInit::new(deposits));
 
-        let collect_spawner = jobs.add_initializer(
-            CollectAccountsForActivityEvaluationJobInit::new(deposits, evaluate_spawner.clone()),
-        );
-
-        // Legacy handler kept for backward compatibility with in-flight jobs
-        outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(DEPOSIT_END_OF_DAY),
-                DepositEndOfDayHandler::new(collect_spawner),
-            )
-            .await?;
-
-        // New EOD child job — spawned by the EOD process manager
+        // EOD child job — spawned by the EOD process manager
         let deposit_activity_spawner = jobs.add_initializer(DepositActivityJobInit::new(
             jobs,
             deposits,

@@ -222,7 +222,6 @@ where
             ledger_arc.payments_made_omnibus_account_ids().account_id,
             jobs,
             &collections_publisher,
-            outbox,
             clock.clone(),
         )
         .await?;
