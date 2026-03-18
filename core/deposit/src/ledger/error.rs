@@ -26,6 +26,8 @@ pub enum DepositLedgerError {
     CalaVelocity(#[from] cala_ledger::velocity::error::VelocityError),
     #[error("DepositLedgerError - ConversionError: {0}")]
     ConversionError(#[from] money::ConversionError),
+    #[error("DepositLedgerError - CurrencyMapError: {0}")]
+    CurrencyMapError(#[from] money::CurrencyMapError),
     #[error("DepositLedgerError - MissingTxMetadata")]
     MissingTxMetadata,
     #[error("DepositLedgerError - MismatchedTxMetadata: {0}")]
@@ -58,6 +60,7 @@ impl ErrorSeverity for DepositLedgerError {
             }
             Self::CalaVelocity(_) => Level::ERROR,
             Self::ConversionError(e) => e.severity(),
+            Self::CurrencyMapError(_) => Level::ERROR,
             Self::MissingTxMetadata => Level::WARN,
             Self::MismatchedTxMetadata(_) => Level::WARN,
             Self::NonAccountMemberFoundInAccountSet(_) => Level::ERROR,

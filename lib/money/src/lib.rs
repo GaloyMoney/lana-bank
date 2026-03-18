@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod amount;
 mod code;
 mod error;
 mod map;
@@ -13,6 +14,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
+pub use amount::*;
 pub use code::*;
 pub use error::ConversionError;
 pub use map::*;
