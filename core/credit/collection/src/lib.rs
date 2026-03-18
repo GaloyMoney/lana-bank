@@ -103,7 +103,7 @@ where
     ) -> Result<
         (
             Self,
-            core_eod::obligation_transition_process::ObligationTransitionProcessSpawner,
+            core_time_events::obligation_transition_process::ObligationTransitionProcessSpawner,
         ),
         CoreCreditCollectionError,
     > {

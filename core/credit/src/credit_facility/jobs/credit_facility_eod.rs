@@ -11,10 +11,10 @@ use job::{error::JobError, *};
 use obix::out::OutboxEventMarker;
 
 use core_custody::CoreCustodyEvent;
-use core_eod::credit_facility_eod_process::{
+use core_price::CorePriceEvent;
+use core_time_events::credit_facility_eod_process::{
     CREDIT_FACILITY_EOD_PROCESS_JOB_TYPE, CreditFacilityEodProcessConfig,
 };
-use core_price::CorePriceEvent;
 
 use super::credit_facility_maturity::{
     CreditFacilityMaturityJobConfig, CreditFacilityMaturityJobSpawner,
@@ -169,7 +169,7 @@ where
                 let specs: Vec<_> = rows
                     .iter()
                     .map(|(id, _)| {
-                        let job_id = core_eod::eod_entity_id(
+                        let job_id = core_time_events::eod_entity_id(
                             &self.config.date,
                             "interest-accrual",
                             &(*id).into(),
@@ -227,7 +227,7 @@ where
             let specs: Vec<_> = rows
                 .iter()
                 .map(|(id, _)| {
-                    let job_id = core_eod::eod_entity_id(
+                    let job_id = core_time_events::eod_entity_id(
                         &self.config.date,
                         "credit-maturity",
                         &(*id).into(),

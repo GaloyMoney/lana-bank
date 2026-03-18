@@ -12,7 +12,7 @@ use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
     GovernanceAction, GovernanceObject,
 };
-use core_eod::deposit_activity_process::{
+use core_time_events::deposit_activity_process::{
     DEPOSIT_ACTIVITY_PROCESS_JOB_TYPE, DepositActivityProcessConfig,
 };
 use governance::GovernanceEvent;
@@ -160,7 +160,7 @@ where
             let specs: Vec<_> = rows
                 .iter()
                 .map(|(id, _)| {
-                    let job_id = core_eod::eod_entity_id(
+                    let job_id = core_time_events::eod_entity_id(
                         &self.config.date,
                         "deposit-activity",
                         &(*id).into(),

@@ -25,8 +25,8 @@ use core_credit_collateral::{
     Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
 };
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_eod::accrue_interest_command::ACCRUE_INTEREST_COMMAND_JOB_TYPE;
 use core_price::CorePriceEvent;
+use core_time_events::accrue_interest_command::ACCRUE_INTEREST_COMMAND_JOB_TYPE;
 
 use crate::{
     AccrualOutcome, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId,

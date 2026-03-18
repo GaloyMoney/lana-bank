@@ -47,7 +47,7 @@ where
 }
 
 mod eod_process_status_sqlx {
-    use sqlx::{postgres::*, Type};
+    use sqlx::{Type, postgres::*};
 
     use crate::primitives::EodProcessStatus;
 

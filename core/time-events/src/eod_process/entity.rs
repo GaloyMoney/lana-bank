@@ -257,7 +257,7 @@ impl EodProcess {
                 return Err(EodProcessError::InvalidStateTransition {
                     current,
                     attempted: "mark_completed",
-                })
+                });
             }
         }
         // Verify phase 2 actually completed before allowing completion
@@ -294,7 +294,7 @@ impl EodProcess {
                 return Err(EodProcessError::InvalidStateTransition {
                     current,
                     attempted: "mark_failed",
-                })
+                });
             }
         }
         idempotency_guard!(
@@ -315,7 +315,7 @@ impl EodProcess {
                 return Err(EodProcessError::InvalidStateTransition {
                     current: self.status(),
                     attempted: "request_cancellation",
-                })
+                });
             }
             _ => {}
         }
@@ -338,7 +338,7 @@ impl EodProcess {
                 return Err(EodProcessError::InvalidStateTransition {
                     current: self.status(),
                     attempted: "mark_cancelled",
-                })
+                });
             }
             _ => {}
         }
@@ -424,10 +424,12 @@ mod tests {
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
         assert!(process.start_phase1(job1, job2).unwrap().did_execute());
-        assert!(process
-            .start_phase1(job1, job2)
-            .unwrap()
-            .was_already_applied());
+        assert!(
+            process
+                .start_phase1(job1, job2)
+                .unwrap()
+                .was_already_applied()
+        );
         assert_eq!(process.status(), EodProcessStatus::AwaitingPhase1);
     }
 
@@ -492,10 +494,12 @@ mod tests {
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
         process.start_phase1(job1, job2).unwrap();
-        assert!(process
-            .mark_failed(EodPhase::Phase1, "test".to_string())
-            .unwrap()
-            .did_execute());
+        assert!(
+            process
+                .mark_failed(EodPhase::Phase1, "test".to_string())
+                .unwrap()
+                .did_execute()
+        );
         assert_eq!(process.status(), EodProcessStatus::Failed);
     }
 
@@ -514,10 +518,12 @@ mod tests {
             .complete_phase1_deposit(JobTerminalState::Completed)
             .unwrap();
         assert_eq!(process.status(), EodProcessStatus::Phase1Complete);
-        assert!(process
-            .mark_failed(EodPhase::Phase1, "obligation failed".to_string())
-            .unwrap()
-            .did_execute());
+        assert!(
+            process
+                .mark_failed(EodPhase::Phase1, "obligation failed".to_string())
+                .unwrap()
+                .did_execute()
+        );
         assert_eq!(process.status(), EodProcessStatus::Failed);
     }
 }

@@ -188,8 +188,8 @@ where
     ) -> Result<
         (
             Self,
-            core_eod::obligation_transition_process::ObligationTransitionProcessSpawner,
-            core_eod::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
+            core_time_events::obligation_transition_process::ObligationTransitionProcessSpawner,
+            core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
         ),
         CoreCreditError,
     >

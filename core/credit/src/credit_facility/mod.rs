@@ -141,7 +141,7 @@ where
     ) -> Result<
         (
             Self,
-            core_eod::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
+            core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
         ),
         CreditFacilityError,
     >

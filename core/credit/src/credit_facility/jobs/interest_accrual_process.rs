@@ -35,7 +35,7 @@ use tracing_macros::record_error_severity;
 
 use job::{error::JobError, *};
 
-use core_eod::interest_accrual_process::INTEREST_ACCRUAL_PROCESS_JOB_TYPE;
+use core_time_events::interest_accrual_process::INTEREST_ACCRUAL_PROCESS_JOB_TYPE;
 
 use super::accrue_interest_command::{AccrueInterestCommandConfig, AccrueInterestCommandSpawner};
 use super::complete_accrual_cycle_command::{
@@ -153,7 +153,7 @@ impl JobRunner for InterestAccrualProcessRunner {
 
         match state {
             InterestAccrualProcessState::AccruingInterest => {
-                let accrual_job = core_eod::eod_entity_id(
+                let accrual_job = core_time_events::eod_entity_id(
                     &self.config.date,
                     "accrue-interest",
                     &(*self.config.credit_facility_id).into(),
@@ -227,7 +227,7 @@ impl JobRunner for InterestAccrualProcessRunner {
             }
 
             InterestAccrualProcessState::SpawningCycleCompletion { accrual_terminal } => {
-                let cycle_job = core_eod::eod_entity_id(
+                let cycle_job = core_time_events::eod_entity_id(
                     &self.config.date,
                     "complete-accrual-cycle",
                     &(*self.config.credit_facility_id).into(),

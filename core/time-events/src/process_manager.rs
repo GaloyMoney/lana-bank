@@ -167,13 +167,15 @@ where
             .credit_facility_spawner
             .spawn_all_in_op(
                 op,
-                vec![JobSpec::new(
-                    credit_facility_job,
-                    CreditFacilityEodProcessConfig {
-                        date: self.config.date,
-                    },
-                )
-                .queue_id("eod-credit-facility".to_string())],
+                vec![
+                    JobSpec::new(
+                        credit_facility_job,
+                        CreditFacilityEodProcessConfig {
+                            date: self.config.date,
+                        },
+                    )
+                    .queue_id("eod-credit-facility".to_string()),
+                ],
             )
             .await
         {
@@ -198,13 +200,15 @@ where
             .obligation_spawner
             .spawn_all_in_op(
                 &mut op,
-                vec![JobSpec::new(
-                    obligation_job,
-                    ObligationTransitionProcessConfig {
-                        date: self.config.date,
-                    },
-                )
-                .queue_id("eod-obligation-transition".to_string())],
+                vec![
+                    JobSpec::new(
+                        obligation_job,
+                        ObligationTransitionProcessConfig {
+                            date: self.config.date,
+                        },
+                    )
+                    .queue_id("eod-obligation-transition".to_string()),
+                ],
             )
             .await
         {
@@ -216,14 +220,16 @@ where
             .deposit_spawner
             .spawn_all_in_op(
                 &mut op,
-                vec![JobSpec::new(
-                    deposit_job,
-                    DepositActivityProcessConfig {
-                        date: self.config.date,
-                        closing_time: self.config.closing_time,
-                    },
-                )
-                .queue_id("eod-deposit-activity".to_string())],
+                vec![
+                    JobSpec::new(
+                        deposit_job,
+                        DepositActivityProcessConfig {
+                            date: self.config.date,
+                            closing_time: self.config.closing_time,
+                        },
+                    )
+                    .queue_id("eod-deposit-activity".to_string()),
+                ],
             )
             .await
         {

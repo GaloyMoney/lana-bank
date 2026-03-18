@@ -79,7 +79,7 @@ where
     ) -> Result<
         (
             Self,
-            core_eod::deposit_activity_process::DepositActivityProcessSpawner,
+            core_time_events::deposit_activity_process::DepositActivityProcessSpawner,
         ),
         DepositSyncError,
     > {

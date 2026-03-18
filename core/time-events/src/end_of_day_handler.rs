@@ -1,11 +1,11 @@
-use tracing::{instrument, Span};
+use tracing::{Span, instrument};
 
-use core_time_events::CoreTimeEvent;
+use crate::CoreTimeEvent;
 use job::{JobSpec, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
-    eod_process::{error::EodProcessError, EodProcesses, NewEodProcess},
+    eod_process::{EodProcesses, NewEodProcess, error::EodProcessError},
     job_id::{self, eod_process_id_from_date},
     process_manager::EodProcessManagerJobSpawner,
     public::CoreEodEvent,

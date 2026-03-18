@@ -25,8 +25,8 @@ use core_credit_collateral::{
     CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
 };
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_eod::complete_accrual_cycle_command::COMPLETE_ACCRUAL_CYCLE_COMMAND_JOB_TYPE;
 use core_price::CorePriceEvent;
+use core_time_events::complete_accrual_cycle_command::COMPLETE_ACCRUAL_CYCLE_COMMAND_JOB_TYPE;
 
 use core_credit_collection::CoreCreditCollection;
 

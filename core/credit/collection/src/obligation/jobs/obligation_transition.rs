@@ -8,10 +8,10 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_eod::obligation_transition_process::{
+use core_time_events::CoreTimeEvent;
+use core_time_events::obligation_transition_process::{
     OBLIGATION_TRANSITION_PROCESS_JOB_TYPE, ObligationTransitionProcessConfig,
 };
-use core_time_events::CoreTimeEvent;
 use job::{error::JobError, *};
 use obix::out::{Outbox, OutboxEventMarker};
 
@@ -162,7 +162,7 @@ where
             let specs: Vec<_> = rows
                 .iter()
                 .map(|(id, _)| {
-                    let job_id = core_eod::eod_entity_id(
+                    let job_id = core_time_events::eod_entity_id(
                         &self.config.date,
                         "obligation-transition",
                         &(*id).into(),

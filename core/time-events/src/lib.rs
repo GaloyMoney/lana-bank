@@ -6,6 +6,21 @@ pub mod error;
 mod event;
 mod jobs;
 
+// --- Modules merged from core-eod ---
+pub mod accrue_interest_command;
+pub mod complete_accrual_cycle_command;
+pub mod credit_facility_eod_process;
+pub mod deposit_activity_process;
+pub mod end_of_day_handler;
+pub mod eod_process;
+pub mod interest_accrual_process;
+mod job_id;
+pub mod obligation_transition_process;
+mod primitives;
+mod process_manager;
+pub mod public;
+mod publisher;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
@@ -25,6 +40,17 @@ use crate::{
 
 pub use closing_schedule::ClosingSchedule;
 pub use event::*;
+
+// --- Re-exports merged from core-eod ---
+pub use eod_process::{EodPhase, EodProcess, EodProcessEvent, EodProcesses, NewEodProcess};
+pub use job_id::*;
+pub use primitives::*;
+pub use process_manager::{
+    EOD_PROCESS_MANAGER_JOB_TYPE, EodProcessManagerConfig, EodProcessManagerJobInit,
+    EodProcessManagerJobSpawner,
+};
+pub use public::*;
+pub use publisher::EodPublisher;
 
 #[derive(Clone, Debug)]
 pub struct TimeState {
