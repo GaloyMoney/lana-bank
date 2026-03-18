@@ -18,6 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Validate report columns
+        run: ci/tasks/validate-report-columns.sh
       - uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true
@@ -41,9 +46,7 @@ jobs:
           skipPush: true
 
       - name: Validate dbt source columns against migrations
-        run: nix develop -c python3 dev/check-dbt-columns.py
-      - name: Validate report columns
-        run: nix develop -c ci/tasks/validate-report-columns.sh
+        run: nix run .#check-dbt-columns
 
       - name: Provision BigQuery infrastructure
         run: |

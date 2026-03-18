@@ -1121,6 +1121,16 @@
           };
         };
 
+        apps.check-dbt-columns = {
+            type = "app";
+            program = let
+              python = pkgs.python313.withPackages (ps: [ps.sqlglot]);
+            in
+              toString (pkgs.writeShellScript "check-dbt-columns" ''
+                exec ${python}/bin/python3 dev/check-dbt-columns.py "$@"
+              '');
+          };
+
         apps.default = flake-utils.lib.mkApp {
           drv = lana-cli-debug;
           name = "lana-cli";
