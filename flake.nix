@@ -52,6 +52,7 @@
               # Only disable tests for specific packages that need it
               packagesToDisableTests = [
                 "black"
+                "duckdb"
                 "isort"
                 "pyarrow"
                 "sqlfmt"
