@@ -21,7 +21,7 @@ use job::under_margin_call_email::UnderMarginCallEmailInitializer;
 pub use config::{EmailInfraConfig, NotificationFromEmail, NotificationFromName};
 pub use error::EmailError;
 
-pub async fn init<Perms>(
+pub(crate) async fn init<Perms>(
     jobs: &mut Jobs,
     domain_configs: &ExposedDomainConfigsReadOnly,
     infra_config: EmailInfraConfig,
