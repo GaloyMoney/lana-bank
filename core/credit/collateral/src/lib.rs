@@ -276,7 +276,7 @@ where
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
         if let es_entity::Idempotent::Executed(collateral_update) =
-            collateral.record_collateral_update_via_manual_input(updated_collateral, effective)?
+            collateral.record_collateral_update_via_manual_input(updated_collateral, effective)
         {
             self.repo.update_in_op(db, &mut collateral).await?;
 
@@ -306,7 +306,7 @@ where
         let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
 
         if let es_entity::Idempotent::Executed(collateral_update) =
-            collateral.record_collateral_update_via_manual_input(updated_collateral, effective)?
+            collateral.record_collateral_update_via_manual_input(updated_collateral, effective)
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;
 

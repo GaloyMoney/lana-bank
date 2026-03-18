@@ -80,16 +80,16 @@ const PendingCreditFacilityDetailsCard: React.FC<
     },
     {
       label: t("details.custodian"),
-      value: pendingDetails.wallet?.custodian.name ?? t("details.manual"),
+      value: pendingDetails.wallet.custodian.name,
     },
-    pendingDetails.wallet?.address && {
+    pendingDetails.wallet.address && {
       label: (
         <Label className="inline-flex items-center">
           {t("details.walletAddress")}
           <a
             href={mempoolAddressUrl(
-              pendingDetails.wallet!.address,
-              pendingDetails.wallet!.network,
+              pendingDetails.wallet.address,
+              pendingDetails.wallet.network,
             )}
             target="_blank"
             className="ml-2 inline-flex items-center gap-1 text-xs text-blue-500 whitespace-nowrap leading-none"
@@ -103,7 +103,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
       value: (
         <span
           onClick={() => {
-            navigator.clipboard.writeText(pendingDetails.wallet!.address)
+            navigator.clipboard.writeText(pendingDetails.wallet.address)
             toast.success(commonT("copiedToClipboard"))
           }}
           className="cursor-pointer hover:bg-secondary font-mono text-sm"
@@ -117,7 +117,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
 
   const footerContent = (
     <>
-      {pendingDetails.status !== PendingCreditFacilityStatus.Completed && (pendingDetails.wallet?.custodian.provider ?? "manual") === "manual" && (
+      {pendingDetails.status !== PendingCreditFacilityStatus.Completed && pendingDetails.wallet.custodian.provider === "manual" && (
           <Button
             variant="outline"
             onClick={() => setOpenCollateralUpdateDialog(true)}
