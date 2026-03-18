@@ -1,0 +1,38 @@
+use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
+
+#[derive(Error, Debug)]
+pub enum ChartOfAccountsIntegrationError {
+    #[error("ChartOfAccountsIntegrationError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("ChartOfAccountsIntegrationError - ChartIdMismatch")]
+    ChartIdMismatch,
+    #[error("ChartOfAccountsIntegrationError - ConfigAlreadySet")]
+    ConfigAlreadySet,
+    #[error("ChartOfAccountsIntegrationError - FxLedgerError: {0}")]
+    FxLedgerError(#[from] crate::ledger::error::FxLedgerError),
+    #[error("ChartOfAccountsIntegrationError - ChartLookupError: {0}")]
+    ChartLookupError(#[from] chart_primitives::ChartLookupError),
+    #[error("ChartOfAccountsIntegrationError - AccountingBaseConfigNotFound")]
+    AccountingBaseConfigNotFound,
+    #[error("ChartOfAccountsIntegrationError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::error::DomainConfigError),
+    #[error("ChartOfAccountsIntegrationError - Sqlx: {0}")]
+    Sqlx(#[from] sqlx::Error),
+}
+
+impl ErrorSeverity for ChartOfAccountsIntegrationError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::AuthorizationError(e) => e.severity(),
+            Self::ChartIdMismatch => Level::ERROR,
+            Self::ConfigAlreadySet => Level::WARN,
+            Self::FxLedgerError(e) => e.severity(),
+            Self::ChartLookupError(e) => e.severity(),
+            Self::AccountingBaseConfigNotFound => Level::ERROR,
+            Self::DomainConfigError(e) => e.severity(),
+            Self::Sqlx(_) => Level::ERROR,
+        }
+    }
+}
