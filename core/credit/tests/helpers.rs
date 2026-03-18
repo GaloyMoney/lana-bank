@@ -77,7 +77,16 @@ pub async fn init_domain_configs(
     pool: &sqlx::PgPool,
     authz: &authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
 ) -> anyhow::Result<(InternalDomainConfigs, ExposedDomainConfigsReadOnly)> {
-    let startup_configs: Vec<(String, serde_json::Value)> = vec![];
+    let startup_configs: Vec<(String, serde_json::Value)> = vec![
+        (
+            "credit-accrual-precision-dp".to_string(),
+            serde_json::json!(6),
+        ),
+        (
+            "credit-accrual-rounding-strategy".to_string(),
+            serde_json::json!("half_up"),
+        ),
+    ];
     let (internal, exposed, exposed_readonly) = domain_config::init(
         pool,
         authz,

@@ -33,6 +33,8 @@ pub enum InterestAccrualCycleEvent {
         tx_ref: String,
         amount: UsdCents,
         accrued_at: DateTime<Utc>,
+        principal: UsdCents,
+        days: u32,
         accumulated_at_regulatory_precision: rust_decimal::Decimal,
     },
     InterestAccrualsPosted {
@@ -54,8 +56,6 @@ pub struct InterestAccrualCycle {
     pub facility_maturity_date: EffectiveDate,
     pub terms: TermValues,
     pub period: InterestPeriod,
-    accumulated: CalculationAmount<Usd>,
-    previous_rounded_total: UsdCents,
     events: EntityEvents<InterestAccrualCycleEvent>,
 }
 
@@ -86,46 +86,29 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
         events: EntityEvents<InterestAccrualCycleEvent>,
     ) -> Result<Self, EntityHydrationError> {
         let mut builder = InterestAccrualCycleBuilder::default();
-        let mut accumulated = CalculationAmount::<Usd>::ZERO;
-        let mut previous_rounded_total = UsdCents::ZERO;
         for event in events.iter_all() {
-            match event {
-                InterestAccrualCycleEvent::Initialized {
-                    id,
-                    facility_id,
-                    account_ids,
-                    idx,
-                    period,
-                    facility_maturity_date,
-                    terms,
-                    ..
-                } => {
-                    builder = builder
-                        .id(*id)
-                        .credit_facility_id(*facility_id)
-                        .account_ids(*account_ids)
-                        .idx(*idx)
-                        .period(*period)
-                        .facility_maturity_date(*facility_maturity_date)
-                        .terms(*terms)
-                }
-                InterestAccrualCycleEvent::InterestAccrued {
-                    amount,
-                    accumulated_at_regulatory_precision,
-                    ..
-                } => {
-                    accumulated =
-                        CalculationAmount::<Usd>::from_major(*accumulated_at_regulatory_precision);
-                    previous_rounded_total += *amount;
-                }
-                InterestAccrualCycleEvent::InterestAccrualsPosted { .. } => (),
+            if let InterestAccrualCycleEvent::Initialized {
+                id,
+                facility_id,
+                account_ids,
+                idx,
+                period,
+                facility_maturity_date,
+                terms,
+                ..
+            } = event
+            {
+                builder = builder
+                    .id(*id)
+                    .credit_facility_id(*facility_id)
+                    .account_ids(*account_ids)
+                    .idx(*idx)
+                    .period(*period)
+                    .facility_maturity_date(*facility_maturity_date)
+                    .terms(*terms);
             }
         }
-        builder
-            .accumulated(accumulated)
-            .previous_rounded_total(previous_rounded_total)
-            .events(events)
-            .build()
+        builder.events(events).build()
     }
 }
 
@@ -155,7 +138,23 @@ impl InterestAccrualCycle {
                 InterestAccrualCycleEvent::InterestAccrued { amount, .. } => Some(*amount),
                 _ => None,
             })
-            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
+            .sum()
+    }
+
+    fn recompute_cumulative_interest(&self) -> CalculationAmount<Usd> {
+        self.events
+            .iter_all()
+            .filter_map(|event| match event {
+                InterestAccrualCycleEvent::InterestAccrued {
+                    principal, days, ..
+                } => Some(
+                    self.terms
+                        .annual_rate
+                        .interest_for_period(*principal, *days),
+                ),
+                _ => None,
+            })
+            .sum()
     }
 
     fn last_accrual_period(&self) -> Option<InterestPeriod> {
@@ -231,7 +230,7 @@ impl InterestAccrualCycle {
 
     pub(crate) fn record_accrual(
         &mut self,
-        amount: UsdCents,
+        outstanding: UsdCents,
         accrual_precision_dp: u32,
         accrual_rounding_strategy: RoundingStrategy,
     ) -> Result<Idempotent<InterestAccrualData>, InterestAccrualCycleError> {
@@ -240,22 +239,23 @@ impl InterestAccrualCycle {
             .ok_or(InterestAccrualCycleError::NoNextAccrualPeriod)?;
 
         let days = accrual_period.days();
-        let daily_interest = self.terms.annual_rate.interest_for_period(amount, days);
 
-        // Accumulate at full precision (28 significant digits)
-        self.accumulated += daily_interest;
+        // Recompute cumulative interest from ALL events' inputs + this period
+        let this_period_interest = self
+            .terms
+            .annual_rate
+            .interest_for_period(outstanding, days);
+        let cumulative = self.recompute_cumulative_interest() + this_period_interest;
 
-        // Final booking: round to minor units
-        let new_rounded_total = self.accumulated.round_with(accrual_rounding_strategy);
-        let delta = new_rounded_total - self.previous_rounded_total;
-        self.previous_rounded_total = new_rounded_total;
-
-        // Persist accumulated total at regulatory precision (e.g., 5 dp for US Reg DD).
-        // This is the primary precision field — used by data team and for event replay.
-        let accumulated_at_dp = self
-            .accumulated
+        // Round to regulatory precision for storage/data team
+        let accumulated_at_dp = cumulative
             .to_major()
             .round_dp_with_strategy(accrual_precision_dp, accrual_rounding_strategy);
+
+        // Round to minor units for booking (always lender-favorable)
+        let new_booked_total = cumulative.round_with(RoundingStrategy::AwayFromZero);
+        let previous_booked_total = self.total_accrued();
+        let delta = new_booked_total - previous_booked_total;
 
         let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, self.count_accrued() + 1);
         let interest_accrual = InterestAccrualData {
@@ -271,6 +271,8 @@ impl InterestAccrualCycle {
                 tx_ref: interest_accrual.tx_ref.to_string(),
                 amount: delta,
                 accrued_at: interest_accrual.period.end,
+                principal: outstanding,
+                days,
                 accumulated_at_regulatory_precision: accumulated_at_dp,
             });
 
@@ -509,6 +511,8 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
+            principal: UsdCents::from(1_000_000u64),
+            days: 1,
             accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
         let accrual = accrual_from(events.clone());
@@ -524,6 +528,8 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
+            principal: UsdCents::from(1_000_000u64),
+            days: 1,
             accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
         let accrual = accrual_from(events);
@@ -552,6 +558,8 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
+            principal: UsdCents::from(1_000_000u64),
+            days: 1,
             accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
         let accrual = accrual_from(events.clone());
@@ -564,6 +572,8 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
+            principal: UsdCents::from(1_000_000u64),
+            days: 1,
             accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
         let accrual = accrual_from(events);
@@ -592,6 +602,8 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
+            principal: UsdCents::from(1_000_000u64),
+            days: 1,
             accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         }]);
         let accrual = accrual_from(events);
@@ -619,6 +631,8 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: final_accrual_at,
+            principal: UsdCents::from(1_000_000u64),
+            days: 1,
             accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         }]);
         let accrual = accrual_from(events);
@@ -639,6 +653,8 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
+            principal: UsdCents::from(1_000_000u64),
+            days: 1,
             accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
 
@@ -649,6 +665,8 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
+            principal: UsdCents::from(1_000_000u64),
+            days: 1,
             accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
 
@@ -786,16 +804,15 @@ mod test {
                 .expect("expected Executed");
         }
 
-        // With full-precision accumulation and accumulator-delta,
-        // the total equals the single round_up of the full-precision sum.
-        let mut expected_accumulated = CalculationAmount::<Usd>::ZERO;
-        for _ in 0..num_days {
-            let daily = default_terms()
-                .annual_rate
-                .interest_for_period(disbursed_outstanding_amount, 1);
-            expected_accumulated += daily;
-        }
-        let expected_total = expected_accumulated.round_with(RoundingStrategy::AwayFromZero);
+        // Verify: total equals single round of full-precision cumulative sum
+        let expected: CalculationAmount<Usd> = (0..num_days)
+            .map(|_| {
+                default_terms()
+                    .annual_rate
+                    .interest_for_period(disbursed_outstanding_amount, 1)
+            })
+            .sum();
+        let expected_total = expected.round_with(RoundingStrategy::AwayFromZero);
         let InterestAccrualCycleData { interest, .. } = accrual.accrual_cycle_data().unwrap();
         assert_eq!(interest, expected_total);
     }
