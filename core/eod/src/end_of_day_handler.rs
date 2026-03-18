@@ -4,29 +4,46 @@ use core_time_events::CoreTimeEvent;
 use job::{JobSpec, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{job_id, process_manager::EodProcessManagerJobSpawner};
+use crate::{
+    eod_process::{EodProcesses, NewEodProcess},
+    job_id,
+    primitives::EodProcessId,
+    process_manager::EodProcessManagerJobSpawner,
+    public::CoreEodEvent,
+};
 
 pub const EOD_END_OF_DAY: JobType = JobType::new("outbox.eod-end-of-day");
 
-pub struct EndOfDayHandler {
+pub struct EndOfDayHandler<E>
+where
+    E: OutboxEventMarker<CoreEodEvent>,
+{
     pm_spawner: EodProcessManagerJobSpawner,
+    eod_processes: EodProcesses<E>,
 }
 
-impl EndOfDayHandler {
-    pub fn new(pm_spawner: EodProcessManagerJobSpawner) -> Self {
-        Self { pm_spawner }
+impl<E> EndOfDayHandler<E>
+where
+    E: OutboxEventMarker<CoreEodEvent>,
+{
+    pub fn new(pm_spawner: EodProcessManagerJobSpawner, eod_processes: EodProcesses<E>) -> Self {
+        Self {
+            pm_spawner,
+            eod_processes,
+        }
     }
 }
 
-impl<E> OutboxEventHandler<E> for EndOfDayHandler
+impl<E, Ev> OutboxEventHandler<Ev> for EndOfDayHandler<E>
 where
-    E: OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreEodEvent>,
+    Ev: OutboxEventMarker<CoreTimeEvent>,
 {
     #[instrument(name = "eod.end_of_day.process_message", parent = None, skip(self, op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
         op: &mut es_entity::DbOp<'_>,
-        event: &PersistentOutboxEvent<E>,
+        event: &PersistentOutboxEvent<Ev>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(
             e @ CoreTimeEvent::EndOfDay {
@@ -38,12 +55,32 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
 
+            // Deterministic process ID from date
+            let process_id = eod_process_id_from_date(day);
+
+            // Create the EodProcess entity (idempotent via duplicate key)
+            let new_process = NewEodProcess::builder()
+                .id(process_id)
+                .date(*day)
+                .build()
+                .expect("NewEodProcess builder should not fail");
+
+            match self.eod_processes.create_in_op(op, new_process).await {
+                Ok(_) => {}
+                Err(e) if e.to_string().contains("duplicate") => {
+                    // Already created — idempotent
+                }
+                Err(e) => return Err(e.into()),
+            }
+
+            // Spawn the PM job
             let job_id = job_id::eod_manager_id(day);
             let spec = JobSpec::new(
                 job_id,
                 crate::process_manager::EodProcessManagerConfig {
                     date: *day,
                     closing_time: *closing_time,
+                    process_id,
                 },
             )
             .queue_id("eod-manager".to_string());
@@ -54,4 +91,15 @@ where
         }
         Ok(())
     }
+}
+
+/// Generate a deterministic EodProcessId from a date using UUID v5.
+fn eod_process_id_from_date(date: &chrono::NaiveDate) -> EodProcessId {
+    use std::sync::LazyLock;
+
+    static EOD_PROCESS_NAMESPACE: LazyLock<uuid::Uuid> =
+        LazyLock::new(|| uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_DNS, b"lana-bank.eod-process"));
+
+    let name = format!("eod-process-{date}");
+    EodProcessId::from(uuid::Uuid::new_v5(&EOD_PROCESS_NAMESPACE, name.as_bytes()))
 }
