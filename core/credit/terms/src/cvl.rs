@@ -1,4 +1,4 @@
-use rust_decimal::{Decimal, prelude::*};
+use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
@@ -64,15 +64,7 @@ impl CVLPct {
 
     pub fn scale(&self, value: UsdCents) -> UsdCents {
         match self {
-            Self::Finite(pct) => {
-                let cents = value.to_usd() * dec!(100) * (pct / dec!(100));
-                UsdCents::from(
-                    cents
-                        .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
-                        .to_u64()
-                        .expect("should return a valid integer"),
-                )
-            }
+            Self::Finite(pct) => (value.to_calc() * *pct / dec!(100)).round_up(),
             Self::Infinite => unreachable!("Cannot scale with infinite CVL percentage"),
         }
     }
@@ -84,15 +76,7 @@ impl CVLPct {
     #[cfg(test)]
     pub fn target_value_given_outstanding(&self, outstanding: UsdCents) -> UsdCents {
         match self {
-            Self::Finite(pct) => {
-                let target_in_usd = pct / dec!(100) * outstanding.to_usd();
-                UsdCents::from(
-                    (target_in_usd * dec!(100))
-                        .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
-                        .to_u64()
-                        .expect("should return a valid integer"),
-                )
-            }
+            Self::Finite(pct) => (outstanding.to_calc() * *pct / dec!(100)).round_up(),
             Self::Infinite => {
                 unreachable!("Cannot calculate target value for infinite CVL percentage")
             }
