@@ -10,6 +10,12 @@ pub enum CoreFxError {
     ChartLookupError(#[from] chart_primitives::ChartLookupError),
     #[error("CoreFxError - DomainConfigError: {0}")]
     DomainConfigError(#[from] domain_config::DomainConfigError),
+    #[error("CoreFxError - FxLedgerError: {0}")]
+    FxLedgerError(#[from] crate::ledger::error::FxLedgerError),
+    #[error("CoreFxError - ChartOfAccountsIntegrationError: {0}")]
+    ChartOfAccountsIntegrationError(
+        #[from] crate::chart_of_accounts_integration::error::ChartOfAccountsIntegrationError,
+    ),
 }
 
 impl ErrorSeverity for CoreFxError {
@@ -18,6 +24,8 @@ impl ErrorSeverity for CoreFxError {
             Self::AuthorizationError(e) => e.severity(),
             Self::ChartLookupError(e) => e.severity(),
             Self::DomainConfigError(e) => e.severity(),
+            Self::FxLedgerError(e) => e.severity(),
+            Self::ChartOfAccountsIntegrationError(e) => e.severity(),
         }
     }
 }

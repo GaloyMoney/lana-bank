@@ -101,12 +101,4 @@ impl FxLedger {
 
         Ok(())
     }
-
-    pub(crate) fn cala(&self) -> &CalaLedger {
-        &self.cala
-    }
-
-    pub(crate) fn journal_id(&self) -> JournalId {
-        self.journal_id
-    }
 }

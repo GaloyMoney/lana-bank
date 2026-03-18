@@ -1602,6 +1602,7 @@ dependencies = [
  "core-chart-primitives",
  "domain-config",
  "es-entity",
+ "job",
  "permission-sets-macro",
  "rust_decimal",
  "serde",
