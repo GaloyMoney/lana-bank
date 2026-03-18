@@ -60,7 +60,6 @@ pub use primitives::*;
 pub use public::*;
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
-pub(crate) use rounding_policy::*;
 
 use core_credit_collection::{CoreCreditCollection, PaymentLedgerAccountIds};
 
@@ -421,14 +420,6 @@ where
 
     pub fn repayment_plans(&self) -> &RepaymentPlans<Perms> {
         self.repayment_plans.as_ref()
-    }
-
-    pub(crate) async fn rounding_policy(&self) -> Result<RoundingPolicyConfig, CoreCreditError> {
-        let config = self
-            .internal_domain_configs
-            .get::<RoundingPolicyConfig>()
-            .await?;
-        Ok(config.value())
     }
 
     #[record_error_severity]
