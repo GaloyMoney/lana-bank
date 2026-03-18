@@ -167,7 +167,6 @@ where
                     update_collateralization_spawner,
                     repo.clone(),
                     collaterals.clone(),
-                    price.clone(),
                     ledger.clone(),
                     authz.clone(),
                 ),
