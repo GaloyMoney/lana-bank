@@ -12,12 +12,12 @@ mod process_manager;
 pub mod public;
 mod publisher;
 
-pub use eod_process::{EodProcess, EodProcessEvent, EodProcesses, NewEodProcess};
+pub use eod_process::{EodPhase, EodProcess, EodProcessEvent, EodProcesses, NewEodProcess};
 pub use job_id::*;
 pub use primitives::*;
 pub use process_manager::{
     EodProcessManagerConfig, EodProcessManagerJobInit, EodProcessManagerJobSpawner,
-    EodProcessManagerResult, EOD_PROCESS_MANAGER_JOB_TYPE,
+    EOD_PROCESS_MANAGER_JOB_TYPE,
 };
 pub use public::*;
 pub use publisher::EodPublisher;

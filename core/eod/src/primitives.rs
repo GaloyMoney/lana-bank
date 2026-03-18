@@ -13,10 +13,8 @@ es_entity::entity_id! { EodProcessId }
     strum::EnumString,
     Serialize,
     Deserialize,
-    sqlx::Type,
 )]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "VARCHAR", rename_all = "snake_case")]
 pub enum EodProcessStatus {
     #[default]
     Initialized,

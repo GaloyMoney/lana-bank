@@ -5,9 +5,8 @@ use job::{JobSpec, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
-    eod_process::{EodProcesses, NewEodProcess},
-    job_id,
-    primitives::EodProcessId,
+    eod_process::{error::EodProcessError, EodProcesses, NewEodProcess},
+    job_id::{self, eod_process_id_from_date},
     process_manager::EodProcessManagerJobSpawner,
     public::CoreEodEvent,
 };
@@ -59,15 +58,11 @@ where
             let process_id = eod_process_id_from_date(day);
 
             // Create the EodProcess entity (idempotent via duplicate key)
-            let new_process = NewEodProcess::builder()
-                .id(process_id)
-                .date(*day)
-                .build()
-                .expect("NewEodProcess builder should not fail");
+            let new_process = NewEodProcess::builder().id(process_id).date(*day).build()?;
 
             match self.eod_processes.create_in_op(op, new_process).await {
                 Ok(_) => {}
-                Err(e) if e.to_string().contains("duplicate") => {
+                Err(EodProcessError::Create(ref e)) if e.was_duplicate() => {
                     // Already created — idempotent
                 }
                 Err(e) => return Err(e.into()),
@@ -91,15 +86,4 @@ where
         }
         Ok(())
     }
-}
-
-/// Generate a deterministic EodProcessId from a date using UUID v5.
-fn eod_process_id_from_date(date: &chrono::NaiveDate) -> EodProcessId {
-    use std::sync::LazyLock;
-
-    static EOD_PROCESS_NAMESPACE: LazyLock<uuid::Uuid> =
-        LazyLock::new(|| uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_DNS, b"lana-bank.eod-process"));
-
-    let name = format!("eod-process-{date}");
-    EodProcessId::from(uuid::Uuid::new_v5(&EOD_PROCESS_NAMESPACE, name.as_bytes()))
 }

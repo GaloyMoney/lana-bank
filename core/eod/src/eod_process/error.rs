@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::primitives::EodProcessStatus;
+
 pub use super::repo::{
     EodProcessCreateError, EodProcessFindError, EodProcessModifyError, EodProcessQueryError,
 };
@@ -14,4 +16,9 @@ pub enum EodProcessError {
     Find(#[from] EodProcessFindError),
     #[error("EodProcessError - Query: {0}")]
     Query(#[from] EodProcessQueryError),
+    #[error("Invalid state transition: cannot {attempted} in state {current}")]
+    InvalidStateTransition {
+        current: EodProcessStatus,
+        attempted: &'static str,
+    },
 }

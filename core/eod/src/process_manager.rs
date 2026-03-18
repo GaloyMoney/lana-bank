@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
 use obix::out::OutboxEventMarker;
@@ -12,7 +14,7 @@ use crate::{
         CreditFacilityEodProcessConfig, CreditFacilityEodProcessSpawner,
     },
     deposit_activity_process::{DepositActivityProcessConfig, DepositActivityProcessSpawner},
-    eod_process::{EodProcess, EodProcesses, JobTerminalState},
+    eod_process::{EodPhase, EodProcess, EodProcesses, JobTerminalState},
     job_id,
     obligation_transition_process::{
         ObligationTransitionProcessConfig, ObligationTransitionProcessSpawner,
@@ -29,19 +31,6 @@ pub struct EodProcessManagerConfig {
     pub date: NaiveDate,
     pub closing_time: DateTime<Utc>,
     pub process_id: EodProcessId,
-}
-
-/// Structured result set on the process manager job upon completion.
-///
-/// Count fields are intentionally omitted — the parent PM does not have
-/// access to child result data yet. Counts will be added when
-/// child set_result/get_result propagation is available.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct EodProcessManagerResult {
-    pub date: NaiveDate,
-    pub process_id: EodProcessId,
-    pub status: EodProcessStatus,
 }
 
 pub struct EodProcessManagerJobInit<E>
@@ -121,7 +110,8 @@ where
     fn to_entity_terminal(job_terminal: job::JobTerminalState) -> JobTerminalState {
         match job_terminal {
             job::JobTerminalState::Completed => JobTerminalState::Completed,
-            _ => JobTerminalState::Failed,
+            job::JobTerminalState::Failed => JobTerminalState::Failed,
+            job::JobTerminalState::Cancelled => JobTerminalState::Cancelled,
         }
     }
 }
@@ -216,7 +206,7 @@ where
             .eod_processes
             .find_by_id_in_op(&mut op, self.config.process_id)
             .await?;
-        process.start_phase1(obligation_job, deposit_job);
+        process.start_phase1(obligation_job, deposit_job)?;
         self.eod_processes
             .update_in_op(&mut op, &mut process)
             .await?;
@@ -231,10 +221,10 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let obligation_job = process
             .obligation_job_id()
-            .expect("obligation_job_id must be set in AwaitingPhase1");
+            .ok_or("obligation_job_id must be set in AwaitingPhase1")?;
         let deposit_job = process
             .deposit_job_id()
-            .expect("deposit_job_id must be set in AwaitingPhase1");
+            .ok_or("deposit_job_id must be set in AwaitingPhase1")?;
 
         // Check for cancellation before awaiting children
         if current_job.cancellation_requested() {
@@ -246,18 +236,25 @@ where
                 .eod_processes
                 .find_by_id_in_op(&mut op, self.config.process_id)
                 .await?;
-            process.request_cancellation();
-            process.mark_cancelled();
+            process.request_cancellation()?;
+            process.mark_cancelled()?;
             self.eod_processes
                 .update_in_op(&mut op, &mut process)
                 .await?;
             return Ok(JobCompletion::RescheduleNowWithOp(op));
         }
 
-        let (obligation_result, deposit_result) = tokio::join!(
-            self.jobs.await_completion(obligation_job),
-            self.jobs.await_completion(deposit_job),
-        );
+        let (obligation_result, deposit_result) = tokio::select! {
+            results = async {
+                tokio::join!(
+                    self.jobs.await_completion(obligation_job),
+                    self.jobs.await_completion(deposit_job),
+                )
+            } => results,
+            _ = current_job.shutdown_requested() => {
+                return Ok(JobCompletion::RescheduleIn(Duration::ZERO));
+            }
+        };
         let obligation_terminal = Self::to_entity_terminal(obligation_result?);
         let deposit_terminal = Self::to_entity_terminal(deposit_result?);
 
@@ -267,8 +264,8 @@ where
             .find_by_id_in_op(&mut op, self.config.process_id)
             .await?;
 
-        process.complete_phase1_obligation(obligation_terminal);
-        process.complete_phase1_deposit(deposit_terminal);
+        process.complete_phase1_obligation(obligation_terminal)?;
+        process.complete_phase1_deposit(deposit_terminal)?;
 
         if obligation_terminal == JobTerminalState::Completed
             && deposit_terminal == JobTerminalState::Completed
@@ -294,24 +291,20 @@ where
                 Err(e) => return Err(e.into()),
             }
 
-            process.start_phase2(credit_facility_job);
+            process.start_phase2(credit_facility_job)?;
         } else {
-            let mut failed_children = Vec::new();
-            if obligation_terminal != JobTerminalState::Completed {
-                failed_children.push("obligation-transition");
-            }
-            if deposit_terminal != JobTerminalState::Completed {
-                failed_children.push("deposit-activity");
-            }
             tracing::error!(
                 phase = 1,
-                ?failed_children,
+                ?obligation_terminal,
+                ?deposit_terminal,
                 "EOD process manager failed — manual intervention required"
             );
             process.mark_failed(
-                1,
-                format!("Phase 1 children failed: {}", failed_children.join(", ")),
-            );
+                EodPhase::Phase1,
+                format!(
+                    "Phase 1 children failed: obligation={obligation_terminal:?}, deposit={deposit_terminal:?}"
+                ),
+            )?;
         }
 
         self.eod_processes
@@ -351,7 +344,7 @@ where
             .eod_processes
             .find_by_id_in_op(&mut op, self.config.process_id)
             .await?;
-        process.start_phase2(credit_facility_job);
+        process.start_phase2(credit_facility_job)?;
         self.eod_processes
             .update_in_op(&mut op, &mut process)
             .await?;
@@ -366,7 +359,7 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let credit_facility_job = process
             .credit_facility_job_id()
-            .expect("credit_facility_job_id must be set in AwaitingPhase2");
+            .ok_or("credit_facility_job_id must be set in AwaitingPhase2")?;
 
         // Check for cancellation before awaiting children
         if current_job.cancellation_requested() {
@@ -377,16 +370,22 @@ where
                 .eod_processes
                 .find_by_id_in_op(&mut op, self.config.process_id)
                 .await?;
-            process.request_cancellation();
-            process.mark_cancelled();
+            process.request_cancellation()?;
+            process.mark_cancelled()?;
             self.eod_processes
                 .update_in_op(&mut op, &mut process)
                 .await?;
             return Ok(JobCompletion::RescheduleNowWithOp(op));
         }
 
-        let credit_facility_terminal =
-            Self::to_entity_terminal(self.jobs.await_completion(credit_facility_job).await?);
+        let credit_facility_terminal = tokio::select! {
+            result = self.jobs.await_completion(credit_facility_job) => {
+                Self::to_entity_terminal(result?)
+            }
+            _ = current_job.shutdown_requested() => {
+                return Ok(JobCompletion::RescheduleIn(Duration::ZERO));
+            }
+        };
 
         let mut op = current_job.begin_op().await?;
         let mut process = self
@@ -394,16 +393,20 @@ where
             .find_by_id_in_op(&mut op, self.config.process_id)
             .await?;
 
-        process.complete_phase2_credit_facility(credit_facility_terminal);
+        process.complete_phase2_credit_facility(credit_facility_terminal)?;
 
         if credit_facility_terminal == JobTerminalState::Completed {
-            process.mark_completed();
+            process.mark_completed()?;
         } else {
             tracing::error!(
                 phase = 2,
+                ?credit_facility_terminal,
                 "EOD process manager failed — manual intervention required"
             );
-            process.mark_failed(2, "Phase 2 credit-facility child failed".to_string());
+            process.mark_failed(
+                EodPhase::Phase2,
+                format!("Phase 2 credit-facility child failed: {credit_facility_terminal:?}"),
+            )?;
         }
 
         self.eod_processes
