@@ -45,6 +45,7 @@ gql`
       ...LedgerTransactionFields
     }
     account {
+      depositAccountId
       publicId
       customer {
         customerId

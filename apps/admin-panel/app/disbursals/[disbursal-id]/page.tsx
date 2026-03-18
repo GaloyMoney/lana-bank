@@ -44,6 +44,7 @@ gql`
         customerId
         publicId
         depositAccount {
+          depositAccountId
           publicId
           balance {
             settled

@@ -37,6 +37,7 @@ gql`
         committee {
           name
           currentMembers {
+            userId
             email
             role {
               ...RoleFields
