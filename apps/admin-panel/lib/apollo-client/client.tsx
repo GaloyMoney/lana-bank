@@ -103,11 +103,6 @@ export const makeClient = ({
 
   const cache = new InMemoryCache({
     typePolicies: {
-      AccountSetAndSubAccounts: {
-        fields: {
-          subAccounts: relayStylePagination(),
-        },
-      },
       LedgerAccount: {
         fields: {
           history: relayStylePagination(),
