@@ -1,9 +1,8 @@
-use rust_decimal::RoundingStrategy;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
-use money::{Satoshis, UsdCents};
+use money::{Btc, CalculationAmount, Satoshis, Usd, UsdCents};
 
 es_entity::entity_id! {
     PriceProviderId
@@ -21,15 +20,11 @@ impl PriceOfOneBTC {
     }
 
     pub fn cents_to_sats_round_up(self, cents: UsdCents) -> Satoshis {
-        let btc = (cents.to_usd() / self.0.to_usd())
-            .round_dp_with_strategy(8, RoundingStrategy::AwayFromZero);
-        Satoshis::try_from_btc(btc).expect("Decimal should have no fractional component here")
+        CalculationAmount::<Btc>::from_major(cents.to_major() / self.0.to_major()).round_up()
     }
 
     pub fn sats_to_cents_round_down(self, sats: Satoshis) -> UsdCents {
-        let usd =
-            (sats.to_btc() * self.0.to_usd()).round_dp_with_strategy(2, RoundingStrategy::ToZero);
-        UsdCents::try_from_usd(usd).expect("Decimal should have no fractional component here")
+        CalculationAmount::<Usd>::from_major(sats.to_major() * self.0.to_major()).round_down()
     }
 
     pub fn into_inner(self) -> UsdCents {
