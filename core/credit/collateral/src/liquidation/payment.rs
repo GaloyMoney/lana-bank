@@ -109,12 +109,12 @@ impl LiquidationPaymentAmounts {
         if self.to_liquidate == Satoshis::ZERO {
             None
         } else {
-            let effective_price_cents = (self.to_receive.to_usd() / self.to_liquidate.to_btc())
-                .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
+            let effective_price_cents = CalculationAmount::<Usd>::from_major(
+                self.to_receive.to_major() / self.to_liquidate.to_major(),
+            )
+            .round_up();
 
-            UsdCents::try_from_usd(effective_price_cents)
-                .ok()
-                .map(PriceOfOneBTC::new)
+            Some(PriceOfOneBTC::new(effective_price_cents))
         }
     }
 

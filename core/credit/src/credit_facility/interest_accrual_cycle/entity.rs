@@ -33,8 +33,7 @@ pub enum InterestAccrualCycleEvent {
         tx_ref: String,
         amount: UsdCents,
         accrued_at: DateTime<Utc>,
-        #[serde(default)]
-        accumulated_precise: Option<rust_decimal::Decimal>,
+        accumulated_at_regulatory_precision: rust_decimal::Decimal,
     },
     InterestAccrualsPosted {
         ledger_tx_id: LedgerTxId,
@@ -112,17 +111,11 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
                 }
                 InterestAccrualCycleEvent::InterestAccrued {
                     amount,
-                    accumulated_precise,
+                    accumulated_at_regulatory_precision,
                     ..
                 } => {
-                    match accumulated_precise {
-                        Some(precise) => {
-                            accumulated = CalculationAmount::<Usd>::from_major(*precise);
-                        }
-                        None => {
-                            accumulated += amount.to_calc();
-                        }
-                    }
+                    accumulated =
+                        CalculationAmount::<Usd>::from_major(*accumulated_at_regulatory_precision);
                     previous_rounded_total += *amount;
                 }
                 InterestAccrualCycleEvent::InterestAccrualsPosted { .. } => (),
@@ -248,17 +241,20 @@ impl InterestAccrualCycle {
         let days = accrual_period.days();
         let daily_interest = self.terms.annual_rate.interest_for_period(amount, days);
 
-        // Regulatory intermediate precision: round to N dp in major units (lender-favorable)
-        let daily_interest =
-            daily_interest.round_dp(accrual_precision_dp, RoundingStrategy::AwayFromZero);
-
-        // S2: accumulate at regulatory precision
+        // Accumulate at full precision (28 significant digits)
         self.accumulated += daily_interest;
 
         // Final booking: round to minor units (lender-favorable)
         let new_rounded_total = self.accumulated.round_up();
         let delta = new_rounded_total - self.previous_rounded_total;
         self.previous_rounded_total = new_rounded_total;
+
+        // Persist accumulated total at regulatory precision (e.g., 5 dp for US Reg DD).
+        // This is the primary precision field — used by data team and for event replay.
+        let accumulated_at_dp = self
+            .accumulated
+            .to_major()
+            .round_dp_with_strategy(accrual_precision_dp, RoundingStrategy::AwayFromZero);
 
         let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, self.count_accrued() + 1);
         let interest_accrual = InterestAccrualData {
@@ -274,7 +270,7 @@ impl InterestAccrualCycle {
                 tx_ref: interest_accrual.tx_ref.to_string(),
                 amount: delta,
                 accrued_at: interest_accrual.period.end,
-                accumulated_precise: Some(self.accumulated.to_major()),
+                accumulated_at_regulatory_precision: accumulated_at_dp,
             });
 
         Ok(Idempotent::Executed(interest_accrual))
@@ -512,7 +508,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
-            accumulated_precise: None,
+            accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
         let accrual = accrual_from(events.clone());
         assert_eq!(
@@ -527,7 +523,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
-            accumulated_precise: None,
+            accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
         let accrual = accrual_from(events);
         assert_eq!(
@@ -555,7 +551,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
-            accumulated_precise: None,
+            accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
         let accrual = accrual_from(events.clone());
         assert_eq!(accrual.count_accrued(), 1);
@@ -567,7 +563,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
-            accumulated_precise: None,
+            accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
         let accrual = accrual_from(events);
         assert_eq!(accrual.count_accrued(), 2);
@@ -595,7 +591,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
-            accumulated_precise: None,
+            accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         }]);
         let accrual = accrual_from(events);
 
@@ -622,7 +618,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: final_accrual_at,
-            accumulated_precise: None,
+            accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         }]);
         let accrual = accrual_from(events);
 
@@ -642,7 +638,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
-            accumulated_precise: None,
+            accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
 
         let second_accrual_period = first_accrual_cycle_period.next();
@@ -652,7 +648,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
-            accumulated_precise: None,
+            accumulated_at_regulatory_precision: rust_decimal::Decimal::ZERO,
         });
 
         let accrual = accrual_from(events);
@@ -785,15 +781,14 @@ mod test {
                 .expect("expected Executed");
         }
 
-        // With intermediate precision rounding (5dp) and accumulator-delta,
-        // the total equals sum of per-day 5dp-rounded values, then round_up.
+        // With full-precision accumulation and accumulator-delta,
+        // the total equals the single round_up of the full-precision sum.
         let mut expected_accumulated = CalculationAmount::<Usd>::ZERO;
         for _ in 0..num_days {
             let daily = default_terms()
                 .annual_rate
                 .interest_for_period(disbursed_outstanding_amount, 1);
-            let daily_rounded = daily.round_dp(5, rust_decimal::RoundingStrategy::AwayFromZero);
-            expected_accumulated += daily_rounded;
+            expected_accumulated += daily;
         }
         let expected_total = expected_accumulated.round_up();
         let InterestAccrualCycleData { interest, .. } = accrual.accrual_cycle_data().unwrap();
