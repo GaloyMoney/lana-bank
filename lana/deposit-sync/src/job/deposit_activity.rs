@@ -111,6 +111,8 @@ enum DepositActivityState {
     #[default]
     SpawningActivityJobs(SpawningActivityJobsState),
     AwaitingActivityCompletion {
+        // Vec (not HashSet) because await_completion needs ordered job IDs,
+        // unlike the other PMs which use HashSet for O(1) event-stream lookups.
         pending_jobs: Vec<(DepositAccountId, JobId)>,
     },
 }
@@ -119,6 +121,7 @@ enum DepositActivityState {
 #[serde(rename_all = "camelCase")]
 struct SpawningActivityJobsState {
     last_cursor: Option<(chrono::DateTime<chrono::Utc>, DepositAccountId)>,
+    // Vec for the same reason as AwaitingActivityCompletion::pending_jobs.
     pending_jobs: Vec<(DepositAccountId, JobId)>,
 }
 
@@ -206,6 +209,8 @@ where
     /// Jobs.await_completion. This is a temporary fallback until a public
     /// DepositActivityEvaluated event is added — at that point, this should
     /// be replaced with outbox event streaming like the other two children.
+    ///
+    /// Note: shutdown handling is delegated to await_completion internals.
     async fn await_activity_completion(
         &self,
         _current_job: CurrentJob,

@@ -122,6 +122,9 @@ struct SpawningAccrualAndMaturityJobsState {
     pending_accrual: HashSet<CreditFacilityId>,
     pending_maturity: HashSet<CreditFacilityId>,
     accrual_done: bool,
+    /// Captured once on first entry; reused on crash-restart to avoid
+    /// missing events from children that completed before the restart.
+    start_sequence: Option<i64>,
 }
 
 impl<E> CreditFacilityEodProcessRunner<E>
@@ -139,9 +142,21 @@ where
         mut current_job: CurrentJob,
         mut state: SpawningAccrualAndMaturityJobsState,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        // Capture sequence BEFORE spawning any jobs so we never miss a
-        // completion event from a fast-finishing job.
-        let start_sequence = self.outbox.current_sequence().await?;
+        // Capture sequence ONCE on first entry; reuse the persisted value on
+        // crash-restart so we never miss events from fast-finishing children.
+        let start_sequence = match state.start_sequence {
+            Some(seq) => seq,
+            None => {
+                let seq = self.outbox.current_sequence().await?;
+                state.start_sequence = Some(seq);
+                current_job
+                    .update_execution_state(
+                        &CreditFacilityEodState::SpawningAccrualAndMaturityJobs(state.clone()),
+                    )
+                    .await?;
+                seq
+            }
+        };
 
         // Phase: Spawn accrual jobs for eligible facilities
         if !state.accrual_done {

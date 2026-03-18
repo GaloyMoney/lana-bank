@@ -6,6 +6,8 @@ use tracing_macros::record_error_severity;
 
 use job::{error::JobError, *};
 
+use strum::Display;
+
 use crate::{
     credit_facility_eod_process::{
         CreditFacilityEodProcessConfig, CreditFacilityEodProcessSpawner,
@@ -41,6 +43,16 @@ pub struct EodProcessManagerResult {
     pub phase2_credit_facility: Option<JobTerminalState>,
 }
 
+/// Identifies which child process manager is being referenced in
+/// Failed / Cancelling states, avoiding stringly-typed matching.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Display)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum EodChildProcess {
+    ObligationTransition,
+    DepositActivity,
+    CreditFacilityEod,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub(crate) enum EodProcessState {
     #[default]
@@ -63,11 +75,11 @@ pub(crate) enum EodProcessState {
     },
     Failed {
         phase: u8,
-        failed: Vec<(String, JobTerminalState)>,
+        failed: Vec<(EodChildProcess, JobTerminalState)>,
     },
     Cancelling {
         phase: u8,
-        children: Vec<(String, JobId)>,
+        children: Vec<(EodChildProcess, JobId)>,
     },
 }
 
@@ -201,8 +213,8 @@ impl JobRunner for EodProcessManagerJobRunner {
                 // Check for cancellation before awaiting children
                 if current_job.cancellation_requested() {
                     let children = vec![
-                        ("obligation-transition".to_string(), obligation_job),
-                        ("deposit-activity".to_string(), deposit_job),
+                        (EodChildProcess::ObligationTransition, obligation_job),
+                        (EodChildProcess::DepositActivity, deposit_job),
                     ];
                     for (_, child_id) in &children {
                         let _ = self.jobs.cancel(*child_id).await;
@@ -224,10 +236,10 @@ impl JobRunner for EodProcessManagerJobRunner {
 
                 let mut failed = Vec::new();
                 if obligation_terminal != JobTerminalState::Completed {
-                    failed.push(("obligation-transition".to_string(), obligation_terminal));
+                    failed.push((EodChildProcess::ObligationTransition, obligation_terminal));
                 }
                 if deposit_terminal != JobTerminalState::Completed {
-                    failed.push(("deposit-activity".to_string(), deposit_terminal));
+                    failed.push((EodChildProcess::DepositActivity, deposit_terminal));
                 }
 
                 if !failed.is_empty() {
@@ -298,7 +310,7 @@ impl JobRunner for EodProcessManagerJobRunner {
             } => {
                 // Check for cancellation before awaiting children
                 if current_job.cancellation_requested() {
-                    let children = vec![("credit-facility".to_string(), credit_facility_job)];
+                    let children = vec![(EodChildProcess::CreditFacilityEod, credit_facility_job)];
                     for (_, child_id) in &children {
                         let _ = self.jobs.cancel(*child_id).await;
                     }
@@ -314,7 +326,8 @@ impl JobRunner for EodProcessManagerJobRunner {
                     self.jobs.await_completion(credit_facility_job).await?;
 
                 if credit_facility_terminal != JobTerminalState::Completed {
-                    let failed = vec![("credit-facility".to_string(), credit_facility_terminal)];
+                    let failed =
+                        vec![(EodChildProcess::CreditFacilityEod, credit_facility_terminal)];
                     tracing::error!(
                         phase = 2,
                         ?failed,
@@ -358,12 +371,12 @@ impl JobRunner for EodProcessManagerJobRunner {
                     1 => {
                         let obligation = failed
                             .iter()
-                            .find(|(n, _)| n == "obligation-transition")
+                            .find(|(n, _)| *n == EodChildProcess::ObligationTransition)
                             .map(|(_, s)| s.clone())
                             .unwrap_or(JobTerminalState::Completed);
                         let deposit = failed
                             .iter()
-                            .find(|(n, _)| n == "deposit-activity")
+                            .find(|(n, _)| *n == EodChildProcess::DepositActivity)
                             .map(|(_, s)| s.clone())
                             .unwrap_or(JobTerminalState::Completed);
                         // Phase 2 never ran
@@ -372,7 +385,7 @@ impl JobRunner for EodProcessManagerJobRunner {
                     _ => {
                         let credit = failed
                             .iter()
-                            .find(|(n, _)| n == "credit-facility")
+                            .find(|(n, _)| *n == EodChildProcess::CreditFacilityEod)
                             .map(|(_, s)| s.clone())
                             .unwrap_or(JobTerminalState::Completed);
                         (
@@ -395,12 +408,26 @@ impl JobRunner for EodProcessManagerJobRunner {
             EodProcessState::Cancelling { phase, children } => {
                 tracing::warn!(
                     phase,
-                    children = ?children.iter().map(|(n, _)| n.as_str()).collect::<Vec<_>>(),
+                    children = ?children.iter().map(|(n, _)| n.to_string()).collect::<Vec<_>>(),
                     "EOD process manager cancelling children"
                 );
                 for (_, child_id) in &children {
                     let _ = self.jobs.cancel(*child_id).await;
                 }
+
+                // Report all children as Cancelled so callers can inspect
+                // the terminal state, mirroring Completed / Failed.
+                let result = EodProcessManagerResult {
+                    date: self.config.date,
+                    phase1_obligation: JobTerminalState::Cancelled,
+                    phase1_deposit: JobTerminalState::Cancelled,
+                    phase2_credit_facility: if phase >= 2 {
+                        Some(JobTerminalState::Cancelled)
+                    } else {
+                        None
+                    },
+                };
+                current_job.set_result(&result).await?;
                 Ok(JobCompletion::Complete)
             }
         }

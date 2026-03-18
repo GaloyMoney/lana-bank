@@ -259,20 +259,6 @@ where
         Ok(allocation)
     }
 
-    pub async fn check_beneficiary_obligations_status_updated(
-        &self,
-        beneficiary_id: BeneficiaryId,
-    ) -> Result<bool, ObligationError> {
-        let obligations = self.beneficiary_obligations(beneficiary_id).await?;
-        for obligation in obligations.iter() {
-            if !obligation.is_status_up_to_date(self.clock.now()) {
-                return Ok(false);
-            }
-        }
-
-        Ok(true)
-    }
-
     #[record_error_severity]
     #[instrument(
         name = "collections.obligation.beneficiary_obligations",
