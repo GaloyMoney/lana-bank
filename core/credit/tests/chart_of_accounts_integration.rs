@@ -6,7 +6,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::{AccountCode, CalaAccountSetId, CoreAccounting};
 use core_credit::*;
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use std::collections::HashMap;
 
 use helpers::{
@@ -66,7 +66,7 @@ async fn assert_omnibus_pairs(
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _ctrl) = ClockHandle::manual();
     let outbox =
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
             .await?;

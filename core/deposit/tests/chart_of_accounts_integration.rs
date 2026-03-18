@@ -10,7 +10,7 @@ use core_accounting::{AccountCode, CalaAccountSetId, CoreAccounting};
 use core_customer::Customers;
 use core_deposit::*;
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use helpers::{
     BASE_ACCOUNTS_CSV, action, assert_attached_for_code, default_accounting_base_config, event,
     object, resolve_account_set_ids, resolve_omnibus_account_set_ids,
@@ -60,7 +60,7 @@ async fn assert_omnibus_pairs(
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
-    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _) = ClockHandle::manual();
 
     let outbox =
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)

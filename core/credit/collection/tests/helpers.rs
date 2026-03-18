@@ -6,7 +6,7 @@ use cala_ledger::{CalaLedger, CalaLedgerConfig, account::NewAccount};
 use core_credit_collection::{
     CalaAccountId, CollectionPublisher, CoreCreditCollection, ObligationReceivableAccountIds,
 };
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use obix::Outbox;
 
 use event::DummyEvent;
@@ -65,7 +65,7 @@ pub async fn create_account(cala: &CalaLedger, prefix: &str) -> anyhow::Result<C
 
 pub async fn setup() -> anyhow::Result<TestContext> {
     let pool = init_pool().await?;
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _ctrl) = ClockHandle::manual();
 
     let outbox = Outbox::<DummyEvent>::init(
         &pool,

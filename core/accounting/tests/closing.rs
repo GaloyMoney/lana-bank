@@ -7,7 +7,7 @@ use rust_decimal::Decimal;
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use job::{JobSvcConfig, Jobs};
 
 use cala_ledger::{
@@ -225,7 +225,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
 async fn setup_test() -> anyhow::Result<Test> {
     use rand::RngExt;
     let pool = helpers::init_pool().await?;
-    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _) = ClockHandle::manual();
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())

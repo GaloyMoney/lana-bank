@@ -95,13 +95,11 @@ impl ClosingSchedule {
 #[cfg(test)]
 mod tests {
     use chrono::SecondsFormat;
-    use es_entity::clock::ArtificialClockConfig;
 
     use super::*;
 
     fn clock_at(time: &str) -> ClockHandle {
-        let (clock, _) =
-            ClockHandle::artificial(ArtificialClockConfig::manual_at(time.parse().unwrap()));
+        let (clock, _) = ClockHandle::manual_at(time.parse().unwrap());
         clock
     }
 

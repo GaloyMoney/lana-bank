@@ -408,7 +408,7 @@ pub struct NewCreditFacilityWithInitialDisbursal {
 
 #[cfg(test)]
 mod test {
-    use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+    use es_entity::clock::ClockHandle;
     use rust_decimal_macros::dec;
 
     use crate::{
@@ -471,7 +471,7 @@ mod test {
     }
 
     fn clock_now() -> ClockHandle {
-        let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
+        let (clock, _ctrl) = ClockHandle::manual();
         clock
     }
 

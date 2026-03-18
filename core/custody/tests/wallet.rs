@@ -1,6 +1,6 @@
 mod helpers;
 
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use serde_json::json;
 use uuid::Uuid;
 
@@ -17,7 +17,7 @@ async fn setup() -> anyhow::Result<(
     ClockHandle,
 )> {
     let pool = helpers::init_pool().await?;
-    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _time) = ClockHandle::manual();
 
     let outbox = obix::Outbox::<event::DummyEvent>::init(
         &pool,

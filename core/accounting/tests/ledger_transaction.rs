@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use job::{JobSvcConfig, Jobs};
 
 use cala_ledger::{
@@ -188,7 +188,7 @@ async fn prepare_test() -> anyhow::Result<(
 )> {
     use rand::RngExt;
     let pool = helpers::init_pool().await?;
-    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _) = ClockHandle::manual();
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
