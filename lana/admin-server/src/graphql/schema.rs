@@ -2714,19 +2714,21 @@ impl Mutation {
         Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
     }
 
-    async fn trigger_report_run(
+    async fn report_run_trigger(
         &self,
         ctx: &Context<'_>,
-        input: TriggerReportRunInput,
-    ) -> async_graphql::Result<ReportRunCreatePayload> {
+        input: ReportRunTriggerInput,
+    ) -> async_graphql::Result<ReportRunTriggerPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let report_definition_id =
             lana_app::report::ReportDefinitionId::try_new(input.report_definition_id)?;
-        let _job_id = app
+        let report_run = app
             .reports()
             .trigger_report_run_job(sub, report_definition_id, input.as_of_date.map(Into::into))
             .await?;
-        Ok(ReportRunCreatePayload { run_id: None })
+        Ok(ReportRunTriggerPayload {
+            report_run: report_run.into(),
+        })
     }
 
     async fn report_file_generate_download_link(

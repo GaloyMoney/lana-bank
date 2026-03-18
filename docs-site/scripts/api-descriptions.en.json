@@ -158,7 +158,7 @@
       "accountingCsvDownloadLinkGenerate": "Generates a download link for an accounting CSV document",
       "creditFacilityAgreementGenerate": "Generates a loan agreement document for a customer",
       "loanAgreementDownloadLinkGenerate": "Generates a download link for a loan agreement document",
-      "triggerReportRun": "Triggers manual generation for a single report definition, with an optional as-of date when the selected report requires one",
+      "reportRunTrigger": "Triggers manual generation for a single report definition, with an optional as-of date when the selected report requires one",
       "reportFileGenerateDownloadLink": "Generates a download link for a report file",
       "chartOfAccountsCsvImportWithBaseConfig": "Imports a chart of accounts from a CSV file with base configuration settings",
       "chartOfAccountsCsvImport": "Imports a chart of accounts from a CSV file",

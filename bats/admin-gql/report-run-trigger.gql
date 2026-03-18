@@ -1,0 +1,7 @@
+mutation ReportRunTrigger($input: ReportRunTriggerInput!) {
+  reportRunTrigger(input: $input) {
+    reportRun {
+      reportRunId
+    }
+  }
+}

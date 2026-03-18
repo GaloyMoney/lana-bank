@@ -55,6 +55,9 @@ pub enum ReportRunEvent {
         requested_report: Option<RequestedReport>,
         requested_as_of_date: Option<NaiveDate>,
     },
+    ExternalIdUpdated {
+        external_id: String,
+    },
 }
 
 #[derive(EsEntity, Builder, Clone)]
@@ -111,6 +114,9 @@ impl TryFromEvents<ReportRunEvent> for ReportRun {
                         .requested_report(requested_report.clone())
                         .requested_as_of_date(*requested_as_of_date)
                 }
+                ReportRunEvent::ExternalIdUpdated { external_id } => {
+                    builder = builder.external_id(external_id.clone())
+                }
             }
         }
 
@@ -158,6 +164,16 @@ impl ReportRun {
             requested_as_of_date,
         });
 
+        Idempotent::Executed(())
+    }
+
+    pub fn update_external_id(&mut self, external_id: String) -> Idempotent<()> {
+        if self.external_id == external_id {
+            return Idempotent::AlreadyApplied;
+        }
+        self.external_id = external_id.clone();
+        self.events
+            .push(ReportRunEvent::ExternalIdUpdated { external_id });
         Idempotent::Executed(())
     }
 }

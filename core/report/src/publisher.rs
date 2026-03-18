@@ -43,9 +43,11 @@ where
                 Initialized { .. } => CoreReportEvent::ReportRunCreated {
                     entity: PublicReportRun::from(entity),
                 },
-                StateUpdated { .. } => CoreReportEvent::ReportRunStateUpdated {
-                    entity: PublicReportRun::from(entity),
-                },
+                StateUpdated { .. } | ExternalIdUpdated { .. } => {
+                    CoreReportEvent::ReportRunStateUpdated {
+                        entity: PublicReportRun::from(entity),
+                    }
+                }
             };
             self.outbox
                 .publish_ephemeral_in_op(db, REPORT_RUN_EVENT_TYPE, publish_event)

@@ -2139,6 +2139,7 @@ type Mutation {
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
 	prospectKycLinkCreate(input: ProspectKycLinkCreateInput!): ProspectKycLinkCreatePayload!
 	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
+	reportRunTrigger(input: ReportRunTriggerInput!): ReportRunTriggerPayload!
 	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
 	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
@@ -2149,7 +2150,6 @@ type Mutation {
 	boundary and returns the updated clock state.
 	"""
 	timeAdvanceToNextEndOfDay: TimeAdvanceToNextEndOfDayPayload!
-	triggerReportRun(input: TriggerReportRunInput!): ReportRunCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
@@ -2753,10 +2753,6 @@ type ReportRunConnection {
 	pageInfo: PageInfo!
 }
 
-type ReportRunCreatePayload {
-	runId: String
-}
-
 """
 An edge in a connection.
 """
@@ -2776,6 +2772,15 @@ enum ReportRunState {
 	QUEUED
 	RUNNING
 	SUCCESS
+}
+
+input ReportRunTriggerInput {
+	asOfDate: Date
+	reportDefinitionId: String!
+}
+
+type ReportRunTriggerPayload {
+	reportRun: ReportRun!
 }
 
 enum ReportRunType {
@@ -3053,11 +3058,6 @@ type TrialBalance {
 	accounts: [LedgerAccount!]!
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
-}
-
-input TriggerReportRunInput {
-	asOfDate: Date
-	reportDefinitionId: String!
 }
 
 scalar UUID

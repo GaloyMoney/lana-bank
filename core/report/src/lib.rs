@@ -330,7 +330,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         report_definition_id: ReportDefinitionId,
         as_of_date: Option<chrono::NaiveDate>,
-    ) -> Result<job::JobId, ReportError> {
+    ) -> Result<ReportRun, ReportError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -344,18 +344,36 @@ where
 
         report_definition.validate_as_of_date(as_of_date)?;
 
+        let new_run = NewReportRun::builder()
+            .external_id("pending")
+            .requested_report(Some(RequestedReport {
+                report_definition_id: report_definition.report_definition_id(),
+                norm: report_definition.norm.clone(),
+                name: report_definition.friendly_name.clone(),
+            }))
+            .requested_as_of_date(as_of_date)
+            .build()
+            .expect("all required fields set");
+
         let mut db = self.report_runs.begin_op().await?;
+        let report_run = self.report_runs.create_in_op(&mut db, new_run).await?;
+        let report_run_id = report_run.id;
+
         let job_id = job::JobId::new();
         self.trigger_report_run_spawner
             .spawn_in_op(
                 &mut db,
                 job_id,
-                TriggerReportRunJobConfig::<E>::new(report_definition_id, as_of_date),
+                TriggerReportRunJobConfig::<E>::new(
+                    report_definition_id,
+                    as_of_date,
+                    report_run_id,
+                ),
             )
             .await?;
         tracing::Span::current().record("job_id", job_id.to_string());
         db.commit().await?;
 
-        Ok(job_id)
+        Ok(report_run)
     }
 }

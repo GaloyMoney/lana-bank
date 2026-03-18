@@ -134,6 +134,22 @@
         "run_type"
       ],
       "type": "object"
+    },
+    {
+      "properties": {
+        "external_id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "external_id_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "external_id"
+      ],
+      "type": "object"
     }
   ],
   "title": "ReportRunEvent"

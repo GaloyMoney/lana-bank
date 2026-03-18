@@ -126,12 +126,12 @@ impl ReportRun {
 }
 
 #[derive(SimpleObject)]
-pub struct ReportRunCreatePayload {
-    pub run_id: Option<String>,
+pub struct ReportRunTriggerPayload {
+    pub report_run: ReportRun,
 }
 
 #[derive(InputObject)]
-pub struct TriggerReportRunInput {
+pub struct ReportRunTriggerInput {
     pub report_definition_id: String,
     pub as_of_date: Option<Date>,
 }
