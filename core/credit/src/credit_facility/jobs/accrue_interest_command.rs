@@ -161,6 +161,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
+    #[record_error_severity]
     #[instrument(
         name = "accrue_interest_command.run",
         skip(self, _current_job),

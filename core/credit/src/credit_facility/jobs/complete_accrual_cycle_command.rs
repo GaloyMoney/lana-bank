@@ -16,6 +16,7 @@ use std::sync::Arc;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
+use es_entity::Idempotent;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use obix::out::OutboxEventMarker;
@@ -175,6 +176,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
+    #[record_error_severity]
     #[instrument(
         name = "complete_accrual_cycle_command.run",
         skip(self, _current_job),
@@ -196,15 +198,39 @@ where
             )
             .await?;
 
-        let CompletedAccrualCycle {
-            facility_accrual_cycle_data,
-            new_cycle_data,
-        } = self
+        let result = self
             .complete_interest_cycle_and_maybe_start_new_cycle_in_op(
                 &mut op,
                 self.config.credit_facility_id,
             )
-            .await?;
+            .await;
+
+        let completed = match result {
+            Ok(Some(completed)) => completed,
+            Ok(None) => {
+                // Cycle was already recorded on job restart — no further work needed
+                tracing::info!(
+                    credit_facility_id = %self.config.credit_facility_id,
+                    "Accrual cycle already recorded, completing as no-op"
+                );
+                return Ok(JobCompletion::CompleteWithOp(op));
+            }
+            Err(CreditFacilityError::InterestAccrualNotCompletedYet) => {
+                // Multi-period scenario: accrual step completed one period but cycle isn't done.
+                // This is expected — next EOD will continue with remaining periods.
+                tracing::info!(
+                    credit_facility_id = %self.config.credit_facility_id,
+                    "Interest accrual not completed yet, remaining periods will be processed in next EOD"
+                );
+                return Ok(JobCompletion::CompleteWithOp(op));
+            }
+            Err(e) => return Err(e.into()),
+        };
+
+        let CompletedAccrualCycle {
+            facility_accrual_cycle_data,
+            new_cycle_data,
+        } = completed;
 
         self.ledger
             .record_interest_accrual_cycle_in_op(
@@ -268,15 +294,23 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
-    ) -> Result<CompletedAccrualCycle, CreditFacilityError> {
+    ) -> Result<Option<CompletedAccrualCycle>, CreditFacilityError> {
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id_in_op(db, credit_facility_id)
             .await?;
 
-        let (accrual_cycle_data, new_obligation) = credit_facility
-            .record_interest_accrual_cycle()?
-            .expect("record_interest_accrual_cycle should execute when there is an accrual cycle to record");
+        let (accrual_cycle_data, new_obligation) =
+            match credit_facility.record_interest_accrual_cycle()? {
+                Idempotent::Executed(value) => value,
+                Idempotent::AlreadyApplied => {
+                    // Cycle was already recorded — this is expected on job restart
+                    self.credit_facility_repo
+                        .update_in_op(db, &mut credit_facility)
+                        .await?;
+                    return Ok(None);
+                }
+            };
 
         if let Some(new_obligation) = new_obligation {
             self.collections
@@ -304,10 +338,10 @@ where
             }
         });
 
-        Ok(CompletedAccrualCycle {
+        Ok(Some(CompletedAccrualCycle {
             facility_accrual_cycle_data: (accrual_cycle_data, credit_facility.account_ids).into(),
             new_cycle_data,
-        })
+        }))
     }
 }
 
