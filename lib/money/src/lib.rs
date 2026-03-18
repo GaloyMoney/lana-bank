@@ -18,6 +18,7 @@ pub use calculation_amount::CalculationAmount;
 pub use code::*;
 pub use error::ConversionError;
 pub use map::*;
+pub use rust_decimal::RoundingStrategy;
 
 // ---------------------------------------------------------------------------
 // Currency trait + marker types

@@ -399,6 +399,7 @@ impl TermValuesBuilder {
 
 #[cfg(test)]
 mod test {
+    use rust_decimal::RoundingStrategy;
     use rust_decimal_macros::dec;
 
     use super::*;
@@ -546,7 +547,7 @@ mod test {
         let interest = terms
             .annual_rate
             .interest_for_period(principal, days)
-            .round_up();
+            .round_with(RoundingStrategy::AwayFromZero);
         assert_eq!(interest, UsdCents::from(1200));
 
         let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
@@ -554,7 +555,7 @@ mod test {
         let interest = terms
             .annual_rate
             .interest_for_period(principal, days)
-            .round_up();
+            .round_with(RoundingStrategy::AwayFromZero);
         assert_eq!(interest, UsdCents::from(757));
     }
 
@@ -640,7 +641,7 @@ mod test {
     fn can_apply_one_time_fee() {
         let fee = OneTimeFeeRatePct(dec!(5))
             .apply(UsdCents::from(1000))
-            .round_up();
+            .round_with(RoundingStrategy::AwayFromZero);
         assert_eq!(fee, UsdCents::from(50));
     }
 
@@ -648,7 +649,7 @@ mod test {
     fn one_time_fee_rounds_up() {
         let fee = OneTimeFeeRatePct(dec!(5.01))
             .apply(UsdCents::from(1000))
-            .round_up();
+            .round_with(RoundingStrategy::AwayFromZero);
         assert_eq!(fee, UsdCents::from(51));
     }
 

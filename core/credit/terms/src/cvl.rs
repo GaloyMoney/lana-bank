@@ -64,7 +64,9 @@ impl CVLPct {
 
     pub fn scale(&self, value: UsdCents) -> UsdCents {
         match self {
-            Self::Finite(pct) => (value.to_calc() * *pct / dec!(100)).round_up(),
+            Self::Finite(pct) => {
+                (value.to_calc() * *pct / dec!(100)).round_with(RoundingStrategy::AwayFromZero)
+            }
             Self::Infinite => unreachable!("Cannot scale with infinite CVL percentage"),
         }
     }
@@ -76,7 +78,8 @@ impl CVLPct {
     #[cfg(test)]
     pub fn target_value_given_outstanding(&self, outstanding: UsdCents) -> UsdCents {
         match self {
-            Self::Finite(pct) => (outstanding.to_calc() * *pct / dec!(100)).round_up(),
+            Self::Finite(pct) => (outstanding.to_calc() * *pct / dec!(100))
+                .round_with(RoundingStrategy::AwayFromZero),
             Self::Infinite => {
                 unreachable!("Cannot calculate target value for infinite CVL percentage")
             }

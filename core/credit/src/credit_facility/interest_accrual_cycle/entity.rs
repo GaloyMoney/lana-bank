@@ -245,7 +245,7 @@ impl InterestAccrualCycle {
         self.accumulated += daily_interest;
 
         // Final booking: round to minor units (lender-favorable)
-        let new_rounded_total = self.accumulated.round_up();
+        let new_rounded_total = self.accumulated.round_with(RoundingStrategy::AwayFromZero);
         let delta = new_rounded_total - self.previous_rounded_total;
         self.previous_rounded_total = new_rounded_total;
 
@@ -790,7 +790,7 @@ mod test {
                 .interest_for_period(disbursed_outstanding_amount, 1);
             expected_accumulated += daily;
         }
-        let expected_total = expected_accumulated.round_up();
+        let expected_total = expected_accumulated.round_with(RoundingStrategy::AwayFromZero);
         let InterestAccrualCycleData { interest, .. } = accrual.accrual_cycle_data().unwrap();
         assert_eq!(interest, expected_total);
     }

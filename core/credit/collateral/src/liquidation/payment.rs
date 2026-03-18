@@ -1,4 +1,4 @@
-use rust_decimal::Decimal;
+use rust_decimal::{Decimal, RoundingStrategy};
 
 use core_credit_terms::CVLPct;
 use core_price::PriceOfOneBTC;
@@ -88,7 +88,7 @@ impl LiquidationPaymentAmounts {
 
         let to_liquidate_cents = (collateral_calc - new_outstanding.to_calc() * target_ratio)
             .max(CalculationAmount::ZERO)
-            .round_up();
+            .round_with(RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_liquidate_cents);
 
         Self {
@@ -112,7 +112,7 @@ impl LiquidationPaymentAmounts {
             let effective_price_cents = CalculationAmount::<Usd>::from_major(
                 self.to_receive.to_major() / self.to_liquidate.to_major(),
             )
-            .round_up();
+            .round_with(RoundingStrategy::AwayFromZero);
 
             Some(PriceOfOneBTC::new(effective_price_cents))
         }
@@ -153,7 +153,7 @@ impl LiquidationPaymentAmounts {
 
         let to_receive = (outstanding.to_calc() - new_collateral_calc / target_ratio)
             .max(CalculationAmount::ZERO)
-            .round_up();
+            .round_with(RoundingStrategy::AwayFromZero);
 
         Self {
             to_liquidate,
@@ -185,7 +185,9 @@ impl LiquidationPaymentAmounts {
 
         let to_receive = (outstanding_calc * target_ratio - collateral_calc)
             / (target_ratio - Self::UNIT_FEE_FACTOR);
-        let to_receive = to_receive.max(CalculationAmount::ZERO).round_up();
+        let to_receive = to_receive
+            .max(CalculationAmount::ZERO)
+            .round_with(RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_receive);
 
         Self {

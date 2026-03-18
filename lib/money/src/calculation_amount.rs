@@ -64,7 +64,13 @@ impl<C: Currency> CalculationAmount<C> {
 // ─── The Rounding Boundary ──────────────────────────────────────────
 
 impl<C: Currency> CalculationAmount<C> {
-    fn round_with(self, strategy: RoundingStrategy) -> MinorUnits<C> {
+    /// Round to the nearest minor unit using the given strategy.
+    ///
+    /// Common strategies:
+    /// - `RoundingStrategy::AwayFromZero` — interest owed, fees, required collateral
+    /// - `RoundingStrategy::ToZero` — collateral valuation (e.g., sats_to_cents)
+    /// - `RoundingStrategy::MidpointAwayFromZero` — standard "round half up"
+    pub fn round_with(self, strategy: RoundingStrategy) -> MinorUnits<C> {
         let minor = self.value * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
         let rounded = minor.round_dp_with_strategy(0, strategy);
         MinorUnits::from(
@@ -72,18 +78,6 @@ impl<C: Currency> CalculationAmount<C> {
                 .to_u64()
                 .expect("CalculationAmount must be non-negative and within u64 range"),
         )
-    }
-
-    /// Round away from zero (UP for positive amounts).
-    /// Use for: interest owed, fees, required collateral, repay amounts.
-    pub fn round_up(self) -> MinorUnits<C> {
-        self.round_with(RoundingStrategy::AwayFromZero)
-    }
-
-    /// Round toward zero (DOWN for positive amounts).
-    /// Use for: collateral valuation (e.g., sats_to_cents).
-    pub fn round_down(self) -> MinorUnits<C> {
-        self.round_with(RoundingStrategy::ToZero)
     }
 
     /// Round to N decimal places in major units, staying as CalculationAmount.
@@ -409,21 +403,21 @@ mod tests {
     #[test]
     fn round_up_rounds_away_from_zero() {
         let calc = CalcUsd::from_major(dec!(3.287671));
-        let rounded = calc.round_up();
+        let rounded = calc.round_with(RoundingStrategy::AwayFromZero);
         assert_eq!(rounded.into_inner(), 329);
     }
 
     #[test]
     fn round_down_rounds_toward_zero() {
         let calc = CalcUsd::from_major(dec!(3.287671));
-        let rounded = calc.round_down();
+        let rounded = calc.round_with(RoundingStrategy::ToZero);
         assert_eq!(rounded.into_inner(), 328);
     }
 
     #[test]
     fn round_up_btc() {
         let calc = CalcBtc::from_major(dec!(0.001666666666));
-        let rounded = calc.round_up();
+        let rounded = calc.round_with(RoundingStrategy::AwayFromZero);
         assert_eq!(rounded.into_inner(), 166667);
     }
 
@@ -431,15 +425,18 @@ mod tests {
     fn round_trip_lossless() {
         let original = MinorUnits::<Usd>::from(329u64);
         let calc = original.to_calc();
-        let back = calc.round_up();
+        let back = calc.round_with(RoundingStrategy::AwayFromZero);
         assert_eq!(original, back);
     }
 
     #[test]
     fn round_zero() {
         let calc = CalcUsd::ZERO;
-        assert_eq!(calc.round_up().into_inner(), 0);
-        assert_eq!(calc.round_down().into_inner(), 0);
+        assert_eq!(
+            calc.round_with(RoundingStrategy::AwayFromZero).into_inner(),
+            0
+        );
+        assert_eq!(calc.round_with(RoundingStrategy::ToZero).into_inner(), 0);
     }
 
     #[test]
@@ -467,10 +464,10 @@ mod tests {
         let days_in_year = dec!(365);
 
         let total_unrounded: CalcUsd = (0..30).map(|_| principal * rate / days_in_year).sum();
-        let sum_then_round = total_unrounded.round_up();
+        let sum_then_round = total_unrounded.round_with(RoundingStrategy::AwayFromZero);
 
         let round_then_sum: MinorUnits<Usd> = (0..30)
-            .map(|_| (principal * rate / days_in_year).round_up())
+            .map(|_| (principal * rate / days_in_year).round_with(RoundingStrategy::AwayFromZero))
             .sum();
 
         assert!(sum_then_round <= round_then_sum);

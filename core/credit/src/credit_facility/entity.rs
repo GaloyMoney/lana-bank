@@ -317,7 +317,11 @@ impl CreditFacility {
 
         Some(StructuringFeeOnActivation {
             tx_id,
-            amount: self.terms.one_time_fee_rate.apply(self.amount).round_up(),
+            amount: self
+                .terms
+                .one_time_fee_rate
+                .apply(self.amount)
+                .round_with(rust_decimal::RoundingStrategy::AwayFromZero),
         })
     }
 
@@ -923,6 +927,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
 
 #[cfg(test)]
 mod test {
+    use rust_decimal::RoundingStrategy;
     use rust_decimal_macros::dec;
 
     use super::*;
@@ -1175,7 +1180,7 @@ mod test {
         let expected_fee = default_terms()
             .one_time_fee_rate
             .apply(default_facility())
-            .round_up();
+            .round_with(RoundingStrategy::AwayFromZero);
         assert_eq!(
             credit_facility
                 .structuring_fee_on_activation()
