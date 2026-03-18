@@ -16,7 +16,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_time_events::CoreTimeEvent;
 use es_entity::clock::ClockHandle;
-use obix::out::OutboxEventMarker;
+use obix::out::{Outbox, OutboxEventMarker};
 
 pub use error::CoreCreditCollectionError;
 pub use obligation::{
@@ -97,6 +97,7 @@ where
         journal_id: cala_ledger::JournalId,
         payments_made_omnibus_account_id: CalaAccountId,
         jobs: &mut job::Jobs,
+        outbox: &Outbox<E>,
         publisher: &CollectionPublisher<E>,
         clock: ClockHandle,
     ) -> Result<
@@ -125,7 +126,7 @@ where
         // EOD child process — spawned by the EOD process manager
         let obligation_transition_spawner =
             jobs.add_initializer(ObligationTransitionProcessInit::new(
-                jobs,
+                outbox,
                 obligations_arc.as_ref(),
                 transition_spawner,
             ));

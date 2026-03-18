@@ -88,7 +88,7 @@ where
 
         // EOD child process — spawned by the EOD process manager
         let deposit_activity_spawner = jobs.add_initializer(DepositActivityProcessInit::new(
-            jobs,
+            outbox,
             deposits,
             evaluate_spawner,
         ));

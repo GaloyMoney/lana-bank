@@ -126,8 +126,8 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         journal_id,
         accounts.payments_made_omnibus,
         &mut jobs,
-        &publisher,
         &outbox,
+        &publisher,
         clock.clone(),
     )
     .await?;

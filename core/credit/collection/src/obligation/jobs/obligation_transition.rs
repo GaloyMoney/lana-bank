@@ -1,4 +1,7 @@
+use std::collections::HashSet;
+
 use async_trait::async_trait;
+use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -10,10 +13,14 @@ use core_eod::obligation_transition_process::{
 };
 use core_time_events::CoreTimeEvent;
 use job::{error::JobError, *};
-use obix::out::OutboxEventMarker;
+use obix::out::{Outbox, OutboxEventMarker};
 
 use super::transition_obligation::{TransitionObligationJobConfig, TransitionObligationJobSpawner};
-use crate::{obligation::Obligations, primitives::*, public::CoreCreditCollectionEvent};
+use crate::{
+    obligation::Obligations,
+    primitives::*,
+    public::{CoreCreditCollectionEvent, PublicObligation},
+};
 
 const PAGE_SIZE: i64 = 100;
 
@@ -22,7 +29,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    jobs: Jobs,
+    outbox: Outbox<E>,
     obligations: Obligations<Perms, E>,
     transition_spawner: TransitionObligationJobSpawner<Perms, E>,
 }
@@ -33,12 +40,12 @@ where
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     pub fn new(
-        jobs: &Jobs,
+        outbox: &Outbox<E>,
         obligations: &Obligations<Perms, E>,
         transition_spawner: TransitionObligationJobSpawner<Perms, E>,
     ) -> Self {
         Self {
-            jobs: jobs.clone(),
+            outbox: outbox.clone(),
             obligations: obligations.clone(),
             transition_spawner,
         }
@@ -65,7 +72,7 @@ where
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(ObligationTransitionProcessRunner {
             config: job.config()?,
-            jobs: self.jobs.clone(),
+            outbox: self.outbox.clone(),
             obligations: self.obligations.clone(),
             transition_spawner: self.transition_spawner.clone(),
         }))
@@ -78,7 +85,7 @@ where
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     config: ObligationTransitionProcessConfig,
-    jobs: Jobs,
+    outbox: Outbox<E>,
     obligations: Obligations<Perms, E>,
     transition_spawner: TransitionObligationJobSpawner<Perms, E>,
 }
@@ -89,7 +96,8 @@ enum ObligationTransitionState {
     #[default]
     Collecting(ObligationTransitionCollectingState),
     Tracking {
-        entity_job_ids: Vec<JobId>,
+        pending: HashSet<ObligationId>,
+        start_sequence: i64,
     },
 }
 
@@ -97,7 +105,7 @@ enum ObligationTransitionState {
 #[serde(rename_all = "camelCase")]
 struct ObligationTransitionCollectingState {
     last_cursor: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
-    entity_job_ids: Vec<JobId>,
+    pending: HashSet<ObligationId>,
 }
 
 impl<Perms, E> ObligationTransitionProcessRunner<Perms, E>
@@ -137,7 +145,7 @@ where
                         "obligation-transition",
                         &(*id).into(),
                     );
-                    state.entity_job_ids.push(job_id);
+                    state.pending.insert(*id);
                     JobSpec::new(
                         job_id,
                         TransitionObligationJobConfig {
@@ -169,13 +177,17 @@ where
             op.commit().await?;
         }
 
+        let start_sequence = self.outbox.current_sequence().await?;
+
         tracing::info!(
-            jobs_spawned = state.entity_job_ids.len(),
+            entities = state.pending.len(),
+            start_sequence,
             "Obligation transition collection complete, transitioning to tracking"
         );
 
         let new_state = ObligationTransitionState::Tracking {
-            entity_job_ids: state.entity_job_ids,
+            pending: state.pending,
+            start_sequence,
         };
         let mut op = current_job.begin_op().await?;
         current_job
@@ -184,42 +196,68 @@ where
         Ok(JobCompletion::RescheduleNowWithOp(op))
     }
 
+    fn extract_obligation_completion(event: &CoreCreditCollectionEvent) -> Option<ObligationId> {
+        match event {
+            CoreCreditCollectionEvent::ObligationDue {
+                entity: PublicObligation { id, .. },
+            }
+            | CoreCreditCollectionEvent::ObligationOverdue {
+                entity: PublicObligation { id, .. },
+            }
+            | CoreCreditCollectionEvent::ObligationDefaulted {
+                entity: PublicObligation { id, .. },
+            } => Some(*id),
+            _ => None,
+        }
+    }
+
     async fn run_tracking(
         &self,
-        _current_job: CurrentJob,
-        entity_job_ids: Vec<JobId>,
+        mut current_job: CurrentJob,
+        mut pending: HashSet<ObligationId>,
+        mut start_sequence: i64,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        tracing::info!(
-            total_jobs = entity_job_ids.len(),
-            "Awaiting completion of per-entity obligation transition jobs"
-        );
-
-        let results = futures::future::try_join_all(
-            entity_job_ids
-                .iter()
-                .map(|id| self.jobs.await_completion(*id)),
-        )
-        .await?;
-
-        let failed: Vec<_> = entity_job_ids
-            .iter()
-            .zip(results.iter())
-            .filter(|(_, state)| *state != &JobTerminalState::Completed)
-            .map(|(id, state)| (*id, state.clone()))
-            .collect();
-
-        if !failed.is_empty() {
-            tracing::error!(
-                ?failed,
-                "Some obligation transition entity jobs did not complete successfully"
-            );
-            return Err(
-                format!("{} obligation transition entity jobs failed", failed.len()).into(),
-            );
+        if pending.is_empty() {
+            tracing::info!("No obligations to track, completing immediately");
+            return Ok(JobCompletion::Complete);
         }
 
-        tracing::info!("All obligation transition entity jobs completed");
-        Ok(JobCompletion::Complete)
+        tracing::info!(
+            remaining = pending.len(),
+            start_sequence,
+            "Streaming outbox events for obligation transition completion"
+        );
+
+        let mut stream = self.outbox.listen_persisted(Some(start_sequence));
+
+        loop {
+            tokio::select! {
+                Some(event) = stream.next() => {
+                    if let Some(payload) = event.payload.as_ref() {
+                        if let Some(collection_event) = payload.as_event::<CoreCreditCollectionEvent>() {
+                            if let Some(obligation_id) = Self::extract_obligation_completion(collection_event) {
+                                if pending.remove(&obligation_id) {
+                                    start_sequence = event.sequence;
+                                    let state = ObligationTransitionState::Tracking {
+                                        pending: pending.clone(),
+                                        start_sequence,
+                                    };
+                                    current_job.update_execution_state(&state).await?;
+                                }
+                            }
+                        }
+                    }
+                    if pending.is_empty() {
+                        tracing::info!("All obligation transitions completed");
+                        return Ok(JobCompletion::Complete);
+                    }
+                }
+                _ = current_job.shutdown_requested() => {
+                    tracing::info!("Shutdown requested, rescheduling obligation transition tracking");
+                    return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
+                }
+            }
+        }
     }
 }
 
@@ -249,8 +287,12 @@ where
             ObligationTransitionState::Collecting(collecting) => {
                 self.run_collecting(current_job, collecting).await
             }
-            ObligationTransitionState::Tracking { entity_job_ids } => {
-                self.run_tracking(current_job, entity_job_ids).await
+            ObligationTransitionState::Tracking {
+                pending,
+                start_sequence,
+            } => {
+                self.run_tracking(current_job, pending, start_sequence)
+                    .await
             }
         }
     }

@@ -220,6 +220,7 @@ where
             journal_id,
             ledger_arc.payments_made_omnibus_account_ids().account_id,
             jobs,
+            outbox,
             &collections_publisher,
             clock.clone(),
         )

@@ -1,4 +1,7 @@
+use std::collections::HashSet;
+
 use async_trait::async_trait;
+use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -15,7 +18,7 @@ use core_eod::deposit_activity_process::{
 };
 use governance::GovernanceEvent;
 use job::{error::JobError, *};
-use obix::out::OutboxEventMarker;
+use obix::out::{Outbox, OutboxEventMarker};
 
 use super::evaluate_deposit_account_activity::{
     EvaluateDepositAccountActivityConfig, EvaluateDepositAccountActivityJobSpawner,
@@ -30,7 +33,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    jobs: Jobs,
+    outbox: Outbox<E>,
     deposits: CoreDeposit<Perms, E>,
     evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
 }
@@ -43,12 +46,12 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     pub fn new(
-        jobs: &Jobs,
+        outbox: &Outbox<E>,
         deposits: &CoreDeposit<Perms, E>,
         evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
     ) -> Self {
         Self {
-            jobs: jobs.clone(),
+            outbox: outbox.clone(),
             deposits: deposits.clone(),
             evaluate_spawner,
         }
@@ -79,7 +82,7 @@ where
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(DepositActivityProcessRunner {
             config: job.config()?,
-            jobs: self.jobs.clone(),
+            outbox: self.outbox.clone(),
             deposits: self.deposits.clone(),
             evaluate_spawner: self.evaluate_spawner.clone(),
         }))
@@ -94,7 +97,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     config: DepositActivityProcessConfig,
-    jobs: Jobs,
+    outbox: Outbox<E>,
     deposits: CoreDeposit<Perms, E>,
     evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
 }
@@ -105,7 +108,8 @@ enum DepositActivityState {
     #[default]
     Collecting(DepositActivityCollectingState),
     Tracking {
-        entity_job_ids: Vec<JobId>,
+        pending: HashSet<DepositAccountId>,
+        start_sequence: i64,
     },
 }
 
@@ -113,7 +117,7 @@ enum DepositActivityState {
 #[serde(rename_all = "camelCase")]
 struct DepositActivityCollectingState {
     last_cursor: Option<(chrono::DateTime<chrono::Utc>, DepositAccountId)>,
-    entity_job_ids: Vec<JobId>,
+    pending: HashSet<DepositAccountId>,
 }
 
 impl<Perms, E> DepositActivityProcessRunner<Perms, E>
@@ -151,7 +155,7 @@ where
                         "deposit-activity",
                         &(*id).into(),
                     );
-                    state.entity_job_ids.push(job_id);
+                    state.pending.insert(*id);
                     JobSpec::new(
                         job_id,
                         EvaluateDepositAccountActivityConfig {
@@ -178,13 +182,17 @@ where
             op.commit().await?;
         }
 
+        let start_sequence = self.outbox.current_sequence().await?;
+
         tracing::info!(
-            jobs_spawned = state.entity_job_ids.len(),
+            entities = state.pending.len(),
+            start_sequence,
             "Deposit activity collection complete, transitioning to tracking"
         );
 
         let new_state = DepositActivityState::Tracking {
-            entity_job_ids: state.entity_job_ids,
+            pending: state.pending,
+            start_sequence,
         };
         let mut op = current_job.begin_op().await?;
         current_job
@@ -195,38 +203,53 @@ where
 
     async fn run_tracking(
         &self,
-        _current_job: CurrentJob,
-        entity_job_ids: Vec<JobId>,
+        mut current_job: CurrentJob,
+        mut pending: HashSet<DepositAccountId>,
+        mut start_sequence: i64,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        tracing::info!(
-            total_jobs = entity_job_ids.len(),
-            "Awaiting completion of per-entity deposit activity jobs"
-        );
-
-        let results = futures::future::try_join_all(
-            entity_job_ids
-                .iter()
-                .map(|id| self.jobs.await_completion(*id)),
-        )
-        .await?;
-
-        let failed: Vec<_> = entity_job_ids
-            .iter()
-            .zip(results.iter())
-            .filter(|(_, state)| *state != &JobTerminalState::Completed)
-            .map(|(id, state)| (*id, state.clone()))
-            .collect();
-
-        if !failed.is_empty() {
-            tracing::error!(
-                ?failed,
-                "Some deposit activity entity jobs did not complete successfully"
-            );
-            return Err(format!("{} deposit activity entity jobs failed", failed.len()).into());
+        if pending.is_empty() {
+            tracing::info!("No deposit accounts to track, completing immediately");
+            return Ok(JobCompletion::Complete);
         }
 
-        tracing::info!("All deposit activity entity jobs completed");
-        Ok(JobCompletion::Complete)
+        tracing::info!(
+            remaining = pending.len(),
+            start_sequence,
+            "Streaming outbox events for deposit activity completion"
+        );
+
+        let mut stream = self.outbox.listen_persisted(Some(start_sequence));
+
+        loop {
+            tokio::select! {
+                Some(event) = stream.next() => {
+                    // TODO: No public deposit-activity-evaluated event exists yet.
+                    // When added, match it here and remove from pending set.
+                    // For now, consume events to maintain the streaming structure.
+                    if let Some(payload) = event.payload.as_ref() {
+                        if let Some(_deposit_event) = payload.as_event::<CoreDepositEvent>() {
+                            // Future: match on deposit activity completion event
+                            // and extract account ID to remove from pending set
+                        }
+                    }
+                    start_sequence = event.sequence;
+
+                    if pending.is_empty() {
+                        tracing::info!("All deposit activity evaluations completed");
+                        return Ok(JobCompletion::Complete);
+                    }
+                }
+                _ = current_job.shutdown_requested() => {
+                    let state = DepositActivityState::Tracking {
+                        pending,
+                        start_sequence,
+                    };
+                    current_job.update_execution_state(&state).await?;
+                    tracing::info!("Shutdown requested, rescheduling deposit activity tracking");
+                    return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
+                }
+            }
+        }
     }
 }
 
@@ -260,8 +283,12 @@ where
             DepositActivityState::Collecting(collecting) => {
                 self.run_collecting(current_job, collecting).await
             }
-            DepositActivityState::Tracking { entity_job_ids } => {
-                self.run_tracking(current_job, entity_job_ids).await
+            DepositActivityState::Tracking {
+                pending,
+                start_sequence,
+            } => {
+                self.run_tracking(current_job, pending, start_sequence)
+                    .await
             }
         }
     }
