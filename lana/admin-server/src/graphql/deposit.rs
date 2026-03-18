@@ -38,7 +38,10 @@ impl From<DomainDeposit> for Deposit {
         Deposit {
             deposit_id: UUID::from(deposit.id),
             account_id: UUID::from(deposit.deposit_account_id),
-            amount: deposit.amount,
+            amount: deposit
+                .amount
+                .to_minor_units::<Usd>()
+                .expect("deposit amount is USD"),
             created_at: deposit.created_at().into(),
 
             entity: Arc::new(deposit),

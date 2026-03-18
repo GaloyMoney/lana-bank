@@ -5,9 +5,10 @@ pub use std::sync::Arc;
 
 pub use lana_app::{
     primitives::{
-        CreditFacilityId, CreditFacilityStatus, CustomerId, DepositAccountId, DepositId,
-        DisbursalId, DisbursalStatus, PaymentAllocationId,
-        PendingCreditFacilityCollateralizationState, Satoshis, Subject, UsdCents, WithdrawalId,
+        CreditFacilityId, CreditFacilityStatus, CurrencyCode, CustomerId, DepositAccountId,
+        DepositId, DisbursalId, DisbursalStatus, PaymentAllocationId,
+        PendingCreditFacilityCollateralizationState, Satoshis, Subject, Usd, UsdCents,
+        WithdrawalId,
     },
     terms::CollateralizationState,
 };

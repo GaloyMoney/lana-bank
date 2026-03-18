@@ -53,11 +53,17 @@ pub struct DepositAccountBalance {
     pending: UsdCents,
 }
 
-impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
-    fn from(balance: lana_app::deposit::DepositAccountBalance) -> Self {
-        Self {
-            settled: balance.settled,
-            pending: balance.pending,
+impl From<lana_app::deposit::DepositAccountBalances> for DepositAccountBalance {
+    fn from(balances: lana_app::deposit::DepositAccountBalances) -> Self {
+        match balances.get(&CurrencyCode::USD) {
+            Ok(Some(lana_app::deposit::DepositAccountBalance::Usd { settled, pending })) => Self {
+                settled: *settled,
+                pending: *pending,
+            },
+            _ => Self {
+                settled: UsdCents::ZERO,
+                pending: UsdCents::ZERO,
+            },
         }
     }
 }
@@ -186,11 +192,17 @@ impl DepositAccount {
         event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
-    async fn ledger_accounts(&self) -> DepositAccountLedgerAccounts {
-        DepositAccountLedgerAccounts {
-            deposit_account_id: self.entity.account_ids.deposit_account_id.into(),
-            frozen_deposit_account_id: self.entity.account_ids.frozen_deposit_account_id.into(),
-        }
+    async fn ledger_accounts(&self) -> async_graphql::Result<DepositAccountLedgerAccounts> {
+        let usd_pair = self
+            .entity
+            .account_ids
+            .get(&CurrencyCode::USD)
+            .map_err(|e| async_graphql::Error::new(e.to_string()))?
+            .ok_or_else(|| async_graphql::Error::new("no USD ledger accounts"))?;
+        Ok(DepositAccountLedgerAccounts {
+            deposit_account_id: usd_pair.active.into(),
+            frozen_deposit_account_id: usd_pair.frozen.into(),
+        })
     }
 }
 

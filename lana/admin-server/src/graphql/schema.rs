@@ -1724,7 +1724,7 @@ impl Mutation {
             app.deposits().record_deposit(
                 sub,
                 input.deposit_account_id,
-                input.amount,
+                input.amount.into(),
                 input.reference
             )
         )
@@ -1743,7 +1743,7 @@ impl Mutation {
             app.deposits().initiate_withdrawal(
                 sub,
                 input.deposit_account_id,
-                input.amount,
+                input.amount.into(),
                 input.reference
             )
         )
