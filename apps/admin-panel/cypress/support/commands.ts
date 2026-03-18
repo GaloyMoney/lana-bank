@@ -158,7 +158,6 @@ Cypress.Commands.add(
             customerId
             publicId
             depositAccount {
-              id
               depositAccountId
               publicId
             }
@@ -175,7 +174,6 @@ Cypress.Commands.add(
           level
           email
           depositAccount {
-            id
             depositAccountId
             publicId
           }
