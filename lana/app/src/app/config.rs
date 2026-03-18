@@ -47,5 +47,7 @@ pub struct AccountingInitConfig {
     #[serde(default)]
     pub credit_config_path: Option<PathBuf>,
     #[serde(default)]
+    pub fx_config_path: Option<PathBuf>,
+    #[serde(default)]
     pub chart_of_accounts_integration_config_path: Option<PathBuf>,
 }

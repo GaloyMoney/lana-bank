@@ -1,0 +1,6 @@
+{
+    "trading_account_parent_code": "3.33.01",
+    "rounding_account_parent_code": "3.33.02",
+    "realized_gain_parent_code": "4.42.01",
+    "realized_loss_parent_code": "5.52.01"
+}

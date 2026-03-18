@@ -27,6 +27,7 @@ use crate::{
     deposit_sync::DepositSync,
     document::DocumentStorage,
     domain_config::ExposedDomainConfigs,
+    fx::Fx,
     governance::Governance,
     job::Jobs,
     kyc::CustomerKyc,
@@ -55,6 +56,7 @@ pub struct LanaApp {
     accounting: Accounting,
     customers: Customers,
     deposits: Deposits,
+    _fx: Fx,
     customer_kyc: CustomerKyc,
     access: Access,
     credit: Credit,
@@ -209,6 +211,15 @@ impl LanaApp {
             &internal_domain_configs,
         )
         .await?;
+        let fx = Fx::init(
+            &authz,
+            &cala,
+            journal_init.journal_id,
+            &jobs,
+            &internal_domain_configs,
+        )
+        .await?;
+
         let customer_kyc = CustomerKyc::init(
             &pool,
             &exposed_domain_configs_readonly,
@@ -287,8 +298,14 @@ impl LanaApp {
         )
         .await?;
 
-        ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
-            .await?;
+        ChartsInit::charts_of_accounts(
+            &accounting,
+            &credit,
+            &deposits,
+            &fx,
+            config.accounting_init,
+        )
+        .await?;
 
         jobs.start_poll().await?;
 
@@ -301,6 +318,7 @@ impl LanaApp {
             accounting,
             customers,
             deposits,
+            _fx: fx,
             customer_kyc,
             access,
             core_price,

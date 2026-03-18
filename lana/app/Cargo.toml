@@ -35,6 +35,7 @@ core-credit-terms = { workspace = true }
 core-customer = { workspace = true, features = ["graphql"] }
 core-price = { workspace = true }
 core-deposit = { workspace = true, features = ["graphql"] }
+core-fx = { workspace = true }
 core-accounting = { workspace = true, features = ["graphql"] }
 core-report = { workspace = true, features = ["graphql"] }
 core-time-events = { workspace = true }

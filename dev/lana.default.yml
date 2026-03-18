@@ -35,6 +35,7 @@ app:
     chart_of_accounts_seed_path: null
     deposit_config_path: null
     credit_config_path: null
+    fx_config_path: null
     chart_of_accounts_integration_config_path: null
   custody:
     custody_providers:

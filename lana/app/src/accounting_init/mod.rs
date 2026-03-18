@@ -7,7 +7,7 @@ use tracing_macros::record_error_severity;
 
 use crate::{
     accounting::Accounting, app::AccountingInitConfig, balance_sheet::BalanceSheets,
-    credit::Credit, deposit::Deposits, primitives::CalaJournalId,
+    credit::Credit, deposit::Deposits, fx::Fx, primitives::CalaJournalId,
     profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
 };
 
@@ -55,8 +55,10 @@ impl ChartsInit {
         accounting: &Accounting,
         credit: &Credit,
         deposit: &Deposits,
+        fx: &Fx,
         accounting_init_config: AccountingInitConfig,
     ) -> Result<(), AccountingInitError> {
-        seed::charts_of_accounts::init(accounting, credit, deposit, accounting_init_config).await
+        seed::charts_of_accounts::init(accounting, credit, deposit, fx, accounting_init_config)
+            .await
     }
 }
