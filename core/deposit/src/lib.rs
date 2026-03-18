@@ -268,7 +268,7 @@ where
             account_ids
                 .insert(
                     *currency,
-                    LedgerAccountPair::new(CalaAccountId::new(), CalaAccountId::new()),
+                    LedgerAccountPair::new(account_id.into(), CalaAccountId::new()),
                 )
                 .expect("currency in allowed set");
         }
