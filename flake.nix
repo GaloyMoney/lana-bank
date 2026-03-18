@@ -56,6 +56,7 @@
                 "isort"
                 "pyarrow"
                 "sqlfmt"
+                "sqlglot"
                 "weasyprint"
               ];
             in
