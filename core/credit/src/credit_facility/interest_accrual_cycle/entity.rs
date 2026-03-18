@@ -233,6 +233,7 @@ impl InterestAccrualCycle {
         &mut self,
         amount: UsdCents,
         accrual_precision_dp: u32,
+        accrual_rounding_strategy: RoundingStrategy,
     ) -> Result<Idempotent<InterestAccrualData>, InterestAccrualCycleError> {
         let accrual_period = self
             .next_accrual_period()
@@ -244,8 +245,8 @@ impl InterestAccrualCycle {
         // Accumulate at full precision (28 significant digits)
         self.accumulated += daily_interest;
 
-        // Final booking: round to minor units (lender-favorable)
-        let new_rounded_total = self.accumulated.round_with(RoundingStrategy::AwayFromZero);
+        // Final booking: round to minor units
+        let new_rounded_total = self.accumulated.round_with(accrual_rounding_strategy);
         let delta = new_rounded_total - self.previous_rounded_total;
         self.previous_rounded_total = new_rounded_total;
 
@@ -254,7 +255,7 @@ impl InterestAccrualCycle {
         let accumulated_at_dp = self
             .accumulated
             .to_major()
-            .round_dp_with_strategy(accrual_precision_dp, RoundingStrategy::AwayFromZero);
+            .round_dp_with_strategy(accrual_precision_dp, accrual_rounding_strategy);
 
         let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, self.count_accrued() + 1);
         let interest_accrual = InterestAccrualData {
@@ -661,7 +662,7 @@ mod test {
         let InterestAccrualData {
             interest, period, ..
         } = accrual
-            .record_accrual(UsdCents::ZERO, 5)
+            .record_accrual(UsdCents::ZERO, 5, RoundingStrategy::AwayFromZero)
             .unwrap()
             .expect("expected Executed");
         assert_eq!(interest, UsdCents::ZERO);
@@ -698,7 +699,7 @@ mod test {
             let InterestAccrualData {
                 interest, period, ..
             } = accrual
-                .record_accrual(UsdCents::ZERO, 5)
+                .record_accrual(UsdCents::ZERO, 5, RoundingStrategy::AwayFromZero)
                 .unwrap()
                 .expect("expected Executed");
             assert_eq!(interest, UsdCents::ZERO);
@@ -733,7 +734,7 @@ mod test {
             .unwrap();
         for _ in start_day..(end_day + 1) {
             let InterestAccrualData { period, .. } = accrual
-                .record_accrual(UsdCents::ONE, 5)
+                .record_accrual(UsdCents::ONE, 5, RoundingStrategy::AwayFromZero)
                 .unwrap()
                 .expect("expected Executed");
             assert_eq!(period.end, expected_end_of_day);
@@ -755,7 +756,7 @@ mod test {
         for _ in start_day..(end_day + 1) {
             assert!(accrual_cycle_data.is_none());
 
-            let _ = accrual.record_accrual(UsdCents::ONE, 5);
+            let _ = accrual.record_accrual(UsdCents::ONE, 5, RoundingStrategy::AwayFromZero);
 
             accrual_cycle_data = accrual.accrual_cycle_data();
         }
@@ -776,7 +777,11 @@ mod test {
 
         for _ in start_day..(end_day + 1) {
             accrual
-                .record_accrual(disbursed_outstanding_amount, 5)
+                .record_accrual(
+                    disbursed_outstanding_amount,
+                    5,
+                    RoundingStrategy::AwayFromZero,
+                )
                 .unwrap()
                 .expect("expected Executed");
         }
