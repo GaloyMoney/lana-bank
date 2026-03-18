@@ -128,26 +128,22 @@ where
     }
 
     #[instrument(name = "core_credit.credit_facility_collateralization_job.process_ephemeral_message", parent = None, skip(self, message), fields(handled = false, event_type = tracing::field::Empty))]
-    #[allow(clippy::single_match)]
     async fn handle_ephemeral(
         &self,
         message: &EphemeralOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        match message.payload.as_event() {
-            Some(CorePriceEvent::PriceUpdated { price, .. }) => {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", tracing::field::display(&message.event_type));
+        if let Some(CorePriceEvent::PriceUpdated { price, .. }) = message.payload.as_event() {
+            message.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", tracing::field::display(&message.event_type));
 
-                self.update_collateralization_from_price
-                    .spawn_with_queue_id(
-                        JobId::new(),
-                        UpdateCollateralizationFromPriceConfig { price: *price },
-                        PRICE_SWEEP_QUEUE_ID,
-                    )
-                    .await?;
-            }
-            _ => {}
+            self.update_collateralization_from_price
+                .spawn_with_queue_id(
+                    JobId::new(),
+                    UpdateCollateralizationFromPriceConfig { price: *price },
+                    PRICE_SWEEP_QUEUE_ID,
+                )
+                .await?;
         }
         Ok(())
     }
