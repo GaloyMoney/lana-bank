@@ -89,14 +89,14 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         .create_account(&DummySubject, customer.id, [money::CurrencyCode::USD])
         .await?;
 
-    let deposit_amount = money::Amount::from(UsdCents::try_from_usd(dec!(1000000)).unwrap());
+    let deposit_amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();
 
     deposit
         .record_deposit(&DummySubject, account.id, deposit_amount, None)
         .await?;
 
     // overdraw
-    let withdrawal_amount = Amount::from(UsdCents::try_from_usd(dec!(5000000)).unwrap());
+    let withdrawal_amount = UsdCents::try_from_usd(dec!(5000000)).unwrap();
     let withdrawal = deposit
         .initiate_withdrawal(&DummySubject, account.id, withdrawal_amount, None)
         .await;
@@ -105,7 +105,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         Err(core_deposit::error::CoreDepositError::DepositLedgerError(_))
     ));
 
-    let withdrawal_amount = Amount::from(UsdCents::try_from_usd(dec!(500000)).unwrap());
+    let withdrawal_amount = UsdCents::try_from_usd(dec!(500000)).unwrap();
 
     let withdrawal = deposit
         .initiate_withdrawal(&DummySubject, account.id, withdrawal_amount, None)

@@ -379,9 +379,10 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-        amount: Amount,
+        amount: impl Into<Amount> + std::fmt::Debug,
         reference: Option<String>,
     ) -> Result<Deposit, CoreDepositError> {
+        let amount = amount.into();
         let deposit_account_id = deposit_account_id.into();
         self.authz
             .enforce_permission(
@@ -420,9 +421,10 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-        amount: Amount,
+        amount: impl Into<Amount> + std::fmt::Debug,
         reference: Option<String>,
     ) -> Result<Withdrawal, CoreDepositError> {
+        let amount = amount.into();
         let deposit_account_id = deposit_account_id.into();
         self.authz
             .enforce_permission(

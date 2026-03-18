@@ -12,7 +12,7 @@ use core_deposit::*;
 use document_storage::DocumentStorage;
 use es_entity::clock::{ClockController, ClockHandle};
 use helpers::{action, event, object};
-use money::Amount;
+
 use obix::test_utils::expect_event;
 
 type TestPerms = authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>;
@@ -127,7 +127,7 @@ async fn deposit() -> anyhow::Result<()> {
         .create_account(&DummySubject, customer.id, [CurrencyCode::USD])
         .await?;
 
-    let amount = Amount::from(UsdCents::try_from_usd(dec!(1000000)).unwrap());
+    let amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();
     deposit
         .record_deposit(&DummySubject, account.id, amount, None)
         .await?;
@@ -160,7 +160,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
         .create_account(&DummySubject, customer.id, [CurrencyCode::USD])
         .await?;
 
-    let amount = Amount::from(UsdCents::try_from_usd(dec!(1000000)).unwrap());
+    let amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();
     let res = deposit
         .record_deposit(&DummySubject, account.id, amount, None)
         .await?;
@@ -242,7 +242,7 @@ async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
     let account = deposit
         .create_account(&DummySubject, customer.id, [CurrencyCode::USD])
         .await?;
-    let amount = Amount::from(UsdCents::try_from_usd(dec!(1000000)).unwrap());
+    let amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();
 
     let (deposit_record, recorded) = expect_event(
         &outbox,
@@ -292,12 +292,12 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
     let account = deposit
         .create_account(&DummySubject, customer.id, [CurrencyCode::USD])
         .await?;
-    let deposit_amount = Amount::from(UsdCents::try_from_usd(dec!(1000000)).unwrap());
+    let deposit_amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();
     deposit
         .record_deposit(&DummySubject, account.id, deposit_amount, None)
         .await?;
 
-    let withdrawal_amount = Amount::from(UsdCents::try_from_usd(dec!(500000)).unwrap());
+    let withdrawal_amount = UsdCents::try_from_usd(dec!(500000)).unwrap();
     let withdrawal = deposit
         .initiate_withdrawal(&DummySubject, account.id, withdrawal_amount, None)
         .await?;
@@ -366,7 +366,7 @@ async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
     let account = deposit
         .create_account(&DummySubject, customer.id, [CurrencyCode::USD])
         .await?;
-    let amount = Amount::from(UsdCents::try_from_usd(dec!(1000000)).unwrap());
+    let amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();
     let deposit_record = deposit
         .record_deposit(&DummySubject, account.id, amount, None)
         .await?;
@@ -450,7 +450,7 @@ async fn deposit_account_activity_uses_configurable_thresholds() -> anyhow::Resu
         .record_deposit(
             &DummySubject,
             account.id,
-            Amount::from(UsdCents::try_from_usd(dec!(100)).unwrap()),
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
             None,
         )
         .await?;
@@ -493,7 +493,7 @@ async fn deposit_account_activity_ignores_internal_freeze_and_unfreeze_transacti
         .record_deposit(
             &DummySubject,
             account.id,
-            Amount::from(UsdCents::try_from_usd(dec!(100)).unwrap()),
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
             None,
         )
         .await?;
@@ -559,7 +559,7 @@ async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date(
         .record_deposit(
             &DummySubject,
             account.id,
-            Amount::from(UsdCents::try_from_usd(dec!(100)).unwrap()),
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
             None,
         )
         .await?;
@@ -575,7 +575,7 @@ async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date(
         .record_deposit(
             &DummySubject,
             account.id,
-            Amount::from(UsdCents::try_from_usd(dec!(100)).unwrap()),
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
             None,
         )
         .await?;
@@ -610,7 +610,7 @@ async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::R
         .record_deposit(
             &DummySubject,
             account.id,
-            Amount::from(UsdCents::try_from_usd(dec!(1_000)).unwrap()),
+            UsdCents::try_from_usd(dec!(1_000)).unwrap(),
             None,
         )
         .await?;
@@ -629,7 +629,7 @@ async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::R
         .initiate_withdrawal(
             &DummySubject,
             account.id,
-            Amount::from(UsdCents::try_from_usd(dec!(100)).unwrap()),
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
             None,
         )
         .await?;
@@ -645,7 +645,7 @@ async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::R
         .initiate_withdrawal(
             &DummySubject,
             account.id,
-            Amount::from(UsdCents::try_from_usd(dec!(100)).unwrap()),
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
             None,
         )
         .await?;
