@@ -14,7 +14,9 @@ use crate::{
         CreditFacilityEodProcessConfig, CreditFacilityEodProcessSpawner,
     },
     deposit_activity_process::{DepositActivityProcessConfig, DepositActivityProcessSpawner},
-    eod_process::{EodPhase, EodProcess, EodProcesses, JobTerminalState, NewEodProcess},
+    eod_process::{
+        EodPhase, EodProcess, EodProcesses, JobTerminalState, NewEodProcess, error::EodProcessError,
+    },
     job_id,
     obligation_transition_process::{
         ObligationTransitionProcessConfig, ObligationTransitionProcessSpawner,
@@ -133,10 +135,11 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let process = match self.eod_processes.find_by_id(self.config.process_id).await {
             Ok(p) => p,
-            Err(_) => {
+            Err(EodProcessError::Find(ref e)) if e.was_not_found() => {
                 // First run — create entity
                 return self.create_entity_and_start(current_job).await;
             }
+            Err(e) => return Err(e.into()),
         };
 
         match process.status() {
@@ -176,7 +179,7 @@ where
                 // Entity created; reschedule to proceed with orchestration
                 Ok(JobCompletion::RescheduleNow)
             }
-            Err(crate::eod_process::error::EodProcessError::Create(ref e)) if e.was_duplicate() => {
+            Err(EodProcessError::Create(ref e)) if e.was_duplicate() => {
                 // Another instance created it — reschedule to load and proceed
                 drop(op);
                 Ok(JobCompletion::RescheduleNow)
