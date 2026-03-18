@@ -44,7 +44,7 @@ gql`
     ledgerTransactions {
       ...LedgerTransactionFields
     }
-    account {
+    depositAccount {
       depositAccountId
       publicId
       customer {

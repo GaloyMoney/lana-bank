@@ -25,7 +25,7 @@ pub use lana_app::{
 #[graphql(complex)]
 pub struct Withdrawal {
     withdrawal_id: UUID,
-    account_id: UUID,
+    deposit_account_id: UUID,
     approval_process_id: UUID,
     amount: UsdCents,
     status: WithdrawalStatus,
@@ -39,7 +39,7 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
     fn from(withdraw: lana_app::deposit::Withdrawal) -> Self {
         Withdrawal {
             created_at: withdraw.created_at().into(),
-            account_id: withdraw.deposit_account_id.into(),
+            deposit_account_id: withdraw.deposit_account_id.into(),
             withdrawal_id: UUID::from(withdraw.id),
             approval_process_id: UUID::from(withdraw.approval_process_id),
             amount: withdraw.amount,
@@ -68,7 +68,7 @@ impl Withdrawal {
         Ok(process)
     }
 
-    async fn account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
+    async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
             .load_one(self.entity.deposit_account_id)

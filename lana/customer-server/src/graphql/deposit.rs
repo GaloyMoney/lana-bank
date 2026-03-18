@@ -9,7 +9,7 @@ pub use lana_app::deposit::{Deposit as DomainDeposit, DepositStatus};
 pub struct Deposit {
     id: ID,
     deposit_id: UUID,
-    account_id: UUID,
+    deposit_account_id: UUID,
     amount: UsdCents,
     created_at: Timestamp,
 
@@ -22,7 +22,7 @@ impl From<DomainDeposit> for Deposit {
         Deposit {
             id: deposit.id.to_global_id(),
             deposit_id: UUID::from(deposit.id),
-            account_id: UUID::from(deposit.deposit_account_id),
+            deposit_account_id: UUID::from(deposit.deposit_account_id),
             amount: deposit.amount,
             created_at: deposit.created_at().into(),
 

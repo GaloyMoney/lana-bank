@@ -3,7 +3,7 @@ mutation RecordDeposit($input: DepositRecordInput!) {
     deposit {
       depositId
       amount
-      account {
+      depositAccount {
         balance {
           settled
           pending

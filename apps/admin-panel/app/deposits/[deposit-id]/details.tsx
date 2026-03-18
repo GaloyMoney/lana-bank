@@ -31,8 +31,8 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
   const details: DetailItemProps[] = [
     {
       label: t("fields.customerEmail"),
-      value: deposit.account.customer.email,
-      href: `/customers/${deposit.account.customer.publicId}`,
+      value: deposit.depositAccount.customer.email,
+      href: `/customers/${deposit.depositAccount.customer.publicId}`,
     },
     {
       label: t("fields.depositAmount"),
@@ -56,7 +56,7 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
   const footerContent = (
     <>
       <Button variant="outline" asChild>
-        <Link href={`/deposit-accounts/${deposit.account.publicId}`}>
+        <Link href={`/deposit-accounts/${deposit.depositAccount.publicId}`}>
           {t("buttons.viewDepositAccount")}
           <ArrowRight />
         </Link>

@@ -469,8 +469,8 @@ export const mockCollateral = (overrides?: Partial<Collateral>, _relationshipsTo
     relationshipsToOmit.add('Collateral');
     return {
         __typename: 'Collateral',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
-        accountId: overrides && overrides.hasOwnProperty('accountId') ? overrides.accountId! : generateMockValue.uuid(),
+        collateralAccount: overrides && overrides.hasOwnProperty('collateralAccount') ? overrides.collateralAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
+        collateralAccountId: overrides && overrides.hasOwnProperty('collateralAccountId') ? overrides.collateralAccountId! : generateMockValue.uuid(),
         collateralId: overrides && overrides.hasOwnProperty('collateralId') ? overrides.collateralId! : generateMockValue.uuid(),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
         eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
@@ -1587,10 +1587,10 @@ export const mockDeposit = (overrides?: Partial<Deposit>, _relationshipsToOmit: 
     relationshipsToOmit.add('Deposit');
     return {
         __typename: 'Deposit',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
-        accountId: overrides && overrides.hasOwnProperty('accountId') ? overrides.accountId! : generateMockValue.uuid(),
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        depositAccountId: overrides && overrides.hasOwnProperty('depositAccountId') ? overrides.depositAccountId! : generateMockValue.uuid(),
         depositId: overrides && overrides.hasOwnProperty('depositId') ? overrides.depositId! : generateMockValue.uuid(),
         eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         ledgerTransactions: overrides && overrides.hasOwnProperty('ledgerTransactions') ? overrides.ledgerTransactions! : [relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit)],
@@ -1644,7 +1644,7 @@ export const mockDepositAccountClosePayload = (overrides?: Partial<DepositAccoun
     relationshipsToOmit.add('DepositAccountClosePayload');
     return {
         __typename: 'DepositAccountClosePayload',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
     };
 };
 
@@ -1672,7 +1672,7 @@ export const mockDepositAccountCreatePayload = (overrides?: Partial<DepositAccou
     relationshipsToOmit.add('DepositAccountCreatePayload');
     return {
         __typename: 'DepositAccountCreatePayload',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
     };
 };
 
@@ -1699,7 +1699,7 @@ export const mockDepositAccountFreezePayload = (overrides?: Partial<DepositAccou
     relationshipsToOmit.add('DepositAccountFreezePayload');
     return {
         __typename: 'DepositAccountFreezePayload',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
     };
 };
 
@@ -1749,7 +1749,7 @@ export const mockDepositAccountUnfreezePayload = (overrides?: Partial<DepositAcc
     relationshipsToOmit.add('DepositAccountUnfreezePayload');
     return {
         __typename: 'DepositAccountUnfreezePayload',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
     };
 };
 
@@ -3836,12 +3836,12 @@ export const mockWithdrawal = (overrides?: Partial<Withdrawal>, _relationshipsTo
     relationshipsToOmit.add('Withdrawal');
     return {
         __typename: 'Withdrawal',
-        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
-        accountId: overrides && overrides.hasOwnProperty('accountId') ? overrides.accountId! : generateMockValue.uuid(),
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
         approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        depositAccountId: overrides && overrides.hasOwnProperty('depositAccountId') ? overrides.depositAccountId! : generateMockValue.uuid(),
         eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         ledgerTransactions: overrides && overrides.hasOwnProperty('ledgerTransactions') ? overrides.ledgerTransactions! : [relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit)],
         publicId: overrides && overrides.hasOwnProperty('publicId') ? overrides.publicId! : faker.lorem.word(),

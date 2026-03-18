@@ -56,8 +56,8 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
   const details: DetailItemProps[] = [
     {
       label: t("fields.customerEmail"),
-      value: withdrawal.account.customer.email,
-      href: `/customers/${withdrawal.account.customer.publicId}`,
+      value: withdrawal.depositAccount.customer.email,
+      href: `/customers/${withdrawal.depositAccount.customer.publicId}`,
     },
     {
       label: t("fields.withdrawalAmount"),
@@ -84,7 +84,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
   const footerContent = (
     <>
       <Button variant="outline" asChild>
-        <Link href={`/deposit-accounts/${withdrawal.account.publicId}`}>
+        <Link href={`/deposit-accounts/${withdrawal.depositAccount.publicId}`}>
           {t("buttons.viewDepositAccount")}
           <ArrowRight />
         </Link>

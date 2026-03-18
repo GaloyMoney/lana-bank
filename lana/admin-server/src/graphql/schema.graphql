@@ -310,8 +310,8 @@ type ChartOfAccountsCsvImportWithBaseConfigPayload {
 }
 
 type Collateral {
-	account: LedgerAccount!
-	accountId: UUID!
+	collateralAccount: LedgerAccount!
+	collateralAccountId: UUID!
 	collateralId: UUID!
 	creditFacility: CreditFacility
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
@@ -1215,10 +1215,10 @@ enum DebitOrCredit {
 scalar Decimal
 
 type Deposit {
-	account: DepositAccount!
-	accountId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	depositAccount: DepositAccount!
+	depositAccountId: UUID!
 	depositId: UUID!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	ledgerTransactions: [LedgerTransaction!]!
@@ -1253,7 +1253,7 @@ input DepositAccountCloseInput {
 }
 
 type DepositAccountClosePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 type DepositAccountConnection {
@@ -1276,7 +1276,7 @@ input DepositAccountCreateInput {
 }
 
 type DepositAccountCreatePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 """
@@ -1298,7 +1298,7 @@ input DepositAccountFreezeInput {
 }
 
 type DepositAccountFreezePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | FreezeEntry | UnfreezeEntry | UnknownEntry
@@ -1350,7 +1350,7 @@ input DepositAccountUnfreezeInput {
 }
 
 type DepositAccountUnfreezePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 input DepositAccountsFilter {
@@ -3122,12 +3122,12 @@ enum WalletNetwork {
 }
 
 type Withdrawal {
-	account: DepositAccount!
-	accountId: UUID!
 	amount: UsdCents!
 	approvalProcess: ApprovalProcess!
 	approvalProcessId: UUID!
 	createdAt: Timestamp!
+	depositAccount: DepositAccount!
+	depositAccountId: UUID!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	ledgerTransactions: [LedgerTransaction!]!
 	publicId: PublicId!

@@ -29,7 +29,7 @@ gql`
     depositRecord(input: $input) {
       deposit {
         ...DepositFields
-        account {
+        depositAccount {
           depositAccountId
           customer {
             customerId
@@ -98,7 +98,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
         await client.query({
           query: GetCustomerBasicDetailsDocument,
           variables: {
-            id: result.data.depositRecord.deposit.account.customer.customerId,
+            id: result.data.depositRecord.deposit.depositAccount.customer.customerId,
           },
           fetchPolicy: "network-only",
         })

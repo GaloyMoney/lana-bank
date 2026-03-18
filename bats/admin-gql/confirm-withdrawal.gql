@@ -3,7 +3,7 @@ mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
     withdrawal {
       withdrawalId
       status
-      account {
+      depositAccount {
         balance {
           settled
           pending

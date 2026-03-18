@@ -1,6 +1,6 @@
 mutation DepositAccountCreate($input: DepositAccountCreateInput!) {
   depositAccountCreate(input: $input) {
-    account {
+    depositAccount {
       depositAccountId
       status
     }

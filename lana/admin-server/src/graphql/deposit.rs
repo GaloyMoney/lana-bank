@@ -25,7 +25,7 @@ pub use lana_app::{
 #[graphql(complex)]
 pub struct Deposit {
     deposit_id: UUID,
-    account_id: UUID,
+    deposit_account_id: UUID,
     amount: UsdCents,
     created_at: Timestamp,
 
@@ -37,7 +37,7 @@ impl From<DomainDeposit> for Deposit {
     fn from(deposit: DomainDeposit) -> Self {
         Deposit {
             deposit_id: UUID::from(deposit.id),
-            account_id: UUID::from(deposit.deposit_account_id),
+            deposit_account_id: UUID::from(deposit.deposit_account_id),
             amount: deposit.amount,
             created_at: deposit.created_at().into(),
 
@@ -60,7 +60,7 @@ impl Deposit {
         self.entity.status()
     }
 
-    async fn account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
+    async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
             .load_one(self.entity.deposit_account_id)
@@ -104,7 +104,7 @@ crate::mutation_payload! { DepositRecordPayload, deposit: Deposit }
 pub struct DepositAccountCreateInput {
     pub customer_id: UUID,
 }
-crate::mutation_payload! { DepositAccountCreatePayload, account: DepositAccount }
+crate::mutation_payload! { DepositAccountCreatePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositRevertInput {
@@ -116,19 +116,19 @@ crate::mutation_payload! { DepositRevertPayload, deposit: Deposit }
 pub struct DepositAccountFreezeInput {
     pub deposit_account_id: UUID,
 }
-crate::mutation_payload! { DepositAccountFreezePayload, account: DepositAccount }
+crate::mutation_payload! { DepositAccountFreezePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositAccountUnfreezeInput {
     pub deposit_account_id: UUID,
 }
-crate::mutation_payload! { DepositAccountUnfreezePayload, account: DepositAccount }
+crate::mutation_payload! { DepositAccountUnfreezePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositAccountCloseInput {
     pub deposit_account_id: UUID,
 }
-crate::mutation_payload! { DepositAccountClosePayload, account: DepositAccount }
+crate::mutation_payload! { DepositAccountClosePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositsFilter {

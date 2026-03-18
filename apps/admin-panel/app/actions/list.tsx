@@ -44,7 +44,7 @@ gql`
             ... on Withdrawal {
               withdrawalId
               publicId
-              account {
+              depositAccount {
                 depositAccountId
                 customer {
                   customerId
@@ -141,7 +141,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
           case "CreditFacilityProposal":
             return target.customer.email
           case "Withdrawal":
-            return target.account.customer.email
+            return target.depositAccount.customer.email
           default:
             return t("values.unknown")
         }

@@ -28,7 +28,7 @@ gql`
                   deposit {
                     id
                     depositId
-                    accountId
+                    depositAccountId
                     amount
                     createdAt
                     reference
@@ -39,7 +39,7 @@ gql`
                   withdrawal {
                     id
                     withdrawalId
-                    accountId
+                    depositAccountId
                     amount
                     createdAt
                     reference
@@ -51,7 +51,7 @@ gql`
                   withdrawal {
                     id
                     withdrawalId
-                    accountId
+                    depositAccountId
                     amount
                     createdAt
                     reference

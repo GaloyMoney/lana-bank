@@ -32,7 +32,7 @@ gql`
     publicId
     createdAt
     amount
-    account {
+    depositAccount {
       depositAccountId
       customer {
         customerId
@@ -108,10 +108,10 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] =>
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
-    key: "account",
+    key: "depositAccount",
     label: t("headers.customer"),
     labelClassName: "w-[20%]",
-    render: (account) => <div className="truncate">{account.customer.email}</div>,
+    render: (depositAccount) => <div className="truncate">{depositAccount.customer.email}</div>,
   },
   {
     key: "reference",

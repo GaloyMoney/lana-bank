@@ -234,9 +234,9 @@ export type CvlPct = FiniteCvlPct | InfiniteCvlPct;
 
 export type Deposit = {
   __typename?: 'Deposit';
-  accountId: Scalars['UUID']['output'];
   amount: Scalars['UsdCents']['output'];
   createdAt: Scalars['Timestamp']['output'];
+  depositAccountId: Scalars['UUID']['output'];
   depositId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   reference: Scalars['String']['output'];
@@ -472,9 +472,9 @@ export type UnknownEntry = {
 
 export type Withdrawal = {
   __typename?: 'Withdrawal';
-  accountId: Scalars['UUID']['output'];
   amount: Scalars['UsdCents']['output'];
   createdAt: Scalars['Timestamp']['output'];
+  depositAccountId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   reference: Scalars['String']['output'];
   status: WithdrawalStatus;
@@ -537,7 +537,7 @@ export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Me', customer: { __typename?: 'Customer', id: string, customerId: any, level: KycLevel, createdAt: string, email: string, telegramHandle: string, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: string, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: string, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: string, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }> } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Me', customer: { __typename?: 'Customer', id: string, customerId: any, level: KycLevel, createdAt: string, email: string, telegramHandle: string, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: string, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, depositAccountId: any, amount: any, createdAt: string, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, depositAccountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: string, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }> } } };
 
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -551,14 +551,14 @@ export type GetTransactionHistoryQueryVariables = Exact<{
 
 
 export type GetTransactionHistoryQuery = { __typename?: 'Query', me: { __typename?: 'Me', customer: { __typename?: 'Customer', depositAccount: { __typename?: 'DepositAccount', history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
-              | { __typename?: 'CancelledWithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus } }
-              | { __typename?: 'DepositEntry', recordedAt: string, deposit: { __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: string, reference: string } }
+              | { __typename?: 'CancelledWithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, depositAccountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus } }
+              | { __typename?: 'DepositEntry', recordedAt: string, deposit: { __typename?: 'Deposit', id: string, depositId: any, depositAccountId: any, amount: any, createdAt: string, reference: string } }
               | { __typename?: 'DisbursalEntry', recordedAt: string, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: any, amount: any, createdAt: string, status: DisbursalStatus } }
               | { __typename?: 'FreezeEntry', recordedAt: string, amount: any }
               | { __typename?: 'PaymentEntry', recordedAt: string, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, creditFacilityPaymentAllocationId: any, amount: any, createdAt: string } }
               | { __typename?: 'UnfreezeEntry', recordedAt: string, amount: any }
               | { __typename?: 'UnknownEntry' }
-              | { __typename?: 'WithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus } }
+              | { __typename?: 'WithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, depositAccountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus } }
              }> } } } } };
 
 export const CvlPctDataFragmentDoc = gql`
@@ -786,7 +786,7 @@ export const MeDocument = gql`
         deposits {
           id
           depositId
-          accountId
+          depositAccountId
           amount
           createdAt
           reference
@@ -794,7 +794,7 @@ export const MeDocument = gql`
         withdrawals {
           id
           withdrawalId
-          accountId
+          depositAccountId
           amount
           createdAt
           reference
@@ -917,7 +917,7 @@ export const GetTransactionHistoryDocument = gql`
                 deposit {
                   id
                   depositId
-                  accountId
+                  depositAccountId
                   amount
                   createdAt
                   reference
@@ -928,7 +928,7 @@ export const GetTransactionHistoryDocument = gql`
                 withdrawal {
                   id
                   withdrawalId
-                  accountId
+                  depositAccountId
                   amount
                   createdAt
                   reference
@@ -940,7 +940,7 @@ export const GetTransactionHistoryDocument = gql`
                 withdrawal {
                   id
                   withdrawalId
-                  accountId
+                  depositAccountId
                   amount
                   createdAt
                   reference

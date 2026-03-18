@@ -26,7 +26,7 @@ gql`
     withdrawalInitiate(input: $input) {
       withdrawal {
         ...WithdrawalFields
-        account {
+        depositAccount {
           depositAccountId
           customer {
             customerId

@@ -81,7 +81,7 @@ Cypress.Commands.add(
 interface DepositAccountCreateResponse {
   data: {
     depositAccountCreate: {
-      account: {
+      depositAccount: {
         depositAccountId: string
       }
     }
@@ -94,7 +94,7 @@ Cypress.Commands.add(
     const mutation = `
       mutation DepositAccountCreate($input: DepositAccountCreateInput!) {
         depositAccountCreate(input: $input) {
-          account {
+          depositAccount {
             depositAccountId
           }
         }
@@ -104,7 +104,7 @@ Cypress.Commands.add(
       .graphqlRequest<DepositAccountCreateResponse>(mutation, {
         input: { customerId },
       })
-      .then((response) => response.data.depositAccountCreate.account.depositAccountId)
+      .then((response) => response.data.depositAccountCreate.depositAccount.depositAccountId)
   },
 )
 

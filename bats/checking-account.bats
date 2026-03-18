@@ -47,8 +47,8 @@ wait_for_approval() {
   deposit_id=$(graphql_output '.data.depositRecord.deposit.depositId')
   [[ "$deposit_id" != "null" ]] || exit 1
 
-  usd_balance_settled=$(graphql_output '.data.depositRecord.deposit.account.balance.settled')
-  usd_balance_pending=$(graphql_output '.data.depositRecord.deposit.account.balance.pending')
+  usd_balance_settled=$(graphql_output '.data.depositRecord.deposit.depositAccount.balance.settled')
+  usd_balance_pending=$(graphql_output '.data.depositRecord.deposit.depositAccount.balance.pending')
   [[ "$usd_balance_settled" == "150000" ]] || exit 1
   [[ "$usd_balance_pending" == "0" ]] || exit 1
 }
@@ -73,9 +73,9 @@ wait_for_approval() {
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   echo $(graphql_output)
   [[ "$withdrawal_id" != "null" ]] || exit 1
-  settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.settled')
+  settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.depositAccount.balance.settled')
   [[ "$settled_usd_balance" == "0" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.pending')
+  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.depositAccount.balance.pending')
   [[ "$pending_usd_balance" == "150000" ]] || exit 1
 
   # assert_accounts_balanced
@@ -98,9 +98,9 @@ wait_for_approval() {
   [[ "$withdrawal_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.withdrawalCancel.withdrawal.status')
   [[ "$status" == "CANCELLED" ]] || exit 1
-  settled_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.account.balance.settled')
+  settled_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.depositAccount.balance.settled')
   [[ "$settled_usd_balance" == "150000" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.account.balance.pending')
+  pending_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.depositAccount.balance.pending')
   [[ "$pending_usd_balance" == "0" ]] || exit 1
 
   # assert_accounts_balanced
@@ -125,9 +125,9 @@ wait_for_approval() {
 
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
-  settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.settled')
+  settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.depositAccount.balance.settled')
   [[ "$settled_usd_balance" == "30000" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.pending')
+  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.depositAccount.balance.pending')
   [[ "$pending_usd_balance" == "120000" ]] || exit 1
 
   # assert_accounts_balanced
@@ -150,9 +150,9 @@ wait_for_approval() {
   [[ "$withdrawal_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.withdrawalConfirm.withdrawal.status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
-  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.settled')
+  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.depositAccount.balance.settled')
   [[ "$settled_usd_balance" == "30000" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.pending')
+  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.depositAccount.balance.pending')
   [[ "$pending_usd_balance" == "0" ]] || exit 1
 
   # assert_accounts_balanced
@@ -221,10 +221,10 @@ wait_for_approval() {
   exec_admin_graphql 'deposit-account-freeze' "$variables"
   echo $(graphql_output)
 
-  status=$(graphql_output '.data.depositAccountFreeze.account.status')
+  status=$(graphql_output '.data.depositAccountFreeze.depositAccount.status')
   [[ "$status" == "FROZEN" ]] || exit 1
 
-  balance=$(graphql_output '.data.depositAccountFreeze.account.balance.settled')
+  balance=$(graphql_output '.data.depositAccountFreeze.depositAccount.balance.settled')
   [[ "$balance" == 0 ]] || exit 1
 }
 
@@ -263,7 +263,7 @@ wait_for_approval() {
   )
   exec_admin_graphql 'deposit-account-unfreeze' "$variables"
 
-  status=$(graphql_output '.data.depositAccountUnfreeze.account.status')
+  status=$(graphql_output '.data.depositAccountUnfreeze.depositAccount.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
 }
 
@@ -317,9 +317,9 @@ wait_for_approval() {
   )
   exec_admin_graphql 'confirm-withdrawal' "$variables"
 
-  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.settled')
+  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.depositAccount.balance.settled')
   [[ "$settled_usd_balance" == "50000" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.pending')
+  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.depositAccount.balance.pending')
   [[ "$pending_usd_balance" == "0" ]] || exit 1
 }
 
@@ -375,9 +375,9 @@ wait_for_approval() {
   )
   exec_admin_graphql 'confirm-withdrawal' "$variables"
 
-  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.settled')
+  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.depositAccount.balance.settled')
   [[ "$settled_usd_balance" == "0" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.pending')
+  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.depositAccount.balance.pending')
   [[ "$pending_usd_balance" == "0" ]] || exit 1
 
   # freeze the empty account
@@ -392,7 +392,7 @@ wait_for_approval() {
   )
   exec_admin_graphql 'deposit-account-freeze' "$variables"
 
-  status=$(graphql_output '.data.depositAccountFreeze.account.status')
+  status=$(graphql_output '.data.depositAccountFreeze.depositAccount.status')
   [[ "$status" == "FROZEN" ]] || exit 1
 
   # close the frozen account
@@ -426,7 +426,7 @@ wait_for_approval() {
   )
   exec_admin_graphql 'deposit-account-unfreeze' "$variables"
 
-  status=$(graphql_output '.data.depositAccountUnfreeze.account.status')
+  status=$(graphql_output '.data.depositAccountUnfreeze.depositAccount.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
 
   # close the unfrozen(active) account
@@ -441,6 +441,6 @@ wait_for_approval() {
   )
   exec_admin_graphql 'deposit-account-close' "$variables"
 
-  status=$(graphql_output '.data.depositAccountClose.account.status')
+  status=$(graphql_output '.data.depositAccountClose.depositAccount.status')
   [[ "$status" == "CLOSED" ]] || exit 1
 }

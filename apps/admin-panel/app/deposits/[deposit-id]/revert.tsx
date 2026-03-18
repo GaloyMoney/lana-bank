@@ -85,7 +85,7 @@ export const DepositRevertDialog: React.FC<DepositRevertDialogProps> = ({
           <DetailsGroup layout="horizontal">
             <DetailItem
               label={t("fields.customerEmail")}
-              value={depositData.account.customer?.email}
+              value={depositData.depositAccount.customer?.email}
             />
             <DetailItem
               label={t("fields.amount")}

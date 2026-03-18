@@ -38,7 +38,7 @@ crate::mutation_payload! { CollateralRecordProceedsFromLiquidationPayload, colla
 pub struct Collateral {
     collateral_id: UUID,
     pub(crate) wallet_id: Option<UUID>,
-    account_id: UUID,
+    collateral_account_id: UUID,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainCollateral>,
@@ -49,7 +49,7 @@ impl From<DomainCollateral> for Collateral {
         Self {
             collateral_id: collateral.id.into(),
             wallet_id: collateral.custody_wallet_id.map(|id| id.into()),
-            account_id: collateral.account_ids.collateral_account_id.into(),
+            collateral_account_id: collateral.account_ids.collateral_account_id.into(),
             entity: Arc::new(collateral),
         }
     }
@@ -57,10 +57,10 @@ impl From<DomainCollateral> for Collateral {
 
 #[ComplexObject]
 impl Collateral {
-    async fn account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
+    async fn collateral_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let collateral = loader
-            .load_one(LedgerAccountId::from(self.account_id))
+            .load_one(LedgerAccountId::from(self.collateral_account_id))
             .await?
             .expect("Collateral account not found");
         Ok(collateral)

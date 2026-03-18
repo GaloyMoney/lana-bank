@@ -517,7 +517,7 @@ create_deposit_account_for_customer() {
   )
 
   exec_admin_graphql 'deposit-account-create' "$variables"
-  deposit_account_id=$(graphql_output '.data.depositAccountCreate.account.depositAccountId')
+  deposit_account_id=$(graphql_output '.data.depositAccountCreate.depositAccount.depositAccountId')
   [[ "$deposit_account_id" != "null" ]] || exit 1
   echo "$deposit_account_id"
 }

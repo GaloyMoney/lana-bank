@@ -9,7 +9,7 @@ pub use lana_app::deposit::{Withdrawal as DomainWithdrawal, WithdrawalStatus};
 pub struct Withdrawal {
     id: ID,
     withdrawal_id: UUID,
-    account_id: UUID,
+    deposit_account_id: UUID,
     amount: UsdCents,
     status: WithdrawalStatus,
     created_at: Timestamp,
@@ -23,7 +23,7 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
         Withdrawal {
             id: withdraw.id.to_global_id(),
             created_at: withdraw.created_at().into(),
-            account_id: withdraw.deposit_account_id.into(),
+            deposit_account_id: withdraw.deposit_account_id.into(),
             withdrawal_id: UUID::from(withdraw.id),
             amount: withdraw.amount,
             status: withdraw.status(),

@@ -23,7 +23,7 @@ import {
 gql`
   mutation DepositAccountUnfreeze($input: DepositAccountUnfreezeInput!) {
     depositAccountUnfreeze(input: $input) {
-      account {
+      depositAccount {
         depositAccountId
       }
     }

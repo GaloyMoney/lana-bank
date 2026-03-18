@@ -26,7 +26,7 @@ import Balance from "@/components/balance/balance"
 gql`
   mutation DepositAccountFreeze($input: DepositAccountFreezeInput!) {
     depositAccountFreeze(input: $input) {
-      account {
+      depositAccount {
         depositAccountId
       }
     }

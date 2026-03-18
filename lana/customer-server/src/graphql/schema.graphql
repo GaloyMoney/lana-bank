@@ -195,9 +195,9 @@ An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represent
 scalar Date
 
 type Deposit {
-	accountId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	depositAccountId: UUID!
 	depositId: UUID!
 	id: ID!
 	reference: String!
@@ -431,9 +431,9 @@ type UnknownEntry {
 scalar UsdCents
 
 type Withdrawal {
-	accountId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	depositAccountId: UUID!
 	id: ID!
 	reference: String!
 	status: WithdrawalStatus!
