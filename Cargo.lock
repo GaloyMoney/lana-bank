@@ -1589,9 +1589,9 @@ dependencies = [
  "job",
  "obix",
  "serde",
- "thiserror 2.0.18",
  "tokio",
  "tracing",
+ "tracing-macros",
  "uuid",
 ]
 

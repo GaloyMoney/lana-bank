@@ -311,7 +311,7 @@ async fn create_active_facility_with_clock(
 ///
 /// # Trigger
 /// `ProcessAccrualCycleJobRunner::complete_cycle`
-/// (the final state in the AccruePeriod → AwaitObligationsSync → CompleteCycle machine)
+/// (the final state in the AccruePeriod → CompleteCycle machine)
 ///
 /// # Consumers
 /// - `History::process_credit_event` - records accrual posting

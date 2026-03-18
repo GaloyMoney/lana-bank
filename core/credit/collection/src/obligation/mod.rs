@@ -108,15 +108,16 @@ where
         Ok(self.repo.find_by_id_in_op(op, id).await?)
     }
 
-    pub async fn list_ids_needing_transition(
+    pub async fn list_ids_needing_transition_in_op(
         &self,
+        op: &mut es_entity::DbOp<'_>,
         day: chrono::NaiveDate,
         after: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
         limit: i64,
     ) -> Result<Vec<(ObligationId, chrono::DateTime<chrono::Utc>)>, ObligationError> {
         Ok(self
             .repo
-            .list_ids_needing_transition(day, after, limit)
+            .list_ids_needing_transition_in_op(op, day, after, limit)
             .await?)
     }
 

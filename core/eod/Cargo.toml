@@ -11,7 +11,7 @@ es-entity = { workspace = true }
 job = { workspace = true }
 obix = { workspace = true }
 serde = { workspace = true }
-thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
+tracing-macros = { workspace = true }
 uuid = { workspace = true }

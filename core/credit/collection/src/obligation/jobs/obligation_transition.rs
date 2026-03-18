@@ -111,9 +111,16 @@ where
         mut state: ObligationTransitionCollectingState,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         loop {
+            let mut op = current_job.begin_op().await?;
+
             let rows = self
                 .obligations
-                .list_ids_needing_transition(self.config.date, state.last_cursor, PAGE_SIZE)
+                .list_ids_needing_transition_in_op(
+                    &mut op,
+                    self.config.date,
+                    state.last_cursor,
+                    PAGE_SIZE,
+                )
                 .await?;
 
             if rows.is_empty() {
@@ -141,7 +148,6 @@ where
                 })
                 .collect();
 
-            let mut op = current_job.begin_op().await?;
             match self
                 .transition_spawner
                 .spawn_all_in_op(&mut op, specs)
