@@ -21,6 +21,7 @@ pub enum DepositAccountEvent {
         #[serde(default = "default_account_activity")]
         activity: Activity,
         public_id: PublicId,
+        currency: CurrencyCode,
     },
     ActivityUpdated {
         activity: Activity,
@@ -45,6 +46,7 @@ pub struct DepositAccount {
     pub status: DepositAccountStatus,
     pub activity: Activity,
     pub public_id: PublicId,
+    pub currency: CurrencyCode,
 
     events: EntityEvents<DepositAccountEvent>,
 }
@@ -142,7 +144,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                     activity,
                     public_id,
                     account_ids,
-                    ..
+                    currency,
                 } => {
                     builder = builder
                         .id(*id)
@@ -151,6 +153,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                         .status(*status)
                         .activity(*activity)
                         .public_id(public_id.clone())
+                        .currency(currency.clone())
                 }
                 DepositAccountEvent::ActivityUpdated { activity, .. } => {
                     builder = builder.activity(*activity);
@@ -180,6 +183,8 @@ pub struct NewDepositAccount {
     pub(super) account_ids: DepositAccountLedgerAccountIds,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
+    #[builder(setter(into))]
+    pub(super) currency: CurrencyCode,
     #[builder(setter(skip), default = "Activity::Active")]
     pub(super) activity: Activity,
     #[builder(setter(skip), default)]
@@ -203,6 +208,7 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
                 status: DepositAccountStatus::Active,
                 activity: self.activity,
                 public_id: self.public_id,
+                currency: self.currency,
             }],
         )
     }
@@ -217,7 +223,9 @@ mod tests {
     use es_entity::{EntityEvents, TryFromEvents as _};
     use public_id::PublicId;
 
-    use crate::{Activity, DepositAccountHolderId, DepositAccountId, DepositAccountStatus};
+    use crate::{
+        Activity, CurrencyCode, DepositAccountHolderId, DepositAccountId, DepositAccountStatus,
+    };
 
     use super::{
         DepositAccount, DepositAccountError, DepositAccountEvent, DepositAccountLedgerAccountIds,
@@ -232,6 +240,7 @@ mod tests {
             status: DepositAccountStatus::Active,
             activity: Activity::Active,
             public_id: PublicId::new("1"),
+            currency: CurrencyCode::from("USD"),
         }]
     }
 

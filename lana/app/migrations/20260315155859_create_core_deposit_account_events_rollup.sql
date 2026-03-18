@@ -9,6 +9,7 @@ CREATE TABLE core_deposit_account_events_rollup (
   account_holder_id UUID,
   account_ids JSONB,
   activity VARCHAR,
+  currency VARCHAR,
   public_id VARCHAR,
   status VARCHAR
 ,
@@ -50,6 +51,7 @@ BEGIN
     new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
     new_row.account_ids := (NEW.event -> 'account_ids');
     new_row.activity := (NEW.event ->> 'activity');
+    new_row.currency := (NEW.event ->> 'currency');
     new_row.public_id := (NEW.event ->> 'public_id');
     new_row.status := (NEW.event ->> 'status');
   ELSE
@@ -57,6 +59,7 @@ BEGIN
     new_row.account_holder_id := current_row.account_holder_id;
     new_row.account_ids := current_row.account_ids;
     new_row.activity := current_row.activity;
+    new_row.currency := current_row.currency;
     new_row.public_id := current_row.public_id;
     new_row.status := current_row.status;
   END IF;
@@ -67,6 +70,7 @@ BEGIN
       new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
       new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.activity := (NEW.event ->> 'activity');
+      new_row.currency := (NEW.event ->> 'currency');
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.status := (NEW.event ->> 'status');
     WHEN 'activity_updated' THEN
@@ -88,6 +92,7 @@ BEGIN
     account_holder_id,
     account_ids,
     activity,
+    currency,
     public_id,
     status
   )
@@ -100,6 +105,7 @@ BEGIN
     new_row.account_holder_id,
     new_row.account_ids,
     new_row.activity,
+    new_row.currency,
     new_row.public_id,
     new_row.status
   );

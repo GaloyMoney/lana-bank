@@ -49,6 +49,9 @@
           "$ref": "#/$defs/Activity",
           "default": "active"
         },
+        "currency": {
+          "type": "string"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -70,7 +73,8 @@
         "account_holder_id",
         "account_ids",
         "status",
-        "public_id"
+        "public_id",
+        "currency"
       ],
       "type": "object"
     },

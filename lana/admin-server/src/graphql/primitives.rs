@@ -51,3 +51,23 @@ impl Json {
         self.0
     }
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(transparent)]
+pub struct CurrencyCode(String);
+async_graphql::scalar!(CurrencyCode);
+impl From<String> for CurrencyCode {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+impl From<CurrencyCode> for String {
+    fn from(value: CurrencyCode) -> Self {
+        value.0
+    }
+}
+impl From<lana_app::deposit::CurrencyCode> for CurrencyCode {
+    fn from(value: lana_app::deposit::CurrencyCode) -> Self {
+        Self(String::from(value))
+    }
+}

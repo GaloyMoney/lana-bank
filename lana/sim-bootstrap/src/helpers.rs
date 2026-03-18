@@ -47,7 +47,10 @@ pub async fn create_customer(
                 .customers()
                 .create_customer_bypassing_kyc(sub, customer_email.clone(), telegram, customer_type)
                 .await?;
-            let deposit_account = app.deposits().create_account(sub, customer.id).await?;
+            let deposit_account = app
+                .deposits()
+                .create_account(sub, customer.id, "USD")
+                .await?;
             Ok((customer.id, deposit_account.id))
         }
     }
