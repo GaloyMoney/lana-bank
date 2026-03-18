@@ -3,7 +3,7 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
 
-use crate::{Currency, MinorUnits, SignedMinorUnits};
+use crate::{Currency, MinorUnits};
 
 /// High-precision monetary amount for intermediate financial calculations.
 ///
@@ -64,11 +64,7 @@ impl<C: Currency> CalculationAmount<C> {
 // ─── The Rounding Boundary ──────────────────────────────────────────
 
 impl<C: Currency> CalculationAmount<C> {
-    /// Round to `MinorUnits<C>` using the specified strategy.
-    ///
-    /// # Panics
-    /// Panics if the result is negative or exceeds `u64::MAX`.
-    pub fn round_with(self, strategy: RoundingStrategy) -> MinorUnits<C> {
+    fn round_with(self, strategy: RoundingStrategy) -> MinorUnits<C> {
         let minor = self.value * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
         let rounded = minor.round_dp_with_strategy(0, strategy);
         MinorUnits::from(
@@ -85,22 +81,15 @@ impl<C: Currency> CalculationAmount<C> {
     }
 
     /// Round toward zero (DOWN for positive amounts).
-    /// Use for: collateral valuation, CVL ratios.
+    /// Use for: collateral valuation (e.g., sats_to_cents).
     pub fn round_down(self) -> MinorUnits<C> {
         self.round_with(RoundingStrategy::ToZero)
     }
 
-    /// Round half-to-even (banker's rounding).
-    pub fn round_bankers(self) -> MinorUnits<C> {
-        self.round_with(RoundingStrategy::MidpointNearestEven)
-    }
-
-    /// Round to `SignedMinorUnits<C>` (for values that may be negative).
-    pub fn round_to_signed(self, strategy: RoundingStrategy) -> SignedMinorUnits<C> {
-        let minor = self.value * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
-        let rounded = minor.round_dp_with_strategy(0, strategy);
-        SignedMinorUnits::try_from_major(rounded / Decimal::from(C::MINOR_UNITS_PER_MAJOR))
-            .expect("rounded value should convert cleanly")
+    /// Round to N decimal places in major units, staying as CalculationAmount.
+    /// Used for regulatory intermediate precision (e.g., US Reg DD requires 5+ dp).
+    pub fn round_dp(self, dp: u32, strategy: RoundingStrategy) -> Self {
+        Self::from_major(self.value.round_dp_with_strategy(dp, strategy))
     }
 }
 
@@ -108,15 +97,6 @@ impl<C: Currency> CalculationAmount<C> {
 
 impl<C: Currency> From<MinorUnits<C>> for CalculationAmount<C> {
     fn from(units: MinorUnits<C>) -> Self {
-        Self {
-            value: units.to_major(),
-            _currency: PhantomData,
-        }
-    }
-}
-
-impl<C: Currency> From<SignedMinorUnits<C>> for CalculationAmount<C> {
-    fn from(units: SignedMinorUnits<C>) -> Self {
         Self {
             value: units.to_major(),
             _currency: PhantomData,
@@ -441,17 +421,6 @@ mod tests {
     }
 
     #[test]
-    fn round_bankers_at_midpoint() {
-        let calc = CalcUsd::from_major(dec!(3.285));
-        let rounded = calc.round_bankers();
-        assert_eq!(rounded.into_inner(), 328);
-
-        let calc2 = CalcUsd::from_major(dec!(3.295));
-        let rounded2 = calc2.round_bankers();
-        assert_eq!(rounded2.into_inner(), 330);
-    }
-
-    #[test]
     fn round_up_btc() {
         let calc = CalcBtc::from_major(dec!(0.001666666666));
         let rounded = calc.round_up();
@@ -474,10 +443,21 @@ mod tests {
     }
 
     #[test]
-    fn round_to_signed() {
-        let calc = CalcUsd::from_major(dec!(-3.287671));
-        let signed = calc.round_to_signed(RoundingStrategy::AwayFromZero);
-        assert_eq!(signed.into_inner(), -329);
+    fn round_dp_preserves_calculation_amount() {
+        // 3.287671 USD rounded to 5 dp → 3.28768 (AwayFromZero rounds up last digit)
+        let calc = CalcUsd::from_major(dec!(3.287671));
+        let rounded = calc.round_dp(5, RoundingStrategy::AwayFromZero);
+        assert_eq!(rounded.to_major(), dec!(3.28768));
+
+        // Round to 2 dp
+        let calc2 = CalcUsd::from_major(dec!(1.23456));
+        let rounded2 = calc2.round_dp(2, RoundingStrategy::ToZero);
+        assert_eq!(rounded2.to_major(), dec!(1.23));
+
+        // Zero stays zero
+        let zero = CalcUsd::ZERO;
+        let rounded_zero = zero.round_dp(5, RoundingStrategy::AwayFromZero);
+        assert!(rounded_zero.is_zero());
     }
 
     #[test]

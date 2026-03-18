@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
+use rust_decimal::RoundingStrategy;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -238,7 +239,7 @@ impl InterestAccrualCycle {
     pub(crate) fn record_accrual(
         &mut self,
         amount: UsdCents,
-        rounding_strategy: rust_decimal::RoundingStrategy,
+        accrual_precision_dp: u32,
     ) -> Result<Idempotent<InterestAccrualData>, InterestAccrualCycleError> {
         let accrual_period = self
             .next_accrual_period()
@@ -247,11 +248,15 @@ impl InterestAccrualCycle {
         let days = accrual_period.days();
         let daily_interest = self.terms.annual_rate.interest_for_period(amount, days);
 
-        // S2: accumulate in high precision
+        // Regulatory intermediate precision: round to N dp in major units (lender-favorable)
+        let daily_interest =
+            daily_interest.round_dp(accrual_precision_dp, RoundingStrategy::AwayFromZero);
+
+        // S2: accumulate at regulatory precision
         self.accumulated += daily_interest;
 
-        // Compute rounded running total and marginal delta
-        let new_rounded_total = self.accumulated.round_with(rounding_strategy);
+        // Final booking: round to minor units (lender-favorable)
+        let new_rounded_total = self.accumulated.round_up();
         let delta = new_rounded_total - self.previous_rounded_total;
         self.previous_rounded_total = new_rounded_total;
 
@@ -417,11 +422,9 @@ mod test {
     use chrono::{Datelike, TimeZone, Timelike, Utc};
     use rust_decimal_macros::dec;
 
-    use rust_decimal::RoundingStrategy;
-
     use crate::{
         DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct,
-        ledger::CreditFacilityLedgerAccountIds,
+        ledger::CreditFacilityLedgerAccountIds, primitives::Usd,
     };
 
     use super::*;
@@ -662,7 +665,7 @@ mod test {
         let InterestAccrualData {
             interest, period, ..
         } = accrual
-            .record_accrual(UsdCents::ZERO, RoundingStrategy::AwayFromZero)
+            .record_accrual(UsdCents::ZERO, 5)
             .unwrap()
             .expect("expected Executed");
         assert_eq!(interest, UsdCents::ZERO);
@@ -699,7 +702,7 @@ mod test {
             let InterestAccrualData {
                 interest, period, ..
             } = accrual
-                .record_accrual(UsdCents::ZERO, RoundingStrategy::AwayFromZero)
+                .record_accrual(UsdCents::ZERO, 5)
                 .unwrap()
                 .expect("expected Executed");
             assert_eq!(interest, UsdCents::ZERO);
@@ -734,7 +737,7 @@ mod test {
             .unwrap();
         for _ in start_day..(end_day + 1) {
             let InterestAccrualData { period, .. } = accrual
-                .record_accrual(UsdCents::ONE, RoundingStrategy::AwayFromZero)
+                .record_accrual(UsdCents::ONE, 5)
                 .unwrap()
                 .expect("expected Executed");
             assert_eq!(period.end, expected_end_of_day);
@@ -756,7 +759,7 @@ mod test {
         for _ in start_day..(end_day + 1) {
             assert!(accrual_cycle_data.is_none());
 
-            let _ = accrual.record_accrual(UsdCents::ONE, RoundingStrategy::AwayFromZero);
+            let _ = accrual.record_accrual(UsdCents::ONE, 5);
 
             accrual_cycle_data = accrual.accrual_cycle_data();
         }
@@ -777,17 +780,22 @@ mod test {
 
         for _ in start_day..(end_day + 1) {
             accrual
-                .record_accrual(disbursed_outstanding_amount, RoundingStrategy::AwayFromZero)
+                .record_accrual(disbursed_outstanding_amount, 5)
                 .unwrap()
                 .expect("expected Executed");
         }
 
-        // With S2 accumulator-delta, the total equals the single-rounded
-        // result of the high-precision accumulated sum
-        let expected_total = default_terms()
-            .annual_rate
-            .interest_for_period(disbursed_outstanding_amount, num_days)
-            .round_with(RoundingStrategy::AwayFromZero);
+        // With intermediate precision rounding (5dp) and accumulator-delta,
+        // the total equals sum of per-day 5dp-rounded values, then round_up.
+        let mut expected_accumulated = CalculationAmount::<Usd>::ZERO;
+        for _ in 0..num_days {
+            let daily = default_terms()
+                .annual_rate
+                .interest_for_period(disbursed_outstanding_amount, 1);
+            let daily_rounded = daily.round_dp(5, rust_decimal::RoundingStrategy::AwayFromZero);
+            expected_accumulated += daily_rounded;
+        }
+        let expected_total = expected_accumulated.round_up();
         let InterestAccrualCycleData { interest, .. } = accrual.accrual_cycle_data().unwrap();
         assert_eq!(interest, expected_total);
     }

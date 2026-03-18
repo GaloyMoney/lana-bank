@@ -1,36 +1,24 @@
-use domain_config::define_internal_config;
-use rust_decimal::RoundingStrategy;
+use domain_config::{DomainConfigError, define_exposed_config};
 use serde::{Deserialize, Serialize};
 
-define_internal_config! {
+define_exposed_config! {
     #[derive(Serialize, Deserialize, Clone, Debug)]
-    pub(crate) struct RoundingPolicyConfig {
-        pub(crate) lender_favorable: RoundingStrategyConfig,
-        pub(crate) conservative: RoundingStrategyConfig,
-    }
+    pub(crate) struct AccrualPrecisionConfig(u64);
 
     spec {
-        key: "credit-rounding-policy";
-        default: || Some(RoundingPolicyConfig {
-            lender_favorable: RoundingStrategyConfig::AwayFromZero,
-            conservative: RoundingStrategyConfig::ToZero,
-        });
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub(crate) enum RoundingStrategyConfig {
-    AwayFromZero,
-    ToZero,
-    MidpointNearestEven,
-}
-
-impl RoundingStrategyConfig {
-    pub(crate) fn to_rust_decimal(&self) -> RoundingStrategy {
-        match self {
-            Self::AwayFromZero => RoundingStrategy::AwayFromZero,
-            Self::ToZero => RoundingStrategy::ToZero,
-            Self::MidpointNearestEven => RoundingStrategy::MidpointNearestEven,
-        }
+        key: "credit-accrual-precision-dp";
+        validate: |value: &u64| {
+            if *value < 2 {
+                return Err(DomainConfigError::InvalidState(
+                    "accrual precision must be at least 2 decimal places".to_string(),
+                ));
+            }
+            if *value > 28 {
+                return Err(DomainConfigError::InvalidState(
+                    "accrual precision cannot exceed 28 decimal places (Decimal limit)".to_string(),
+                ));
+            }
+            Ok(())
+        };
     }
 }

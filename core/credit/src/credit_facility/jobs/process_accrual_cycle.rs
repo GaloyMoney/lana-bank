@@ -48,7 +48,7 @@ use core_credit_collateral::{
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 
-use domain_config::InternalDomainConfigs;
+use domain_config::ExposedDomainConfigsReadOnly;
 
 use crate::{
     AccrualOutcome, CompletedAccrualCycle, ConfirmedAccrual, CoreCreditAction,
@@ -60,7 +60,7 @@ use crate::{
         interest_accrual_cycle::{NewInterestAccrualCycleData, error::InterestAccrualCycleError},
     },
     ledger::*,
-    rounding_policy::RoundingPolicyConfig,
+    rounding_policy::AccrualPrecisionConfig,
 };
 
 use core_credit_collection::CoreCreditCollection;
@@ -114,7 +114,7 @@ where
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
     authz: Arc<Perms>,
-    internal_domain_configs: Arc<InternalDomainConfigs>,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 impl<Perms, E> ProcessAccrualCycleJobInit<Perms, E>
@@ -143,7 +143,7 @@ where
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         collaterals: Arc<Collaterals<Perms, E>>,
         authz: Arc<Perms>,
-        internal_domain_configs: Arc<InternalDomainConfigs>,
+        domain_configs: ExposedDomainConfigsReadOnly,
     ) -> Self {
         Self {
             ledger,
@@ -151,7 +151,7 @@ where
             credit_facility_repo,
             collaterals,
             authz,
-            internal_domain_configs,
+            domain_configs,
         }
     }
 }
@@ -195,7 +195,7 @@ where
             collaterals: self.collaterals.clone(),
             ledger: self.ledger.clone(),
             authz: self.authz.clone(),
-            internal_domain_configs: self.internal_domain_configs.clone(),
+            domain_configs: self.domain_configs.clone(),
         }))
     }
 }
@@ -216,7 +216,7 @@ where
     collaterals: Arc<Collaterals<Perms, E>>,
     ledger: Arc<CreditLedger>,
     authz: Arc<Perms>,
-    internal_domain_configs: Arc<InternalDomainConfigs>,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 #[async_trait]
@@ -297,17 +297,20 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut db = self.credit_facility_repo.begin_op().await?;
 
-        let rounding_policy = self
-            .internal_domain_configs
-            .get::<RoundingPolicyConfig>()
+        let config = self
+            .domain_configs
+            .get_without_audit::<AccrualPrecisionConfig>()
             .await?;
-        let rounding_strategy = rounding_policy.value().lender_favorable.to_rust_decimal();
+        let accrual_precision_dp = config
+            .maybe_value()
+            .ok_or(CreditFacilityError::AccrualPrecisionNotConfigured)?;
 
         let outcome = self
             .confirm_interest_accrual_in_op(
                 &mut db,
                 self.config.credit_facility_id,
-                rounding_strategy,
+                u32::try_from(accrual_precision_dp)
+                    .expect("accrual_precision_dp validated to be <= 28"),
             )
             .await?;
 
@@ -383,7 +386,7 @@ where
         &self,
         op: &mut impl es_entity::AtomicOperation,
         credit_facility_id: CreditFacilityId,
-        rounding_strategy: rust_decimal::RoundingStrategy,
+        accrual_precision_dp: u32,
     ) -> Result<AccrualOutcome, CreditFacilityError> {
         self.authz
             .audit()
@@ -414,7 +417,7 @@ where
 
         let result = match credit_facility.record_accrual_on_in_progress_cycle(
             balances.disbursed_outstanding(),
-            rounding_strategy,
+            accrual_precision_dp,
         ) {
             Ok(recorded) => {
                 let recorded = recorded.expect("record_accrual always returns Executed");

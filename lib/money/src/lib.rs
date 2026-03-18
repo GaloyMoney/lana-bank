@@ -263,10 +263,6 @@ impl<C: Currency> SignedMinorUnits<C> {
     pub fn is_zero(self) -> bool {
         self.0 == 0
     }
-
-    pub fn to_calc(self) -> CalculationAmount<C> {
-        CalculationAmount::from(self)
-    }
 }
 
 // --- Currency-specific methods ---
@@ -546,5 +542,3 @@ pub type UsdCents = MinorUnits<Usd>;
 pub type Satoshis = MinorUnits<Btc>;
 pub type SignedUsdCents = SignedMinorUnits<Usd>;
 pub type SignedSatoshis = SignedMinorUnits<Btc>;
-pub type CalculationUsd = CalculationAmount<Usd>;
-pub type CalculationBtc = CalculationAmount<Btc>;
