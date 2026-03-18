@@ -399,12 +399,10 @@ where
             .collaterals
             .find_by_id_without_audit(collateral_id)
             .await?;
-        if let Some(wallet_id) = collateral.custody_wallet_id {
-            if !self.custody.is_manual_custody_wallet(wallet_id).await? {
-                return Err(
-                    core_credit_collateral::error::CollateralError::ManualUpdateError.into(),
-                );
-            }
+        if let Some(wallet_id) = collateral.custody_wallet_id
+            && !self.custody.is_manual_custody_wallet(wallet_id).await?
+        {
+            return Err(core_credit_collateral::error::CollateralError::ManualUpdateError.into());
         }
         Ok(self
             .collaterals
