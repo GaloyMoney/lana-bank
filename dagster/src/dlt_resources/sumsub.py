@@ -91,17 +91,17 @@ def _get_bq_client(credentials_dict: Dict[str, Any]) -> bigquery.Client:
 def _get_customers_bq(
     credentials_dict: Dict[str, Any], dataset: str, since: datetime
 ) -> List[Tuple[str, datetime]]:
-    """Return (customer_id, max_recorded_at) for inbox events on/after 'since', ordered by max_recorded_at."""
+    """Return (customer_id, max_recorded_at) for party updates after 'since', ordered by max_recorded_at."""
     client = _get_bq_client(credentials_dict)
-    table = f"`{credentials_dict['project_id']}.{dataset}.inbox_events`"
+    table = f"`{credentials_dict['project_id']}.{dataset}.core_party_events_rollup`"
     sql = f"""
       WITH customers AS (
         SELECT
-            JSON_VALUE(payload, '$.externalUserId') AS customer_id,
-            MAX(recorded_at) AS recorded_at
+            CAST(id AS STRING) AS customer_id,
+            MAX(modified_at) AS recorded_at
         FROM {table}
-        WHERE recorded_at > @since
-          AND JSON_VALUE(payload, '$.externalUserId') IS NOT NULL
+        WHERE modified_at > @since
+          AND id IS NOT NULL
         GROUP BY customer_id
       )
       SELECT customer_id, recorded_at
@@ -129,20 +129,20 @@ def applicants(
     sumsub_key: str,
     sumsub_secret: str,
     logger: Optional[Any] = None,
-    inbox_events_since=dlt.sources.incremental(
+    party_events_since=dlt.sources.incremental(
         "recorded_at", initial_value=datetime(1970, 1, 1, tzinfo=timezone.utc)
     ),
 ) -> Iterator[Dict[str, Any]]:
     """
-    Fetch applicant data from Sumsub for customers with inbox events since the last run.
+    Fetch applicant data from Sumsub for customers with party updates since the last run.
 
-    - One row per customer, using the maximum recorded_at from inbox_events as the incremental cursor.
+    - One row per customer, using the maximum modified_at from core_party_events_rollup as the incremental cursor.
     - Do not emit a row on applicant fetch/JSON failure; stop processing to retry on the next run.
     - Metadata/image fetch failures are non-fatal and only affect document_images.
     """
     if logger is None:
         logger = logging.getLogger("sumsub_applicants")
-    start_ts: datetime = inbox_events_since.last_value or datetime(
+    start_ts: datetime = party_events_since.last_value or datetime(
         1970, 1, 1, tzinfo=timezone.utc
     )
     logger.info("Starting Sumsub applicants sync from %s", start_ts)

@@ -93,7 +93,7 @@ def build_sumsub_sensor(
     sumsub_applicants_job: dg.JobDefinition,
     dagster_automations_active: bool,
 ) -> dg.SensorDefinition:
-    def _trigger_sumsub_on_inbox_events(
+    def _trigger_sumsub_on_party_updates(
         _context: dg.SensorEvaluationContext, asset_event
     ):
         dagster_event = getattr(asset_event, "dagster_event", None)
@@ -101,13 +101,13 @@ def build_sumsub_sensor(
             asset_event, "run_id", None
         )
 
-        yield dg.RunRequest(run_key=f"sumsub_applicants_from_inbox_events_{event_id}")
+        yield dg.RunRequest(run_key=f"sumsub_applicants_from_party_updates_{event_id}")
 
     return dg.AssetSensorDefinition(
-        name="sumsub_applicant_inbox_events_sensor",
-        asset_key=dg.AssetKey(["lana", "inbox_events"]),
+        name="sumsub_applicant_party_updates_sensor",
+        asset_key=dg.AssetKey(["lana", "core_party_events_rollup"]),
         job_name=sumsub_applicants_job.name,
-        asset_materialization_fn=_trigger_sumsub_on_inbox_events,
+        asset_materialization_fn=_trigger_sumsub_on_party_updates,
         default_status=(
             dg.DefaultSensorStatus.RUNNING
             if dagster_automations_active
