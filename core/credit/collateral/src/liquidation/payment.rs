@@ -1,8 +1,8 @@
-use rust_decimal::{Decimal, RoundingStrategy};
+use rust_decimal::Decimal;
 
 use core_credit_terms::CVLPct;
 use core_price::PriceOfOneBTC;
-use money::{Satoshis, UsdCents};
+use money::{CalculationAmount, Satoshis, Usd, UsdCents};
 
 #[derive(Debug, Clone)]
 pub struct LiquidationPaymentAmounts {
@@ -82,15 +82,13 @@ impl LiquidationPaymentAmounts {
             return Self::ZERO;
         }
 
-        let collateral_usd = price.sats_to_cents_round_down(collateral).to_usd();
+        let collateral_calc =
+            CalculationAmount::<Usd>::from(price.sats_to_cents_round_down(collateral));
         let new_outstanding = outstanding - to_receive;
 
-        let to_liquidate_usd = (collateral_usd - target_ratio * new_outstanding.to_usd())
-            .max(Decimal::ZERO)
-            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
-
-        let to_liquidate_cents = UsdCents::try_from_usd(to_liquidate_usd)
-            .expect("liquidate amount must be in whole cents");
+        let to_liquidate_cents = (collateral_calc - new_outstanding.to_calc() * target_ratio)
+            .max(CalculationAmount::ZERO)
+            .round_up();
         let to_liquidate = price.cents_to_sats_round_up(to_liquidate_cents);
 
         Self {
@@ -149,16 +147,13 @@ impl LiquidationPaymentAmounts {
             return Self::ZERO;
         }
 
-        let new_collateral_usd = price
-            .sats_to_cents_round_down(collateral - to_liquidate)
-            .to_usd();
+        let new_collateral_calc = CalculationAmount::<Usd>::from(
+            price.sats_to_cents_round_down(collateral - to_liquidate),
+        );
 
-        let repay_usd = (outstanding.to_usd() - new_collateral_usd / target_ratio)
-            .max(Decimal::ZERO)
-            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
-
-        let to_receive =
-            UsdCents::try_from_usd(repay_usd).expect("repay amount must be in whole cents");
+        let to_receive = (outstanding.to_calc() - new_collateral_calc / target_ratio)
+            .max(CalculationAmount::ZERO)
+            .round_up();
 
         Self {
             to_liquidate,
@@ -184,16 +179,13 @@ impl LiquidationPaymentAmounts {
             }
         };
 
-        let outstanding_usd = outstanding.to_usd();
-        let collateral_usd = price.sats_to_cents_round_down(collateral).to_usd();
+        let outstanding_calc = outstanding.to_calc();
+        let collateral_calc =
+            CalculationAmount::<Usd>::from(price.sats_to_cents_round_down(collateral));
 
-        let repay_usd = ((outstanding_usd * target_ratio - collateral_usd)
-            / (target_ratio - Self::UNIT_FEE_FACTOR))
-            .max(Decimal::ZERO)
-            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
-
-        let to_receive =
-            UsdCents::try_from_usd(repay_usd).expect("repay amount must be in whole cents");
+        let to_receive = (outstanding_calc * target_ratio - collateral_calc)
+            / (target_ratio - Self::UNIT_FEE_FACTOR);
+        let to_receive = to_receive.max(CalculationAmount::ZERO).round_up();
         let to_liquidate = price.cents_to_sats_round_up(to_receive);
 
         Self {
