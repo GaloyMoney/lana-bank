@@ -43,6 +43,11 @@ struct ParsedWorkflowDoc {
     automation: AutomationDefinition,
 }
 
+#[derive(Debug, Clone)]
+struct SchemaObjectType {
+    fields: BTreeMap<String, String>,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 struct AutomationToken {
     token: String,
@@ -392,6 +397,7 @@ fn load_workflow() -> anyhow::Result<WorkflowDefinition> {
 }
 
 fn parse_schema_workflow(schema: &str) -> anyhow::Result<WorkflowDefinition> {
+    let object_types = parse_schema_object_types(schema)?;
     let mut steps = Vec::new();
     let mut container = None;
     let mut pending_description = None;
@@ -428,6 +434,9 @@ fn parse_schema_workflow(schema: &str) -> anyhow::Result<WorkflowDefinition> {
         let Some(operation) = parse_field_name(trimmed) else {
             continue;
         };
+        let Some(return_type) = parse_return_type(trimmed) else {
+            continue;
+        };
 
         let Some(description) = pending_description.take() else {
             continue;
@@ -436,14 +445,19 @@ fn parse_schema_workflow(schema: &str) -> anyhow::Result<WorkflowDefinition> {
             continue;
         };
 
-        steps.push((current_container, operation.to_string(), parsed_doc));
+        steps.push((
+            current_container,
+            operation.to_string(),
+            return_type,
+            parsed_doc,
+        ));
     }
 
     if steps.is_empty() {
         bail!("no workflow metadata blocks found in embedded schema.graphql");
     }
 
-    build_workflow_definition(steps)
+    build_workflow_definition(steps, &object_types)
 }
 
 fn collect_description<'a>(
@@ -483,6 +497,85 @@ fn parse_field_name(line: &str) -> Option<&str> {
     }
 
     let name = line.split(['(', ':']).next()?.trim();
+    if name.is_empty()
+        || !name
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || ch == '_')
+    {
+        return None;
+    }
+
+    Some(name)
+}
+
+fn parse_return_type(line: &str) -> Option<String> {
+    let (_, return_type) = line.rsplit_once(':')?;
+    Some(strip_type_wrappers(return_type.split_whitespace().next()?))
+}
+
+fn strip_type_wrappers(type_ref: &str) -> String {
+    type_ref
+        .chars()
+        .filter(|ch| ch.is_ascii_alphanumeric() || *ch == '_')
+        .collect()
+}
+
+fn parse_schema_object_types(schema: &str) -> anyhow::Result<BTreeMap<String, SchemaObjectType>> {
+    let mut object_types = BTreeMap::new();
+    let mut current_type: Option<String> = None;
+    let mut lines = schema.lines();
+
+    while let Some(line) = lines.next() {
+        let trimmed = line.trim();
+
+        if let Some(type_name) = parse_object_type_start(trimmed) {
+            current_type = Some(type_name.to_string());
+            object_types
+                .entry(type_name.to_string())
+                .or_insert_with(|| SchemaObjectType {
+                    fields: BTreeMap::new(),
+                });
+            continue;
+        }
+
+        if current_type.is_some() && trimmed == "}" {
+            current_type = None;
+            continue;
+        }
+
+        let Some(type_name) = current_type.clone() else {
+            continue;
+        };
+
+        if trimmed.starts_with("\"\"\"") {
+            let _ = collect_description(trimmed, &mut lines)?;
+            continue;
+        }
+
+        let Some(field_name) = parse_field_name(trimmed) else {
+            continue;
+        };
+        let Some(return_type) = parse_return_type(trimmed) else {
+            continue;
+        };
+
+        object_types
+            .get_mut(&type_name)
+            .expect("current type should exist in schema object map")
+            .fields
+            .insert(field_name.to_string(), return_type);
+    }
+
+    Ok(object_types)
+}
+
+fn parse_object_type_start(line: &str) -> Option<&str> {
+    let rest = line.strip_prefix("type ")?;
+    if !rest.ends_with('{') {
+        return None;
+    }
+
+    let name = rest.trim_end_matches('{').split_whitespace().next()?.trim();
     if name.is_empty()
         || !name
             .chars()
@@ -636,13 +729,18 @@ fn parse_produced_token(entry: &str) -> anyhow::Result<AutomationToken> {
 }
 
 fn build_workflow_definition(
-    raw_steps: Vec<(SchemaContainer, String, ParsedWorkflowDoc)>,
+    raw_steps: Vec<(SchemaContainer, String, String, ParsedWorkflowDoc)>,
+    object_types: &BTreeMap<String, SchemaObjectType>,
 ) -> anyhow::Result<WorkflowDefinition> {
     let mut token_producers: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut path_producers: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    for (_, operation, parsed_doc) in &raw_steps {
+    for (_, operation, return_type, parsed_doc) in &raw_steps {
         let step_id = derive_step_id(operation);
-        for token in &parsed_doc.automation.produces {
+        let produces = merge_produced_tokens(
+            derive_implicit_produces(operation, return_type, object_types, &parsed_doc.automation),
+            parsed_doc.automation.produces.clone(),
+        );
+        for token in &produces {
             token_producers
                 .entry(token.token.clone())
                 .or_default()
@@ -655,8 +753,17 @@ fn build_workflow_definition(
     }
 
     let mut steps = Vec::with_capacity(raw_steps.len());
-    for (container, operation, parsed_doc) in raw_steps {
+    for (container, operation, return_type, parsed_doc) in raw_steps {
         let step_id = derive_step_id(&operation);
+        let produces = merge_produced_tokens(
+            derive_implicit_produces(
+                &operation,
+                &return_type,
+                object_types,
+                &parsed_doc.automation,
+            ),
+            parsed_doc.automation.produces,
+        );
         let mut depends_on = BTreeSet::new();
         for required in &parsed_doc.automation.requires {
             let producers = if required.contains('.') {
@@ -678,7 +785,7 @@ fn build_workflow_definition(
             depends_on.insert(step_ids[0].clone());
         }
 
-        for token in &parsed_doc.automation.produces {
+        for token in &produces {
             if token.path.trim().is_empty() {
                 bail!(
                     "Automation step `{step_id}` has an empty path for produced token `{}`",
@@ -694,13 +801,92 @@ fn build_workflow_definition(
                 .with_context(|| format!("missing lana-admin command mapping for `{operation}`"))?,
             description: parsed_doc.description,
             requires: parsed_doc.automation.requires,
-            produces: parsed_doc.automation.produces,
+            produces,
             depends_on: depends_on.into_iter().collect(),
             mutating: container == SchemaContainer::Mutation,
         });
     }
 
     Ok(WorkflowDefinition { steps })
+}
+
+fn merge_produced_tokens(
+    inferred: Vec<AutomationToken>,
+    explicit: Vec<AutomationToken>,
+) -> Vec<AutomationToken> {
+    let mut merged = Vec::new();
+    let mut seen = BTreeSet::new();
+
+    for token in inferred.into_iter().chain(explicit) {
+        if seen.insert((token.token.clone(), token.path.clone())) {
+            merged.push(token);
+        }
+    }
+
+    merged
+}
+
+fn derive_implicit_produces(
+    operation: &str,
+    return_type: &str,
+    object_types: &BTreeMap<String, SchemaObjectType>,
+    automation: &AutomationDefinition,
+) -> Vec<AutomationToken> {
+    let required_tokens: BTreeSet<&str> = automation.requires.iter().map(String::as_str).collect();
+
+    let mut inferred = Vec::new();
+    if let Some(key_field) = derive_key_field(return_type, object_types) {
+        if !required_tokens.contains(key_field.as_str()) {
+            inferred.push(AutomationToken {
+                token: key_field.clone(),
+                path: format!("{operation}.{key_field}"),
+            });
+        }
+        return inferred;
+    }
+
+    let Some(schema_type) = object_types.get(return_type) else {
+        return inferred;
+    };
+
+    for (field_name, field_type) in &schema_type.fields {
+        let Some(key_field) = derive_key_field(field_type, object_types) else {
+            continue;
+        };
+        if required_tokens.contains(key_field.as_str()) {
+            continue;
+        }
+        inferred.push(AutomationToken {
+            token: key_field.clone(),
+            path: format!("{field_name}.{key_field}"),
+        });
+    }
+
+    inferred
+}
+
+fn derive_key_field(
+    type_name: &str,
+    object_types: &BTreeMap<String, SchemaObjectType>,
+) -> Option<String> {
+    let schema_type = object_types.get(type_name)?;
+    let key_field = format!("{}Id", lower_camel(type_name));
+    schema_type
+        .fields
+        .contains_key(&key_field)
+        .then_some(key_field)
+}
+
+fn lower_camel(type_name: &str) -> String {
+    let mut chars = type_name.chars();
+    let Some(first) = chars.next() else {
+        return String::new();
+    };
+
+    let mut out = String::with_capacity(type_name.len());
+    out.push(first.to_ascii_lowercase());
+    out.extend(chars);
+    out
 }
 
 fn derive_step_id(operation: &str) -> String {
