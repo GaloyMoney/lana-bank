@@ -53,10 +53,7 @@ pub async fn execute(
                 },
             };
             let vars = terms_template_create::Variables {
-                input: terms_template_create::TermsTemplateCreateInput {
-                    name,
-                    terms,
-                },
+                input: terms_template_create::TermsTemplateCreateInput { name, terms },
             };
             let data = client.execute::<TermsTemplateCreate>(vars).await?;
             let t = data.terms_template_create.terms_template;

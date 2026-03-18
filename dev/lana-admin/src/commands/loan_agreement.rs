@@ -41,7 +41,9 @@ pub async fn execute(
                     customer_id,
                 },
             };
-            let data = client.execute::<CreditFacilityAgreementGenerate>(vars).await?;
+            let data = client
+                .execute::<CreditFacilityAgreementGenerate>(vars)
+                .await?;
             let la = data.credit_facility_agreement_generate.loan_agreement;
             if json {
                 output::print_json(&json!({
