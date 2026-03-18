@@ -3527,7 +3527,7 @@ export type ReportRunConnection = {
 
 export type ReportRunCreatePayload = {
   __typename?: 'ReportRunCreatePayload';
-  runId?: Maybe<Scalars['String']['output']>;
+  runId: Scalars['String']['output'];
 };
 
 /** An edge in a connection. */
@@ -5601,7 +5601,7 @@ export type ReportGenerateMutationVariables = Exact<{
 }>;
 
 
-export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun: { __typename?: 'ReportRunCreatePayload', runId?: string | null } };
+export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun: { __typename?: 'ReportRunCreatePayload', runId: string } };
 
 export type ReportRunsQueryVariables = Exact<{
   first: Scalars['Int']['input'];

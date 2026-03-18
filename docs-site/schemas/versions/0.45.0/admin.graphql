@@ -2422,7 +2422,7 @@ type ReportRunConnection {
 }
 
 type ReportRunCreatePayload {
-	runId: String
+	runId: String!
 }
 
 """
