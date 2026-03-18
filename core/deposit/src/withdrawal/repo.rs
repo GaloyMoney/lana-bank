@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
-use money::UsdCents;
+use money::Amount;
 
 use crate::{
     primitives::{ApprovalProcessId, CalaTransactionId, DepositAccountId, PublicId, WithdrawalId},
@@ -28,7 +28,7 @@ use super::entity::*;
         reference(ty = "String", create(accessor = "reference()")),
         public_id(ty = "PublicId", list_by),
         status(ty = "WithdrawalStatus", list_for, update(accessor = "status()")),
-        amount(ty = "UsdCents", list_by, update(persist = false))
+        amount(ty = "Amount", list_by, update(persist = false))
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"

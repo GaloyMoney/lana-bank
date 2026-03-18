@@ -5,8 +5,10 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use money::Amount;
+
 use crate::primitives::{
-    ApprovalProcessId, CalaTransactionId, DepositAccountId, PublicId, UsdCents, WithdrawalId,
+    ApprovalProcessId, CalaTransactionId, DepositAccountId, PublicId, WithdrawalId,
 };
 
 use super::error::WithdrawalError;
@@ -44,7 +46,7 @@ pub enum WithdrawalEvent {
         id: WithdrawalId,
         ledger_tx_id: CalaTransactionId,
         deposit_account_id: DepositAccountId,
-        amount: UsdCents,
+        amount: Amount,
         reference: String,
         approval_process_id: ApprovalProcessId,
         status: WithdrawalStatus,
@@ -79,7 +81,7 @@ pub struct Withdrawal {
     pub id: WithdrawalId,
     pub deposit_account_id: DepositAccountId,
     pub reference: String,
-    pub amount: UsdCents,
+    pub amount: Amount,
     pub approval_process_id: ApprovalProcessId,
     pub public_id: PublicId,
     #[builder(setter(strip_option), default)]
@@ -93,7 +95,7 @@ pub struct WithdrawalReversalData {
     pub entity_id: WithdrawalId,
     pub ledger_tx_id: CalaTransactionId,
     pub credit_account_id: DepositAccountId,
-    pub amount: UsdCents,
+    pub amount: Amount,
     pub correlation_id: String,
     pub external_id: String,
 }
@@ -309,7 +311,7 @@ pub struct NewWithdrawal {
     #[builder(setter(into))]
     pub(super) deposit_account_id: DepositAccountId,
     #[builder(setter(into))]
-    pub(super) amount: UsdCents,
+    pub(super) amount: Amount,
     #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
@@ -363,13 +365,14 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
 #[cfg(test)]
 mod test {
     use super::*;
+    use money::UsdCents;
 
     #[test]
     fn errors_when_zero_amount_withdrawal_amount_is_passed() {
         let withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(UsdCents::ZERO)
+            .amount(Amount::from(UsdCents::ZERO))
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))
@@ -402,7 +405,7 @@ mod test {
         let withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(UsdCents::ONE)
+            .amount(Amount::from(UsdCents::ONE))
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))
@@ -415,7 +418,7 @@ mod test {
         let new_withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(UsdCents::ONE)
+            .amount(Amount::from(UsdCents::ONE))
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))
@@ -443,7 +446,7 @@ mod test {
         let new_withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(UsdCents::ONE)
+            .amount(Amount::from(UsdCents::ONE))
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))
@@ -472,7 +475,7 @@ mod test {
         let new_withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
-            .amount(UsdCents::ONE)
+            .amount(Amount::from(UsdCents::ONE))
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))

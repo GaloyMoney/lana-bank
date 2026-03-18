@@ -289,7 +289,7 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
         .record_deposit(&DummySubject, account.id, deposit_amount, None)
         .await?;
 
-    let withdrawal_amount = UsdCents::try_from_usd(dec!(500000)).unwrap();
+    let withdrawal_amount = Amount::from(UsdCents::try_from_usd(dec!(500000)).unwrap());
     let withdrawal = deposit
         .initiate_withdrawal(&DummySubject, account.id, withdrawal_amount, None)
         .await?;
@@ -611,7 +611,7 @@ async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::R
         .initiate_withdrawal(
             &DummySubject,
             account.id,
-            UsdCents::try_from_usd(dec!(100)).unwrap(),
+            Amount::from(UsdCents::try_from_usd(dec!(100)).unwrap()),
             None,
         )
         .await?;
@@ -627,7 +627,7 @@ async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::R
         .initiate_withdrawal(
             &DummySubject,
             account.id,
-            UsdCents::try_from_usd(dec!(100)).unwrap(),
+            Amount::from(UsdCents::try_from_usd(dec!(100)).unwrap()),
             None,
         )
         .await?;
