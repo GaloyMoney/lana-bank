@@ -92,6 +92,56 @@ where
         Ok(template)
     }
 
+    pub async fn update_name(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<AccountingTemplateId> + std::fmt::Debug + Copy,
+        new_name: String,
+    ) -> Result<AccountingTemplate, AccountingTemplateError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::accounting_template(id.into()),
+                CoreAccountingAction::ACCOUNTING_TEMPLATE_UPDATE,
+            )
+            .await?;
+
+        let new_name = AccountingTemplateValues::validate_name(new_name)?;
+
+        let mut template = self.repo.find_by_id(id.into()).await?;
+
+        if template.update_name(new_name).did_execute() {
+            self.repo.update(&mut template).await?;
+        }
+
+        Ok(template)
+    }
+
+    pub async fn update_values(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<AccountingTemplateId> + std::fmt::Debug + Copy,
+        new_values: AccountingTemplateValues,
+    ) -> Result<AccountingTemplate, AccountingTemplateError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::accounting_template(id.into()),
+                CoreAccountingAction::ACCOUNTING_TEMPLATE_UPDATE,
+            )
+            .await?;
+
+        new_values.validate()?;
+
+        let mut template = self.repo.find_by_id(id.into()).await?;
+
+        if template.update_values(new_values).did_execute() {
+            self.repo.update(&mut template).await?;
+        }
+
+        Ok(template)
+    }
+
     #[record_error_severity]
     #[instrument(name = "core_accounting.accounting_template.find_by_id", skip(self))]
     pub async fn find_by_id(
