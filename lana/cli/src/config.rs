@@ -21,7 +21,10 @@ pub enum TimeConfig {
     #[default]
     Realtime,
     /// Use manual/simulated time with explicit advance
-    Manual { start_at: DateTime<Utc> },
+    Manual {
+        #[serde(default = "chrono::Utc::now")]
+        start_at: DateTime<Utc>,
+    },
 }
 
 pub(super) struct AppClock {
