@@ -219,6 +219,7 @@ impl LanaApp {
         .await?;
 
         let customer_sync = CustomerSync::init(
+            &pool,
             &mut jobs,
             &outbox,
             &deposits,
