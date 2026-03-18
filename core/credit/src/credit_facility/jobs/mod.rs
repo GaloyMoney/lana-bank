@@ -1,9 +1,11 @@
+pub mod accrue_interest_command;
 pub mod activate;
 pub mod allocate_payment;
 pub mod collateralization_from_events;
+pub mod complete_accrual_cycle_command;
 pub mod credit_facility_eod;
 pub mod credit_facility_liquidations;
 pub mod credit_facility_maturity;
-pub mod process_accrual_cycle;
+pub mod interest_accrual_process;
 pub mod record_liquidation_proceeds;
 pub mod record_liquidation_started;

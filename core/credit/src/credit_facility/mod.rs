@@ -173,24 +173,40 @@ where
             jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo.clone()),
         );
 
-        let process_accrual_cycle_spawner =
-            jobs.add_initializer(jobs::process_accrual_cycle::ProcessAccrualCycleJobInit::<
+        let accrue_interest_spawner =
+            jobs.add_initializer(jobs::accrue_interest_command::AccrueInterestCommandInit::<
                 Perms,
                 E,
             >::new(
                 ledger.clone(),
-                collections.clone(),
                 repo.clone(),
                 collaterals.clone(),
                 authz.clone(),
             ));
+
+        let complete_accrual_cycle_spawner = jobs.add_initializer(
+            jobs::complete_accrual_cycle_command::CompleteAccrualCycleCommandInit::<Perms, E>::new(
+                ledger.clone(),
+                collections.clone(),
+                repo.clone(),
+                authz.clone(),
+            ),
+        );
+
+        let interest_accrual_process_spawner = jobs.add_initializer(
+            jobs::interest_accrual_process::InterestAccrualProcessInit::new(
+                jobs,
+                accrue_interest_spawner,
+                complete_accrual_cycle_spawner,
+            ),
+        );
 
         // EOD child process — spawned by the EOD process manager
         let credit_facility_eod_spawner = jobs.add_initializer(
             jobs::credit_facility_eod::CreditFacilityEodProcessInit::new(
                 outbox,
                 repo.clone(),
-                process_accrual_cycle_spawner,
+                interest_accrual_process_spawner,
                 maturity_spawner,
             ),
         );

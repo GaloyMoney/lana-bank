@@ -310,8 +310,8 @@ async fn create_active_facility_with_clock(
 /// `AccrualPosted` is published when an interest accrual cycle completes.
 ///
 /// # Trigger
-/// `ProcessAccrualCycleJobRunner::complete_cycle`
-/// (the final state in the AccruePeriod → CompleteCycle machine)
+/// `CompleteAccrualCycleCommandRunner::run`
+/// (via InterestAccrualProcess → CompleteAccrualCycleCommand)
 ///
 /// # Consumers
 /// - `History::process_credit_event` - records accrual posting
@@ -336,7 +336,7 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
     let facility_id = state.facility_id;
 
     // Advance the clock day-by-day, publishing EndOfDay events to trigger the
-    // accrual pipeline: EndOfDay → EodProcessManager → CreditFacilityEodJob → ProcessAccrualCycle
+    // accrual pipeline: EndOfDay → EodProcessManager → CreditFacilityEodJob → InterestAccrualProcess
     let recorded = tokio::time::timeout(Duration::from_secs(60), async {
         let mut current_day = chrono::Utc::now().date_naive();
         loop {

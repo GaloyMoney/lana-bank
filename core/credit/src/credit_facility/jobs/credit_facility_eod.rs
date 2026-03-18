@@ -20,7 +20,9 @@ use core_price::CorePriceEvent;
 use super::credit_facility_maturity::{
     CreditFacilityMaturityJobConfig, CreditFacilityMaturityJobSpawner,
 };
-use super::process_accrual_cycle::{ProcessAccrualCycleJobConfig, ProcessAccrualCycleJobSpawner};
+use super::interest_accrual_process::{
+    InterestAccrualProcessConfig, InterestAccrualProcessSpawner,
+};
 use crate::{CoreCreditEvent, CreditFacilityId, credit_facility::CreditFacilityRepo};
 
 const PAGE_SIZE: i64 = 100;
@@ -34,7 +36,7 @@ where
 {
     outbox: Outbox<E>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner,
+    interest_accrual_process_spawner: InterestAccrualProcessSpawner,
     maturity_spawner: CreditFacilityMaturityJobSpawner,
 }
 
@@ -48,13 +50,13 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-        process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner,
+        interest_accrual_process_spawner: InterestAccrualProcessSpawner,
         maturity_spawner: CreditFacilityMaturityJobSpawner,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             credit_facility_repo,
-            process_accrual_cycle_spawner,
+            interest_accrual_process_spawner,
             maturity_spawner,
         }
     }
@@ -82,7 +84,7 @@ where
             config: job.config()?,
             outbox: self.outbox.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
-            process_accrual_cycle_spawner: self.process_accrual_cycle_spawner.clone(),
+            interest_accrual_process_spawner: self.interest_accrual_process_spawner.clone(),
             maturity_spawner: self.maturity_spawner.clone(),
         }))
     }
@@ -98,7 +100,7 @@ where
     config: CreditFacilityEodProcessConfig,
     outbox: Outbox<E>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner,
+    interest_accrual_process_spawner: InterestAccrualProcessSpawner,
     maturity_spawner: CreditFacilityMaturityJobSpawner,
 }
 
@@ -196,8 +198,9 @@ where
                         state.pending_accrual.insert(*id);
                         JobSpec::new(
                             job_id,
-                            ProcessAccrualCycleJobConfig {
+                            InterestAccrualProcessConfig {
                                 credit_facility_id: *id,
+                                date: self.config.date,
                             },
                         )
                         .queue_id(id.to_string())
@@ -205,7 +208,7 @@ where
                     .collect();
 
                 match self
-                    .process_accrual_cycle_spawner
+                    .interest_accrual_process_spawner
                     .spawn_all_in_op(&mut op, specs)
                     .await
                 {
