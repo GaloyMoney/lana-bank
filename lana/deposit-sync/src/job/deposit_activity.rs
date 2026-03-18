@@ -12,7 +12,7 @@ use core_deposit::{
 };
 use core_eod::deposit_activity::{DEPOSIT_ACTIVITY_JOB_TYPE, DepositActivityConfig};
 use governance::GovernanceEvent;
-use job::*;
+use job::{error::JobError, *};
 use obix::out::OutboxEventMarker;
 
 use super::evaluate_deposit_account_activity::{
@@ -161,9 +161,10 @@ where
                 })
                 .collect();
 
-            self.evaluate_spawner
-                .spawn_all_in_op(&mut op, specs)
-                .await?;
+            match self.evaluate_spawner.spawn_all_in_op(&mut op, specs).await {
+                Ok(_) | Err(JobError::DuplicateId(_)) => {}
+                Err(e) => return Err(e.into()),
+            }
 
             state.last_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job

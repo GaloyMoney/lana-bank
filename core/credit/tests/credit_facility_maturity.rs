@@ -33,8 +33,8 @@ async fn publish_end_of_day(
 /// # Pipeline
 /// ```text
 /// EndOfDay(maturity_date)
-///   → CreditFacilityMaturityEndOfDayHandler
-///     → ProcessFacilityMaturitiesJob (batch query)
+///   → EodProcessManager (phase 2)
+///     → CreditFacilityEodJob (batch query)
 ///       → CreditFacilityMaturityJob (per-facility)
 ///         → facility.mature()
 /// ```

@@ -3,9 +3,10 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use governance::GovernanceEvent;
-use job::*;
+use job::{error::JobError, *};
 use obix::out::OutboxEventMarker;
 
 use core_custody::CoreCustodyEvent;
@@ -176,9 +177,14 @@ where
                     })
                     .collect();
 
-                self.process_accrual_cycle_spawner
+                match self
+                    .process_accrual_cycle_spawner
                     .spawn_all_in_op(&mut op, specs)
-                    .await?;
+                    .await
+                {
+                    Ok(_) | Err(JobError::DuplicateId(_)) => {}
+                    Err(e) => return Err(e.into()),
+                }
 
                 state.accrual_cursor = rows.last().map(|(id, ts)| (*ts, *id));
                 current_job
@@ -193,9 +199,16 @@ where
 
         // Phase: Collect maturing facilities
         loop {
+            let mut op = current_job.begin_op().await?;
+
             let rows = self
                 .credit_facility_repo
-                .list_ids_ready_for_maturity(self.config.date, state.maturity_cursor, PAGE_SIZE)
+                .list_ids_ready_for_maturity_in_op(
+                    &mut op,
+                    self.config.date,
+                    state.maturity_cursor,
+                    PAGE_SIZE,
+                )
                 .await?;
 
             if rows.is_empty() {
@@ -221,10 +234,10 @@ where
                 })
                 .collect();
 
-            let mut op = current_job.begin_op().await?;
-            self.maturity_spawner
-                .spawn_all_in_op(&mut op, specs)
-                .await?;
+            match self.maturity_spawner.spawn_all_in_op(&mut op, specs).await {
+                Ok(_) | Err(JobError::DuplicateId(_)) => {}
+                Err(e) => return Err(e.into()),
+            }
 
             state.maturity_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
@@ -303,6 +316,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
+    #[record_error_severity]
     #[instrument(
         name = "eod.credit-facility-eod.run",
         skip(self, current_job),

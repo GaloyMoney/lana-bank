@@ -1,12 +1,13 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_eod::obligation_transition::{OBLIGATION_TRANSITION_JOB_TYPE, ObligationTransitionConfig};
 use core_time_events::CoreTimeEvent;
-use job::*;
+use job::{error::JobError, *};
 use obix::out::OutboxEventMarker;
 
 use super::transition_obligation::{TransitionObligationJobConfig, TransitionObligationJobSpawner};
@@ -141,9 +142,14 @@ where
                 .collect();
 
             let mut op = current_job.begin_op().await?;
-            self.transition_spawner
+            match self
+                .transition_spawner
                 .spawn_all_in_op(&mut op, specs)
-                .await?;
+                .await
+            {
+                Ok(_) | Err(JobError::DuplicateId(_)) => {}
+                Err(e) => return Err(e.into()),
+            }
 
             state.last_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
@@ -217,6 +223,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
 {
+    #[record_error_severity]
     #[instrument(
         name = "eod.obligation-transition.run",
         skip(self, current_job),

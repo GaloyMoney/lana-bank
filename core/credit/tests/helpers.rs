@@ -638,7 +638,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         clock.clone(),
     );
 
-    let credit = CoreCredit::init(
+    let (credit, _obligation_spawner, _credit_facility_eod_spawner) = CoreCredit::init(
         &pool,
         &governance,
         &mut jobs,

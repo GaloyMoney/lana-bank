@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use job::{error::JobError, *};
 
@@ -32,7 +33,7 @@ pub struct EodProcessManagerResult {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub enum EodProcessState {
+pub(crate) enum EodProcessState {
     #[default]
     SpawningPhase1,
     AwaitingPhase1 {
@@ -48,10 +49,9 @@ pub enum EodProcessState {
         phase1_deposit: JobTerminalState,
         credit_facility_job: JobId,
     },
-    Cancelling {
-        phase: u8,
+    Completed {
+        result: EodProcessManagerResult,
     },
-    Completed,
     Failed {
         phase: u8,
         failed: Vec<(String, JobTerminalState)>,
@@ -113,6 +113,7 @@ struct EodProcessManagerJobRunner {
 
 #[async_trait]
 impl JobRunner for EodProcessManagerJobRunner {
+    #[record_error_severity]
     #[instrument(
         name = "eod.process-manager.run",
         skip(self, current_job),
@@ -132,13 +133,19 @@ impl JobRunner for EodProcessManagerJobRunner {
                     job_id::eod_child_id(&self.config.date, "obligation-transition");
                 let deposit_job = job_id::eod_child_id(&self.config.date, "deposit-activity");
 
+                let mut op = current_job.begin_op().await?;
+
                 match self
                     .obligation_spawner
-                    .spawn(
-                        obligation_job,
-                        ObligationTransitionConfig {
-                            date: self.config.date,
-                        },
+                    .spawn_all_in_op(
+                        &mut op,
+                        vec![JobSpec::new(
+                            obligation_job,
+                            ObligationTransitionConfig {
+                                date: self.config.date,
+                            },
+                        )
+                        .queue_id("eod-obligation-transition".to_string())],
                     )
                     .await
                 {
@@ -148,12 +155,16 @@ impl JobRunner for EodProcessManagerJobRunner {
 
                 match self
                     .deposit_spawner
-                    .spawn(
-                        deposit_job,
-                        DepositActivityConfig {
-                            date: self.config.date,
-                            closing_time: self.config.closing_time,
-                        },
+                    .spawn_all_in_op(
+                        &mut op,
+                        vec![JobSpec::new(
+                            deposit_job,
+                            DepositActivityConfig {
+                                date: self.config.date,
+                                closing_time: self.config.closing_time,
+                            },
+                        )
+                        .queue_id("eod-deposit-activity".to_string())],
                     )
                     .await
                 {
@@ -165,7 +176,6 @@ impl JobRunner for EodProcessManagerJobRunner {
                     obligation_job,
                     deposit_job,
                 };
-                let mut op = current_job.begin_op().await?;
                 current_job
                     .update_execution_state_in_op(&mut op, &new_state)
                     .await?;
@@ -175,16 +185,6 @@ impl JobRunner for EodProcessManagerJobRunner {
                 obligation_job,
                 deposit_job,
             } => {
-                if current_job.cancellation_requested() {
-                    tracing::info!("EOD process manager cancellation requested during phase 1");
-                    let new_state = EodProcessState::Cancelling { phase: 1 };
-                    let mut op = current_job.begin_op().await?;
-                    current_job
-                        .update_execution_state_in_op(&mut op, &new_state)
-                        .await?;
-                    return Ok(JobCompletion::RescheduleNowWithOp(op));
-                }
-
                 let (obligation_result, deposit_result) = tokio::join!(
                     self.jobs.await_completion(obligation_job),
                     self.jobs.await_completion(deposit_job),
@@ -201,12 +201,17 @@ impl JobRunner for EodProcessManagerJobRunner {
                 }
 
                 if !failed.is_empty() {
+                    tracing::error!(
+                        phase = 1,
+                        ?failed,
+                        "EOD process manager failed — manual intervention required"
+                    );
                     let new_state = EodProcessState::Failed { phase: 1, failed };
                     let mut op = current_job.begin_op().await?;
                     current_job
                         .update_execution_state_in_op(&mut op, &new_state)
                         .await?;
-                    Ok(JobCompletion::RescheduleNowWithOp(op))
+                    Ok(JobCompletion::CompleteWithOp(op))
                 } else {
                     let new_state = EodProcessState::SpawningPhase2 {
                         phase1_obligation: obligation_terminal,
@@ -226,13 +231,19 @@ impl JobRunner for EodProcessManagerJobRunner {
                 let credit_facility_job =
                     job_id::eod_child_id(&self.config.date, "credit-facility");
 
+                let mut op = current_job.begin_op().await?;
+
                 match self
                     .credit_facility_spawner
-                    .spawn(
-                        credit_facility_job,
-                        CreditFacilityEodConfig {
-                            date: self.config.date,
-                        },
+                    .spawn_all_in_op(
+                        &mut op,
+                        vec![JobSpec::new(
+                            credit_facility_job,
+                            CreditFacilityEodConfig {
+                                date: self.config.date,
+                            },
+                        )
+                        .queue_id("eod-credit-facility".to_string())],
                     )
                     .await
                 {
@@ -245,7 +256,6 @@ impl JobRunner for EodProcessManagerJobRunner {
                     phase1_deposit,
                     credit_facility_job,
                 };
-                let mut op = current_job.begin_op().await?;
                 current_job
                     .update_execution_state_in_op(&mut op, &new_state)
                     .await?;
@@ -256,29 +266,22 @@ impl JobRunner for EodProcessManagerJobRunner {
                 phase1_deposit,
                 credit_facility_job,
             } => {
-                if current_job.cancellation_requested() {
-                    tracing::info!("EOD process manager cancellation requested during phase 2");
-                    let new_state = EodProcessState::Cancelling { phase: 2 };
-                    let mut op = current_job.begin_op().await?;
-                    current_job
-                        .update_execution_state_in_op(&mut op, &new_state)
-                        .await?;
-                    return Ok(JobCompletion::RescheduleNowWithOp(op));
-                }
-
                 let credit_facility_terminal =
                     self.jobs.await_completion(credit_facility_job).await?;
 
                 if credit_facility_terminal != JobTerminalState::Completed {
-                    let new_state = EodProcessState::Failed {
-                        phase: 2,
-                        failed: vec![("credit-facility".to_string(), credit_facility_terminal)],
-                    };
+                    let failed = vec![("credit-facility".to_string(), credit_facility_terminal)];
+                    tracing::error!(
+                        phase = 2,
+                        ?failed,
+                        "EOD process manager failed — manual intervention required"
+                    );
+                    let new_state = EodProcessState::Failed { phase: 2, failed };
                     let mut op = current_job.begin_op().await?;
                     current_job
                         .update_execution_state_in_op(&mut op, &new_state)
                         .await?;
-                    Ok(JobCompletion::RescheduleNowWithOp(op))
+                    Ok(JobCompletion::CompleteWithOp(op))
                 } else {
                     let result = EodProcessManagerResult {
                         date: self.config.date,
@@ -286,9 +289,11 @@ impl JobRunner for EodProcessManagerJobRunner {
                         phase1_deposit,
                         phase2_credit_facility: credit_facility_terminal,
                     };
-                    current_job.set_result(&result).await?;
-
-                    let new_state = EodProcessState::Completed;
+                    // Checkpoint to Completed first; set_result runs on the
+                    // next iteration from the Completed arm, making this
+                    // crash-safe: if we crash between checkpoint and
+                    // set_result the PM simply retries set_result.
+                    let new_state = EodProcessState::Completed { result };
                     let mut op = current_job.begin_op().await?;
                     current_job
                         .update_execution_state_in_op(&mut op, &new_state)
@@ -296,23 +301,15 @@ impl JobRunner for EodProcessManagerJobRunner {
                     Ok(JobCompletion::RescheduleNowWithOp(op))
                 }
             }
-            EodProcessState::Cancelling { phase } => {
-                // TODO: Once the job library exposes a cancel API, use it here
-                // to cancel running child jobs and await their acknowledgment.
-                tracing::warn!(
-                    phase,
-                    "EOD process manager entering cancelling state — \
-                     child job cancellation not yet implemented"
-                );
+            EodProcessState::Completed { result } => {
+                // Idempotent: set_result may have already been called before
+                // a crash; calling it again is safe.
+                current_job.set_result(&result).await?;
                 Ok(JobCompletion::Complete)
             }
-            EodProcessState::Completed => Ok(JobCompletion::Complete),
-            EodProcessState::Failed { phase, ref failed } => {
-                tracing::error!(
-                    phase,
-                    ?failed,
-                    "EOD process manager failed — manual intervention required"
-                );
+            EodProcessState::Failed { .. } => {
+                // Already logged when transitioning to Failed; this arm
+                // only runs if the PM is restarted after a crash.
                 Ok(JobCompletion::Complete)
             }
         }

@@ -133,7 +133,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
         clock.clone(),
     );
 
-    let credit = CoreCredit::init(
+    let (credit, _obligation_spawner, _credit_facility_eod_spawner) = CoreCredit::init(
         &pool,
         &governance,
         &mut jobs,
@@ -336,7 +336,7 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
     let facility_id = state.facility_id;
 
     // Advance the clock day-by-day, publishing EndOfDay events to trigger the
-    // accrual pipeline: EndOfDay → CollectFacilitiesForAccrual → ProcessAccrualCycle
+    // accrual pipeline: EndOfDay → EodProcessManager → CreditFacilityEodJob → ProcessAccrualCycle
     let recorded = tokio::time::timeout(Duration::from_secs(60), async {
         let mut current_day = chrono::Utc::now().date_naive();
         loop {

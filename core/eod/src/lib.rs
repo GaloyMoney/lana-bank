@@ -6,4 +6,7 @@ pub mod obligation_transition;
 mod process_manager;
 
 pub use job_id::*;
-pub use process_manager::*;
+pub use process_manager::{
+    EodProcessManagerConfig, EodProcessManagerJobInit, EodProcessManagerJobSpawner,
+    EodProcessManagerResult, EOD_PROCESS_MANAGER_JOB_TYPE,
+};

@@ -23,9 +23,9 @@
 //! └─────────────────────────────────────────────────────────────────────────┘
 //! ```
 //!
-//! Note: Obligation transitions are now handled by the EOD process manager
-//! in Phase 1, before credit facility processing begins in Phase 2.
-//! This eliminates the need for AwaitObligationsSync.
+//! Note: Obligation transitions are handled by the EOD process manager
+//! in Phase 1 (ObligationTransitionJob), before credit facility
+//! processing begins in Phase 2.
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -382,6 +382,9 @@ where
             .record_accrual_on_in_progress_cycle(balances.disbursed_outstanding())
         {
             Ok(recorded) => {
+                // Invariant: record_accrual_on_in_progress_cycle only returns
+                // Idempotent::Ignored when the accrual was already recorded,
+                // but we query fresh state each run, so it always executes.
                 let recorded = recorded.expect("record_accrual always returns Executed");
                 AccrualOutcome::Accrued(ConfirmedAccrual {
                     accrual: (recorded.accrual_data, account_ids).into(),
@@ -484,6 +487,8 @@ where
             .find_by_id_in_op(db, credit_facility_id)
             .await?;
 
+        // Invariant: CompleteCycle is only reached after AccruePeriod has
+        // confirmed an in-progress cycle exists, so this always executes.
         let (accrual_cycle_data, new_obligation) = credit_facility
             .record_interest_accrual_cycle()?
             .expect("record_interest_accrual_cycle should execute when there is an accrual cycle to record");
@@ -495,6 +500,8 @@ where
                 .await?;
         };
 
+        // Invariant: start_interest_accrual_cycle is idempotent but since
+        // we just recorded the previous cycle, it always has work to do.
         let res = credit_facility
             .start_interest_accrual_cycle()?
             .expect("start_interest_accrual_cycle always returns Executed");
@@ -503,9 +510,12 @@ where
             .await?;
 
         let new_cycle_data = res.map(|periods| {
+            // Invariant: we just called start_interest_accrual_cycle which
+            // returned Some (indicating a new cycle was started), so an
+            // in-progress cycle must exist.
             let new_accrual_cycle_id = credit_facility
                 .interest_accrual_cycle_in_progress()
-                .expect("First accrual cycle not found")
+                .expect("in-progress accrual cycle must exist after start")
                 .id;
 
             NewInterestAccrualCycleData {

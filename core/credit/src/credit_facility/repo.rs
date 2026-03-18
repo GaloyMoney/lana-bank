@@ -124,8 +124,9 @@ where
         Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }
 
-    pub async fn list_ids_ready_for_maturity(
+    pub async fn list_ids_ready_for_maturity_in_op(
         &self,
+        op: &mut es_entity::DbOp<'_>,
         day: chrono::NaiveDate,
         after: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
         limit: i64,
@@ -134,6 +135,7 @@ where
             Some((ts, id)) => (Some(ts), Some(id)),
             None => (None, None),
         };
+        let tx = op.tx_mut();
         let rows = sqlx::query!(
             r#"SELECT id AS "id: CreditFacilityId", created_at
                FROM core_credit_facilities
@@ -148,7 +150,7 @@ where
             after_id as Option<CreditFacilityId>,
             limit,
         )
-        .fetch_all(self.pool())
+        .fetch_all(&mut **tx)
         .await?;
         Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }

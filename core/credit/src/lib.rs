@@ -201,7 +201,6 @@ where
         // Create Arc-wrapped versions of parameters once
         let authz_arc = Arc::new(authz.clone());
         let governance_arc = Arc::new(governance.clone());
-        // let jobs_arc = Arc::new(jobs.clone());
         let price_arc = Arc::new(price.clone());
         let public_ids_arc = Arc::new(public_ids.clone());
         let customer_arc = Arc::new(customer.clone());
