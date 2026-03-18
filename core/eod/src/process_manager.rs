@@ -7,10 +7,14 @@ use tracing_macros::record_error_severity;
 use job::{error::JobError, *};
 
 use crate::{
-    credit_facility_eod::{CreditFacilityEodConfig, CreditFacilityEodJobSpawner},
-    deposit_activity::{DepositActivityConfig, DepositActivityJobSpawner},
+    credit_facility_eod_process::{
+        CreditFacilityEodProcessConfig, CreditFacilityEodProcessSpawner,
+    },
+    deposit_activity_process::{DepositActivityProcessConfig, DepositActivityProcessSpawner},
     job_id,
-    obligation_transition::{ObligationTransitionConfig, ObligationTransitionJobSpawner},
+    obligation_transition_process::{
+        ObligationTransitionProcessConfig, ObligationTransitionProcessSpawner,
+    },
 };
 
 pub const EOD_PROCESS_MANAGER_JOB_TYPE: JobType = JobType::new("task.eod.process-manager");
@@ -60,17 +64,17 @@ pub(crate) enum EodProcessState {
 
 pub struct EodProcessManagerJobInit {
     jobs: Jobs,
-    obligation_spawner: ObligationTransitionJobSpawner,
-    deposit_spawner: DepositActivityJobSpawner,
-    credit_facility_spawner: CreditFacilityEodJobSpawner,
+    obligation_spawner: ObligationTransitionProcessSpawner,
+    deposit_spawner: DepositActivityProcessSpawner,
+    credit_facility_spawner: CreditFacilityEodProcessSpawner,
 }
 
 impl EodProcessManagerJobInit {
     pub fn new(
         jobs: &Jobs,
-        obligation_spawner: ObligationTransitionJobSpawner,
-        deposit_spawner: DepositActivityJobSpawner,
-        credit_facility_spawner: CreditFacilityEodJobSpawner,
+        obligation_spawner: ObligationTransitionProcessSpawner,
+        deposit_spawner: DepositActivityProcessSpawner,
+        credit_facility_spawner: CreditFacilityEodProcessSpawner,
     ) -> Self {
         Self {
             jobs: jobs.clone(),
@@ -106,9 +110,9 @@ impl JobInitializer for EodProcessManagerJobInit {
 struct EodProcessManagerJobRunner {
     config: EodProcessManagerConfig,
     jobs: Jobs,
-    obligation_spawner: ObligationTransitionJobSpawner,
-    deposit_spawner: DepositActivityJobSpawner,
-    credit_facility_spawner: CreditFacilityEodJobSpawner,
+    obligation_spawner: ObligationTransitionProcessSpawner,
+    deposit_spawner: DepositActivityProcessSpawner,
+    credit_facility_spawner: CreditFacilityEodProcessSpawner,
 }
 
 #[async_trait]
@@ -141,7 +145,7 @@ impl JobRunner for EodProcessManagerJobRunner {
                         &mut op,
                         vec![JobSpec::new(
                             obligation_job,
-                            ObligationTransitionConfig {
+                            ObligationTransitionProcessConfig {
                                 date: self.config.date,
                             },
                         )
@@ -159,7 +163,7 @@ impl JobRunner for EodProcessManagerJobRunner {
                         &mut op,
                         vec![JobSpec::new(
                             deposit_job,
-                            DepositActivityConfig {
+                            DepositActivityProcessConfig {
                                 date: self.config.date,
                                 closing_time: self.config.closing_time,
                             },
@@ -239,7 +243,7 @@ impl JobRunner for EodProcessManagerJobRunner {
                         &mut op,
                         vec![JobSpec::new(
                             credit_facility_job,
-                            CreditFacilityEodConfig {
+                            CreditFacilityEodProcessConfig {
                                 date: self.config.date,
                             },
                         )

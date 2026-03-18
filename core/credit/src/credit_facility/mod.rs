@@ -141,7 +141,7 @@ where
     ) -> Result<
         (
             Self,
-            core_eod::credit_facility_eod::CreditFacilityEodJobSpawner,
+            core_eod::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
         ),
         CreditFacilityError,
     >
@@ -185,14 +185,15 @@ where
                 authz.clone(),
             ));
 
-        // EOD child job — spawned by the EOD process manager
-        let credit_facility_eod_spawner =
-            jobs.add_initializer(jobs::credit_facility_eod::CreditFacilityEodJobInit::new(
+        // EOD child process — spawned by the EOD process manager
+        let credit_facility_eod_spawner = jobs.add_initializer(
+            jobs::credit_facility_eod::CreditFacilityEodProcessInit::new(
                 jobs,
                 repo.clone(),
                 process_accrual_cycle_spawner,
                 maturity_spawner,
-            ));
+            ),
+        );
 
         let record_liquidation_started_spawner = jobs.add_initializer(
             jobs::record_liquidation_started::RecordLiquidationStartedJobInitializer::new(

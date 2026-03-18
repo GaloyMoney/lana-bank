@@ -10,7 +10,9 @@ use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
     GovernanceAction, GovernanceObject,
 };
-use core_eod::deposit_activity::{DEPOSIT_ACTIVITY_JOB_TYPE, DepositActivityConfig};
+use core_eod::deposit_activity_process::{
+    DEPOSIT_ACTIVITY_PROCESS_JOB_TYPE, DepositActivityProcessConfig,
+};
 use governance::GovernanceEvent;
 use job::{error::JobError, *};
 use obix::out::OutboxEventMarker;
@@ -21,7 +23,7 @@ use super::evaluate_deposit_account_activity::{
 
 const PAGE_SIZE: i64 = 100;
 
-pub struct DepositActivityJobInit<Perms, E>
+pub struct DepositActivityProcessInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -33,7 +35,7 @@ where
     evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
 }
 
-impl<Perms, E> DepositActivityJobInit<Perms, E>
+impl<Perms, E> DepositActivityProcessInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -53,7 +55,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for DepositActivityJobInit<Perms, E>
+impl<Perms, E> JobInitializer for DepositActivityProcessInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -64,10 +66,10 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    type Config = DepositActivityConfig;
+    type Config = DepositActivityProcessConfig;
 
     fn job_type(&self) -> JobType {
-        DEPOSIT_ACTIVITY_JOB_TYPE
+        DEPOSIT_ACTIVITY_PROCESS_JOB_TYPE
     }
 
     fn init(
@@ -75,7 +77,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(DepositActivityJobRunner {
+        Ok(Box::new(DepositActivityProcessRunner {
             config: job.config()?,
             jobs: self.jobs.clone(),
             deposits: self.deposits.clone(),
@@ -84,14 +86,14 @@ where
     }
 }
 
-struct DepositActivityJobRunner<Perms, E>
+struct DepositActivityProcessRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    config: DepositActivityConfig,
+    config: DepositActivityProcessConfig,
     jobs: Jobs,
     deposits: CoreDeposit<Perms, E>,
     evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
@@ -114,7 +116,7 @@ struct DepositActivityCollectingState {
     entity_job_ids: Vec<JobId>,
 }
 
-impl<Perms, E> DepositActivityJobRunner<Perms, E>
+impl<Perms, E> DepositActivityProcessRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -229,7 +231,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for DepositActivityJobRunner<Perms, E>
+impl<Perms, E> JobRunner for DepositActivityProcessRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -242,7 +244,7 @@ where
 {
     #[record_error_severity]
     #[instrument(
-        name = "eod.deposit-activity.run",
+        name = "eod.deposit-activity-process.run",
         skip(self, current_job),
         fields(date = %self.config.date)
     )]

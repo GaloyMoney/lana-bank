@@ -10,7 +10,9 @@ use job::{error::JobError, *};
 use obix::out::OutboxEventMarker;
 
 use core_custody::CoreCustodyEvent;
-use core_eod::credit_facility_eod::{CREDIT_FACILITY_EOD_JOB_TYPE, CreditFacilityEodConfig};
+use core_eod::credit_facility_eod_process::{
+    CREDIT_FACILITY_EOD_PROCESS_JOB_TYPE, CreditFacilityEodProcessConfig,
+};
 use core_price::CorePriceEvent;
 
 use super::credit_facility_maturity::{
@@ -21,7 +23,7 @@ use crate::{CoreCreditEvent, CreditFacilityId, credit_facility::CreditFacilityRe
 
 const PAGE_SIZE: i64 = 100;
 
-pub struct CreditFacilityEodJobInit<E>
+pub struct CreditFacilityEodProcessInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -34,7 +36,7 @@ where
     maturity_spawner: CreditFacilityMaturityJobSpawner,
 }
 
-impl<E> CreditFacilityEodJobInit<E>
+impl<E> CreditFacilityEodProcessInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -56,17 +58,17 @@ where
     }
 }
 
-impl<E> JobInitializer for CreditFacilityEodJobInit<E>
+impl<E> JobInitializer for CreditFacilityEodProcessInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    type Config = CreditFacilityEodConfig;
+    type Config = CreditFacilityEodProcessConfig;
 
     fn job_type(&self) -> JobType {
-        CREDIT_FACILITY_EOD_JOB_TYPE
+        CREDIT_FACILITY_EOD_PROCESS_JOB_TYPE
     }
 
     fn init(
@@ -74,7 +76,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityEodJobRunner {
+        Ok(Box::new(CreditFacilityEodProcessRunner {
             config: job.config()?,
             jobs: self.jobs.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
@@ -84,14 +86,14 @@ where
     }
 }
 
-struct CreditFacilityEodJobRunner<E>
+struct CreditFacilityEodProcessRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    config: CreditFacilityEodConfig,
+    config: CreditFacilityEodProcessConfig,
     jobs: Jobs,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner,
@@ -119,7 +121,7 @@ struct CreditFacilityEodCollectingState {
     accrual_done: bool,
 }
 
-impl<E> CreditFacilityEodJobRunner<E>
+impl<E> CreditFacilityEodProcessRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -269,7 +271,7 @@ where
 
     async fn run_tracking(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
         accrual_job_ids: Vec<JobId>,
         maturity_job_ids: Vec<JobId>,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
@@ -309,7 +311,7 @@ where
 }
 
 #[async_trait]
-impl<E> JobRunner for CreditFacilityEodJobRunner<E>
+impl<E> JobRunner for CreditFacilityEodProcessRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -318,7 +320,7 @@ where
 {
     #[record_error_severity]
     #[instrument(
-        name = "eod.credit-facility-eod.run",
+        name = "eod.credit-facility-eod-process.run",
         skip(self, current_job),
         fields(date = %self.config.date)
     )]

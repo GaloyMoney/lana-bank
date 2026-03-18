@@ -1,8 +1,8 @@
-pub mod credit_facility_eod;
-pub mod deposit_activity;
+pub mod credit_facility_eod_process;
+pub mod deposit_activity_process;
 pub mod end_of_day_handler;
 mod job_id;
-pub mod obligation_transition;
+pub mod obligation_transition_process;
 mod process_manager;
 
 pub use job_id::*;

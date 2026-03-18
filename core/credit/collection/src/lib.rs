@@ -41,7 +41,7 @@ use ledger::CollectionLedger;
 pub use ledger::error::CollectionLedgerError;
 
 use obligation::jobs::{
-    obligation_transition::ObligationTransitionJobInit,
+    obligation_transition::ObligationTransitionProcessInit,
     transition_obligation::TransitionObligationJobInit,
 };
 
@@ -102,7 +102,7 @@ where
     ) -> Result<
         (
             Self,
-            core_eod::obligation_transition::ObligationTransitionJobSpawner,
+            core_eod::obligation_transition_process::ObligationTransitionProcessSpawner,
         ),
         CoreCreditCollectionError,
     > {
@@ -122,12 +122,13 @@ where
         let transition_spawner =
             jobs.add_initializer(TransitionObligationJobInit::new(obligations_arc.as_ref()));
 
-        // EOD child job — spawned by the EOD process manager
-        let obligation_transition_spawner = jobs.add_initializer(ObligationTransitionJobInit::new(
-            jobs,
-            obligations_arc.as_ref(),
-            transition_spawner,
-        ));
+        // EOD child process — spawned by the EOD process manager
+        let obligation_transition_spawner =
+            jobs.add_initializer(ObligationTransitionProcessInit::new(
+                jobs,
+                obligations_arc.as_ref(),
+                transition_spawner,
+            ));
 
         let payments = Payments::new(pool, authz, ledger_arc, clock, publisher);
         let payments_arc = Arc::new(payments);

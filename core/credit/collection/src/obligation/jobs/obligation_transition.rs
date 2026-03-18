@@ -5,7 +5,9 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_eod::obligation_transition::{OBLIGATION_TRANSITION_JOB_TYPE, ObligationTransitionConfig};
+use core_eod::obligation_transition_process::{
+    OBLIGATION_TRANSITION_PROCESS_JOB_TYPE, ObligationTransitionProcessConfig,
+};
 use core_time_events::CoreTimeEvent;
 use job::{error::JobError, *};
 use obix::out::OutboxEventMarker;
@@ -15,7 +17,7 @@ use crate::{obligation::Obligations, primitives::*, public::CoreCreditCollection
 
 const PAGE_SIZE: i64 = 100;
 
-pub struct ObligationTransitionJobInit<Perms, E>
+pub struct ObligationTransitionProcessInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
@@ -25,7 +27,7 @@ where
     transition_spawner: TransitionObligationJobSpawner<Perms, E>,
 }
 
-impl<Perms, E> ObligationTransitionJobInit<Perms, E>
+impl<Perms, E> ObligationTransitionProcessInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
@@ -43,17 +45,17 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for ObligationTransitionJobInit<Perms, E>
+impl<Perms, E> JobInitializer for ObligationTransitionProcessInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
 {
-    type Config = ObligationTransitionConfig;
+    type Config = ObligationTransitionProcessConfig;
 
     fn job_type(&self) -> JobType {
-        OBLIGATION_TRANSITION_JOB_TYPE
+        OBLIGATION_TRANSITION_PROCESS_JOB_TYPE
     }
 
     fn init(
@@ -61,7 +63,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ObligationTransitionJobRunner {
+        Ok(Box::new(ObligationTransitionProcessRunner {
             config: job.config()?,
             jobs: self.jobs.clone(),
             obligations: self.obligations.clone(),
@@ -70,12 +72,12 @@ where
     }
 }
 
-struct ObligationTransitionJobRunner<Perms, E>
+struct ObligationTransitionProcessRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    config: ObligationTransitionConfig,
+    config: ObligationTransitionProcessConfig,
     jobs: Jobs,
     obligations: Obligations<Perms, E>,
     transition_spawner: TransitionObligationJobSpawner<Perms, E>,
@@ -98,7 +100,7 @@ struct ObligationTransitionCollectingState {
     entity_job_ids: Vec<JobId>,
 }
 
-impl<Perms, E> ObligationTransitionJobRunner<Perms, E>
+impl<Perms, E> ObligationTransitionProcessRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
@@ -222,7 +224,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for ObligationTransitionJobRunner<Perms, E>
+impl<Perms, E> JobRunner for ObligationTransitionProcessRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
@@ -231,7 +233,7 @@ where
 {
     #[record_error_severity]
     #[instrument(
-        name = "eod.obligation-transition.run",
+        name = "eod.obligation-transition-process.run",
         skip(self, current_job),
         fields(date = %self.config.date)
     )]

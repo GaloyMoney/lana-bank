@@ -76,13 +76,18 @@ where
         deposits: &CoreDeposit<Perms, E>,
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
-    ) -> Result<(Self, core_eod::deposit_activity::DepositActivityJobSpawner), DepositSyncError>
-    {
+    ) -> Result<
+        (
+            Self,
+            core_eod::deposit_activity_process::DepositActivityProcessSpawner,
+        ),
+        DepositSyncError,
+    > {
         let evaluate_spawner =
             jobs.add_initializer(EvaluateDepositAccountActivityJobInit::new(deposits));
 
-        // EOD child job — spawned by the EOD process manager
-        let deposit_activity_spawner = jobs.add_initializer(DepositActivityJobInit::new(
+        // EOD child process — spawned by the EOD process manager
+        let deposit_activity_spawner = jobs.add_initializer(DepositActivityProcessInit::new(
             jobs,
             deposits,
             evaluate_spawner,
