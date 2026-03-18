@@ -319,24 +319,32 @@ where
                 .await?;
         };
 
-        let res = credit_facility
-            .start_interest_accrual_cycle()?
-            .expect("start_interest_accrual_cycle always returns Executed");
+        let res = match credit_facility.start_interest_accrual_cycle()? {
+            Idempotent::Executed(value) => value,
+            Idempotent::AlreadyApplied => {
+                // Already started on a previous run — safe to complete
+                self.credit_facility_repo
+                    .update_in_op(db, &mut credit_facility)
+                    .await?;
+                return Ok(None);
+            }
+        };
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;
 
-        let new_cycle_data = res.map(|periods| {
-            let new_accrual_cycle_id = credit_facility
+        let new_cycle_data = if let Some(periods) = res {
+            let in_progress = credit_facility
                 .interest_accrual_cycle_in_progress()
-                .expect("in-progress accrual cycle must exist after start")
-                .id;
+                .ok_or(CreditFacilityError::NoAccrualCycleInProgress)?;
 
-            NewInterestAccrualCycleData {
-                id: new_accrual_cycle_id,
+            Some(NewInterestAccrualCycleData {
+                id: in_progress.id,
                 first_accrual_end_date: periods.accrual.end,
-            }
-        });
+            })
+        } else {
+            None
+        };
 
         Ok(Some(CompletedAccrualCycle {
             facility_accrual_cycle_data: (accrual_cycle_data, credit_facility.account_ids).into(),

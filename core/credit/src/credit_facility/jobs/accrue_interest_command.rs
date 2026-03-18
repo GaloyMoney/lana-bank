@@ -16,6 +16,7 @@ use std::sync::Arc;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
+use es_entity::Idempotent;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use obix::out::OutboxEventMarker;
@@ -281,14 +282,17 @@ where
         let result = match credit_facility
             .record_accrual_on_in_progress_cycle(balances.disbursed_outstanding())
         {
-            Ok(recorded) => {
-                let recorded = recorded.expect("record_accrual always returns Executed");
+            Ok(Idempotent::Executed(recorded)) => {
                 AccrualOutcome::Accrued(crate::ConfirmedAccrual {
                     accrual: (recorded.accrual_data, account_ids).into(),
                     next_period: recorded.next_period,
                     accrual_idx: recorded.accrual_idx,
                     accrued_count: recorded.accrued_count,
                 })
+            }
+            Ok(Idempotent::AlreadyApplied) => {
+                // Already processed on a previous run — safe to complete
+                AccrualOutcome::AllPeriodsComplete
             }
             Err(CreditFacilityError::NoAccrualCycleInProgress) => AccrualOutcome::NoCycleInProgress,
             Err(CreditFacilityError::InterestAccrualCycleError(

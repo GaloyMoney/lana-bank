@@ -1,15 +1,13 @@
-use std::collections::HashSet;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use governance::GovernanceEvent;
 use job::{error::JobError, *};
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::OutboxEventMarker;
 
 use core_custody::CoreCustodyEvent;
 use core_eod::credit_facility_eod_process::{
@@ -34,7 +32,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    outbox: Outbox<E>,
+    jobs: Jobs,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     interest_accrual_process_spawner: InterestAccrualProcessSpawner,
     maturity_spawner: CreditFacilityMaturityJobSpawner,
@@ -48,13 +46,13 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(
-        outbox: &Outbox<E>,
+        jobs: &Jobs,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         interest_accrual_process_spawner: InterestAccrualProcessSpawner,
         maturity_spawner: CreditFacilityMaturityJobSpawner,
     ) -> Self {
         Self {
-            outbox: outbox.clone(),
+            jobs: jobs.clone(),
             credit_facility_repo,
             interest_accrual_process_spawner,
             maturity_spawner,
@@ -82,7 +80,7 @@ where
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityEodProcessRunner {
             config: job.config()?,
-            outbox: self.outbox.clone(),
+            jobs: self.jobs.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             interest_accrual_process_spawner: self.interest_accrual_process_spawner.clone(),
             maturity_spawner: self.maturity_spawner.clone(),
@@ -98,7 +96,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     config: CreditFacilityEodProcessConfig,
-    outbox: Outbox<E>,
+    jobs: Jobs,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     interest_accrual_process_spawner: InterestAccrualProcessSpawner,
     maturity_spawner: CreditFacilityMaturityJobSpawner,
@@ -110,9 +108,8 @@ enum CreditFacilityEodState {
     #[default]
     SpawningAccrualAndMaturityJobs(SpawningAccrualAndMaturityJobsState),
     AwaitingAccrualsAndMaturities {
-        pending_accrual: HashSet<CreditFacilityId>,
-        pending_maturity: HashSet<CreditFacilityId>,
-        start_sequence: i64,
+        pending_accrual_jobs: Vec<JobId>,
+        pending_maturity_jobs: Vec<JobId>,
     },
 }
 
@@ -121,12 +118,9 @@ enum CreditFacilityEodState {
 struct SpawningAccrualAndMaturityJobsState {
     accrual_cursor: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
     maturity_cursor: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
-    pending_accrual: HashSet<CreditFacilityId>,
-    pending_maturity: HashSet<CreditFacilityId>,
+    pending_accrual_jobs: Vec<JobId>,
+    pending_maturity_jobs: Vec<JobId>,
     accrual_done: bool,
-    /// Captured once on first entry; reused on crash-restart to avoid
-    /// missing events from children that completed before the restart.
-    start_sequence: Option<i64>,
 }
 
 impl<E> CreditFacilityEodProcessRunner<E>
@@ -136,30 +130,14 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    /// Step 1: Capture the outbox sequence, then query facilities eligible for
-    /// accrual and maturity (paginated) and spawn per-facility jobs for each.
-    /// Transitions to AwaitingAccrualsAndMaturities when all pages are processed.
+    /// Step 1: Query facilities eligible for accrual and maturity (paginated)
+    /// and spawn per-facility jobs for each. Transitions to
+    /// AwaitingAccrualsAndMaturities when all pages are processed.
     async fn spawn_accrual_and_maturity_jobs(
         &self,
         mut current_job: CurrentJob,
         mut state: SpawningAccrualAndMaturityJobsState,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        // Capture sequence ONCE on first entry; reuse the persisted value on
-        // crash-restart so we never miss events from fast-finishing children.
-        let start_sequence = match state.start_sequence {
-            Some(seq) => seq,
-            None => {
-                let seq = self.outbox.current_sequence().await?;
-                state.start_sequence = Some(seq);
-                current_job
-                    .update_execution_state(
-                        &CreditFacilityEodState::SpawningAccrualAndMaturityJobs(state.clone()),
-                    )
-                    .await?;
-                seq
-            }
-        };
-
         // Phase: Spawn accrual jobs for eligible facilities
         if !state.accrual_done {
             loop {
@@ -195,7 +173,7 @@ where
                             "interest-accrual",
                             &(*id).into(),
                         );
-                        state.pending_accrual.insert(*id);
+                        state.pending_accrual_jobs.push(job_id);
                         JobSpec::new(
                             job_id,
                             InterestAccrualProcessConfig {
@@ -253,7 +231,7 @@ where
                         "credit-maturity",
                         &(*id).into(),
                     );
-                    state.pending_maturity.insert(*id);
+                    state.pending_maturity_jobs.push(job_id);
                     JobSpec::new(
                         job_id,
                         CreditFacilityMaturityJobConfig {
@@ -279,19 +257,17 @@ where
             op.commit().await?;
         }
 
-        let total = state.pending_accrual.len() + state.pending_maturity.len();
+        let total = state.pending_accrual_jobs.len() + state.pending_maturity_jobs.len();
         tracing::info!(
-            accruals = state.pending_accrual.len(),
-            maturities = state.pending_maturity.len(),
+            accruals = state.pending_accrual_jobs.len(),
+            maturities = state.pending_maturity_jobs.len(),
             total,
-            start_sequence,
             "Credit facility EOD spawning complete, transitioning to awaiting"
         );
 
         let new_state = CreditFacilityEodState::AwaitingAccrualsAndMaturities {
-            pending_accrual: state.pending_accrual,
-            pending_maturity: state.pending_maturity,
-            start_sequence,
+            pending_accrual_jobs: state.pending_accrual_jobs,
+            pending_maturity_jobs: state.pending_maturity_jobs,
         };
         let mut op = current_job.begin_op().await?;
         current_job
@@ -300,73 +276,42 @@ where
         Ok(JobCompletion::RescheduleNowWithOp(op))
     }
 
-    /// Step 2: Stream outbox events from the saved sequence, matching accrual
-    /// and maturity completion events. Removes completed facilities from their
-    /// respective pending sets and checkpoints on each match. Completes when
-    /// both sets are empty.
-    async fn await_accrual_and_maturity_events(
+    /// Step 2: Await completion of all spawned accrual and maturity jobs using
+    /// Jobs.await_completion. This avoids the multi-period hang that occurred
+    /// with outbox event streaming, since InterestAccrualProcess always
+    /// completes even when a facility has remaining accrual periods.
+    ///
+    /// Note: shutdown handling is delegated to await_completion internals.
+    async fn await_accrual_and_maturity_completions(
         &self,
-        mut current_job: CurrentJob,
-        mut pending_accrual: HashSet<CreditFacilityId>,
-        mut pending_maturity: HashSet<CreditFacilityId>,
-        mut start_sequence: i64,
+        _current_job: CurrentJob,
+        pending_accrual_jobs: Vec<JobId>,
+        pending_maturity_jobs: Vec<JobId>,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if pending_accrual.is_empty() && pending_maturity.is_empty() {
+        if pending_accrual_jobs.is_empty() && pending_maturity_jobs.is_empty() {
             tracing::info!("No credit facilities to track, completing immediately");
             return Ok(JobCompletion::Complete);
         }
 
         tracing::info!(
-            remaining_accruals = pending_accrual.len(),
-            remaining_maturities = pending_maturity.len(),
-            start_sequence,
-            "Streaming outbox events for credit facility EOD completion"
+            remaining_accruals = pending_accrual_jobs.len(),
+            remaining_maturities = pending_maturity_jobs.len(),
+            "Awaiting credit facility EOD job completions"
         );
 
-        let mut stream = self.outbox.listen_persisted(Some(start_sequence));
+        let futures: Vec<_> = pending_accrual_jobs
+            .iter()
+            .chain(pending_maturity_jobs.iter())
+            .map(|job_id| self.jobs.await_completion(*job_id))
+            .collect();
+        let results = futures::future::join_all(futures).await;
 
-        loop {
-            tokio::select! {
-                Some(event) = stream.next() => {
-                    if let Some(payload) = event.payload.as_ref() {
-                        if let Some(credit_event) = payload.as_event::<CoreCreditEvent>() {
-                            let changed = match credit_event {
-                                CoreCreditEvent::AccrualPosted { entity } => {
-                                    pending_accrual.remove(&entity.credit_facility_id)
-                                }
-                                CoreCreditEvent::FacilityMatured { entity } => {
-                                    pending_maturity.remove(&entity.id)
-                                }
-                                _ => false,
-                            };
-                            if changed {
-                                start_sequence = event.sequence;
-                                let state = CreditFacilityEodState::AwaitingAccrualsAndMaturities {
-                                    pending_accrual: pending_accrual.clone(),
-                                    pending_maturity: pending_maturity.clone(),
-                                    start_sequence,
-                                };
-                                current_job.update_execution_state(&state).await?;
-                            }
-                        }
-                    }
-                    if pending_accrual.is_empty() && pending_maturity.is_empty() {
-                        tracing::info!("All credit facility EOD per-entity jobs completed");
-                        return Ok(JobCompletion::Complete);
-                    }
-                }
-                _ = current_job.shutdown_requested() => {
-                    let state = CreditFacilityEodState::AwaitingAccrualsAndMaturities {
-                        pending_accrual,
-                        pending_maturity,
-                        start_sequence,
-                    };
-                    current_job.update_execution_state(&state).await?;
-                    tracing::info!("Shutdown requested, rescheduling credit facility EOD tracking");
-                    return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
-                }
-            }
+        for result in results {
+            result?;
         }
+
+        tracing::info!("All credit facility EOD per-entity jobs completed");
+        Ok(JobCompletion::Complete)
     }
 }
 
@@ -398,15 +343,13 @@ where
                     .await
             }
             CreditFacilityEodState::AwaitingAccrualsAndMaturities {
-                pending_accrual,
-                pending_maturity,
-                start_sequence,
+                pending_accrual_jobs,
+                pending_maturity_jobs,
             } => {
-                self.await_accrual_and_maturity_events(
+                self.await_accrual_and_maturity_completions(
                     current_job,
-                    pending_accrual,
-                    pending_maturity,
-                    start_sequence,
+                    pending_accrual_jobs,
+                    pending_maturity_jobs,
                 )
                 .await
             }
