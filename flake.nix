@@ -1124,10 +1124,12 @@
         apps.check-dbt-columns = {
             type = "app";
             program = let
-              python = pkgs.python313.withPackages (ps: [ps.sqlglot]);
+              sqlglot = pkgs.python313Packages.sqlglot;
+              sitePackages = pkgs.python313.sitePackages;
             in
               toString (pkgs.writeShellScript "check-dbt-columns" ''
-                exec ${python}/bin/python3 dev/check-dbt-columns.py "$@"
+                export PYTHONPATH="${sqlglot}/${sitePackages}"
+                exec ${pkgs.python313}/bin/python3 dev/check-dbt-columns.py "$@"
               '');
           };
 
