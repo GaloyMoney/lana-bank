@@ -41,7 +41,9 @@ es_entity::entity_id! {
     WithdrawalId => ApprovalProcessId
 }
 
-pub use money::{CurrencyCode, CurrencyMapError, CurrencySet, RestrictedCurrencyMap, UsdCents};
+pub use money::{
+    CurrencyAmount, CurrencyCode, CurrencyMapError, CurrencySet, RestrictedCurrencyMap, UsdCents,
+};
 
 #[derive(
     Debug,

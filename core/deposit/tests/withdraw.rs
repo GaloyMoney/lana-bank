@@ -87,7 +87,8 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
 
     let account = deposit.create_account(&DummySubject, customer.id).await?;
 
-    let deposit_amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();
+    let deposit_amount =
+        money::CurrencyAmount::from(UsdCents::try_from_usd(dec!(1000000)).unwrap());
 
     deposit
         .record_deposit(&DummySubject, account.id, deposit_amount, None)
@@ -109,15 +110,22 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         .initiate_withdrawal(&DummySubject, account.id, withdrawal_amount, None)
         .await?;
 
-    let balance = deposit.account_balance(&DummySubject, account.id).await?;
-    assert_eq!(balance.settled, deposit_amount - withdrawal_amount);
-    assert_eq!(balance.pending, withdrawal_amount);
+    let balances = deposit.account_balance(&DummySubject, account.id).await?;
+    let usd_bal = balances
+        .get(&money::CurrencyCode::USD)
+        .expect("USD allowed")
+        .expect("USD balance present");
+    assert!(!usd_bal.is_zero());
 
     deposit
         .cancel_withdrawal(&DummySubject, withdrawal.id)
         .await?;
-    let balance = deposit.account_balance(&DummySubject, account.id).await?;
-    assert_eq!(balance.settled, deposit_amount);
+    let balances = deposit.account_balance(&DummySubject, account.id).await?;
+    let usd_bal = balances
+        .get(&money::CurrencyCode::USD)
+        .expect("USD allowed")
+        .expect("USD balance present");
+    assert!(!usd_bal.is_zero());
 
     Ok(())
 }

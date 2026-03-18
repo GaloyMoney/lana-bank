@@ -374,7 +374,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-        amount: UsdCents,
+        amount: CurrencyAmount,
         reference: Option<String>,
     ) -> Result<Deposit, CoreDepositError> {
         let deposit_account_id = deposit_account_id.into();
