@@ -32,8 +32,11 @@ pub struct EodProcessManagerConfig {
 pub struct EodProcessManagerResult {
     pub date: NaiveDate,
     pub phase1_obligation: JobTerminalState,
+    pub phase1_obligation_count: usize,
     pub phase1_deposit: JobTerminalState,
+    pub phase1_deposit_count: usize,
     pub phase2_credit_facility: JobTerminalState,
+    pub phase2_credit_facility_count: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -59,6 +62,10 @@ pub(crate) enum EodProcessState {
     Failed {
         phase: u8,
         failed: Vec<(String, JobTerminalState)>,
+    },
+    Cancelling {
+        phase: u8,
+        children: Vec<(String, JobId)>,
     },
 }
 
@@ -189,6 +196,23 @@ impl JobRunner for EodProcessManagerJobRunner {
                 obligation_job,
                 deposit_job,
             } => {
+                // Check for cancellation before awaiting children
+                if current_job.cancellation_requested() {
+                    let children = vec![
+                        ("obligation-transition".to_string(), obligation_job),
+                        ("deposit-activity".to_string(), deposit_job),
+                    ];
+                    for (_, child_id) in &children {
+                        let _ = self.jobs.cancel(*child_id).await;
+                    }
+                    let new_state = EodProcessState::Cancelling { phase: 1, children };
+                    let mut op = current_job.begin_op().await?;
+                    current_job
+                        .update_execution_state_in_op(&mut op, &new_state)
+                        .await?;
+                    return Ok(JobCompletion::CompleteWithOp(op));
+                }
+
                 let (obligation_result, deposit_result) = tokio::join!(
                     self.jobs.await_completion(obligation_job),
                     self.jobs.await_completion(deposit_job),
@@ -215,7 +239,7 @@ impl JobRunner for EodProcessManagerJobRunner {
                     current_job
                         .update_execution_state_in_op(&mut op, &new_state)
                         .await?;
-                    Ok(JobCompletion::CompleteWithOp(op))
+                    Ok(JobCompletion::RescheduleNowWithOp(op))
                 } else {
                     let new_state = EodProcessState::SpawningPhase2 {
                         phase1_obligation: obligation_terminal,
@@ -270,6 +294,20 @@ impl JobRunner for EodProcessManagerJobRunner {
                 phase1_deposit,
                 credit_facility_job,
             } => {
+                // Check for cancellation before awaiting children
+                if current_job.cancellation_requested() {
+                    let children = vec![("credit-facility".to_string(), credit_facility_job)];
+                    for (_, child_id) in &children {
+                        let _ = self.jobs.cancel(*child_id).await;
+                    }
+                    let new_state = EodProcessState::Cancelling { phase: 2, children };
+                    let mut op = current_job.begin_op().await?;
+                    current_job
+                        .update_execution_state_in_op(&mut op, &new_state)
+                        .await?;
+                    return Ok(JobCompletion::CompleteWithOp(op));
+                }
+
                 let credit_facility_terminal =
                     self.jobs.await_completion(credit_facility_job).await?;
 
@@ -285,13 +323,16 @@ impl JobRunner for EodProcessManagerJobRunner {
                     current_job
                         .update_execution_state_in_op(&mut op, &new_state)
                         .await?;
-                    Ok(JobCompletion::CompleteWithOp(op))
+                    Ok(JobCompletion::RescheduleNowWithOp(op))
                 } else {
                     let result = EodProcessManagerResult {
                         date: self.config.date,
                         phase1_obligation,
+                        phase1_obligation_count: 0,
                         phase1_deposit,
+                        phase1_deposit_count: 0,
                         phase2_credit_facility: credit_facility_terminal,
+                        phase2_credit_facility_count: 0,
                     };
                     // Checkpoint to Completed first; set_result runs on the
                     // next iteration from the Completed arm, making this
@@ -311,9 +352,58 @@ impl JobRunner for EodProcessManagerJobRunner {
                 current_job.set_result(&result).await?;
                 Ok(JobCompletion::Complete)
             }
-            EodProcessState::Failed { .. } => {
-                // Already logged when transitioning to Failed; this arm
-                // only runs if the PM is restarted after a crash.
+            EodProcessState::Failed { phase, failed } => {
+                // Build a partial result from the failure info so callers
+                // can inspect what happened.
+                let (obligation_state, deposit_state, credit_state) = match phase {
+                    1 => {
+                        let obligation = failed
+                            .iter()
+                            .find(|(n, _)| n == "obligation-transition")
+                            .map(|(_, s)| s.clone())
+                            .unwrap_or(JobTerminalState::Completed);
+                        let deposit = failed
+                            .iter()
+                            .find(|(n, _)| n == "deposit-activity")
+                            .map(|(_, s)| s.clone())
+                            .unwrap_or(JobTerminalState::Completed);
+                        (obligation, deposit, JobTerminalState::Cancelled)
+                    }
+                    _ => {
+                        let credit = failed
+                            .iter()
+                            .find(|(n, _)| n == "credit-facility")
+                            .map(|(_, s)| s.clone())
+                            .unwrap_or(JobTerminalState::Completed);
+                        (
+                            JobTerminalState::Completed,
+                            JobTerminalState::Completed,
+                            credit,
+                        )
+                    }
+                };
+
+                let result = EodProcessManagerResult {
+                    date: self.config.date,
+                    phase1_obligation: obligation_state,
+                    phase1_obligation_count: 0,
+                    phase1_deposit: deposit_state,
+                    phase1_deposit_count: 0,
+                    phase2_credit_facility: credit_state,
+                    phase2_credit_facility_count: 0,
+                };
+                current_job.set_result(&result).await?;
+                Ok(JobCompletion::Complete)
+            }
+            EodProcessState::Cancelling { phase, children } => {
+                tracing::warn!(
+                    phase,
+                    children = ?children.iter().map(|(n, _)| n.as_str()).collect::<Vec<_>>(),
+                    "EOD process manager cancelled"
+                );
+                // Children were already cancelled in the Awaiting → Cancelling
+                // transition. Nothing left to do.
+                let _ = children;
                 Ok(JobCompletion::Complete)
             }
         }
