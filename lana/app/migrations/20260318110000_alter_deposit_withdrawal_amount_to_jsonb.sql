@@ -1,0 +1,274 @@
+-- Migrate deposit and withdrawal entity + rollup tables from BIGINT amount to JSONB amount
+-- to support the new type-erased Amount struct (currency + minor_units + minor_units_per_major).
+
+-- 0a. Alter main deposit entity table
+ALTER TABLE core_deposits
+  ALTER COLUMN amount TYPE JSONB
+  USING jsonb_build_object(
+    'currency', 'USD',
+    'minor_units', amount,
+    'minor_units_per_major', 100
+  );
+
+-- 0b. Alter main withdrawal entity table
+ALTER TABLE core_withdrawals
+  ALTER COLUMN amount TYPE JSONB
+  USING jsonb_build_object(
+    'currency', 'USD',
+    'minor_units', amount,
+    'minor_units_per_major', 100
+  );
+
+-- 1. Alter deposit rollup: convert existing BIGINT amounts to JSONB Amount objects
+ALTER TABLE core_deposit_events_rollup
+  ALTER COLUMN amount TYPE JSONB
+  USING CASE
+    WHEN amount IS NOT NULL THEN jsonb_build_object(
+      'currency', 'USD',
+      'minor_units', amount,
+      'minor_units_per_major', 100
+    )
+    ELSE NULL
+  END;
+
+-- 2. Alter withdrawal rollup: same conversion
+ALTER TABLE core_withdrawal_events_rollup
+  ALTER COLUMN amount TYPE JSONB
+  USING CASE
+    WHEN amount IS NOT NULL THEN jsonb_build_object(
+      'currency', 'USD',
+      'minor_units', amount,
+      'minor_units_per_major', 100
+    )
+    ELSE NULL
+  END;
+
+-- 3. Update deposit trigger function to store amount as JSONB
+CREATE OR REPLACE FUNCTION core_deposit_events_rollup_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+  event_type TEXT;
+  current_row core_deposit_events_rollup%ROWTYPE;
+  new_row core_deposit_events_rollup%ROWTYPE;
+BEGIN
+  event_type := NEW.event_type;
+
+  -- Load the previous version if this isn't the first event
+  IF NEW.sequence > 1 THEN
+    SELECT * INTO current_row
+    FROM core_deposit_events_rollup
+    WHERE id = NEW.id AND version = NEW.sequence - 1;
+  END IF;
+
+  -- Validate event type is known
+  IF event_type NOT IN ('initialized', 'reverted') THEN
+    RAISE EXCEPTION 'Unknown event type: %', event_type;
+  END IF;
+
+  -- Construct the new row based on event type
+  new_row.id := NEW.id;
+  new_row.version := NEW.sequence;
+  new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
+  new_row.modified_at := NEW.recorded_at;
+  new_row.event_type := NEW.event_type;
+
+  -- Initialize fields with default values if this is a new record
+  IF current_row.id IS NULL THEN
+    new_row.amount := (NEW.event -> 'amount')::JSONB;
+    new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
+    new_row.ledger_tx_ids := CASE
+       WHEN NEW.event ? 'ledger_tx_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
+    new_row.public_id := (NEW.event ->> 'public_id');
+    new_row.reference := (NEW.event ->> 'reference');
+    new_row.status := (NEW.event ->> 'status');
+  ELSE
+    -- Default all fields to current values
+    new_row.amount := current_row.amount;
+    new_row.deposit_account_id := current_row.deposit_account_id;
+    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
+    new_row.public_id := current_row.public_id;
+    new_row.reference := current_row.reference;
+    new_row.status := current_row.status;
+  END IF;
+
+  -- Update only the fields that are modified by the specific event
+  CASE event_type
+    WHEN 'initialized' THEN
+      new_row.amount := (NEW.event -> 'amount')::JSONB;
+      new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.public_id := (NEW.event ->> 'public_id');
+      new_row.reference := (NEW.event ->> 'reference');
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'reverted' THEN
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.status := (NEW.event ->> 'status');
+  END CASE;
+
+  INSERT INTO core_deposit_events_rollup (
+    id,
+    version,
+    created_at,
+    modified_at,
+    event_type,
+    amount,
+    deposit_account_id,
+    ledger_tx_ids,
+    public_id,
+    reference,
+    status
+  )
+  VALUES (
+    new_row.id,
+    new_row.version,
+    new_row.created_at,
+    new_row.modified_at,
+    new_row.event_type,
+    new_row.amount,
+    new_row.deposit_account_id,
+    new_row.ledger_tx_ids,
+    new_row.public_id,
+    new_row.reference,
+    new_row.status
+  );
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. Update withdrawal trigger function to store amount as JSONB
+CREATE OR REPLACE FUNCTION core_withdrawal_events_rollup_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+  event_type TEXT;
+  current_row core_withdrawal_events_rollup%ROWTYPE;
+  new_row core_withdrawal_events_rollup%ROWTYPE;
+BEGIN
+  event_type := NEW.event_type;
+
+  -- Load the previous version if this isn't the first event
+  IF NEW.sequence > 1 THEN
+    SELECT * INTO current_row
+    FROM core_withdrawal_events_rollup
+    WHERE id = NEW.id AND version = NEW.sequence - 1;
+  END IF;
+
+  -- Validate event type is known
+  IF event_type NOT IN ('initialized', 'approval_process_concluded', 'denied', 'confirmed', 'cancelled', 'reverted') THEN
+    RAISE EXCEPTION 'Unknown event type: %', event_type;
+  END IF;
+
+  -- Construct the new row based on event type
+  new_row.id := NEW.id;
+  new_row.version := NEW.sequence;
+  new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
+  new_row.modified_at := NEW.recorded_at;
+  new_row.event_type := NEW.event_type;
+
+  -- Initialize fields with default values if this is a new record
+  IF current_row.id IS NULL THEN
+    new_row.amount := (NEW.event -> 'amount')::JSONB;
+    new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
+    new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
+    new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
+    new_row.is_approval_process_concluded := false;
+    new_row.is_cancelled := false;
+    new_row.is_confirmed := false;
+    new_row.ledger_tx_ids := CASE
+       WHEN NEW.event ? 'ledger_tx_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
+    new_row.public_id := (NEW.event ->> 'public_id');
+    new_row.reference := (NEW.event ->> 'reference');
+    new_row.status := (NEW.event ->> 'status');
+  ELSE
+    -- Default all fields to current values
+    new_row.amount := current_row.amount;
+    new_row.approval_process_id := current_row.approval_process_id;
+    new_row.approved := current_row.approved;
+    new_row.deposit_account_id := current_row.deposit_account_id;
+    new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
+    new_row.is_cancelled := current_row.is_cancelled;
+    new_row.is_confirmed := current_row.is_confirmed;
+    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
+    new_row.public_id := current_row.public_id;
+    new_row.reference := current_row.reference;
+    new_row.status := current_row.status;
+  END IF;
+
+  -- Update only the fields that are modified by the specific event
+  CASE event_type
+    WHEN 'initialized' THEN
+      new_row.amount := (NEW.event -> 'amount')::JSONB;
+      new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
+      new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.public_id := (NEW.event ->> 'public_id');
+      new_row.reference := (NEW.event ->> 'reference');
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'approval_process_concluded' THEN
+      new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
+      new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
+      new_row.is_approval_process_concluded := true;
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'denied' THEN
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'confirmed' THEN
+      new_row.is_confirmed := true;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'cancelled' THEN
+      new_row.is_cancelled := true;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'reverted' THEN
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.status := (NEW.event ->> 'status');
+  END CASE;
+
+  INSERT INTO core_withdrawal_events_rollup (
+    id,
+    version,
+    created_at,
+    modified_at,
+    event_type,
+    amount,
+    approval_process_id,
+    approved,
+    deposit_account_id,
+    is_approval_process_concluded,
+    is_cancelled,
+    is_confirmed,
+    ledger_tx_ids,
+    public_id,
+    reference,
+    status
+  )
+  VALUES (
+    new_row.id,
+    new_row.version,
+    new_row.created_at,
+    new_row.modified_at,
+    new_row.event_type,
+    new_row.amount,
+    new_row.approval_process_id,
+    new_row.approved,
+    new_row.deposit_account_id,
+    new_row.is_approval_process_concluded,
+    new_row.is_cancelled,
+    new_row.is_confirmed,
+    new_row.ledger_tx_ids,
+    new_row.public_id,
+    new_row.reference,
+    new_row.status
+  );
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;

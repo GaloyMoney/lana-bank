@@ -11,6 +11,17 @@ use thiserror::Error;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CurrencyCode(&'static str);
 
+#[cfg(feature = "json-schema")]
+impl schemars::JsonSchema for CurrencyCode {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        String::schema_name()
+    }
+
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        String::json_schema(generator)
+    }
+}
+
 impl CurrencyCode {
     pub const USD: Self = Self("USD");
     pub const BTC: Self = Self("BTC");

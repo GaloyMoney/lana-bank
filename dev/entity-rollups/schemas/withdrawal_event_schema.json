@@ -1,5 +1,29 @@
 {
   "$defs": {
+    "Amount": {
+      "description": "A type-erased currency amount with compile-time safe construction.\n\nAll fields are private — the only way to create an `Amount` is from a typed\n`MinorUnits<C>`, which captures `CurrencyCode` and `MINOR_UNITS_PER_MAJOR`\nfrom the `Currency` trait at compile time. This guarantees the currency\nmetadata is always consistent with the stored value.\n\nTo recover the typed `MinorUnits<C>`, use [`to_minor_units`](Self::to_minor_units).",
+      "properties": {
+        "currency": {
+          "$ref": "#/$defs/string"
+        },
+        "minor_units": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minor_units_per_major": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "currency",
+        "minor_units",
+        "minor_units_per_major"
+      ],
+      "type": "object"
+    },
     "WithdrawalStatus": {
       "enum": [
         "PendingApproval",
@@ -10,6 +34,9 @@
         "Reverted"
       ],
       "type": "string"
+    },
+    "string": {
+      "type": "string"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -17,9 +44,7 @@
     {
       "properties": {
         "amount": {
-          "format": "uint64",
-          "minimum": 0,
-          "type": "integer"
+          "$ref": "#/$defs/Amount"
         },
         "approval_process_id": {
           "format": "uuid",
