@@ -94,26 +94,7 @@ impl SumsubClient {
         T: std::fmt::Display + Clone + serde::de::DeserializeOwned,
     {
         let method = "GET";
-        let url = format!("/resources/applicants/-;externalUserId={external_user_id}");
-        let full_url = self.base_url.join(&url).expect("valid URL");
-
-        let headers = self.get_headers(method, &url, None)?;
-        let response = self.client.get(full_url).headers(headers).send().await?;
-
-        self.handle_api_response(response, "Failed to get applicant details")
-            .await
-    }
-
-    /// Get raw applicant details by external user ID.
-    pub async fn get_applicant_details_raw<T>(
-        &self,
-        external_user_id: T,
-    ) -> Result<serde_json::Value, SumsubError>
-    where
-        T: std::fmt::Display,
-    {
-        let method = "GET";
-        let url = format!("/resources/applicants/-;externalUserId={external_user_id}");
+        let url = format!("/resources/applicants/-;externalUserId={external_user_id}/one");
         let full_url = self.base_url.join(&url).expect("valid URL");
 
         let headers = self.get_headers(method, &url, None)?;
@@ -804,8 +785,8 @@ mod tests {
     fn applicant_lookup_path_matches_sumsub_external_id_api() {
         let external_user_id = "party-123";
         assert_eq!(
-            format!("/resources/applicants/-;externalUserId={external_user_id}"),
-            "/resources/applicants/-;externalUserId=party-123"
+            format!("/resources/applicants/-;externalUserId={external_user_id}/one"),
+            "/resources/applicants/-;externalUserId=party-123/one"
         );
     }
 

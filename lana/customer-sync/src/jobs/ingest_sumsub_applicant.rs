@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use sqlx::PgPool;
 use sumsub::SumsubError;
 
@@ -71,9 +70,9 @@ impl JobRunner for IngestSumsubApplicantJobRunner {
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let external_user_id = self.config.party_id.to_string();
-        let applicant_raw = match self
+        let applicant = match self
             .sumsub_client
-            .get_applicant_details_raw(external_user_id.clone())
+            .get_applicant_details(external_user_id.clone())
             .await
         {
             Ok(applicant) => applicant,
@@ -89,7 +88,8 @@ impl JobRunner for IngestSumsubApplicantJobRunner {
             Err(err) => return Err(err.into()),
         };
 
-        let applicant_id = applicant_id_from_raw(&applicant_raw)?;
+        let applicant_id = applicant.id.clone();
+        let applicant_raw = serde_json::to_value(&applicant)?;
         let document_resources = self
             .sumsub_client
             .get_applicant_document_resources(&applicant_id)
@@ -137,10 +137,3 @@ impl JobRunner for IngestSumsubApplicantJobRunner {
     }
 }
 
-fn applicant_id_from_raw(applicant_raw: &Value) -> Result<String, SumsubError> {
-    applicant_raw
-        .get("id")
-        .and_then(Value::as_str)
-        .map(ToOwned::to_owned)
-        .ok_or_else(|| SumsubError::InvalidResponse("Applicant ID not found in response".to_string()))
-}
