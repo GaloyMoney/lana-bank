@@ -11,7 +11,6 @@ pub mod accrue_interest_command;
 pub mod complete_accrual_cycle_command;
 pub mod credit_facility_eod_process;
 pub mod deposit_activity_process;
-pub mod end_of_day_handler;
 pub mod eod_process;
 pub mod interest_accrual_process;
 mod job_id;
@@ -27,7 +26,6 @@ use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
 use chrono_tz::Tz;
 use domain_config::{DomainConfigAction, DomainConfigObject, ExposedDomainConfigsReadOnly};
 use es_entity::clock::{ClockController, ClockHandle};
-use obix::{Outbox, out::OutboxEventMarker};
 use std::{sync::Arc, time::Duration};
 use tokio::sync::Mutex;
 use tracing_macros::record_error_severity;
@@ -82,26 +80,18 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(name = "core_time_events.init", skip_all)]
-    pub async fn init<E>(
+    pub async fn init(
         authz: &Perms,
         domain_configs: &ExposedDomainConfigsReadOnly,
         jobs: &mut job::Jobs,
-        outbox: &Outbox<E>,
+        pm_spawner: &EodProcessManagerJobSpawner,
         clock: &ClockHandle,
         clock_controller: Option<ClockController>,
-    ) -> Result<Self, TimeEventsError>
-    where
-        E: OutboxEventMarker<CoreTimeEvent>,
-    {
+    ) -> Result<Self, TimeEventsError> {
         let end_of_day_producer_job_spawner =
-            jobs.add_initializer(EndOfDayProducerJobInit::new(outbox, domain_configs));
+            jobs.add_initializer(EndOfDayProducerJobInit::new(pm_spawner, domain_configs));
         end_of_day_producer_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                EndOfDayProducerJobConfig {
-                    _phantom: std::marker::PhantomData,
-                },
-            )
+            .spawn_unique(job::JobId::new(), EndOfDayProducerJobConfig {})
             .await?;
 
         Ok(Self {

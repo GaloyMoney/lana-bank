@@ -1,9 +1,9 @@
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use job::{
-    CurrentJob, Job, JobCompletion, JobInitializer, JobRunner, JobSpawner, JobType, RetrySettings,
+    CurrentJob, Job, JobCompletion, JobInitializer, JobRunner, JobSpawner, JobSpec, JobType,
+    RetrySettings,
 };
-use obix::out::{Outbox, OutboxEventMarker};
 use serde::{Deserialize, Serialize};
 
 use domain_config::ExposedDomainConfigsReadOnly;
@@ -11,7 +11,8 @@ use domain_config::ExposedDomainConfigsReadOnly;
 use crate::{
     ClosingSchedule,
     config::{ClosingTime, Timezone},
-    event::CoreTimeEvent,
+    job_id,
+    process_manager::{EodProcessManagerConfig, EodProcessManagerJobSpawner},
 };
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -20,28 +21,20 @@ struct EndOfDayProducerState {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct EndOfDayProducerJobConfig<E>
-where
-    E: OutboxEventMarker<CoreTimeEvent>,
-{
-    pub _phantom: std::marker::PhantomData<E>,
-}
+pub struct EndOfDayProducerJobConfig {}
 
-pub struct EndOfDayProducerJobInit<E>
-where
-    E: OutboxEventMarker<CoreTimeEvent>,
-{
-    outbox: Outbox<E>,
+pub struct EndOfDayProducerJobInit {
+    pm_spawner: EodProcessManagerJobSpawner,
     domain_configs: ExposedDomainConfigsReadOnly,
 }
 
-impl<E> EndOfDayProducerJobInit<E>
-where
-    E: OutboxEventMarker<CoreTimeEvent>,
-{
-    pub fn new(outbox: &Outbox<E>, domain_configs: &ExposedDomainConfigsReadOnly) -> Self {
+impl EndOfDayProducerJobInit {
+    pub fn new(
+        pm_spawner: &EodProcessManagerJobSpawner,
+        domain_configs: &ExposedDomainConfigsReadOnly,
+    ) -> Self {
         Self {
-            outbox: outbox.clone(),
+            pm_spawner: pm_spawner.clone(),
             domain_configs: domain_configs.clone(),
         }
     }
@@ -50,11 +43,8 @@ where
 pub const END_OF_DAY_PRODUCER_JOB: JobType =
     JobType::new("cron.core-time-event.end-of-day-producer");
 
-impl<E> JobInitializer for EndOfDayProducerJobInit<E>
-where
-    E: OutboxEventMarker<CoreTimeEvent>,
-{
-    type Config = EndOfDayProducerJobConfig<E>;
+impl JobInitializer for EndOfDayProducerJobInit {
+    type Config = EndOfDayProducerJobConfig;
 
     fn job_type(&self) -> JobType {
         END_OF_DAY_PRODUCER_JOB
@@ -66,7 +56,7 @@ where
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(EndOfDayProducerJobRunner {
-            outbox: self.outbox.clone(),
+            pm_spawner: self.pm_spawner.clone(),
             domain_configs: self.domain_configs.clone(),
         }))
     }
@@ -76,19 +66,13 @@ where
     }
 }
 
-pub struct EndOfDayProducerJobRunner<E>
-where
-    E: OutboxEventMarker<CoreTimeEvent>,
-{
-    outbox: Outbox<E>,
+pub struct EndOfDayProducerJobRunner {
+    pm_spawner: EodProcessManagerJobSpawner,
     domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 #[async_trait]
-impl<E> JobRunner for EndOfDayProducerJobRunner<E>
-where
-    E: OutboxEventMarker<CoreTimeEvent>,
-{
+impl JobRunner for EndOfDayProducerJobRunner {
     async fn run(
         &self,
         mut current_job: CurrentJob,
@@ -126,17 +110,23 @@ where
                 while day <= most_recent_closing_day {
                     let closing_dt = ClosingSchedule::closing_for_day(timezone, closing_time, day);
 
+                    let process_id = job_id::eod_process_id_from_date(&day);
+                    let manager_job_id = job_id::eod_manager_id(&day);
+
                     let mut op = current_job.begin_op().await?;
-                    self.outbox
-                        .publish_persisted_in_op(
-                            &mut op,
-                            CoreTimeEvent::EndOfDay {
-                                day,
-                                closing_time: closing_dt,
-                                timezone,
-                            },
-                        )
-                        .await?;
+                    let spec = JobSpec::new(
+                        manager_job_id,
+                        EodProcessManagerConfig {
+                            date: day,
+                            closing_time: closing_dt,
+                            process_id,
+                        },
+                    )
+                    .queue_id("eod-manager".to_string());
+                    match self.pm_spawner.spawn_all_in_op(&mut op, vec![spec]).await {
+                        Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
+                        Err(e) => return Err(e.into()),
+                    }
                     state.last_published_day = Some(day);
                     current_job
                         .update_execution_state_in_op(&mut op, &state)
@@ -148,7 +138,7 @@ where
                         job_type = %END_OF_DAY_PRODUCER_JOB,
                         day = %day,
                         closing_time = %closing_dt,
-                        "End of day event published"
+                        "EOD process manager job spawned"
                     );
 
                     day = day + chrono::Days::new(1);

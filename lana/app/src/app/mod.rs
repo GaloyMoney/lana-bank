@@ -152,15 +152,6 @@ impl LanaApp {
         let reports =
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
         let core_price = CorePrice::init(&pool, &authz, &mut jobs, &outbox, clock.clone()).await?;
-        let time_events = TimeEvents::init(
-            &authz,
-            &exposed_domain_configs_readonly,
-            &mut jobs,
-            &outbox,
-            &clock,
-            clock_controller,
-        )
-        .await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
         let public_ids = PublicIds::new(&pool);
 
@@ -301,18 +292,16 @@ impl LanaApp {
             deposit_activity_spawner,
             credit_facility_eod_spawner,
         ));
-        outbox
-            .register_event_handler(
-                &mut jobs,
-                obix::out::OutboxEventJobConfig::new(
-                    core_time_events::end_of_day_handler::EOD_END_OF_DAY,
-                ),
-                core_time_events::end_of_day_handler::EndOfDayHandler::new(
-                    eod_pm_spawner,
-                    eod_processes,
-                ),
-            )
-            .await?;
+
+        let time_events = TimeEvents::init(
+            &authz,
+            &exposed_domain_configs_readonly,
+            &mut jobs,
+            &eod_pm_spawner,
+            &clock,
+            clock_controller,
+        )
+        .await?;
 
         jobs.start_poll().await?;
 

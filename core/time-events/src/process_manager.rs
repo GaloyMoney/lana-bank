@@ -14,7 +14,7 @@ use crate::{
         CreditFacilityEodProcessConfig, CreditFacilityEodProcessSpawner,
     },
     deposit_activity_process::{DepositActivityProcessConfig, DepositActivityProcessSpawner},
-    eod_process::{EodPhase, EodProcess, EodProcesses, JobTerminalState},
+    eod_process::{EodPhase, EodProcess, EodProcesses, JobTerminalState, NewEodProcess},
     job_id,
     obligation_transition_process::{
         ObligationTransitionProcessConfig, ObligationTransitionProcessSpawner,
@@ -131,10 +131,13 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let process = self
-            .eod_processes
-            .find_by_id(self.config.process_id)
-            .await?;
+        let process = match self.eod_processes.find_by_id(self.config.process_id).await {
+            Ok(p) => p,
+            Err(_) => {
+                // First run — create entity
+                return self.create_entity_and_start(current_job).await;
+            }
+        };
 
         match process.status() {
             EodProcessStatus::Initialized => self.handle_initialized(current_job).await,
@@ -156,6 +159,32 @@ impl<E> EodProcessManagerJobRunner<E>
 where
     E: OutboxEventMarker<CoreEodEvent>,
 {
+    async fn create_entity_and_start(
+        &self,
+        current_job: CurrentJob,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let process_id = self.config.process_id;
+        let new_process = NewEodProcess::builder()
+            .id(process_id)
+            .date(self.config.date)
+            .build()?;
+
+        let mut op = current_job.begin_op().await?;
+        match self.eod_processes.create_in_op(&mut op, new_process).await {
+            Ok(_) => {
+                op.commit().await?;
+                // Entity created; reschedule to proceed with orchestration
+                Ok(JobCompletion::RescheduleNow)
+            }
+            Err(crate::eod_process::error::EodProcessError::Create(ref e)) if e.was_duplicate() => {
+                // Another instance created it — reschedule to load and proceed
+                drop(op);
+                Ok(JobCompletion::RescheduleNow)
+            }
+            Err(e) => Err(e.into()),
+        }
+    }
+
     async fn spawn_phase2(
         &self,
         op: &mut es_entity::DbOp<'_>,
