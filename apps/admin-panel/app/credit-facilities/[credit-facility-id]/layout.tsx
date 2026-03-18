@@ -18,7 +18,7 @@ import { PublicIdBadge } from "@/components/public-id-badge"
 import {
   CreditFacility,
   useGetCreditFacilityLayoutDetailsQuery,
-  useCreditFacilityCollateralizationUpdatedSubscription,
+  useCreditFacilityUpdatedSubscription,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
 
@@ -150,11 +150,9 @@ gql`
     }
   }
 
-  subscription creditFacilityCollateralizationUpdated($creditFacilityId: UUID!) {
-    creditFacilityCollateralizationUpdated(creditFacilityId: $creditFacilityId) {
-      creditFacility {
-        ...CreditFacilityLayoutFragment
-      }
+  subscription creditFacilityUpdated($creditFacilityId: UUID!) {
+    creditFacilityUpdated(creditFacilityId: $creditFacilityId) {
+      ...CreditFacilityLayoutFragment
     }
   }
 `
@@ -190,7 +188,7 @@ export default function CreditFacilityLayout({
   })
 
   const creditFacilityId = data?.creditFacilityByPublicId?.creditFacilityId
-  useCreditFacilityCollateralizationUpdatedSubscription(
+  useCreditFacilityUpdatedSubscription(
     creditFacilityId ? { variables: { creditFacilityId } } : { skip: true },
   )
 

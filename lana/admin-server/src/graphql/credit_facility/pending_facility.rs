@@ -12,8 +12,7 @@ use crate::{
 };
 
 use super::{
-    ApprovalProcess, CollateralBalance, CreditFacilityRepaymentPlanEntry,
-    PendingCreditFacilityCollateralizationUpdated, Sort, SortDirection,
+    ApprovalProcess, CollateralBalance, CreditFacilityRepaymentPlanEntry, Sort, SortDirection,
 };
 
 pub use lana_app::credit::{
@@ -183,59 +182,5 @@ impl From<DomainPendingCreditFacility> for PendingCreditFacility {
 
             entity: Arc::new(pending_credit_facility),
         }
-    }
-}
-
-#[derive(SimpleObject)]
-#[graphql(complex)]
-pub struct PendingCreditFacilityCollateralizationPayload {
-    #[graphql(flatten)]
-    pub update: PendingCreditFacilityCollateralizationUpdated,
-    #[graphql(skip)]
-    pub pending_credit_facility_id: PendingCreditFacilityId,
-}
-
-#[ComplexObject]
-impl PendingCreditFacilityCollateralizationPayload {
-    async fn pending_credit_facility(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<PendingCreditFacility> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let facility = loader
-            .load_one(self.pending_credit_facility_id)
-            .await?
-            .expect("pending credit facility not found");
-        Ok(facility)
-    }
-}
-
-#[derive(SimpleObject)]
-pub struct PendingCreditFacilityCompleted {
-    pub status: PendingCreditFacilityStatus,
-    pub recorded_at: Timestamp,
-}
-
-#[derive(SimpleObject)]
-#[graphql(complex)]
-pub struct PendingCreditFacilityCompletedPayload {
-    #[graphql(flatten)]
-    pub update: PendingCreditFacilityCompleted,
-    #[graphql(skip)]
-    pub pending_credit_facility_id: PendingCreditFacilityId,
-}
-
-#[ComplexObject]
-impl PendingCreditFacilityCompletedPayload {
-    async fn pending_credit_facility(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<PendingCreditFacility> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let facility = loader
-            .load_one(self.pending_credit_facility_id)
-            .await?
-            .expect("pending credit facility not found");
-        Ok(facility)
     }
 }

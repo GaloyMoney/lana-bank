@@ -19,8 +19,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import {
   PendingCreditFacilityStatus,
   useGetPendingCreditFacilityLayoutDetailsQuery,
-  usePendingCreditFacilityCollateralizationUpdatedSubscription,
-  usePendingCreditFacilityCompletedSubscription,
+  usePendingCreditFacilityUpdatedSubscription,
 } from "@/lib/graphql/generated"
 
 const PENDING_CREDIT_FACILITY_POLL_INTERVAL_MS = 60_000
@@ -105,23 +104,9 @@ gql`
     }
   }
 
-  subscription PendingCreditFacilityCollateralizationUpdated(
-    $pendingCreditFacilityId: UUID!
-  ) {
-    pendingCreditFacilityCollateralizationUpdated(
-      pendingCreditFacilityId: $pendingCreditFacilityId
-    ) {
-      pendingCreditFacility {
-        ...PendingCreditFacilityLayoutFragment
-      }
-    }
-  }
-
-  subscription pendingCreditFacilityCompleted($pendingCreditFacilityId: UUID!) {
-    pendingCreditFacilityCompleted(pendingCreditFacilityId: $pendingCreditFacilityId) {
-      pendingCreditFacility {
-        ...PendingCreditFacilityLayoutFragment
-      }
+  subscription pendingCreditFacilityUpdated($pendingCreditFacilityId: UUID!) {
+    pendingCreditFacilityUpdated(pendingCreditFacilityId: $pendingCreditFacilityId) {
+      ...PendingCreditFacilityLayoutFragment
     }
   }
 `
@@ -141,12 +126,12 @@ export default function PendingCreditFacilityLayout({
       variables: { pendingCreditFacilityId: pendingId },
     })
 
-  usePendingCreditFacilityCollateralizationUpdatedSubscription({
-    variables: { pendingCreditFacilityId: pendingId },
-  })
-
   const completed =
     data?.pendingCreditFacility?.status === PendingCreditFacilityStatus.Completed
+
+  usePendingCreditFacilityUpdatedSubscription(
+    completed ? { skip: true } : { variables: { pendingCreditFacilityId: pendingId } },
+  )
 
   useEffect(() => {
     if (!data?.pendingCreditFacility || completed) {
@@ -158,12 +143,6 @@ export default function PendingCreditFacilityLayout({
 
     return () => stopPolling()
   }, [completed, data?.pendingCreditFacility, startPolling, stopPolling])
-
-  usePendingCreditFacilityCompletedSubscription(
-    data?.pendingCreditFacility && !completed
-      ? { variables: { pendingCreditFacilityId: pendingId } }
-      : { skip: true },
-  )
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />
   if (error) return <div className="text-destructive">{error.message}</div>
