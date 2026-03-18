@@ -14,6 +14,7 @@ mod primitives;
 pub mod public;
 mod publisher;
 mod repayment_plan;
+mod rounding_policy;
 
 use std::sync::Arc;
 
@@ -59,6 +60,7 @@ pub use primitives::*;
 pub use public::*;
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
+pub(crate) use rounding_policy::*;
 
 use core_credit_collection::{CoreCreditCollection, PaymentLedgerAccountIds};
 
@@ -105,6 +107,7 @@ where
     collaterals: Arc<Collaterals<Perms, E>>,
     custody: Arc<CoreCustody<Perms, E>>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
+    internal_domain_configs: Arc<InternalDomainConfigs>,
     public_ids: Arc<PublicIds>,
     histories: Arc<Histories<Perms>>,
     clock: ClockHandle,
@@ -141,6 +144,7 @@ where
             domain_configs: self.domain_configs.clone(),
             cala: self.cala.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
+            internal_domain_configs: self.internal_domain_configs.clone(),
             public_ids: self.public_ids.clone(),
         }
     }
@@ -377,6 +381,7 @@ where
             domain_configs: domain_configs.clone(),
             cala: cala_arc,
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
+            internal_domain_configs: internal_domain_configs_arc,
             public_ids: public_ids_arc,
         })
     }
@@ -415,6 +420,14 @@ where
 
     pub fn repayment_plans(&self) -> &RepaymentPlans<Perms> {
         self.repayment_plans.as_ref()
+    }
+
+    pub(crate) async fn rounding_policy(&self) -> Result<RoundingPolicyConfig, CoreCreditError> {
+        let config = self
+            .internal_domain_configs
+            .get::<RoundingPolicyConfig>()
+            .await?;
+        Ok(config.value())
     }
 
     #[record_error_severity]
