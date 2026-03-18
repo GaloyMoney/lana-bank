@@ -29,7 +29,6 @@ gql`
       edges {
         cursor
         node {
-          id
           transactionTemplateId
           code
         }

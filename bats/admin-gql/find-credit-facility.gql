@@ -7,7 +7,7 @@ query creditFacility($id: UUID!) {
     collateralizationState
     facilityAmount
     disbursals {
-      id
+      creditFacilityDisbursalId
       status
     }
     history {

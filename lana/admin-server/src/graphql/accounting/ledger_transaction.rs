@@ -23,7 +23,6 @@ use super::JournalEntry;
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct LedgerTransaction {
-    id: ID,
     ledger_transaction_id: UUID,
     created_at: Timestamp,
     effective: Date,
@@ -120,7 +119,6 @@ impl LedgerTransaction {
 impl From<DomainLedgerTransaction> for LedgerTransaction {
     fn from(tx: DomainLedgerTransaction) -> Self {
         Self {
-            id: tx.id.to_global_id(),
             created_at: tx.created_at.into(),
             effective: tx.effective.into(),
             ledger_transaction_id: tx.id.into(),

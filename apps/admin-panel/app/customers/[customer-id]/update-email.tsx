@@ -26,7 +26,6 @@ gql`
   mutation CustomerEmailUpdate($input: CustomerEmailUpdateInput!) {
     customerEmailUpdate(input: $input) {
       customer {
-        id
         email
       }
     }

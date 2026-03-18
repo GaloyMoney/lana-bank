@@ -10,7 +10,6 @@ import { useCommitteeEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query CommitteeEventHistory($id: UUID!, $first: Int!, $after: String) {
     committee(id: $id) {
-      id
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

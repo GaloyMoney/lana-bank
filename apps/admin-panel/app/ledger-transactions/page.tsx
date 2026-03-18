@@ -23,7 +23,7 @@ import { useLedgerTransactionLazyQuery } from "@/lib/graphql/generated"
 gql`
   query LedgerTransactionExistsById($id: UUID!) {
     ledgerTransaction(id: $id) {
-      id
+      ledgerTransactionId
     }
   }
 `
@@ -55,7 +55,7 @@ export default function LedgerTransactions() {
       }
 
       const { data } = await checkById({ variables: { id: trimmedTerm } })
-      const transactionExists = !!data?.ledgerTransaction?.id
+      const transactionExists = !!data?.ledgerTransaction?.ledgerTransactionId
 
       if (transactionExists) {
         router.push(`/ledger-transactions/${encodeURIComponent(trimmedTerm)}`)

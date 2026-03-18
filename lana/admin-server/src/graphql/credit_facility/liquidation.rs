@@ -20,7 +20,6 @@ use super::{Collateral, SortDirection};
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Liquidation {
-    id: ID,
     liquidation_id: UUID,
     collateral_id: UUID,
     expected_to_receive: UsdCents,
@@ -37,7 +36,6 @@ pub struct Liquidation {
 impl From<DomainLiquidation> for Liquidation {
     fn from(liquidation: DomainLiquidation) -> Self {
         Self {
-            id: liquidation.id.to_global_id(),
             liquidation_id: UUID::from(liquidation.id),
             collateral_id: UUID::from(liquidation.collateral_id),
             expected_to_receive: liquidation.expected_to_receive,

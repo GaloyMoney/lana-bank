@@ -29,7 +29,6 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment FiscalYearFields on FiscalYear {
-    id
     fiscalYearId
     chartId
     openedAsOf

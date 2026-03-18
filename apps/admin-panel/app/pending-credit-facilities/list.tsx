@@ -33,7 +33,6 @@ gql`
       edges {
         cursor
         node {
-          id
           pendingCreditFacilityId
           createdAt
           collateralizationState

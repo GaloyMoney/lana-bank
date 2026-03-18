@@ -25,14 +25,12 @@ gql`
   ) {
     creditFacilityDisbursalInitiate(input: $input) {
       disbursal {
-        id
         creditFacilityDisbursalId
         publicId
         amount
         status
         createdAt
         creditFacility {
-          id
           disbursals {
             ...DisbursalOnFacilityPage
           }

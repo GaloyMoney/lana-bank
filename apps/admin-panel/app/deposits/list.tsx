@@ -26,7 +26,6 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment DepositFields on Deposit {
-    id
     depositId
     publicId
     reference

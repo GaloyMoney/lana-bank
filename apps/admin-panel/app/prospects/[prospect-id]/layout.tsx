@@ -20,7 +20,6 @@ import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   fragment ProspectDetailsFragment on Prospect {
-    id
     prospectId
     email
     telegramHandle

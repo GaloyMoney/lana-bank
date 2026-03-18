@@ -18,7 +18,6 @@ pub use lana_app::custody::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Custodian {
-    id: ID,
     custodian_id: UUID,
     created_at: Timestamp,
     #[graphql(skip)]
@@ -28,7 +27,6 @@ pub struct Custodian {
 impl From<DomainCustodian> for Custodian {
     fn from(custodian: DomainCustodian) -> Self {
         Self {
-            id: custodian.id.to_global_id(),
             custodian_id: custodian.id.into(),
             created_at: custodian.created_at().into(),
             entity: Arc::new(custodian),

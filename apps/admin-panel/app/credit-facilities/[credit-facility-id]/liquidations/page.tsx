@@ -9,7 +9,6 @@ import { useGetCreditFacilityLiquidationsQuery } from "@/lib/graphql/generated"
 
 gql`
   fragment LiquidationOnFacilityPage on Liquidation {
-    id
     liquidationId
     expectedToReceive
     sentTotal
@@ -20,7 +19,6 @@ gql`
 
   query GetCreditFacilityLiquidations($publicId: PublicId!) {
     creditFacilityByPublicId(id: $publicId) {
-      id
       creditFacilityId
       liquidations {
         ...LiquidationOnFacilityPage

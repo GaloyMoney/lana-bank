@@ -24,7 +24,6 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment CustodianFields on Custodian {
-    id
     custodianId
     createdAt
     name
@@ -123,9 +122,9 @@ const columns = (
     sortable: true,
   },
   {
-    key: "id",
+    key: "custodianId",
     label: "",
-    render: (_id, record) =>
+    render: (_custodianId, record) =>
       record.provider.toLowerCase() !== "manual" ? (
         <Button
           variant="outline"

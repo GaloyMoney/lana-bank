@@ -10,7 +10,6 @@ import { useCustomerEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query CustomerEventHistory($id: PublicId!, $first: Int!, $after: String) {
     customerByPublicId(id: $id) {
-      id
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

@@ -34,7 +34,6 @@ gql`
       }
       edges {
         node {
-          id
           approvalProcessType
           status
           userCanSubmitDecision
@@ -57,7 +56,6 @@ gql`
               }
             }
             ... on CreditFacilityDisbursal {
-              id
               creditFacilityDisbursalId
               publicId
               creditFacility {

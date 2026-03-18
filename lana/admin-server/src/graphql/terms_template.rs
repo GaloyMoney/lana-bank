@@ -12,7 +12,6 @@ use lana_app::terms_template::TermsTemplate as DomainTermsTemplate;
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct TermsTemplate {
-    id: ID,
     terms_template_id: UUID,
     values: TermValues,
     created_at: Timestamp,
@@ -24,7 +23,6 @@ pub struct TermsTemplate {
 impl From<DomainTermsTemplate> for TermsTemplate {
     fn from(terms: DomainTermsTemplate) -> Self {
         Self {
-            id: terms.id.to_global_id(),
             created_at: terms.created_at().into(),
             terms_template_id: terms.id.into(),
             values: terms.values.into(),

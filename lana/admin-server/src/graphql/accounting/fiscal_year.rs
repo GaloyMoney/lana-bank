@@ -15,7 +15,6 @@ use crate::graphql::primitives::SortDirection;
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct FiscalYear {
-    id: ID,
     fiscal_year_id: UUID,
     chart_id: UUID,
     is_open: bool,
@@ -28,7 +27,6 @@ pub struct FiscalYear {
 impl From<DomainFiscalYear> for FiscalYear {
     fn from(fiscal_year: DomainFiscalYear) -> Self {
         FiscalYear {
-            id: fiscal_year.id.to_global_id(),
             fiscal_year_id: UUID::from(fiscal_year.id),
             chart_id: UUID::from(fiscal_year.chart_id),
             is_open: fiscal_year.closed_as_of.is_none(),

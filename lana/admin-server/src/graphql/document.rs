@@ -8,7 +8,6 @@ pub use lana_app::document::{Document as DomainDocument, DocumentStatus};
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct CustomerDocument {
-    id: ID,
     customer_document_id: UUID,
     customer_id: UUID,
     status: DocumentStatus,
@@ -20,7 +19,6 @@ pub struct CustomerDocument {
 impl From<DomainDocument> for CustomerDocument {
     fn from(document: DomainDocument) -> Self {
         Self {
-            id: document.id.to_global_id(),
             customer_document_id: UUID::from(document.id),
             customer_id: UUID::from(document.reference_id),
             status: document.status,

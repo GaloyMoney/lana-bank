@@ -3,7 +3,6 @@ query AuditLogs($first: Int!, $after: String) {
     edges {
       cursor
       node {
-        id
         subject {
           ... on User {
             userId

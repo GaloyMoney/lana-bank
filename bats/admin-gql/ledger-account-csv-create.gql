@@ -1,7 +1,6 @@
 mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
   ledgerAccountCsvCreate(input: $input) {
     accountingCsvDocument {
-      id
       accountingCsvDocumentId
       ledgerAccountId
       status

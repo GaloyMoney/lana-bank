@@ -30,7 +30,6 @@ gql`
     disbursals(first: $first, after: $after, sort: $sort, filter: $filter) {
       edges {
         node {
-          id
           creditFacilityDisbursalId
           publicId
           amount

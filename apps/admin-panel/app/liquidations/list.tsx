@@ -25,7 +25,6 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment LiquidationListFields on Liquidation {
-    id
     liquidationId
     expectedToReceive
     sentTotal

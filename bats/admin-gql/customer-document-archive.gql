@@ -1,7 +1,7 @@
 mutation CustomerDocumentArchive($input: CustomerDocumentArchiveInput!) {
   customerDocumentArchive(input: $input) {
     document {
-      id
+      customerDocumentId
       customerId
       filename
       status

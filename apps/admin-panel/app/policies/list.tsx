@@ -17,13 +17,11 @@ gql`
       edges {
         cursor
         node {
-          id
           policyId
           approvalProcessType
           rules {
             ... on CommitteeApproval {
               committee {
-                id
                 committeeId
                 createdAt
                 name

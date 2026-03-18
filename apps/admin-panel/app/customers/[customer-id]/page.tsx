@@ -10,9 +10,7 @@ import { useGetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
 gql`
   query GetCustomerCreditFacilities($id: PublicId!) {
     customerByPublicId(id: $id) {
-      id
       creditFacilities {
-        id
         creditFacilityId
         publicId
         collateralizationState

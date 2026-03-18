@@ -10,7 +10,6 @@ import { useTermsTemplateEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query TermsTemplateEventHistory($id: UUID!, $first: Int!, $after: String) {
     termsTemplate(id: $id) {
-      id
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

@@ -26,7 +26,6 @@ import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   fragment CustomerDetailsFragment on Customer {
-    id
     customerId
     status
     email
@@ -45,7 +44,6 @@ gql`
       companyName
     }
     depositAccount {
-      id
       status
       activity
       publicId

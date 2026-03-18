@@ -31,7 +31,6 @@ gql`
       edges {
         cursor
         node {
-          id
           creditFacilityProposalId
           createdAt
           facilityAmount

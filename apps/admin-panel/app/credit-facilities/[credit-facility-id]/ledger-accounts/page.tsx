@@ -45,7 +45,6 @@ gql`
 
   query CreditFacilityLedgerAccounts($publicId: PublicId!) {
     creditFacilityByPublicId(id: $publicId) {
-      id
       ledgerAccounts {
         facilityAccount {
           ...LedgerAccountInfo

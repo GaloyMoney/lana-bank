@@ -15,7 +15,6 @@ use lana_app::access::role::RolesSortBy as DomainRolesSortBy;
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Role {
-    id: ID,
     role_id: UUID,
     created_at: Timestamp,
 
@@ -55,7 +54,6 @@ impl Role {
 impl From<DomainRole> for Role {
     fn from(role: DomainRole) -> Self {
         Self {
-            id: role.id.to_global_id(),
             role_id: UUID::from(role.id),
             created_at: role.created_at().into(),
 

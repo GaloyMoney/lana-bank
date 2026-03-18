@@ -17,7 +17,7 @@ const createRandomCommittees = () => {
       createdAt: faker.date.recent({ days: 30 }).toISOString(),
       currentMembers: Array.from(
         { length: faker.number.int({ min: 2, max: 5 }) },
-        (_, i) => mockUser({ id: String(i) }),
+        (_, i) => mockUser({ userId: String(i) }),
       ),
     }),
   }))

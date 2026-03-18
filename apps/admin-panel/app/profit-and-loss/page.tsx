@@ -38,7 +38,6 @@ gql`
         }
       }
       categories {
-        profitAndLossAccountId
         ledgerAccountId
         name
         code
@@ -51,7 +50,6 @@ gql`
           }
         }
         children {
-          profitAndLossAccountId
           ledgerAccountId
           name
           code
@@ -191,7 +189,7 @@ const ProfitAndLossStatement = ({
                   )
                   return (
                     <CategoryRow
-                      key={category.profitAndLossAccountId}
+                      key={category.ledgerAccountId}
                       category={category}
                       currency={currency}
                       layer={layer}
@@ -256,7 +254,7 @@ const CategoryRow = ({ category, currency, layer, periodBalance }: CategoryRowPr
           >["categories"][0]["children"][number],
         ) => (
           <Account
-            key={child.profitAndLossAccountId}
+            key={child.ledgerAccountId}
             account={child}
             currency={currency}
             depth={1}

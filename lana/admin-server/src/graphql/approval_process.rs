@@ -17,7 +17,6 @@ pub use lana_app::governance::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct ApprovalProcess {
-    id: ID,
     approval_process_id: UUID,
     approval_process_type: ApprovalProcessType,
     status: ApprovalProcessStatus,
@@ -30,7 +29,6 @@ pub struct ApprovalProcess {
 impl From<DomainApprovalProcess> for ApprovalProcess {
     fn from(process: DomainApprovalProcess) -> Self {
         Self {
-            id: process.id.to_global_id(),
             approval_process_id: process.id.into(),
             approval_process_type: ApprovalProcessType::from(&process.process_type),
             status: process.status(),

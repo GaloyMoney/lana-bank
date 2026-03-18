@@ -9,7 +9,6 @@ use std::sync::Arc;
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct AccountingCsvDocument {
-    id: ID,
     accounting_csv_document_id: UUID,
     ledger_account_id: UUID,
     status: DocumentStatus,
@@ -22,7 +21,6 @@ pub struct AccountingCsvDocument {
 impl From<DomainDocument> for AccountingCsvDocument {
     fn from(document: DomainDocument) -> Self {
         Self {
-            id: document.id.to_global_id(),
             accounting_csv_document_id: UUID::from(document.id),
             ledger_account_id: UUID::from(document.reference_id),
             status: document.status,

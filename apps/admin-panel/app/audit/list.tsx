@@ -30,7 +30,6 @@ gql`
       edges {
         cursor
         node {
-          id
           auditEntryId
           subject {
             ... on User {

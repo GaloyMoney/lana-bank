@@ -34,7 +34,6 @@ pub enum LedgerAccountEntity {
 #[derive(Clone, SimpleObject)]
 #[graphql(complex)]
 pub struct LedgerAccount {
-    id: ID,
     ledger_account_id: UUID,
     code: Option<AccountCode>,
 
@@ -45,7 +44,6 @@ pub struct LedgerAccount {
 impl From<DomainLedgerAccount> for LedgerAccount {
     fn from(account: DomainLedgerAccount) -> Self {
         LedgerAccount {
-            id: account.id.to_global_id(),
             ledger_account_id: UUID::from(account.id),
             code: account.code.as_ref().map(|code| code.into()),
             entity: Arc::new(account),

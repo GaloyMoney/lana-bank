@@ -9,7 +9,6 @@ import { useGetCreditFacilityDisbursalsQuery } from "@/lib/graphql/generated"
 
 gql`
   fragment DisbursalOnFacilityPage on CreditFacilityDisbursal {
-    id
     creditFacilityDisbursalId
     publicId
     amount
@@ -19,7 +18,6 @@ gql`
 
   query GetCreditFacilityDisbursals($publicId: PublicId!) {
     creditFacilityByPublicId(id: $publicId) {
-      id
       creditFacilityId
       disbursals {
         ...DisbursalOnFacilityPage

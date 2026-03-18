@@ -87,7 +87,6 @@ gql`
         }
       }
       categories {
-        balanceSheetAccountId
         ledgerAccountId
         name
         code
@@ -110,7 +109,6 @@ gql`
           }
         }
         children {
-          balanceSheetAccountId
           ledgerAccountId
           name
           code
@@ -271,7 +269,7 @@ function BalanceSheetColumn({
         <TableBody>
           {categories.map((category) => (
             <CategoryRow
-              key={category.balanceSheetAccountId}
+              key={category.ledgerAccountId}
               category={category}
               currency={currency}
               layer={layer}
@@ -321,7 +319,7 @@ function CategoryRow({ category, currency, layer }: CategoryRowProps) {
       </TableRow>
       {category.children?.map((child) => (
         <Account
-          key={child.balanceSheetAccountId}
+          key={child.ledgerAccountId}
           account={child}
           currency={currency}
           layer={layer}

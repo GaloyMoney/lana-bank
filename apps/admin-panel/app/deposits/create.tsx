@@ -31,16 +31,13 @@ gql`
         ...DepositFields
         account {
           customer {
-            id
             customerId
             depositAccount {
-              id
               deposits {
                 ...DepositFields
               }
             }
             depositAccount {
-              id
               balance {
                 settled
                 pending

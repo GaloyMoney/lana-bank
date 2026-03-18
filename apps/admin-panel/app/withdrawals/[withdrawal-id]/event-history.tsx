@@ -10,7 +10,6 @@ import { useWithdrawalEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query WithdrawalEventHistory($id: PublicId!, $first: Int!, $after: String) {
     withdrawalByPublicId(id: $id) {
-      id
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

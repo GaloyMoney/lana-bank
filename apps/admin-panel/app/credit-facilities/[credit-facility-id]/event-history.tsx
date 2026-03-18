@@ -10,7 +10,6 @@ import { useCreditFacilityEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query CreditFacilityEventHistory($publicId: PublicId!, $first: Int!, $after: String) {
     creditFacilityByPublicId(id: $publicId) {
-      id
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

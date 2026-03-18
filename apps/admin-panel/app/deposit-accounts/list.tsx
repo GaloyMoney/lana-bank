@@ -29,7 +29,6 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment DepositAccountFields on DepositAccount {
-    id
     publicId
     createdAt
     status

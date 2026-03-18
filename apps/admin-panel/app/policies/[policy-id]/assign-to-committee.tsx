@@ -32,7 +32,6 @@ gql`
   mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
     policyAssignCommittee(input: $input) {
       policy {
-        id
         policyId
         approvalProcessType
         rules {
@@ -140,7 +139,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
               </SelectTrigger>
               <SelectContent>
                 {committeeData?.committees.edges.map((edge) => (
-                  <SelectItem key={edge.node.id} value={edge.node.committeeId}>
+                  <SelectItem key={edge.node.committeeId} value={edge.node.committeeId}>
                     {edge.node.name}
                   </SelectItem>
                 ))}

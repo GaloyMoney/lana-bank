@@ -26,7 +26,6 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment WithdrawalFields on Withdrawal {
-    id
     status
     reference
     withdrawalId

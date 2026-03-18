@@ -9,7 +9,6 @@ use super::Custodian;
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Wallet {
-    id: ID,
     wallet_id: UUID,
 
     #[graphql(skip)]
@@ -19,7 +18,6 @@ pub struct Wallet {
 impl From<DomainWallet> for Wallet {
     fn from(wallet: DomainWallet) -> Self {
         Self {
-            id: wallet.id.to_global_id(),
             wallet_id: wallet.id.into(),
             entity: Arc::new(wallet),
         }

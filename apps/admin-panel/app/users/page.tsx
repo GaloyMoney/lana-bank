@@ -29,7 +29,6 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment UserFields on User {
-    id
     userId
     email
     role {

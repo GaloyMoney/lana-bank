@@ -13,7 +13,6 @@ pub use lana_app::governance::{Policy as DomainPolicy, policy_cursor::PoliciesBy
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Policy {
-    id: ID,
     policy_id: UUID,
     approval_process_type: ApprovalProcessType,
 
@@ -24,7 +23,6 @@ pub struct Policy {
 impl From<DomainPolicy> for Policy {
     fn from(policy: DomainPolicy) -> Self {
         Self {
-            id: policy.id.to_global_id(),
             policy_id: policy.id.into(),
             approval_process_type: ApprovalProcessType::from(&policy.process_type),
             entity: Arc::new(policy),

@@ -26,13 +26,13 @@ import {
 gql`
   query LedgerAccountExistsByCode($code: String!) {
     ledgerAccountByCode(code: $code) {
-      id
+      ledgerAccountId
     }
   }
 
   query LedgerAccountExistsById($id: UUID!) {
     ledgerAccount(id: $id) {
-      id
+      ledgerAccountId
     }
   }
 `
@@ -62,10 +62,10 @@ export default function LedgerAccount() {
 
       if (isId) {
         const { data } = await checkById({ variables: { id: trimmedTerm } })
-        accountExists = !!data?.ledgerAccount?.id
+        accountExists = !!data?.ledgerAccount?.ledgerAccountId
       } else {
         const { data } = await checkByCode({ variables: { code: trimmedTerm } })
-        accountExists = !!data?.ledgerAccountByCode?.id
+        accountExists = !!data?.ledgerAccountByCode?.ledgerAccountId
       }
 
       if (accountExists) {

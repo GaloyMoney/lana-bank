@@ -23,7 +23,6 @@ import {
 
 gql`
   fragment CreditFacilityProposalLayoutFragment on CreditFacilityProposal {
-    id
     creditFacilityProposalId
     approvalProcessId
     createdAt

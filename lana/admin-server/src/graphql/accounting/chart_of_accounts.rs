@@ -11,7 +11,6 @@ use lana_app::primitives::AccountingBaseConfig;
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct ChartOfAccounts {
-    id: ID,
     chart_of_accounts_id: UUID,
     name: String,
 
@@ -22,7 +21,6 @@ pub struct ChartOfAccounts {
 impl From<DomainChart> for ChartOfAccounts {
     fn from(chart: DomainChart) -> Self {
         ChartOfAccounts {
-            id: chart.id.to_global_id(),
             chart_of_accounts_id: UUID::from(chart.id),
             name: chart.name.to_string(),
             entity: Arc::new(chart),

@@ -15,7 +15,6 @@ use crate::graphql::primitives::SortDirection;
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct User {
-    id: ID,
     user_id: UUID,
     created_at: Timestamp,
 
@@ -26,7 +25,6 @@ pub struct User {
 impl From<DomainUser> for User {
     fn from(user: DomainUser) -> Self {
         Self {
-            id: user.id.to_global_id(),
             user_id: UUID::from(user.id),
             created_at: user.created_at().into(),
             entity: Arc::new(user),
@@ -37,7 +35,6 @@ impl From<DomainUser> for User {
 impl From<Arc<DomainUser>> for User {
     fn from(user: Arc<DomainUser>) -> Self {
         Self {
-            id: user.id.to_global_id(),
             user_id: UUID::from(user.id),
             created_at: user.created_at().into(),
             entity: user,

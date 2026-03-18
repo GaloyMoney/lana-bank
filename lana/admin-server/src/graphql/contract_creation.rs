@@ -22,7 +22,6 @@ impl From<lana_app::contract_creation::LoanAgreementStatus> for LoanAgreementSta
 
 #[derive(SimpleObject, Clone)]
 pub struct LoanAgreement {
-    id: ID,
     loan_agreement_id: UUID,
     status: LoanAgreementStatus,
     created_at: Timestamp,
@@ -35,7 +34,6 @@ impl LoanAgreement {
         created_at: chrono::DateTime<chrono::Utc>,
     ) -> Self {
         Self {
-            id: ID::from(format!("LoanAgreement:{}", id)),
             loan_agreement_id: UUID::from(id),
             status,
             created_at: created_at.into(),

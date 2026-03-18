@@ -10,7 +10,6 @@ import { usePolicyEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query PolicyEventHistory($id: UUID!, $first: Int!, $after: String) {
     policy(id: $id) {
-      id
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

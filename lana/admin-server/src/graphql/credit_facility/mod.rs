@@ -47,7 +47,6 @@ pub use repayment::*;
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct CreditFacility {
-    id: ID,
     credit_facility_id: UUID,
     collateral_id: UUID,
     created_at: Timestamp,
@@ -64,7 +63,6 @@ pub struct CreditFacility {
 impl From<DomainCreditFacility> for CreditFacility {
     fn from(credit_facility: DomainCreditFacility) -> Self {
         Self {
-            id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
             collateral_id: UUID::from(credit_facility.collateral_id),
             created_at: Timestamp::from(credit_facility.created_at()),

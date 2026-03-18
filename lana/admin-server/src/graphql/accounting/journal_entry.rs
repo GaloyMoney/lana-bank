@@ -13,7 +13,6 @@ use crate::{graphql::loader::LanaDataLoader, primitives::*};
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct JournalEntry {
-    id: ID,
     journal_entry_id: UUID,
     tx_id: UUID,
     amount: JournalEntryAmount,
@@ -28,7 +27,6 @@ pub struct JournalEntry {
 impl From<DomainJournalEntry> for JournalEntry {
     fn from(entry: DomainJournalEntry) -> Self {
         Self {
-            id: entry.entry_id.into(),
             journal_entry_id: entry.entry_id.into(),
             tx_id: entry.ledger_transaction_id.into(),
             amount: entry.amount.into(),

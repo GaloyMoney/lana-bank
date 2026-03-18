@@ -135,7 +135,7 @@ teardown_file() {
 
   # Check if the deleted document is not in the list
   documents=$(graphql_output '.data.customer.documents')
-  deleted_document_exists=$(echo "$documents" | jq --arg id "$document_id" 'any(.[]; .id == $id)')
+  deleted_document_exists=$(echo "$documents" | jq --arg id "$document_id" 'any(.[]; .customerDocumentId == $id)')
   [[ "$deleted_document_exists" == "false" ]] || exit 1
 
   variables=$(jq -n \

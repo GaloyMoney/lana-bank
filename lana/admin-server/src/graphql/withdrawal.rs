@@ -24,7 +24,6 @@ pub use lana_app::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Withdrawal {
-    id: ID,
     withdrawal_id: UUID,
     account_id: UUID,
     approval_process_id: UUID,
@@ -39,7 +38,6 @@ pub struct Withdrawal {
 impl From<lana_app::deposit::Withdrawal> for Withdrawal {
     fn from(withdraw: lana_app::deposit::Withdrawal) -> Self {
         Withdrawal {
-            id: withdraw.id.to_global_id(),
             created_at: withdraw.created_at().into(),
             account_id: withdraw.deposit_account_id.into(),
             withdrawal_id: UUID::from(withdraw.id),

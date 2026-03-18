@@ -29,7 +29,6 @@ import {
 gql`
   query AccountEntryCsv($ledgerAccountId: UUID!) {
     accountEntryCsv(ledgerAccountId: $ledgerAccountId) {
-      id
       accountingCsvDocumentId
       status
       createdAt
@@ -39,7 +38,6 @@ gql`
   mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
     ledgerAccountCsvCreate(input: $input) {
       accountingCsvDocument {
-        id
         accountingCsvDocumentId
         status
         createdAt

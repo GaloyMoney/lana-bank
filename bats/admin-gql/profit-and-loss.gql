@@ -11,14 +11,12 @@ query ProfitAndLossStatement($from: Timestamp!) {
       }
       accounts {
         ... on Account {
-          id
           name
           amounts {
             ...amountsByCurrency
           }
         }
         ... on AccountSet {
-          id
           name
           amounts {
             ...amountsByCurrency

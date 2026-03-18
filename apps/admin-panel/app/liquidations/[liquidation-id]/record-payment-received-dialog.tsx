@@ -26,7 +26,6 @@ gql`
   ) {
     collateralRecordProceedsFromLiquidation(input: $input) {
       collateral {
-        id
         collateralId
       }
     }

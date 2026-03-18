@@ -10,7 +10,6 @@ import { useDepositAccountEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query DepositAccountEventHistory($id: PublicId!, $first: Int!, $after: String) {
     depositAccountByPublicId(id: $id) {
-      id
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

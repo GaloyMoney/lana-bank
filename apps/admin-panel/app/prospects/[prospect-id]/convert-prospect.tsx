@@ -22,7 +22,6 @@ gql`
   mutation ProspectConvert($input: ProspectConvertInput!) {
     prospectConvert(input: $input) {
       customer {
-        id
         customerId
         publicId
       }

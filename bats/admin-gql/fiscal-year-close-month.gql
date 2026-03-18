@@ -1,7 +1,6 @@
 mutation fiscalYearCloseMonth($input: FiscalYearCloseInput!) {
   fiscalYearCloseMonth(input: $input) {
     fiscalYear {
-      id
       fiscalYearId
       chartId
       isOpen

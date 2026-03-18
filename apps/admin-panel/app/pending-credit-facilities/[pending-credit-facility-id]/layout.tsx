@@ -27,7 +27,6 @@ const PENDING_CREDIT_FACILITY_POLL_INTERVAL_MS = 60_000
 
 gql`
   fragment PendingCreditFacilityLayoutFragment on PendingCreditFacility {
-    id
     pendingCreditFacilityId
     creditFacilityId
     collateralId
@@ -86,7 +85,6 @@ gql`
       }
     }
     wallet {
-      id
       walletId
       address
       network

@@ -39,7 +39,6 @@ gql`
   query DomainConfigs($first: Int!, $after: String) {
     domainConfigs(first: $first, after: $after) {
       nodes {
-        id
         domainConfigId
         key
         configType
@@ -57,7 +56,6 @@ gql`
   mutation DomainConfigUpdate($input: DomainConfigUpdateInput!) {
     domainConfigUpdate(input: $input) {
       domainConfig {
-        id
         domainConfigId
         key
         configType

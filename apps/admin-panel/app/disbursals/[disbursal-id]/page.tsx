@@ -26,7 +26,6 @@ import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   fragment DisbursalDetailsPageFragment on CreditFacilityDisbursal {
-    id
     creditFacilityDisbursalId
     amount
     createdAt
@@ -36,18 +35,15 @@ gql`
       ...LedgerTransactionFields
     }
     creditFacility {
-      id
       creditFacilityId
       facilityAmount
       status
       publicId
       customer {
-        id
         email
         customerId
         publicId
         depositAccount {
-          id
           publicId
           balance {
             settled

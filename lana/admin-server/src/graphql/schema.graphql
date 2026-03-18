@@ -42,7 +42,6 @@ type AccountingCsvDocument {
 	accountingCsvDocumentId: UUID!
 	createdAt: Timestamp!
 	filename: String!
-	id: ID!
 	ledgerAccountId: UUID!
 	status: DocumentStatus!
 }
@@ -74,7 +73,6 @@ type ApprovalProcess {
 	createdAt: Timestamp!
 	deniedReason: String
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	policy: Policy!
 	rules: ApprovalRules!
 	status: ApprovalProcessStatus!
@@ -158,7 +156,6 @@ type AuditEntry {
 	action: String!
 	auditEntryId: AuditEntryId!
 	authorized: Boolean!
-	id: ID!
 	object: String!
 	recordedAt: Timestamp!
 	subject: AuditSubject!
@@ -216,7 +213,6 @@ type BalanceSheet {
 
 type BalanceSheetAccount {
 	balance: LedgerAccountBalanceByCurrency!
-	balanceSheetAccountId: ID!
 	children: [BalanceSheetAccount!]!
 	code: AccountCode
 	ledgerAccountId: UUID!
@@ -283,7 +279,6 @@ type ChartOfAccounts {
 	accountingBaseConfig: AccountingBaseConfigOutput
 	chartOfAccountsId: UUID!
 	children: [ChartNode!]!
-	id: ID!
 	name: String!
 }
 
@@ -320,7 +315,6 @@ type Collateral {
 	collateralId: UUID!
 	creditFacility: CreditFacility
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	walletId: UUID
 }
 
@@ -374,7 +368,6 @@ type Committee {
 	createdAt: Timestamp!
 	currentMembers: [User!]!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	name: String!
 }
 
@@ -494,7 +487,6 @@ type CreditFacility {
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	facilityAmount: UsdCents!
 	history: [CreditFacilityHistoryEntry!]!
-	id: ID!
 	ledgerAccounts: CreditFacilityLedgerAccounts!
 	liquidations: [Liquidation!]!
 	maturesAt: Timestamp!
@@ -601,7 +593,6 @@ type CreditFacilityDisbursal {
 	creditFacility: CreditFacility!
 	creditFacilityDisbursalId: UUID!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	ledgerTransactions: [LedgerTransaction!]!
 	publicId: PublicId!
 	status: DisbursalStatus!
@@ -741,7 +732,6 @@ type CreditFacilityPaymentAllocation {
 	creditFacility: CreditFacility!
 	creditFacilityPaymentAllocationId: UUID!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 }
 
 type CreditFacilityProposal {
@@ -754,7 +744,6 @@ type CreditFacilityProposal {
 	customer: Customer!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	facilityAmount: UsdCents!
-	id: ID!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	status: CreditFacilityProposalStatus!
 }
@@ -987,7 +976,6 @@ type CreditModuleConfigurePayload {
 type Custodian {
 	createdAt: Timestamp!
 	custodianId: UUID!
-	id: ID!
 	name: String!
 	provider: String!
 }
@@ -1069,7 +1057,6 @@ type Customer {
 	documents: [CustomerDocument!]!
 	email: String!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	level: KycLevel!
 	pendingCreditFacilities: [PendingCreditFacility!]!
 	personalInfo: PersonalInfo
@@ -1107,7 +1094,6 @@ type CustomerDocument {
 	customerId: UUID!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	filename: String!
-	id: ID!
 	status: DocumentStatus!
 }
 
@@ -1251,7 +1237,6 @@ type Deposit {
 	createdAt: Timestamp!
 	depositId: UUID!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	ledgerTransactions: [LedgerTransaction!]!
 	publicId: PublicId!
 	reference: String!
@@ -1268,7 +1253,6 @@ type DepositAccount {
 	deposits: [Deposit!]!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	history(after: String, first: Int!): DepositAccountHistoryEntryConnection!
-	id: ID!
 	ledgerAccounts: DepositAccountLedgerAccounts!
 	publicId: PublicId!
 	status: DepositAccountStatus!
@@ -1563,7 +1547,6 @@ type DomainConfig {
 	configType: ConfigType!
 	domainConfigId: UUID!
 	encrypted: Boolean!
-	id: ID!
 	isSet: Boolean!
 	key: String!
 	value: Json!
@@ -1674,7 +1657,6 @@ type FiscalYear {
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	fiscalYearId: UUID!
-	id: ID!
 	isLastMonthOfYearClosed: Boolean!
 	isOpen: Boolean!
 	monthClosures: [FiscalMonthClosure!]!
@@ -1788,7 +1770,6 @@ type JournalEntry {
 	description: String
 	direction: DebitOrCredit!
 	entryType: String!
-	id: ID!
 	journalEntryId: UUID!
 	layer: Layer!
 	ledgerAccount: LedgerAccount!
@@ -1867,7 +1848,6 @@ type LedgerAccount {
 	code: AccountCode
 	entity: LedgerAccountEntity
 	history(after: String, first: Int!): JournalEntryConnection!
-	id: ID!
 	isRootAccount: Boolean!
 	ledgerAccountId: UUID!
 	name: String!
@@ -1906,7 +1886,6 @@ type LedgerTransaction {
 	effective: Date!
 	entity: LedgerTransactionEntity
 	entries: [JournalEntry!]!
-	id: ID!
 	initiatedBy: LedgerTransactionInitiator!
 	ledgerTransactionId: UUID!
 }
@@ -1952,7 +1931,6 @@ type Liquidation {
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	expectedToReceive: UsdCents!
-	id: ID!
 	initiallyEstimatedToLiquidate: Satoshis!
 	liquidationId: UUID!
 	receivedProceeds: [LiquidationProceedsReceived!]!
@@ -2030,7 +2008,6 @@ enum LiquidationsSortBy {
 
 type LoanAgreement {
 	createdAt: Timestamp!
-	id: ID!
 	loanAgreementId: UUID!
 	status: LoanAgreementStatus!
 }
@@ -2230,7 +2207,6 @@ type PendingCreditFacility {
 	customer: Customer!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	facilityAmount: UsdCents!
-	id: ID!
 	pendingCreditFacilityId: UUID!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	status: PendingCreditFacilityStatus!
@@ -2308,7 +2284,6 @@ enum Period {
 type PermissionSet {
 	description: String!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	name: String!
 	permissionSetId: UUID!
 }
@@ -2354,7 +2329,6 @@ type PersonalInfo {
 type Policy {
 	approvalProcessType: ApprovalProcessType!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	policyId: UUID!
 	rules: ApprovalRules!
 }
@@ -2400,7 +2374,6 @@ type PolicyEdge {
 type PriceProvider {
 	active: Boolean!
 	createdAt: Timestamp!
-	id: ID!
 	latestPrice: UsdCents
 	name: String!
 	priceProviderId: UUID!
@@ -2474,7 +2447,6 @@ type ProfitAndLossAccount {
 	code: AccountCode
 	ledgerAccountId: UUID!
 	name: String!
-	profitAndLossAccountId: ID!
 }
 
 type ProfitAndLossStatement {
@@ -2490,7 +2462,6 @@ type Prospect {
 	customerType: CustomerType!
 	email: String!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	kycStatus: KycStatus!
 	level: KycLevel!
 	personalInfo: PersonalInfo
@@ -2689,7 +2660,6 @@ type Report {
 	createdAt: Timestamp!
 	externalId: String!
 	files: [ReportFile!]!
-	id: ID!
 	name: String!
 	norm: String!
 	reportId: UUID!
@@ -2731,7 +2701,6 @@ enum ReportOutputFormat {
 }
 
 type ReportRun {
-	id: ID!
 	reportRunId: UUID!
 	reports: [Report!]!
 	requestedAsOfDate: Date
@@ -2813,7 +2782,6 @@ type RequestedReport {
 type Role {
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	name: String!
 	permissionSets: [PermissionSet!]!
 	roleId: UUID!
@@ -2957,7 +2925,6 @@ input TermsInput {
 type TermsTemplate {
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	name: String!
 	termsTemplateId: UUID!
 	userCanUpdateTermsTemplate: Boolean!
@@ -3024,7 +2991,6 @@ type Total {
 
 type TransactionTemplate {
 	code: String!
-	id: ID!
 	transactionTemplateId: UUID!
 }
 
@@ -3109,7 +3075,6 @@ type User {
 	createdAt: Timestamp!
 	email: String!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	role: Role!
 	userCanUpdateRoleOfUser: Boolean!
 	userId: UUID!
@@ -3187,7 +3152,6 @@ type VisibleNavigationItems {
 type Wallet {
 	address: String!
 	custodian: Custodian!
-	id: ID!
 	network: WalletNetwork!
 	walletId: UUID!
 }
@@ -3207,7 +3171,6 @@ type Withdrawal {
 	approvalProcessId: UUID!
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	id: ID!
 	ledgerTransactions: [LedgerTransaction!]!
 	publicId: PublicId!
 	reference: String!
