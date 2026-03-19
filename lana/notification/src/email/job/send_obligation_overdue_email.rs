@@ -5,7 +5,6 @@ use smtp_client::SmtpClient;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_access::user::Users;
 use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType};
 use core_customer::Customers;
 use job::*;
@@ -24,6 +23,7 @@ pub struct SendObligationOverdueEmailConfig {
     pub obligation_id: ObligationId,
     pub credit_facility_id: CreditFacilityId,
     pub outstanding_amount: UsdCents,
+    pub recipient_email: String,
 }
 
 pub struct SendObligationOverdueEmailInitializer<Perms>
@@ -32,7 +32,6 @@ where
 {
     credit: CoreCredit<Perms, LanaEvent>,
     customers: Customers<Perms, LanaEvent>,
-    users: Users<Perms::Audit, LanaEvent>,
     smtp_client: SmtpClient,
     template: EmailTemplate,
     domain_configs: ExposedDomainConfigsReadOnly,
@@ -45,7 +44,6 @@ where
     pub fn new(
         credit: &CoreCredit<Perms, LanaEvent>,
         customers: &Customers<Perms, LanaEvent>,
-        users: &Users<Perms::Audit, LanaEvent>,
         smtp_client: SmtpClient,
         template: EmailTemplate,
         domain_configs: ExposedDomainConfigsReadOnly,
@@ -53,7 +51,6 @@ where
         Self {
             credit: credit.clone(),
             customers: customers.clone(),
-            users: users.clone(),
             smtp_client,
             template,
             domain_configs,
@@ -68,17 +65,14 @@ where
         + From<core_credit_collection::CoreCreditCollectionAction>
         + From<core_credit_collateral::CoreCreditCollateralAction>
         + From<core_customer::CoreCustomerAction>
-        + From<core_access::CoreAccessAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>
         + From<core_credit_collateral::CoreCreditCollateralObject>
         + From<core_customer::CustomerObject>
-        + From<core_access::CoreAccessObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: From<core_access::UserId>,
 {
     type Config = SendObligationOverdueEmailConfig;
 
@@ -95,7 +89,6 @@ where
             config: job.config()?,
             credit: self.credit.clone(),
             customers: self.customers.clone(),
-            users: self.users.clone(),
             smtp_client: self.smtp_client.clone(),
             template: self.template.clone(),
             domain_configs: self.domain_configs.clone(),
@@ -110,7 +103,6 @@ where
     config: SendObligationOverdueEmailConfig,
     credit: CoreCredit<Perms, LanaEvent>,
     customers: Customers<Perms, LanaEvent>,
-    users: Users<Perms::Audit, LanaEvent>,
     smtp_client: SmtpClient,
     template: EmailTemplate,
     domain_configs: ExposedDomainConfigsReadOnly,
@@ -124,17 +116,14 @@ where
         + From<core_credit_collection::CoreCreditCollectionAction>
         + From<core_credit_collateral::CoreCreditCollateralAction>
         + From<core_customer::CoreCustomerAction>
-        + From<core_access::CoreAccessAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>
         + From<core_credit_collateral::CoreCreditCollateralObject>
         + From<core_customer::CustomerObject>
-        + From<core_access::CoreAccessObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: From<core_access::UserId>,
 {
     #[record_error_severity]
     #[tracing::instrument(name = "notification.send_obligation_overdue_email.run", skip_all)]
@@ -172,11 +161,11 @@ where
             customer_email: party.email,
         };
 
-        super::send_email_to_all_users(
+        super::send_rendered_email(
             &self.smtp_client,
             &self.template,
             &self.domain_configs,
-            &self.users,
+            &self.config.recipient_email,
             &EmailType::OverduePayment(email_data),
         )
         .await?;

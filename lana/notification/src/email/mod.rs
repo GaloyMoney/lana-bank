@@ -28,7 +28,7 @@ pub(crate) async fn init<Perms>(
     users: &Users<<Perms as authz::PermissionCheck>::Audit, LanaEvent>,
     credit: &CoreCredit<Perms, LanaEvent>,
     customers: &Customers<Perms, LanaEvent>,
-) -> Result<EmailEventListenerHandler, EmailError>
+) -> Result<EmailEventListenerHandler<Perms>, EmailError>
 where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
@@ -55,7 +55,6 @@ where
         jobs.add_initializer(SendObligationOverdueEmailInitializer::<Perms>::new(
             credit,
             customers,
-            users,
             smtp_client.clone(),
             template.clone(),
             domain_configs.clone(),
@@ -63,8 +62,6 @@ where
 
     let send_partial_liquidation_email =
         jobs.add_initializer(SendPartialLiquidationEmailInitializer::<Perms>::new(
-            customers,
-            users,
             smtp_client.clone(),
             template.clone(),
             domain_configs.clone(),
@@ -88,13 +85,14 @@ where
 
     let send_role_created_email =
         jobs.add_initializer(SendRoleCreatedEmailInitializer::<Perms>::new(
-            users,
             smtp_client,
             template,
             domain_configs.clone(),
         ));
 
     Ok(EmailEventListenerHandler::new(
+        users.clone(),
+        customers.clone(),
         send_obligation_overdue_email,
         send_partial_liquidation_email,
         send_under_margin_call_email,
