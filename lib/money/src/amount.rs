@@ -1,9 +1,7 @@
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    Currency, CurrencyCode, CurrencyMapError, CurrencySet, MinorUnits, RestrictedCurrencyMap,
-};
+use crate::{Currency, CurrencyCode, MinorUnits};
 
 /// A type-erased currency amount with compile-time safe construction.
 ///
@@ -53,75 +51,31 @@ impl Amount {
     pub fn to_major(self) -> Decimal {
         Decimal::from(self.minor_units) / Decimal::from(self.minor_units_per_major)
     }
+
+    /// Construct from major-unit decimal at runtime, using `CurrencyCode` metadata.
+    pub fn try_from_major(
+        currency: CurrencyCode,
+        major: Decimal,
+    ) -> Result<Self, crate::ConversionError> {
+        let minor_units_per_major = currency.minor_units_per_major();
+        let minor = major * Decimal::from(minor_units_per_major);
+        if minor.trunc() != minor {
+            return Err(crate::ConversionError::PrecisionLoss(major));
+        }
+        let minor =
+            u64::try_from(minor).map_err(|_| crate::ConversionError::PrecisionLoss(major))?;
+        Ok(Self {
+            currency,
+            minor_units: minor,
+            minor_units_per_major,
+        })
+    }
 }
 
 /// Ergonomic construction: `Amount::from(UsdCents::from(100u64))`
 impl<C: Currency> From<MinorUnits<C>> for Amount {
     fn from(value: MinorUnits<C>) -> Self {
         Self::from_minor_units(value)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Amounts — typed collection of per-currency amounts
-// ---------------------------------------------------------------------------
-
-/// A restricted collection of `Amount` values keyed by currency.
-///
-/// Wraps `RestrictedCurrencyMap<Amount>` with typed accessors that use
-/// `C: Currency` to ensure compile-time safety on insert and retrieval.
-///
-/// Used for deposit amounts, balances, or any per-currency value storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Amounts(RestrictedCurrencyMap<Amount>);
-
-impl Amounts {
-    pub fn new(allowed: impl IntoIterator<Item = CurrencyCode>) -> Self {
-        Self(RestrictedCurrencyMap::new(allowed))
-    }
-
-    pub fn allowed_currencies(&self) -> &CurrencySet {
-        self.0.allowed_currencies()
-    }
-
-    /// Type-safe insert: captures currency from `C` at compile time.
-    pub fn insert<C: Currency>(
-        &mut self,
-        value: MinorUnits<C>,
-    ) -> Result<Option<Amount>, CurrencyMapError> {
-        self.0.insert(C::CODE, Amount::from(value))
-    }
-
-    /// Type-safe get: returns typed `MinorUnits<C>`.
-    pub fn get<C: Currency>(&self) -> Result<Option<MinorUnits<C>>, CurrencyMapError> {
-        match self.0.get(&C::CODE)? {
-            Some(amt) => Ok(amt.to_minor_units::<C>()),
-            None => Ok(None),
-        }
-    }
-
-    /// Get the raw `Amount` by currency code (for runtime dispatch).
-    pub fn get_by_code(
-        &self,
-        currency: &CurrencyCode,
-    ) -> Result<Option<&Amount>, CurrencyMapError> {
-        self.0.get(currency)
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = (&CurrencyCode, &Amount)> {
-        self.0.iter()
-    }
-
-    pub fn is_zero(&self) -> bool {
-        self.0.values().all(|amt| amt.is_zero())
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    pub fn len(&self) -> usize {
-        self.0.len()
     }
 }
 
@@ -216,51 +170,5 @@ mod tests {
         let back: Amount = serde_json::from_str(&json).unwrap();
         assert_eq!(amt, back);
         assert_eq!(back.to_minor_units::<Usd>(), Some(UsdCents::from(42u64)));
-    }
-
-    // -- Amounts tests --
-
-    #[test]
-    fn amounts_typed_insert_and_get() {
-        let mut amounts = Amounts::new([CurrencyCode::USD, CurrencyCode::BTC]);
-
-        amounts.insert::<Usd>(UsdCents::from(500u64)).unwrap();
-        amounts.insert::<Btc>(Satoshis::from(1_000_000u64)).unwrap();
-
-        assert_eq!(amounts.get::<Usd>().unwrap(), Some(UsdCents::from(500u64)));
-        assert_eq!(
-            amounts.get::<Btc>().unwrap(),
-            Some(Satoshis::from(1_000_000u64))
-        );
-    }
-
-    #[test]
-    fn amounts_rejects_disallowed_currency() {
-        let mut amounts = Amounts::new([CurrencyCode::USD]);
-
-        assert!(amounts.insert::<Btc>(Satoshis::from(100u64)).is_err());
-        assert!(amounts.get::<Btc>().is_err());
-    }
-
-    #[test]
-    fn amounts_is_zero() {
-        let mut amounts = Amounts::new([CurrencyCode::USD, CurrencyCode::BTC]);
-        assert!(amounts.is_zero());
-
-        amounts.insert::<Usd>(UsdCents::from(0u64)).unwrap();
-        assert!(amounts.is_zero());
-
-        amounts.insert::<Btc>(Satoshis::from(1u64)).unwrap();
-        assert!(!amounts.is_zero());
-    }
-
-    #[test]
-    fn amounts_get_by_code() {
-        let mut amounts = Amounts::new([CurrencyCode::USD]);
-        amounts.insert::<Usd>(UsdCents::from(42u64)).unwrap();
-
-        let amt = amounts.get_by_code(&CurrencyCode::USD).unwrap().unwrap();
-        assert_eq!(amt.currency(), CurrencyCode::USD);
-        assert_eq!(amt.to_minor_units::<Usd>(), Some(UsdCents::from(42u64)));
     }
 }
