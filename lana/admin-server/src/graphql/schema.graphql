@@ -2530,7 +2530,7 @@ union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdraw
 
 type Query {
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
-	appConfig: String!
+	appConfig: Yaml!
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(after: String, first: Int!): ApprovalProcessConnection!
 	audit(action: String, after: String, authorized: Boolean, first: Int!, object: String, subject: AuditSubjectId): AuditEntryConnection!
@@ -3227,6 +3227,8 @@ enum WithdrawalsSortBy {
 	CREATED_AT
 	PUBLIC_ID
 }
+
+scalar Yaml
 
 """
 Directs the executor to include this field or fragment only when the `if` argument is true.

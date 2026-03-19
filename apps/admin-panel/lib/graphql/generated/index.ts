@@ -41,6 +41,7 @@ export type Scalars = {
   /** A multipart file upload */
   Upload: { input: any; output: any; }
   UsdCents: { input: UsdCents; output: UsdCents; }
+  Yaml: { input: any; output: any; }
 };
 
 export enum AccountCategory {
@@ -2916,7 +2917,7 @@ export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer
 export type Query = {
   __typename?: 'Query';
   accountEntryCsv?: Maybe<AccountingCsvDocument>;
-  appConfig: Scalars['String']['output'];
+  appConfig: Scalars['Yaml']['output'];
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
@@ -5571,7 +5572,7 @@ export type SystemInfoTimeFieldsFragment = { __typename?: 'Time', currentDate: s
 export type GetBuildInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: string, buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
+export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: any, buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
 
 export type GetTimeQueryVariables = Exact<{ [key: string]: never; }>;
 
