@@ -1,6 +1,7 @@
 use anyhow::Context;
 
-use es_entity::clock::{ArtificialClockConfig, ClockController, ClockHandle};
+use chrono::{DateTime, Utc};
+use es_entity::clock::{ClockController, ClockHandle};
 use serde::{Deserialize, Serialize};
 use tracing_utils::TracingConfig;
 
@@ -19,8 +20,12 @@ pub enum TimeConfig {
     /// Use real system time
     #[default]
     Realtime,
-    /// Use artificial/simulated time with configurable behavior
-    Artificial(ArtificialClockConfig),
+    /// Use manual/simulated time
+    Manual {
+        /// What time should the clock start at
+        #[serde(default = "Utc::now")]
+        start_at: DateTime<Utc>,
+    },
 }
 
 pub(super) struct AppClock {
@@ -35,8 +40,8 @@ impl TimeConfig {
                 clock: ClockHandle::realtime(),
                 controller: None,
             },
-            Self::Artificial(cfg) => {
-                let (clock, ctrl) = ClockHandle::artificial(cfg);
+            Self::Manual { start_at } => {
+                let (clock, ctrl) = ClockHandle::manual_at(start_at);
                 AppClock {
                     clock,
                     controller: Some(ctrl),
@@ -65,7 +70,7 @@ pub struct Config {
     /// OpenTelemetry tracing configuration for observability
     #[serde(default)]
     pub tracing: TracingConfig,
-    /// Time configuration (realtime or artificial)
+    /// Time configuration (realtime or manual)
     #[serde(default)]
     pub time: TimeConfig,
 

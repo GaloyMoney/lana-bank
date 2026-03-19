@@ -17,7 +17,7 @@ use domain_config::{
     EncryptionConfig as DomainEncryptionConfig, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
 };
 use encryption::EncryptionConfig;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use money::Satoshis;
 use public_id::PublicIds;
 use rand::RngExt;
@@ -547,7 +547,7 @@ pub fn test_terms() -> TermValues {
 pub async fn setup() -> anyhow::Result<TestContext> {
     let pool = init_pool().await?;
     cleanup_stale_jobs(&pool).await?;
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _ctrl) = ClockHandle::manual();
 
     let outbox =
         obix::Outbox::<TestEvent>::init(&pool, obix::MailboxConfig::builder().build()?).await?;

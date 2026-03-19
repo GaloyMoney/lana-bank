@@ -38,7 +38,6 @@ pub async fn run(
     match create_term_templates(&sub, app).await {
         Ok(_) => info!("created term templates"),
         Err(_) => {
-            clock_ctrl.transition_to_realtime();
             return Ok(());
         }
     }
@@ -81,9 +80,6 @@ pub async fn run(
         }
     }
     join_all(handles).await;
-
-    info!("transitioning to realtime");
-    clock_ctrl.transition_to_realtime();
 
     Ok(())
 }

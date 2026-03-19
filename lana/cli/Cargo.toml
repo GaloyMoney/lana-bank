@@ -14,6 +14,7 @@ fail-on-warnings = []
 chrono = { workspace = true }
 
 [dependencies]
+chrono = { workspace = true }
 lana-app = { workspace = true }
 admin-server = { workspace = true }
 customer-server = { workspace = true }

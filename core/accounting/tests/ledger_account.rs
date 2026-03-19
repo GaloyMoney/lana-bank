@@ -9,7 +9,7 @@ use cala_ledger::{
 use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use helpers::{action, default_accounting_base_config, object};
 use job::{JobSvcConfig, Jobs};
 
@@ -17,7 +17,7 @@ use job::{JobSvcConfig, Jobs};
 async fn ledger_account_ancestors() -> anyhow::Result<()> {
     use rand::RngExt;
     let pool = helpers::init_pool().await?;
-    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _) = ClockHandle::manual();
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
@@ -165,7 +165,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
 async fn ledger_account_children() -> anyhow::Result<()> {
     use rand::RngExt;
     let pool = helpers::init_pool().await?;
-    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _) = ClockHandle::manual();
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
@@ -281,7 +281,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
 async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     use rand::RngExt;
     let pool = helpers::init_pool().await?;
-    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _) = ClockHandle::manual();
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
