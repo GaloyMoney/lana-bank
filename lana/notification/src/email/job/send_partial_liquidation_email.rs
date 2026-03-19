@@ -3,7 +3,6 @@ use domain_config::ExposedDomainConfigsReadOnly;
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
 
-use authz::PermissionCheck;
 use core_credit::{CreditFacilityId, PriceOfOneBTC};
 use job::*;
 use money::{Satoshis, UsdCents};
@@ -24,20 +23,13 @@ pub struct SendPartialLiquidationEmailConfig {
     pub recipient_email: String,
 }
 
-pub struct SendPartialLiquidationEmailInitializer<Perms>
-where
-    Perms: PermissionCheck,
-{
+pub struct SendPartialLiquidationEmailInitializer {
     smtp_client: SmtpClient,
     template: EmailTemplate,
     domain_configs: ExposedDomainConfigsReadOnly,
-    _phantom: std::marker::PhantomData<Perms>,
 }
 
-impl<Perms> SendPartialLiquidationEmailInitializer<Perms>
-where
-    Perms: PermissionCheck,
-{
+impl SendPartialLiquidationEmailInitializer {
     pub fn new(
         smtp_client: SmtpClient,
         template: EmailTemplate,
@@ -47,15 +39,11 @@ where
             smtp_client,
             template,
             domain_configs,
-            _phantom: std::marker::PhantomData,
         }
     }
 }
 
-impl<Perms> JobInitializer for SendPartialLiquidationEmailInitializer<Perms>
-where
-    Perms: PermissionCheck,
-{
+impl JobInitializer for SendPartialLiquidationEmailInitializer {
     type Config = SendPartialLiquidationEmailConfig;
 
     fn job_type(&self) -> JobType {
@@ -67,32 +55,24 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(SendPartialLiquidationEmailRunner::<Perms> {
+        Ok(Box::new(SendPartialLiquidationEmailRunner {
             config: job.config()?,
             smtp_client: self.smtp_client.clone(),
             template: self.template.clone(),
             domain_configs: self.domain_configs.clone(),
-            _phantom: std::marker::PhantomData,
         }))
     }
 }
 
-struct SendPartialLiquidationEmailRunner<Perms>
-where
-    Perms: PermissionCheck,
-{
+struct SendPartialLiquidationEmailRunner {
     config: SendPartialLiquidationEmailConfig,
     smtp_client: SmtpClient,
     template: EmailTemplate,
     domain_configs: ExposedDomainConfigsReadOnly,
-    _phantom: std::marker::PhantomData<Perms>,
 }
 
 #[async_trait]
-impl<Perms> JobRunner for SendPartialLiquidationEmailRunner<Perms>
-where
-    Perms: PermissionCheck,
-{
+impl JobRunner for SendPartialLiquidationEmailRunner {
     #[record_error_severity]
     #[tracing::instrument(name = "notification.send_partial_liquidation_email.run", skip_all)]
     async fn run(

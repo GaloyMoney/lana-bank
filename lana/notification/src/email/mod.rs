@@ -61,7 +61,7 @@ where
         ));
 
     let send_partial_liquidation_email =
-        jobs.add_initializer(SendPartialLiquidationEmailInitializer::<Perms>::new(
+        jobs.add_initializer(SendPartialLiquidationEmailInitializer::new(
             smtp_client.clone(),
             template.clone(),
             domain_configs.clone(),
@@ -83,12 +83,11 @@ where
             domain_configs.clone(),
         ));
 
-    let send_role_created_email =
-        jobs.add_initializer(SendRoleCreatedEmailInitializer::<Perms>::new(
-            smtp_client,
-            template,
-            domain_configs.clone(),
-        ));
+    let send_role_created_email = jobs.add_initializer(SendRoleCreatedEmailInitializer::new(
+        smtp_client,
+        template,
+        domain_configs.clone(),
+    ));
 
     Ok(EmailEventListenerHandler::new(
         users.clone(),

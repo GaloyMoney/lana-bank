@@ -3,7 +3,6 @@ use domain_config::ExposedDomainConfigsReadOnly;
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
 
-use authz::PermissionCheck;
 use job::*;
 use tracing_macros::record_error_severity;
 
@@ -20,20 +19,13 @@ pub struct SendRoleCreatedEmailConfig {
     pub recipient_email: String,
 }
 
-pub struct SendRoleCreatedEmailInitializer<Perms>
-where
-    Perms: PermissionCheck,
-{
+pub struct SendRoleCreatedEmailInitializer {
     smtp_client: SmtpClient,
     template: EmailTemplate,
     domain_configs: ExposedDomainConfigsReadOnly,
-    _phantom: std::marker::PhantomData<Perms>,
 }
 
-impl<Perms> SendRoleCreatedEmailInitializer<Perms>
-where
-    Perms: PermissionCheck,
-{
+impl SendRoleCreatedEmailInitializer {
     pub fn new(
         smtp_client: SmtpClient,
         template: EmailTemplate,
@@ -43,15 +35,11 @@ where
             smtp_client,
             template,
             domain_configs,
-            _phantom: std::marker::PhantomData,
         }
     }
 }
 
-impl<Perms> JobInitializer for SendRoleCreatedEmailInitializer<Perms>
-where
-    Perms: PermissionCheck,
-{
+impl JobInitializer for SendRoleCreatedEmailInitializer {
     type Config = SendRoleCreatedEmailConfig;
 
     fn job_type(&self) -> JobType {
@@ -63,32 +51,24 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(SendRoleCreatedEmailRunner::<Perms> {
+        Ok(Box::new(SendRoleCreatedEmailRunner {
             config: job.config()?,
             smtp_client: self.smtp_client.clone(),
             template: self.template.clone(),
             domain_configs: self.domain_configs.clone(),
-            _phantom: std::marker::PhantomData,
         }))
     }
 }
 
-struct SendRoleCreatedEmailRunner<Perms>
-where
-    Perms: PermissionCheck,
-{
+struct SendRoleCreatedEmailRunner {
     config: SendRoleCreatedEmailConfig,
     smtp_client: SmtpClient,
     template: EmailTemplate,
     domain_configs: ExposedDomainConfigsReadOnly,
-    _phantom: std::marker::PhantomData<Perms>,
 }
 
 #[async_trait]
-impl<Perms> JobRunner for SendRoleCreatedEmailRunner<Perms>
-where
-    Perms: PermissionCheck,
-{
+impl JobRunner for SendRoleCreatedEmailRunner {
     #[record_error_severity]
     #[tracing::instrument(name = "notification.send_role_created_email.run", skip_all)]
     async fn run(
