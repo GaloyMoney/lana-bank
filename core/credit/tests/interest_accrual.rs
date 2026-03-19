@@ -133,7 +133,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
         clock.clone(),
     );
 
-    let (credit, _obligation_spawner, _credit_facility_eod_spawner) = CoreCredit::init(
+    let credit_init = CoreCredit::init(
         &pool,
         &governance,
         &mut jobs,
@@ -149,6 +149,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
         &internal_domain_configs,
     )
     .await?;
+    let credit = credit_init.service;
 
     let deposit_public_ids = PublicIds::new(&pool);
     let deposit = core_deposit::CoreDeposit::init(

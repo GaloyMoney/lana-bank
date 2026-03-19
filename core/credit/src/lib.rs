@@ -78,6 +78,24 @@ pub mod event_schema {
     pub use core_credit_collateral::{CollateralEvent, LiquidationEvent};
 }
 
+pub struct CoreCreditComponents<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
+{
+    pub service: CoreCredit<Perms, E>,
+    pub obligation_status_spawner:
+        core_time_events::obligation_status_process::ObligationStatusProcessSpawner,
+    pub credit_facility_eod_spawner:
+        core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
+}
+
 pub struct CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -185,14 +203,7 @@ where
         public_ids: &PublicIds,
         domain_configs: &ExposedDomainConfigsReadOnly,
         internal_domain_configs: &InternalDomainConfigs,
-    ) -> Result<
-        (
-            Self,
-            core_time_events::obligation_status_process::ObligationStatusProcessSpawner,
-            core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
-        ),
-        CoreCreditError,
-    >
+    ) -> Result<CoreCreditComponents<Perms, E>, CoreCreditError>
     where
         E: OutboxEventMarker<CoreTimeEvent>,
     {
@@ -213,7 +224,7 @@ where
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
-        let (collections, obligation_status_spawner) = CoreCreditCollection::init(
+        let collection_init = CoreCreditCollection::init(
             pool,
             authz_arc.clone(),
             cala,
@@ -225,7 +236,8 @@ where
             clock.clone(),
         )
         .await?;
-        let collections_arc = Arc::new(collections);
+        let obligation_status_spawner = collection_init.obligation_status_spawner;
+        let collections_arc = Arc::new(collection_init.service);
 
         let credit_facility_proposals = CreditFacilityProposals::init(
             pool,
@@ -279,7 +291,7 @@ where
         .await?;
         let disbursals_arc = Arc::new(disbursals);
 
-        let (credit_facilities, credit_facility_eod_spawner) = CreditFacilities::init(
+        let facilities_init = CreditFacilities::init(
             pool,
             authz_arc.clone(),
             collections_arc.clone(),
@@ -296,7 +308,8 @@ where
             collaterals_arc.clone(),
         )
         .await?;
-        let facilities_arc = Arc::new(credit_facilities);
+        let credit_facility_eod_spawner = facilities_init.credit_facility_eod_spawner;
+        let facilities_arc = Arc::new(facilities_init.service);
 
         let histories_arc = Arc::new(Histories::init(pool, outbox, jobs, authz_arc.clone()).await?);
 
@@ -364,8 +377,8 @@ where
             )
             .await?;
 
-        Ok((
-            Self {
+        Ok(CoreCreditComponents {
+            service: Self {
                 clock,
                 authz: authz_arc,
                 customer: customer_arc,
@@ -388,7 +401,7 @@ where
             },
             obligation_status_spawner,
             credit_facility_eod_spawner,
-        ))
+        })
     }
 
     pub fn collections(&self) -> &CoreCreditCollection<Perms, E> {

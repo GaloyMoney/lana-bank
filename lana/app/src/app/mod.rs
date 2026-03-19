@@ -218,7 +218,7 @@ impl LanaApp {
         )
         .await?;
 
-        let (deposit_sync, deposit_activity_spawner) = DepositSync::init(
+        let deposit_sync_init = DepositSync::init(
             &mut jobs,
             &outbox,
             &deposits,
@@ -226,6 +226,8 @@ impl LanaApp {
             customer_kyc.sumsub_client().clone(),
         )
         .await?;
+        let deposit_activity_spawner = deposit_sync_init.deposit_activity_spawner;
+        let deposit_sync = deposit_sync_init.service;
 
         let custody = Custody::init(
             &pool,
@@ -238,7 +240,7 @@ impl LanaApp {
         )
         .await?;
 
-        let (credit, obligation_status_spawner, credit_facility_eod_spawner) = Credit::init(
+        let credit_init = Credit::init(
             &pool,
             &governance,
             &mut jobs,
@@ -254,6 +256,9 @@ impl LanaApp {
             &internal_domain_configs,
         )
         .await?;
+        let obligation_status_spawner = credit_init.obligation_status_spawner;
+        let credit_facility_eod_spawner = credit_init.credit_facility_eod_spawner;
+        let credit = credit_init.service;
 
         let terms_templates =
             TermsTemplates::new(&pool, std::sync::Arc::new(authz.clone()), clock.clone());

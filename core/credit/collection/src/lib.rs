@@ -45,6 +45,16 @@ use obligation::jobs::{
     obligation_status_process::ObligationStatusProcessInit,
 };
 
+pub struct CoreCreditCollectionComponents<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
+{
+    pub service: CoreCreditCollection<Perms, E>,
+    pub obligation_status_spawner:
+        core_time_events::obligation_status_process::ObligationStatusProcessSpawner,
+}
+
 pub struct CoreCreditCollection<Perms, E>
 where
     Perms: PermissionCheck,
@@ -100,13 +110,7 @@ where
         outbox: &Outbox<E>,
         publisher: &CollectionPublisher<E>,
         clock: ClockHandle,
-    ) -> Result<
-        (
-            Self,
-            core_time_events::obligation_status_process::ObligationStatusProcessSpawner,
-        ),
-        CoreCreditCollectionError,
-    > {
+    ) -> Result<CoreCreditCollectionComponents<Perms, E>, CoreCreditCollectionError> {
         let ledger =
             CollectionLedger::init(cala, journal_id, payments_made_omnibus_account_id).await?;
         let ledger_arc = Arc::new(ledger);
@@ -134,12 +138,12 @@ where
         let payments = Payments::new(pool, authz, ledger_arc, clock, publisher);
         let payments_arc = Arc::new(payments);
 
-        Ok((
-            Self {
+        Ok(CoreCreditCollectionComponents {
+            service: Self {
                 obligations: obligations_arc,
                 payments: payments_arc,
             },
             obligation_status_spawner,
-        ))
+        })
     }
 }

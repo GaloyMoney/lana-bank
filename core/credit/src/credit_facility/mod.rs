@@ -48,6 +48,21 @@ pub use repo::{
     credit_facility_cursor::*,
 };
 
+pub struct CreditFacilitiesComponents<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
+{
+    pub service: CreditFacilities<Perms, E>,
+    pub credit_facility_eod_spawner:
+        core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
+}
+
 pub struct CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
@@ -138,13 +153,7 @@ where
         outbox: &Outbox<E>,
         clock: ClockHandle,
         collaterals: Arc<core_credit_collateral::Collaterals<Perms, E>>,
-    ) -> Result<
-        (
-            Self,
-            core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
-        ),
-        CreditFacilityError,
-    >
+    ) -> Result<CreditFacilitiesComponents<Perms, E>, CreditFacilityError>
     where
         E: OutboxEventMarker<core_time_events::CoreTimeEvent>,
     {
@@ -239,8 +248,8 @@ where
             )
             .await?;
 
-        Ok((
-            Self {
+        Ok(CreditFacilitiesComponents {
+            service: Self {
                 repo,
                 collaterals,
                 collections,
@@ -254,7 +263,7 @@ where
                 clock,
             },
             credit_facility_eod_spawner,
-        ))
+        })
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, CreditFacilityError> {

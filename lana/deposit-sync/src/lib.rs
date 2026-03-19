@@ -22,6 +22,21 @@ use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use sumsub::SumsubClient;
 use tracing_macros::record_error_severity;
 
+pub struct DepositSyncComponents<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreTimeEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<LanaEvent>
+        + std::fmt::Debug,
+{
+    pub service: DepositSync<Perms, E>,
+    pub deposit_activity_spawner:
+        core_time_events::deposit_activity_process::DepositActivityProcessSpawner,
+}
+
 pub struct DepositSync<Perms, E>
 where
     Perms: PermissionCheck,
@@ -76,13 +91,7 @@ where
         deposits: &CoreDeposit<Perms, E>,
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
-    ) -> Result<
-        (
-            Self,
-            core_time_events::deposit_activity_process::DepositActivityProcessSpawner,
-        ),
-        DepositSyncError,
-    > {
+    ) -> Result<DepositSyncComponents<Perms, E>, DepositSyncError> {
         let evaluate_spawner =
             jobs.add_initializer(EvaluateDepositAccountActivityJobInit::new(deposits));
 
@@ -113,12 +122,12 @@ where
             )
             .await?;
 
-        Ok((
-            Self {
+        Ok(DepositSyncComponents {
+            service: Self {
                 _phantom: std::marker::PhantomData,
                 _outbox: outbox.clone(),
             },
             deposit_activity_spawner,
-        ))
+        })
     }
 }
