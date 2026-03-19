@@ -328,6 +328,9 @@ pub async fn run_with_cli(cli: Cli) -> anyhow::Result<()> {
                     SystemCommand::DomainConfig { action } => {
                         commands::domain_config::execute(&mut client, action, cli.json).await
                     }
+                    SystemCommand::Time { action } => {
+                        commands::time::execute(&mut client, action, cli.json).await
+                    }
                     SystemCommand::Custodian { action } => {
                         commands::custodian::execute(&mut client, action, cli.json).await
                     }

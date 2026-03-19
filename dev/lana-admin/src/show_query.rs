@@ -26,6 +26,7 @@ const PROSPECT_DOC: &str = include_str!("graphql/prospect.graphql");
 const REPORT_DOC: &str = include_str!("graphql/report.graphql");
 const ROLE_DOC: &str = include_str!("graphql/role.graphql");
 const TERMS_TEMPLATE_DOC: &str = include_str!("graphql/terms_template.graphql");
+const TIME_DOC: &str = include_str!("graphql/time.graphql");
 const USER_DOC: &str = include_str!("graphql/user.graphql");
 const WITHDRAWAL_DOC: &str = include_str!("graphql/withdrawal.graphql");
 const ADMIN_SCHEMA_DOC: &str =
@@ -255,6 +256,8 @@ fn lookup_query(path: &[&str]) -> Option<QuerySpec> {
 
         ["system", "domain-config", "list"] => q("DomainConfigsList", DOMAIN_CONFIG_DOC),
         ["system", "domain-config", "update"] => q("DomainConfigUpdate", DOMAIN_CONFIG_DOC),
+        ["system", "time", "get"] => q("TimeGet", TIME_DOC),
+        ["system", "time", "advance-to-next-eod"] => q("TimeAdvanceToNextEndOfDay", TIME_DOC),
         ["system", "custodian", "create"] => q("CustodianCreate", CUSTODIAN_DOC),
         ["system", "custodian", "config-update"] => q("CustodianConfigUpdate", CUSTODIAN_DOC),
 

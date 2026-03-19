@@ -299,6 +299,11 @@ pub enum SystemCommand {
         #[command(subcommand)]
         action: DomainConfigAction,
     },
+    /// Inspect and advance the environment clock
+    Time {
+        #[command(subcommand)]
+        action: TimeAction,
+    },
     /// Manage custodians
     Custodian {
         #[command(subcommand)]
@@ -924,6 +929,14 @@ pub enum DomainConfigAction {
         #[arg(long, long_help = DOMAIN_CONFIG_VALUE_HELP)]
         value_json: String,
     },
+}
+
+#[derive(Subcommand)]
+pub enum TimeAction {
+    /// Get the current environment clock state
+    Get,
+    /// Advance manual environment time to the next end-of-day boundary
+    AdvanceToNextEod,
 }
 
 #[derive(Subcommand)]

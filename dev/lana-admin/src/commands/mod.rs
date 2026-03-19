@@ -18,5 +18,6 @@ pub mod prospect;
 pub mod report;
 pub mod role;
 pub mod terms_template;
+pub mod time;
 pub mod user;
 pub mod withdrawal;

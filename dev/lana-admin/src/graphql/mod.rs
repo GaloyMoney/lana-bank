@@ -30,6 +30,24 @@ type Decimal = String;
 )]
 pub struct BuildInfoGet;
 
+// -- Time operations --
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/time.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct TimeGet;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/time.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct TimeAdvanceToNextEndOfDay;
+
 // -- Prospect operations --
 
 #[derive(GraphQLQuery)]
