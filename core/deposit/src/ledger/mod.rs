@@ -775,7 +775,7 @@ impl DepositLedger {
         let mut result =
             DepositAccountBalances::new(account_ids.allowed_currencies().iter().copied());
         for (&currency, pair) in account_ids.iter() {
-            let account_id: AccountId = pair.active.into();
+            let account_id = pair.active;
             let bal = match self
                 .cala
                 .balances()

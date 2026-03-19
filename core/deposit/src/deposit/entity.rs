@@ -189,7 +189,7 @@ impl IntoEvents<DepositEvent> for NewDeposit {
 #[cfg(test)]
 mod test {
     use super::*;
-    use money::{Satoshis, UsdCents};
+    use money::UsdCents;
 
     #[test]
     fn errors_when_zero_amount_deposit_amount_is_passed() {
@@ -225,26 +225,12 @@ mod test {
     }
 
     #[test]
-    fn passes_when_all_inputs_provided_usd() {
+    fn passes_when_all_inputs_provided() {
         let deposit = NewDeposit::builder()
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
             .amount(Amount::from(UsdCents::ONE))
-            .reference(None)
-            .public_id(PublicId::new("test-public-id"))
-            .build();
-
-        assert!(deposit.is_ok());
-    }
-
-    #[test]
-    fn passes_when_all_inputs_provided_btc() {
-        let deposit = NewDeposit::builder()
-            .id(DepositId::new())
-            .ledger_transaction_id(CalaTransactionId::new())
-            .deposit_account_id(DepositAccountId::new())
-            .amount(Amount::from(Satoshis::ONE))
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
             .build();

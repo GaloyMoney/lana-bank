@@ -822,9 +822,7 @@ where
                 .update_in_op(&mut op, &mut account)
                 .await?;
             for (_, pair) in account.account_ids.iter() {
-                self.ledger
-                    .lock_account_in_op(&mut op, pair.active.into())
-                    .await?;
+                self.ledger.lock_account_in_op(&mut op, pair.active).await?;
             }
 
             op.commit().await?;
