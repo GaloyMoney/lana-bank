@@ -26,7 +26,7 @@ use core_credit_collateral::{
 };
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
-use core_time_events::complete_accrual_cycle_command::COMPLETE_ACCRUAL_CYCLE_COMMAND_JOB_TYPE;
+use core_time_events::complete_accrual_cycle_command::COMPLETE_ACCRUAL_CYCLE_COMMAND;
 
 use core_credit_collection::CoreCreditCollection;
 
@@ -120,7 +120,7 @@ where
     type Config = CompleteAccrualCycleCommandConfig;
 
     fn job_type(&self) -> JobType {
-        COMPLETE_ACCRUAL_CYCLE_COMMAND_JOB_TYPE
+        COMPLETE_ACCRUAL_CYCLE_COMMAND
     }
 
     fn init(

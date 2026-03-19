@@ -10,7 +10,8 @@ use obix::out::OutboxEventMarker;
 
 use crate::{obligation::Obligations, primitives::*, public::CoreCreditCollectionEvent};
 
-const EVALUATE_OBLIGATION_STATUS_JOB: JobType = JobType::new("task.evaluate-obligation-status");
+const EVALUATE_OBLIGATION_STATUS_COMMAND: JobType =
+    JobType::new("command.eod.evaluate-obligation-status");
 
 #[derive(Serialize, Deserialize)]
 pub struct EvaluateObligationStatusConfig<Perms, E>
@@ -67,7 +68,7 @@ where
     type Config = EvaluateObligationStatusConfig<Perms, E>;
 
     fn job_type(&self) -> JobType {
-        EVALUATE_OBLIGATION_STATUS_JOB
+        EVALUATE_OBLIGATION_STATUS_COMMAND
     }
 
     fn init(

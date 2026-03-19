@@ -26,7 +26,7 @@ use core_credit_collateral::{
 };
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
-use core_time_events::accrue_interest_command::ACCRUE_INTEREST_COMMAND_JOB_TYPE;
+use core_time_events::accrue_interest_command::ACCRUE_INTEREST_COMMAND;
 
 use crate::{
     AccrualOutcome, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
@@ -110,7 +110,7 @@ where
     type Config = AccrueInterestCommandConfig;
 
     fn job_type(&self) -> JobType {
-        ACCRUE_INTEREST_COMMAND_JOB_TYPE
+        ACCRUE_INTEREST_COMMAND
     }
 
     fn init(
