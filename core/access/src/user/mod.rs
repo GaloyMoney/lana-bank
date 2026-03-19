@@ -223,18 +223,6 @@ where
         Ok(self.repo.list_by_created_at(query, direction).await?)
     }
 
-    pub async fn list_users_without_audit_in_op(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        query: es_entity::PaginatedQueryArgs<UsersByCreatedAtCursor>,
-        direction: es_entity::ListDirection,
-    ) -> Result<es_entity::PaginatedQueryRet<User, UsersByCreatedAtCursor>, UserError> {
-        Ok(self
-            .repo
-            .list_by_created_at_in_op(&mut *op, query, direction)
-            .await?)
-    }
-
     pub async fn subject_can_update_role_of_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
