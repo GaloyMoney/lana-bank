@@ -36,7 +36,8 @@ where
             has_next_page: next_page,
             end_cursor,
         } = users
-            .list_users_without_audit(
+            .list_users_without_audit_in_op(
+                &mut *op,
                 es_entity::PaginatedQueryArgs { first: 20, after },
                 es_entity::ListDirection::Descending,
             )
