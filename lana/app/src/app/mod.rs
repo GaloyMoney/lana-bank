@@ -1,6 +1,7 @@
 mod config;
 mod error;
 
+use chrono::NaiveDate;
 use core_credit::PaymentSourceAccountId;
 use es_entity::clock::{ClockController, ClockHandle};
 use sqlx::PgPool;
@@ -152,6 +153,10 @@ impl LanaApp {
         let reports =
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
         let core_price = CorePrice::init(&pool, &authz, &mut jobs, &outbox, clock.clone()).await?;
+        if let Some(ref controller) = clock_controller {
+            Self::restore_manual_clock(&pool, &clock, controller, &exposed_domain_configs_readonly)
+                .await?;
+        }
         let time_events = TimeEvents::init(
             &authz,
             &exposed_domain_configs_readonly,
@@ -699,5 +704,70 @@ impl LanaApp {
 
         let customer = self.customers().close_customer(sub, customer_id).await?;
         Ok(customer)
+    }
+
+    /// Restore the manual clock position from the end-of-day job's persisted state.
+    ///
+    /// When running in manual time mode, the clock state is in-memory only. On restart,
+    /// the clock resets to the configured `start_at`. This function reads the last
+    /// published end-of-day from the database and advances the clock to match, ensuring
+    /// time continuity across restarts.
+    #[instrument(name = "lana_app.restore_manual_clock", skip_all)]
+    async fn restore_manual_clock(
+        pool: &PgPool,
+        clock: &ClockHandle,
+        controller: &ClockController,
+        domain_configs: &domain_config::ExposedDomainConfigsReadOnly,
+    ) -> Result<(), ApplicationError> {
+        let job_type = crate::time_events::END_OF_DAY_PRODUCER_JOB.to_string();
+        let row: Option<(Option<serde_json::Value>,)> = sqlx::query_as(
+            r#"
+            SELECT je.execution_state_json
+            FROM job_executions je
+            WHERE je.job_type = $1
+            LIMIT 1
+            "#,
+        )
+        .bind(&job_type)
+        .fetch_optional(pool)
+        .await?;
+
+        let last_published_day = row
+            .and_then(|(json,)| json)
+            .and_then(|json: serde_json::Value| {
+                json.get("last_published_day")
+                    .and_then(|v| v.as_str().map(String::from))
+            })
+            .and_then(|s| NaiveDate::parse_from_str(&s, "%Y-%m-%d").ok());
+
+        let Some(last_day) = last_published_day else {
+            return Ok(());
+        };
+
+        let timezone = domain_configs
+            .get_without_audit::<crate::time_events::config::Timezone>()
+            .await?
+            .value();
+        let closing_time = domain_configs
+            .get_without_audit::<crate::time_events::config::ClosingTime>()
+            .await?
+            .value();
+
+        let target_time =
+            crate::time_events::ClosingSchedule::closing_for_day(timezone, closing_time, last_day);
+
+        let current_time = clock.now();
+        if current_time < target_time {
+            let advance_by = (target_time - current_time).to_std().unwrap_or_default();
+            controller.advance(advance_by).await;
+            tracing::info!(
+                last_published_day = %last_day,
+                from = %current_time,
+                to = %clock.now(),
+                "Restored manual clock from persisted end-of-day state"
+            );
+        }
+
+        Ok(())
     }
 }

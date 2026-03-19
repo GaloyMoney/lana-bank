@@ -25,6 +25,7 @@ use crate::{
 
 pub use closing_schedule::ClosingSchedule;
 pub use event::*;
+pub use jobs::end_of_day::END_OF_DAY_PRODUCER_JOB;
 
 #[derive(Clone, Debug)]
 pub struct TimeState {

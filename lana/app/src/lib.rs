@@ -255,7 +255,7 @@ pub mod gotenberg {
 pub mod time_events {
     pub type TimeEvents = core_time_events::TimeEvents<crate::authorization::Authorization>;
     pub type TimeState = core_time_events::TimeState;
-    pub use core_time_events::error;
+    pub use core_time_events::{ClosingSchedule, END_OF_DAY_PRODUCER_JOB, config, error};
 }
 
 pub mod domain_config {
