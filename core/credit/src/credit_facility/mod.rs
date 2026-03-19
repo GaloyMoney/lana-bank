@@ -154,21 +154,24 @@ where
             ),
         );
 
+        let update_collateralization_from_price_spawner = jobs.add_initializer(
+            jobs::update_collateralization_from_price::UpdateCollateralizationFromPriceJobInitializer::<Perms, E>::new(
+                repo.clone(),
+                collaterals.clone(),
+                ledger.clone(),
+                authz.clone(),
+            ),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(
                     jobs::collateralization_from_events::CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB,
                 ),
-                jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsHandler::<
-                    Perms,
-                    E,
-                >::new(
+                jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsHandler::new(
                     update_collateralization_spawner,
-                    repo.clone(),
-                    collaterals.clone(),
-                    ledger.clone(),
-                    authz.clone(),
+                    update_collateralization_from_price_spawner,
                 ),
             )
             .await?;
