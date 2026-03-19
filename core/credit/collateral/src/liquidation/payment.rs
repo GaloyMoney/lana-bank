@@ -183,9 +183,9 @@ impl LiquidationPaymentAmounts {
         let collateral_calc =
             CalculationAmount::<Usd>::from(price.sats_to_cents_round_down(collateral));
 
-        let to_receive = (outstanding_calc * target_ratio - collateral_calc)
+        let to_receive_unrounded = (outstanding_calc * target_ratio - collateral_calc)
             / (target_ratio - Self::UNIT_FEE_FACTOR);
-        let to_receive = to_receive
+        let to_receive = to_receive_unrounded
             .max(CalculationAmount::ZERO)
             .round_with(RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_receive);

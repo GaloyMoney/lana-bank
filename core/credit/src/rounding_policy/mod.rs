@@ -32,9 +32,9 @@ define_exposed_config! {
         key: "credit-accrual-rounding-strategy";
         validate: |value: &String| {
             match value.as_str() {
-                "away_from_zero" | "to_zero" | "half_up" => Ok(()),
+                "away_from_zero" | "to_zero" | "midpoint_away_from_zero" => Ok(()),
                 _ => Err(DomainConfigError::InvalidState(
-                    format!("invalid rounding strategy '{}'. Must be one of: away_from_zero, to_zero, half_up", value),
+                    format!("invalid rounding strategy '{}'. Must be one of: away_from_zero, to_zero, midpoint_away_from_zero", value),
                 )),
             }
         };
@@ -45,7 +45,7 @@ pub(crate) fn parse_rounding_strategy(s: &str) -> RoundingStrategy {
     match s {
         "away_from_zero" => RoundingStrategy::AwayFromZero,
         "to_zero" => RoundingStrategy::ToZero,
-        "half_up" => RoundingStrategy::MidpointAwayFromZero,
+        "midpoint_away_from_zero" => RoundingStrategy::MidpointAwayFromZero,
         _ => unreachable!("validated by config"),
     }
 }

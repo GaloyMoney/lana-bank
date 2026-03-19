@@ -87,25 +87,28 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
     ) -> Result<Self, EntityHydrationError> {
         let mut builder = InterestAccrualCycleBuilder::default();
         for event in events.iter_all() {
-            if let InterestAccrualCycleEvent::Initialized {
-                id,
-                facility_id,
-                account_ids,
-                idx,
-                period,
-                facility_maturity_date,
-                terms,
-                ..
-            } = event
-            {
-                builder = builder
-                    .id(*id)
-                    .credit_facility_id(*facility_id)
-                    .account_ids(*account_ids)
-                    .idx(*idx)
-                    .period(*period)
-                    .facility_maturity_date(*facility_maturity_date)
-                    .terms(*terms);
+            match event {
+                InterestAccrualCycleEvent::Initialized {
+                    id,
+                    facility_id,
+                    account_ids,
+                    idx,
+                    period,
+                    facility_maturity_date,
+                    terms,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .credit_facility_id(*facility_id)
+                        .account_ids(*account_ids)
+                        .idx(*idx)
+                        .period(*period)
+                        .facility_maturity_date(*facility_maturity_date)
+                        .terms(*terms);
+                }
+                InterestAccrualCycleEvent::InterestAccrued { .. } => (),
+                InterestAccrualCycleEvent::InterestAccrualsPosted { .. } => (),
             }
         }
         builder.events(events).build()
@@ -255,11 +258,11 @@ impl InterestAccrualCycle {
         // Round to minor units for booking (always lender-favorable)
         let new_booked_total = cumulative.round_with(RoundingStrategy::AwayFromZero);
         let previous_booked_total = self.total_accrued();
-        let delta = new_booked_total - previous_booked_total;
+        let accrued_interest = new_booked_total - previous_booked_total;
 
         let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, self.count_accrued() + 1);
         let interest_accrual = InterestAccrualData {
-            interest: delta,
+            interest: accrued_interest,
             period: accrual_period,
             tx_ref: accrual_tx_ref,
             tx_id: LedgerTxId::new(),
@@ -269,7 +272,7 @@ impl InterestAccrualCycle {
             .push(InterestAccrualCycleEvent::InterestAccrued {
                 ledger_tx_id: interest_accrual.tx_id,
                 tx_ref: interest_accrual.tx_ref.to_string(),
-                amount: delta,
+                amount: accrued_interest,
                 accrued_at: interest_accrual.period.end,
                 principal: outstanding,
                 days,
@@ -745,6 +748,7 @@ mod test {
         let start_day = start.day();
         let end_day = end.day();
 
+        let mut expected_start = start;
         let mut expected_end_of_day = Utc
             .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
             .unwrap()
@@ -755,8 +759,10 @@ mod test {
                 .record_accrual(UsdCents::ONE, 5, RoundingStrategy::AwayFromZero)
                 .unwrap()
                 .expect("expected Executed");
+            assert_eq!(period.start, expected_start);
             assert_eq!(period.end, expected_end_of_day);
 
+            expected_start = expected_end_of_day + chrono::Duration::nanoseconds(1);
             expected_end_of_day += chrono::Duration::days(1);
         }
     }
@@ -812,8 +818,59 @@ mod test {
                     .interest_for_period(disbursed_outstanding_amount, 1)
             })
             .sum();
-        let expected_total = expected.round_with(RoundingStrategy::AwayFromZero);
+        let expected_accrual_sum = expected.round_with(RoundingStrategy::AwayFromZero);
         let InterestAccrualCycleData { interest, .. } = accrual.accrual_cycle_data().unwrap();
-        assert_eq!(interest, expected_total);
+        assert_eq!(interest, expected_accrual_sum);
+    }
+
+    #[test]
+    fn midpoint_away_from_zero_rounding_affects_regulatory_precision() {
+        let principal = UsdCents::from(1_000_000_00);
+
+        let mut accrual_away = accrual_from(initial_events());
+        let mut accrual_midpoint = accrual_from(initial_events());
+
+        // Record a single accrual with each strategy
+        let _ = accrual_away
+            .record_accrual(principal, 5, RoundingStrategy::AwayFromZero)
+            .unwrap()
+            .expect("expected Executed");
+        let _ = accrual_midpoint
+            .record_accrual(principal, 5, RoundingStrategy::MidpointAwayFromZero)
+            .unwrap()
+            .expect("expected Executed");
+
+        // Booking amounts are identical (both use hardcoded AwayFromZero)
+        assert_eq!(
+            accrual_away.total_accrued(),
+            accrual_midpoint.total_accrued()
+        );
+
+        // Extract accumulated_at_regulatory_precision from events
+        let extract_regulatory = |accrual: &InterestAccrualCycle| -> rust_decimal::Decimal {
+            accrual
+                .events
+                .iter_all()
+                .find_map(|e| match e {
+                    InterestAccrualCycleEvent::InterestAccrued {
+                        accumulated_at_regulatory_precision,
+                        ..
+                    } => Some(*accumulated_at_regulatory_precision),
+                    _ => None,
+                })
+                .unwrap()
+        };
+
+        let reg_away = extract_regulatory(&accrual_away);
+        let reg_midpoint = extract_regulatory(&accrual_midpoint);
+
+        // Both should produce a valid regulatory precision value
+        assert!(reg_away > rust_decimal::Decimal::ZERO);
+        assert!(reg_midpoint > rust_decimal::Decimal::ZERO);
+
+        // The regulatory values may differ at boundaries; at minimum both
+        // must be rounded to exactly 5 decimal places
+        assert_eq!(reg_away.scale(), 5);
+        assert_eq!(reg_midpoint.scale(), 5);
     }
 }

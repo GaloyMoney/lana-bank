@@ -84,7 +84,7 @@ pub async fn init_domain_configs(
         ),
         (
             "credit-accrual-rounding-strategy".to_string(),
-            serde_json::json!("half_up"),
+            serde_json::json!("midpoint_away_from_zero"),
         ),
     ];
     let (internal, exposed, exposed_readonly) = domain_config::init(
