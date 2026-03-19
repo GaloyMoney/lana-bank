@@ -18,7 +18,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import {
   useGetCreditFacilityProposalLayoutDetailsQuery,
   CreditFacilityProposalStatus,
-  useCreditFacilityProposalConcludedSubscription,
+  useCreditFacilityProposalUpdatedSubscription,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -88,12 +88,9 @@ gql`
     }
   }
 
-  subscription creditFacilityProposalConcluded($creditFacilityProposalId: UUID!) {
-    creditFacilityProposalConcluded(creditFacilityProposalId: $creditFacilityProposalId) {
-      status
-      creditFacilityProposal {
-        ...CreditFacilityProposalLayoutFragment
-      }
+  subscription creditFacilityProposalUpdated($creditFacilityProposalId: UUID!) {
+    creditFacilityProposalUpdated(creditFacilityProposalId: $creditFacilityProposalId) {
+      ...CreditFacilityProposalLayoutFragment
     }
   }
 `
@@ -112,7 +109,7 @@ export default function CreditFacilityProposalLayout({
     variables: { creditFacilityProposalId: proposalId },
   })
 
-  useCreditFacilityProposalConcludedSubscription(
+  useCreditFacilityProposalUpdatedSubscription(
     data?.creditFacilityProposal &&
       data.creditFacilityProposal.status ===
         CreditFacilityProposalStatus.PendingApproval

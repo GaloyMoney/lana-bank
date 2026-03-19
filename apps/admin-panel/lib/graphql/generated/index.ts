@@ -610,18 +610,6 @@ export type CreditFacilityCollateralUpdated = {
   txId: Scalars['UUID']['output'];
 };
 
-export type CreditFacilityCollateralizationPayload = {
-  __typename?: 'CreditFacilityCollateralizationPayload';
-  collateral: Scalars['Satoshis']['output'];
-  creditFacility: CreditFacility;
-  effective: Scalars['Date']['output'];
-  outstandingDisbursal: Scalars['UsdCents']['output'];
-  outstandingInterest: Scalars['UsdCents']['output'];
-  price: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  state: CollateralizationState;
-};
-
 export type CreditFacilityCollateralizationUpdated = {
   __typename?: 'CreditFacilityCollateralizationUpdated';
   collateral: Scalars['Satoshis']['output'];
@@ -825,12 +813,6 @@ export type CreditFacilityProposal = {
 export type CreditFacilityProposalEventHistoryArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-};
-
-export type CreditFacilityProposalConcludedPayload = {
-  __typename?: 'CreditFacilityProposalConcludedPayload';
-  creditFacilityProposal: CreditFacilityProposal;
-  status: CreditFacilityProposalStatus;
 };
 
 export type CreditFacilityProposalConnection = {
@@ -1568,12 +1550,6 @@ export enum DepositsSortBy {
   CreatedAt = 'CREATED_AT',
   PublicId = 'PUBLIC_ID'
 }
-
-export type DisbursalApprovalConcludedPayload = {
-  __typename?: 'DisbursalApprovalConcludedPayload';
-  disbursal: CreditFacilityDisbursal;
-  status: DisbursalStatus;
-};
 
 export type DisbursalEntry = {
   __typename?: 'DisbursalEntry';
@@ -2620,16 +2596,6 @@ export type PendingCreditFacilityEventHistoryArgs = {
   first: Scalars['Int']['input'];
 };
 
-export type PendingCreditFacilityCollateralizationPayload = {
-  __typename?: 'PendingCreditFacilityCollateralizationPayload';
-  collateral: Scalars['Satoshis']['output'];
-  effective: Scalars['Date']['output'];
-  pendingCreditFacility: PendingCreditFacility;
-  price: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  state: PendingCreditFacilityCollateralizationState;
-};
-
 export enum PendingCreditFacilityCollateralizationState {
   FullyCollateralized = 'FULLY_COLLATERALIZED',
   NotYetCollateralized = 'NOT_YET_COLLATERALIZED',
@@ -2643,13 +2609,6 @@ export type PendingCreditFacilityCollateralizationUpdated = {
   price: Scalars['UsdCents']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   state: PendingCreditFacilityCollateralizationState;
-};
-
-export type PendingCreditFacilityCompletedPayload = {
-  __typename?: 'PendingCreditFacilityCompletedPayload';
-  pendingCreditFacility: PendingCreditFacility;
-  recordedAt: Scalars['Timestamp']['output'];
-  status: PendingCreditFacilityStatus;
 };
 
 export type PendingCreditFacilityConnection = {
@@ -2926,12 +2885,6 @@ export type ProspectKycLinkCreateInput = {
 export type ProspectKycLinkCreatePayload = {
   __typename?: 'ProspectKycLinkCreatePayload';
   url: Scalars['String']['output'];
-};
-
-export type ProspectKycUpdatedPayload = {
-  __typename?: 'ProspectKycUpdatedPayload';
-  kycStatus: KycStatus;
-  prospect: Prospect;
 };
 
 export enum ProspectStage {
@@ -3643,30 +3596,29 @@ export enum SortDirection {
 
 export type Subscription = {
   __typename?: 'Subscription';
-  creditFacilityCollateralizationUpdated: CreditFacilityCollateralizationPayload;
-  creditFacilityProposalConcluded: CreditFacilityProposalConcludedPayload;
-  disbursalApprovalConcluded: DisbursalApprovalConcludedPayload;
+  creditFacilityProposalUpdated: CreditFacilityProposal;
+  creditFacilityUpdated: CreditFacility;
+  disbursalUpdated: CreditFacilityDisbursal;
   ledgerAccountCsvExportUploaded: LedgerAccountCsvExportUploadedPayload;
-  pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
-  pendingCreditFacilityCompleted: PendingCreditFacilityCompletedPayload;
-  prospectKycUpdated: ProspectKycUpdatedPayload;
+  pendingCreditFacilityUpdated: PendingCreditFacility;
+  prospectUpdated: Prospect;
   realtimePriceUpdated: RealtimePrice;
   reportRunUpdated: ReportRunUpdatedPayload;
-  withdrawalApprovalConcluded: WithdrawalApprovalConcludedPayload;
+  withdrawalUpdated: Withdrawal;
 };
 
 
-export type SubscriptionCreditFacilityCollateralizationUpdatedArgs = {
-  creditFacilityId: Scalars['UUID']['input'];
-};
-
-
-export type SubscriptionCreditFacilityProposalConcludedArgs = {
+export type SubscriptionCreditFacilityProposalUpdatedArgs = {
   creditFacilityProposalId: Scalars['UUID']['input'];
 };
 
 
-export type SubscriptionDisbursalApprovalConcludedArgs = {
+export type SubscriptionCreditFacilityUpdatedArgs = {
+  creditFacilityId: Scalars['UUID']['input'];
+};
+
+
+export type SubscriptionDisbursalUpdatedArgs = {
   disbursalId: Scalars['UUID']['input'];
 };
 
@@ -3676,22 +3628,17 @@ export type SubscriptionLedgerAccountCsvExportUploadedArgs = {
 };
 
 
-export type SubscriptionPendingCreditFacilityCollateralizationUpdatedArgs = {
+export type SubscriptionPendingCreditFacilityUpdatedArgs = {
   pendingCreditFacilityId: Scalars['UUID']['input'];
 };
 
 
-export type SubscriptionPendingCreditFacilityCompletedArgs = {
-  pendingCreditFacilityId: Scalars['UUID']['input'];
-};
-
-
-export type SubscriptionProspectKycUpdatedArgs = {
+export type SubscriptionProspectUpdatedArgs = {
   prospectId: Scalars['UUID']['input'];
 };
 
 
-export type SubscriptionWithdrawalApprovalConcludedArgs = {
+export type SubscriptionWithdrawalUpdatedArgs = {
   withdrawalId: Scalars['UUID']['input'];
 };
 
@@ -3977,12 +3924,6 @@ export type Withdrawal = {
 export type WithdrawalEventHistoryArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-};
-
-export type WithdrawalApprovalConcludedPayload = {
-  __typename?: 'WithdrawalApprovalConcludedPayload';
-  status: WithdrawalStatus;
-  withdrawal: Withdrawal;
 };
 
 export type WithdrawalCancelInput = {
@@ -4293,24 +4234,24 @@ export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', credit
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } | null };
 
-export type CreditFacilityCollateralizationUpdatedSubscriptionVariables = Exact<{
+export type CreditFacilityUpdatedSubscriptionVariables = Exact<{
   creditFacilityId: Scalars['UUID']['input'];
 }>;
 
 
-export type CreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', creditFacilityCollateralizationUpdated: { __typename?: 'CreditFacilityCollateralizationPayload', creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, currentCvl:
+export type CreditFacilityUpdatedSubscription = { __typename?: 'Subscription', creditFacilityUpdated: { __typename?: 'CreditFacility', creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, currentCvl:
+      | { __typename: 'FiniteCvlPct', value: any }
+      | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+    , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-      , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , marginCallCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , initialCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } } };
+      , marginCallCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+      , initialCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+      , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } };
 
 export type LedgerAccountInfoFragment = { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
@@ -4595,24 +4536,24 @@ export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query'
         | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } | null };
 
-export type CreditFacilityProposalConcludedSubscriptionVariables = Exact<{
+export type CreditFacilityProposalUpdatedSubscriptionVariables = Exact<{
   creditFacilityProposalId: Scalars['UUID']['input'];
 }>;
 
 
-export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscription', creditFacilityProposalConcluded: { __typename?: 'CreditFacilityProposalConcludedPayload', status: CreditFacilityProposalStatus, creditFacilityProposal: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', custodianId: string, name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , marginCallCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , initialCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-         }, approvalProcess?: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
-          | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } } };
+export type CreditFacilityProposalUpdatedSubscription = { __typename?: 'Subscription', creditFacilityProposalUpdated: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', custodianId: string, name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+      , marginCallCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+      , initialCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+       }, approvalProcess?: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+        | { __typename: 'AutoApproval' }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } };
 
 export type GetCreditFacilityProposalRepaymentPlanQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -4930,15 +4871,15 @@ export type GetDisbursalDetailsQuery = { __typename?: 'Query', disbursalByPublic
         | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
-export type DisbursalApprovalConcludedSubscriptionVariables = Exact<{
+export type DisbursalUpdatedSubscriptionVariables = Exact<{
   disbursalId: Scalars['UUID']['input'];
 }>;
 
 
-export type DisbursalApprovalConcludedSubscription = { __typename?: 'Subscription', disbursalApprovalConcluded: { __typename?: 'DisbursalApprovalConcludedPayload', status: DisbursalStatus, disbursal: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
-          | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
+export type DisbursalUpdatedSubscription = { __typename?: 'Subscription', disbursalUpdated: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+        | { __typename: 'AutoApproval' }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } };
 
 export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
   input: CreditFacilityDisbursalInitiateInput;
@@ -5324,43 +5265,24 @@ export type GetPendingCreditFacilityLayoutDetailsQuery = { __typename?: 'Query',
         | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
-export type PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables = Exact<{
+export type PendingCreditFacilityUpdatedSubscriptionVariables = Exact<{
   pendingCreditFacilityId: Scalars['UUID']['input'];
 }>;
 
 
-export type PendingCreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCollateralizationUpdated: { __typename?: 'PendingCreditFacilityCollateralizationPayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , marginCallCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , initialCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-         }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
-          | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
-
-export type PendingCreditFacilityCompletedSubscriptionVariables = Exact<{
-  pendingCreditFacilityId: Scalars['UUID']['input'];
-}>;
-
-
-export type PendingCreditFacilityCompletedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCompleted: { __typename?: 'PendingCreditFacilityCompletedPayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , marginCallCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , initialCvl:
-          | { __typename: 'FiniteCvlPct', value: any }
-          | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-         }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
-          | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
+export type PendingCreditFacilityUpdatedSubscription = { __typename?: 'Subscription', pendingCreditFacilityUpdated: { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+      , marginCallCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+      , initialCvl:
+        | { __typename: 'FiniteCvlPct', value: any }
+        | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
+       }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+        | { __typename: 'AutoApproval' }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } };
 
 export type GetPendingCreditFacilityRepaymentPlanQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -5519,12 +5441,12 @@ export type GetProspectBasicDetailsQueryVariables = Exact<{
 
 export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } | null };
 
-export type ProspectKycUpdatedSubscriptionVariables = Exact<{
+export type ProspectUpdatedSubscriptionVariables = Exact<{
   prospectId: Scalars['UUID']['input'];
 }>;
 
 
-export type ProspectKycUpdatedSubscription = { __typename?: 'Subscription', prospectKycUpdated: { __typename?: 'ProspectKycUpdatedPayload', prospect: { __typename?: 'Prospect', prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
+export type ProspectUpdatedSubscription = { __typename?: 'Subscription', prospectUpdated: { __typename?: 'Prospect', prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } };
 
 export type ProspectCreateMutationVariables = Exact<{
   input: ProspectCreateInput;
@@ -5872,15 +5794,15 @@ export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawalByPubl
         | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
-export type WithdrawalApprovalConcludedSubscriptionVariables = Exact<{
+export type WithdrawalUpdatedSubscriptionVariables = Exact<{
   withdrawalId: Scalars['UUID']['input'];
 }>;
 
 
-export type WithdrawalApprovalConcludedSubscription = { __typename?: 'Subscription', withdrawalApprovalConcluded: { __typename?: 'WithdrawalApprovalConcludedPayload', status: WithdrawalStatus, withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
-          | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
+export type WithdrawalUpdatedSubscription = { __typename?: 'Subscription', withdrawalUpdated: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+        | { __typename: 'AutoApproval' }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } };
 
 export type WithdrawalRevertMutationVariables = Exact<{
   input: WithdrawalRevertInput;
@@ -8273,38 +8195,36 @@ export type GetCreditFacilityLayoutDetailsQueryHookResult = ReturnType<typeof us
 export type GetCreditFacilityLayoutDetailsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityLayoutDetailsLazyQuery>;
 export type GetCreditFacilityLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityLayoutDetailsSuspenseQuery>;
 export type GetCreditFacilityLayoutDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityLayoutDetailsQuery, GetCreditFacilityLayoutDetailsQueryVariables>;
-export const CreditFacilityCollateralizationUpdatedDocument = gql`
-    subscription creditFacilityCollateralizationUpdated($creditFacilityId: UUID!) {
-  creditFacilityCollateralizationUpdated(creditFacilityId: $creditFacilityId) {
-    creditFacility {
-      ...CreditFacilityLayoutFragment
-    }
+export const CreditFacilityUpdatedDocument = gql`
+    subscription creditFacilityUpdated($creditFacilityId: UUID!) {
+  creditFacilityUpdated(creditFacilityId: $creditFacilityId) {
+    ...CreditFacilityLayoutFragment
   }
 }
     ${CreditFacilityLayoutFragmentFragmentDoc}`;
 
 /**
- * __useCreditFacilityCollateralizationUpdatedSubscription__
+ * __useCreditFacilityUpdatedSubscription__
  *
- * To run a query within a React component, call `useCreditFacilityCollateralizationUpdatedSubscription` and pass it any options that fit your needs.
- * When your component renders, `useCreditFacilityCollateralizationUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useCreditFacilityUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useCreditFacilityCollateralizationUpdatedSubscription({
+ * const { data, loading, error } = useCreditFacilityUpdatedSubscription({
  *   variables: {
  *      creditFacilityId: // value for 'creditFacilityId'
  *   },
  * });
  */
-export function useCreditFacilityCollateralizationUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<CreditFacilityCollateralizationUpdatedSubscription, CreditFacilityCollateralizationUpdatedSubscriptionVariables> & ({ variables: CreditFacilityCollateralizationUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useCreditFacilityUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<CreditFacilityUpdatedSubscription, CreditFacilityUpdatedSubscriptionVariables> & ({ variables: CreditFacilityUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<CreditFacilityCollateralizationUpdatedSubscription, CreditFacilityCollateralizationUpdatedSubscriptionVariables>(CreditFacilityCollateralizationUpdatedDocument, options);
+        return Apollo.useSubscription<CreditFacilityUpdatedSubscription, CreditFacilityUpdatedSubscriptionVariables>(CreditFacilityUpdatedDocument, options);
       }
-export type CreditFacilityCollateralizationUpdatedSubscriptionHookResult = ReturnType<typeof useCreditFacilityCollateralizationUpdatedSubscription>;
-export type CreditFacilityCollateralizationUpdatedSubscriptionResult = Apollo.SubscriptionResult<CreditFacilityCollateralizationUpdatedSubscription>;
+export type CreditFacilityUpdatedSubscriptionHookResult = ReturnType<typeof useCreditFacilityUpdatedSubscription>;
+export type CreditFacilityUpdatedSubscriptionResult = Apollo.SubscriptionResult<CreditFacilityUpdatedSubscription>;
 export const CreditFacilityLedgerAccountsDocument = gql`
     query CreditFacilityLedgerAccounts($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {
@@ -8863,41 +8783,38 @@ export type GetCreditFacilityProposalLayoutDetailsQueryHookResult = ReturnType<t
 export type GetCreditFacilityProposalLayoutDetailsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalLayoutDetailsLazyQuery>;
 export type GetCreditFacilityProposalLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalLayoutDetailsSuspenseQuery>;
 export type GetCreditFacilityProposalLayoutDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityProposalLayoutDetailsQuery, GetCreditFacilityProposalLayoutDetailsQueryVariables>;
-export const CreditFacilityProposalConcludedDocument = gql`
-    subscription creditFacilityProposalConcluded($creditFacilityProposalId: UUID!) {
-  creditFacilityProposalConcluded(
+export const CreditFacilityProposalUpdatedDocument = gql`
+    subscription creditFacilityProposalUpdated($creditFacilityProposalId: UUID!) {
+  creditFacilityProposalUpdated(
     creditFacilityProposalId: $creditFacilityProposalId
   ) {
-    status
-    creditFacilityProposal {
-      ...CreditFacilityProposalLayoutFragment
-    }
+    ...CreditFacilityProposalLayoutFragment
   }
 }
     ${CreditFacilityProposalLayoutFragmentFragmentDoc}`;
 
 /**
- * __useCreditFacilityProposalConcludedSubscription__
+ * __useCreditFacilityProposalUpdatedSubscription__
  *
- * To run a query within a React component, call `useCreditFacilityProposalConcludedSubscription` and pass it any options that fit your needs.
- * When your component renders, `useCreditFacilityProposalConcludedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useCreditFacilityProposalUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityProposalUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useCreditFacilityProposalConcludedSubscription({
+ * const { data, loading, error } = useCreditFacilityProposalUpdatedSubscription({
  *   variables: {
  *      creditFacilityProposalId: // value for 'creditFacilityProposalId'
  *   },
  * });
  */
-export function useCreditFacilityProposalConcludedSubscription(baseOptions: Apollo.SubscriptionHookOptions<CreditFacilityProposalConcludedSubscription, CreditFacilityProposalConcludedSubscriptionVariables> & ({ variables: CreditFacilityProposalConcludedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useCreditFacilityProposalUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<CreditFacilityProposalUpdatedSubscription, CreditFacilityProposalUpdatedSubscriptionVariables> & ({ variables: CreditFacilityProposalUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<CreditFacilityProposalConcludedSubscription, CreditFacilityProposalConcludedSubscriptionVariables>(CreditFacilityProposalConcludedDocument, options);
+        return Apollo.useSubscription<CreditFacilityProposalUpdatedSubscription, CreditFacilityProposalUpdatedSubscriptionVariables>(CreditFacilityProposalUpdatedDocument, options);
       }
-export type CreditFacilityProposalConcludedSubscriptionHookResult = ReturnType<typeof useCreditFacilityProposalConcludedSubscription>;
-export type CreditFacilityProposalConcludedSubscriptionResult = Apollo.SubscriptionResult<CreditFacilityProposalConcludedSubscription>;
+export type CreditFacilityProposalUpdatedSubscriptionHookResult = ReturnType<typeof useCreditFacilityProposalUpdatedSubscription>;
+export type CreditFacilityProposalUpdatedSubscriptionResult = Apollo.SubscriptionResult<CreditFacilityProposalUpdatedSubscription>;
 export const GetCreditFacilityProposalRepaymentPlanDocument = gql`
     query GetCreditFacilityProposalRepaymentPlan($id: UUID!) {
   creditFacilityProposal(id: $id) {
@@ -10586,39 +10503,36 @@ export type GetDisbursalDetailsQueryHookResult = ReturnType<typeof useGetDisburs
 export type GetDisbursalDetailsLazyQueryHookResult = ReturnType<typeof useGetDisbursalDetailsLazyQuery>;
 export type GetDisbursalDetailsSuspenseQueryHookResult = ReturnType<typeof useGetDisbursalDetailsSuspenseQuery>;
 export type GetDisbursalDetailsQueryResult = Apollo.QueryResult<GetDisbursalDetailsQuery, GetDisbursalDetailsQueryVariables>;
-export const DisbursalApprovalConcludedDocument = gql`
-    subscription disbursalApprovalConcluded($disbursalId: UUID!) {
-  disbursalApprovalConcluded(disbursalId: $disbursalId) {
-    status
-    disbursal {
-      ...DisbursalDetailsPageFragment
-    }
+export const DisbursalUpdatedDocument = gql`
+    subscription disbursalUpdated($disbursalId: UUID!) {
+  disbursalUpdated(disbursalId: $disbursalId) {
+    ...DisbursalDetailsPageFragment
   }
 }
     ${DisbursalDetailsPageFragmentFragmentDoc}`;
 
 /**
- * __useDisbursalApprovalConcludedSubscription__
+ * __useDisbursalUpdatedSubscription__
  *
- * To run a query within a React component, call `useDisbursalApprovalConcludedSubscription` and pass it any options that fit your needs.
- * When your component renders, `useDisbursalApprovalConcludedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useDisbursalUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useDisbursalUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useDisbursalApprovalConcludedSubscription({
+ * const { data, loading, error } = useDisbursalUpdatedSubscription({
  *   variables: {
  *      disbursalId: // value for 'disbursalId'
  *   },
  * });
  */
-export function useDisbursalApprovalConcludedSubscription(baseOptions: Apollo.SubscriptionHookOptions<DisbursalApprovalConcludedSubscription, DisbursalApprovalConcludedSubscriptionVariables> & ({ variables: DisbursalApprovalConcludedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useDisbursalUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<DisbursalUpdatedSubscription, DisbursalUpdatedSubscriptionVariables> & ({ variables: DisbursalUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<DisbursalApprovalConcludedSubscription, DisbursalApprovalConcludedSubscriptionVariables>(DisbursalApprovalConcludedDocument, options);
+        return Apollo.useSubscription<DisbursalUpdatedSubscription, DisbursalUpdatedSubscriptionVariables>(DisbursalUpdatedDocument, options);
       }
-export type DisbursalApprovalConcludedSubscriptionHookResult = ReturnType<typeof useDisbursalApprovalConcludedSubscription>;
-export type DisbursalApprovalConcludedSubscriptionResult = Apollo.SubscriptionResult<DisbursalApprovalConcludedSubscription>;
+export type DisbursalUpdatedSubscriptionHookResult = ReturnType<typeof useDisbursalUpdatedSubscription>;
+export type DisbursalUpdatedSubscriptionResult = Apollo.SubscriptionResult<DisbursalUpdatedSubscription>;
 export const CreditFacilityDisbursalInitiateDocument = gql`
     mutation CreditFacilityDisbursalInitiate($input: CreditFacilityDisbursalInitiateInput!) {
   creditFacilityDisbursalInitiate(input: $input) {
@@ -12365,74 +12279,36 @@ export type GetPendingCreditFacilityLayoutDetailsQueryHookResult = ReturnType<ty
 export type GetPendingCreditFacilityLayoutDetailsLazyQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityLayoutDetailsLazyQuery>;
 export type GetPendingCreditFacilityLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityLayoutDetailsSuspenseQuery>;
 export type GetPendingCreditFacilityLayoutDetailsQueryResult = Apollo.QueryResult<GetPendingCreditFacilityLayoutDetailsQuery, GetPendingCreditFacilityLayoutDetailsQueryVariables>;
-export const PendingCreditFacilityCollateralizationUpdatedDocument = gql`
-    subscription PendingCreditFacilityCollateralizationUpdated($pendingCreditFacilityId: UUID!) {
-  pendingCreditFacilityCollateralizationUpdated(
-    pendingCreditFacilityId: $pendingCreditFacilityId
-  ) {
-    pendingCreditFacility {
-      ...PendingCreditFacilityLayoutFragment
-    }
+export const PendingCreditFacilityUpdatedDocument = gql`
+    subscription pendingCreditFacilityUpdated($pendingCreditFacilityId: UUID!) {
+  pendingCreditFacilityUpdated(pendingCreditFacilityId: $pendingCreditFacilityId) {
+    ...PendingCreditFacilityLayoutFragment
   }
 }
     ${PendingCreditFacilityLayoutFragmentFragmentDoc}`;
 
 /**
- * __usePendingCreditFacilityCollateralizationUpdatedSubscription__
+ * __usePendingCreditFacilityUpdatedSubscription__
  *
- * To run a query within a React component, call `usePendingCreditFacilityCollateralizationUpdatedSubscription` and pass it any options that fit your needs.
- * When your component renders, `usePendingCreditFacilityCollateralizationUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `usePendingCreditFacilityUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `usePendingCreditFacilityUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = usePendingCreditFacilityCollateralizationUpdatedSubscription({
+ * const { data, loading, error } = usePendingCreditFacilityUpdatedSubscription({
  *   variables: {
  *      pendingCreditFacilityId: // value for 'pendingCreditFacilityId'
  *   },
  * });
  */
-export function usePendingCreditFacilityCollateralizationUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<PendingCreditFacilityCollateralizationUpdatedSubscription, PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables> & ({ variables: PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function usePendingCreditFacilityUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<PendingCreditFacilityUpdatedSubscription, PendingCreditFacilityUpdatedSubscriptionVariables> & ({ variables: PendingCreditFacilityUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<PendingCreditFacilityCollateralizationUpdatedSubscription, PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables>(PendingCreditFacilityCollateralizationUpdatedDocument, options);
+        return Apollo.useSubscription<PendingCreditFacilityUpdatedSubscription, PendingCreditFacilityUpdatedSubscriptionVariables>(PendingCreditFacilityUpdatedDocument, options);
       }
-export type PendingCreditFacilityCollateralizationUpdatedSubscriptionHookResult = ReturnType<typeof usePendingCreditFacilityCollateralizationUpdatedSubscription>;
-export type PendingCreditFacilityCollateralizationUpdatedSubscriptionResult = Apollo.SubscriptionResult<PendingCreditFacilityCollateralizationUpdatedSubscription>;
-export const PendingCreditFacilityCompletedDocument = gql`
-    subscription pendingCreditFacilityCompleted($pendingCreditFacilityId: UUID!) {
-  pendingCreditFacilityCompleted(
-    pendingCreditFacilityId: $pendingCreditFacilityId
-  ) {
-    pendingCreditFacility {
-      ...PendingCreditFacilityLayoutFragment
-    }
-  }
-}
-    ${PendingCreditFacilityLayoutFragmentFragmentDoc}`;
-
-/**
- * __usePendingCreditFacilityCompletedSubscription__
- *
- * To run a query within a React component, call `usePendingCreditFacilityCompletedSubscription` and pass it any options that fit your needs.
- * When your component renders, `usePendingCreditFacilityCompletedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = usePendingCreditFacilityCompletedSubscription({
- *   variables: {
- *      pendingCreditFacilityId: // value for 'pendingCreditFacilityId'
- *   },
- * });
- */
-export function usePendingCreditFacilityCompletedSubscription(baseOptions: Apollo.SubscriptionHookOptions<PendingCreditFacilityCompletedSubscription, PendingCreditFacilityCompletedSubscriptionVariables> & ({ variables: PendingCreditFacilityCompletedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<PendingCreditFacilityCompletedSubscription, PendingCreditFacilityCompletedSubscriptionVariables>(PendingCreditFacilityCompletedDocument, options);
-      }
-export type PendingCreditFacilityCompletedSubscriptionHookResult = ReturnType<typeof usePendingCreditFacilityCompletedSubscription>;
-export type PendingCreditFacilityCompletedSubscriptionResult = Apollo.SubscriptionResult<PendingCreditFacilityCompletedSubscription>;
+export type PendingCreditFacilityUpdatedSubscriptionHookResult = ReturnType<typeof usePendingCreditFacilityUpdatedSubscription>;
+export type PendingCreditFacilityUpdatedSubscriptionResult = Apollo.SubscriptionResult<PendingCreditFacilityUpdatedSubscription>;
 export const GetPendingCreditFacilityRepaymentPlanDocument = gql`
     query GetPendingCreditFacilityRepaymentPlan($id: UUID!) {
   pendingCreditFacility(id: $id) {
@@ -13238,38 +13114,36 @@ export type GetProspectBasicDetailsQueryHookResult = ReturnType<typeof useGetPro
 export type GetProspectBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsLazyQuery>;
 export type GetProspectBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsSuspenseQuery>;
 export type GetProspectBasicDetailsQueryResult = Apollo.QueryResult<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>;
-export const ProspectKycUpdatedDocument = gql`
-    subscription ProspectKycUpdated($prospectId: UUID!) {
-  prospectKycUpdated(prospectId: $prospectId) {
-    prospect {
-      ...ProspectDetailsFragment
-    }
+export const ProspectUpdatedDocument = gql`
+    subscription ProspectUpdated($prospectId: UUID!) {
+  prospectUpdated(prospectId: $prospectId) {
+    ...ProspectDetailsFragment
   }
 }
     ${ProspectDetailsFragmentFragmentDoc}`;
 
 /**
- * __useProspectKycUpdatedSubscription__
+ * __useProspectUpdatedSubscription__
  *
- * To run a query within a React component, call `useProspectKycUpdatedSubscription` and pass it any options that fit your needs.
- * When your component renders, `useProspectKycUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useProspectUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useProspectUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useProspectKycUpdatedSubscription({
+ * const { data, loading, error } = useProspectUpdatedSubscription({
  *   variables: {
  *      prospectId: // value for 'prospectId'
  *   },
  * });
  */
-export function useProspectKycUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<ProspectKycUpdatedSubscription, ProspectKycUpdatedSubscriptionVariables> & ({ variables: ProspectKycUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useProspectUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<ProspectUpdatedSubscription, ProspectUpdatedSubscriptionVariables> & ({ variables: ProspectUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<ProspectKycUpdatedSubscription, ProspectKycUpdatedSubscriptionVariables>(ProspectKycUpdatedDocument, options);
+        return Apollo.useSubscription<ProspectUpdatedSubscription, ProspectUpdatedSubscriptionVariables>(ProspectUpdatedDocument, options);
       }
-export type ProspectKycUpdatedSubscriptionHookResult = ReturnType<typeof useProspectKycUpdatedSubscription>;
-export type ProspectKycUpdatedSubscriptionResult = Apollo.SubscriptionResult<ProspectKycUpdatedSubscription>;
+export type ProspectUpdatedSubscriptionHookResult = ReturnType<typeof useProspectUpdatedSubscription>;
+export type ProspectUpdatedSubscriptionResult = Apollo.SubscriptionResult<ProspectUpdatedSubscription>;
 export const ProspectCreateDocument = gql`
     mutation ProspectCreate($input: ProspectCreateInput!) {
   prospectCreate(input: $input) {
@@ -14810,39 +14684,36 @@ export type GetWithdrawalDetailsQueryHookResult = ReturnType<typeof useGetWithdr
 export type GetWithdrawalDetailsLazyQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsLazyQuery>;
 export type GetWithdrawalDetailsSuspenseQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsSuspenseQuery>;
 export type GetWithdrawalDetailsQueryResult = Apollo.QueryResult<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>;
-export const WithdrawalApprovalConcludedDocument = gql`
-    subscription withdrawalApprovalConcluded($withdrawalId: UUID!) {
-  withdrawalApprovalConcluded(withdrawalId: $withdrawalId) {
-    status
-    withdrawal {
-      ...WithdrawDetailsPageFragment
-    }
+export const WithdrawalUpdatedDocument = gql`
+    subscription withdrawalUpdated($withdrawalId: UUID!) {
+  withdrawalUpdated(withdrawalId: $withdrawalId) {
+    ...WithdrawDetailsPageFragment
   }
 }
     ${WithdrawDetailsPageFragmentFragmentDoc}`;
 
 /**
- * __useWithdrawalApprovalConcludedSubscription__
+ * __useWithdrawalUpdatedSubscription__
  *
- * To run a query within a React component, call `useWithdrawalApprovalConcludedSubscription` and pass it any options that fit your needs.
- * When your component renders, `useWithdrawalApprovalConcludedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useWithdrawalUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useWithdrawalApprovalConcludedSubscription({
+ * const { data, loading, error } = useWithdrawalUpdatedSubscription({
  *   variables: {
  *      withdrawalId: // value for 'withdrawalId'
  *   },
  * });
  */
-export function useWithdrawalApprovalConcludedSubscription(baseOptions: Apollo.SubscriptionHookOptions<WithdrawalApprovalConcludedSubscription, WithdrawalApprovalConcludedSubscriptionVariables> & ({ variables: WithdrawalApprovalConcludedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useWithdrawalUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<WithdrawalUpdatedSubscription, WithdrawalUpdatedSubscriptionVariables> & ({ variables: WithdrawalUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<WithdrawalApprovalConcludedSubscription, WithdrawalApprovalConcludedSubscriptionVariables>(WithdrawalApprovalConcludedDocument, options);
+        return Apollo.useSubscription<WithdrawalUpdatedSubscription, WithdrawalUpdatedSubscriptionVariables>(WithdrawalUpdatedDocument, options);
       }
-export type WithdrawalApprovalConcludedSubscriptionHookResult = ReturnType<typeof useWithdrawalApprovalConcludedSubscription>;
-export type WithdrawalApprovalConcludedSubscriptionResult = Apollo.SubscriptionResult<WithdrawalApprovalConcludedSubscription>;
+export type WithdrawalUpdatedSubscriptionHookResult = ReturnType<typeof useWithdrawalUpdatedSubscription>;
+export type WithdrawalUpdatedSubscriptionResult = Apollo.SubscriptionResult<WithdrawalUpdatedSubscription>;
 export const WithdrawalRevertDocument = gql`
     mutation WithdrawalRevert($input: WithdrawalRevertInput!) {
   withdrawalRevert(input: $input) {

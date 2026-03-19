@@ -2749,262 +2749,211 @@ pub struct Subscription;
 
 #[Subscription]
 impl Subscription {
-    async fn prospect_kyc_updated(
+    async fn prospect_updated(
         &self,
         ctx: &Context<'_>,
         prospect_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = ProspectKycUpdatedPayload>> {
+    ) -> async_graphql::Result<impl Stream<Item = Prospect>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let prospect_id = ProspectId::from(prospect_id);
+        let id = ProspectId::from(prospect_id);
 
         app.customers()
-            .find_prospect_by_id(sub, prospect_id)
+            .find_prospect_by_id(sub, id)
             .await?
             .ok_or_else(|| Error::new("Prospect not found"))?;
 
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let outbox_stream = app.outbox().listen_persisted(None);
-        let filtered_stream = outbox_stream.filter_map(move |event| async move {
+        Ok(outbox_stream.filter_map(move |event| async move {
             let payload = event.payload.as_ref()?;
-            let event: &CoreCustomerEvent = payload.as_event()?;
-
-            match event {
-                CoreCustomerEvent::ProspectKycStarted { entity }
+            let customer_event: &CoreCustomerEvent = payload.as_event()?;
+            let matches = matches!(
+                customer_event,
+                CoreCustomerEvent::ProspectCreated { entity }
+                | CoreCustomerEvent::ProspectKycStarted { entity }
                 | CoreCustomerEvent::ProspectKycPending { entity }
                 | CoreCustomerEvent::ProspectKycDeclined { entity }
                 | CoreCustomerEvent::ProspectConverted { entity }
-                    if entity.id == prospect_id =>
-                {
-                    Some(ProspectKycUpdatedPayload {
-                        prospect_id: entity.id,
-                        kyc_status: entity.kyc_status,
-                    })
-                }
-                _ => None,
+                | CoreCustomerEvent::ProspectClosed { entity }
+                if entity.id == id
+            );
+            if matches {
+                loader.load_one(id).await.ok().flatten()
+            } else {
+                None
             }
-        });
-
-        Ok(filtered_stream)
+        }))
     }
 
-    async fn pending_credit_facility_collateralization_updated(
+    async fn pending_credit_facility_updated(
         &self,
         ctx: &Context<'_>,
         pending_credit_facility_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = PendingCreditFacilityCollateralizationPayload>>
-    {
+    ) -> async_graphql::Result<impl Stream<Item = PendingCreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let pending_credit_facility_id = PendingCreditFacilityId::from(pending_credit_facility_id);
+        let id = PendingCreditFacilityId::from(pending_credit_facility_id);
 
         app.credit()
             .pending_credit_facilities()
-            .find_by_id(sub, pending_credit_facility_id)
-            .await?;
+            .find_by_id(sub, id)
+            .await?
+            .ok_or_else(|| Error::new("PendingCreditFacility not found"))?;
 
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let outbox_stream = app.outbox().listen_persisted(None);
-        let filtered_stream = outbox_stream.filter_map(move |message| async move {
-            let payload = message.payload.as_ref()?;
-            let event: &CoreCreditEvent = payload.as_event()?;
-            match event {
-                CoreCreditEvent::PendingCreditFacilityCollateralizationChanged { entity }
-                    if entity.id == pending_credit_facility_id =>
-                {
-                    let collateralization = &entity.collateralization;
-                    Some(PendingCreditFacilityCollateralizationPayload {
-                        pending_credit_facility_id,
-                        update: PendingCreditFacilityCollateralizationUpdated {
-                            state: collateralization.state,
-                            collateral: collateralization.collateral.expect("collateral must be set for PendingCreditFacilityCollateralizationChanged"),
-                            price: collateralization.price_at_state_change.expect("price must be set for PendingCreditFacilityCollateralizationChanged").into_inner(),
-                            recorded_at: message.recorded_at.into(),
-                            effective: message.recorded_at.date_naive().into(),
-                        },
-                    })
-                }
-                _ => None,
-            }
-        });
-
-        Ok(filtered_stream)
-    }
-
-    async fn pending_credit_facility_completed(
-        &self,
-        ctx: &Context<'_>,
-        pending_credit_facility_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = PendingCreditFacilityCompletedPayload>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let pending_credit_facility_id = PendingCreditFacilityId::from(pending_credit_facility_id);
-
-        app.credit()
-            .pending_credit_facilities()
-            .find_by_id(sub, pending_credit_facility_id)
-            .await?;
-
-        let outbox_stream = app.outbox().listen_persisted(None);
-        let filtered_stream = outbox_stream.filter_map(move |event| async move {
+        Ok(outbox_stream.filter_map(move |event| async move {
             let payload = event.payload.as_ref()?;
-            let event: &CoreCreditEvent = payload.as_event()?;
-            match event {
-                CoreCreditEvent::PendingCreditFacilityCompleted { entity }
-                    if entity.id == pending_credit_facility_id =>
-                {
-                    Some(PendingCreditFacilityCompletedPayload {
-                        pending_credit_facility_id,
-                        update: PendingCreditFacilityCompleted {
-                            status: entity.status,
-                            recorded_at: entity.completed_at?.into(),
-                        },
-                    })
-                }
-                _ => None,
+            let credit_event: &CoreCreditEvent = payload.as_event()?;
+            let matches = matches!(
+                credit_event,
+                CoreCreditEvent::PendingCreditFacilityCollateralizationChanged { entity }
+                | CoreCreditEvent::PendingCreditFacilityCompleted { entity }
+                if entity.id == id
+            );
+            if matches {
+                loader.load_one(id).await.ok().flatten()
+            } else {
+                None
             }
-        });
-
-        Ok(filtered_stream)
+        }))
     }
 
-    async fn credit_facility_proposal_concluded(
+    async fn credit_facility_proposal_updated(
         &self,
         ctx: &Context<'_>,
         credit_facility_proposal_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = CreditFacilityProposalConcludedPayload>> {
+    ) -> async_graphql::Result<impl Stream<Item = CreditFacilityProposal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let credit_facility_proposal_id =
-            CreditFacilityProposalId::from(credit_facility_proposal_id);
+        let id = CreditFacilityProposalId::from(credit_facility_proposal_id);
 
         app.credit()
             .proposals()
-            .find_by_id(sub, credit_facility_proposal_id)
+            .find_by_id(sub, id)
             .await?
             .ok_or_else(|| Error::new("Credit facility proposal not found"))?;
 
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let outbox_stream = app.outbox().listen_persisted(None);
-        let filtered_stream = outbox_stream.filter_map(move |event| async move {
+        Ok(outbox_stream.filter_map(move |event| async move {
             let payload = event.payload.as_ref()?;
-            let event: &CoreCreditEvent = payload.as_event()?;
-            match event {
-                CoreCreditEvent::FacilityProposalConcluded { entity }
-                    if entity.id == credit_facility_proposal_id =>
-                {
-                    Some(CreditFacilityProposalConcludedPayload {
-                        credit_facility_proposal_id,
-                        status: entity.status,
-                    })
-                }
-                _ => None,
+            let credit_event: &CoreCreditEvent = payload.as_event()?;
+            let matches = matches!(
+                credit_event,
+                CoreCreditEvent::FacilityProposalCreated { entity }
+                | CoreCreditEvent::FacilityProposalConcluded { entity }
+                if entity.id == id
+            );
+            if matches {
+                loader.load_one(id).await.ok().flatten()
+            } else {
+                None
             }
-        });
-
-        Ok(filtered_stream)
+        }))
     }
 
-    async fn withdrawal_approval_concluded(
+    async fn withdrawal_updated(
         &self,
         ctx: &Context<'_>,
         withdrawal_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = WithdrawalApprovalConcludedPayload>> {
+    ) -> async_graphql::Result<impl Stream<Item = Withdrawal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let withdrawal_id = WithdrawalId::from(withdrawal_id);
+        let id = WithdrawalId::from(withdrawal_id);
 
         app.deposits()
-            .find_withdrawal_by_id(sub, withdrawal_id)
+            .find_withdrawal_by_id(sub, id)
             .await?
             .ok_or_else(|| Error::new("Withdrawal not found"))?;
 
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let outbox_stream = app.outbox().listen_persisted(None);
-        let filtered_stream = outbox_stream.filter_map(move |event| async move {
+        Ok(outbox_stream.filter_map(move |event| async move {
             let payload = event.payload.as_ref()?;
-            let event: &CoreDepositEvent = payload.as_event()?;
-            match event {
-                CoreDepositEvent::WithdrawalApprovalConcluded { entity }
-                    if entity.id == withdrawal_id =>
-                {
-                    Some(WithdrawalApprovalConcludedPayload {
-                        withdrawal_id,
-                        status: entity.status,
-                    })
-                }
-                _ => None,
+            let deposit_event: &CoreDepositEvent = payload.as_event()?;
+            let matches = matches!(
+                deposit_event,
+                CoreDepositEvent::WithdrawalConfirmed { entity }
+                | CoreDepositEvent::WithdrawalApprovalConcluded { entity }
+                if entity.id == id
+            );
+            if matches {
+                loader.load_one(id).await.ok().flatten()
+            } else {
+                None
             }
-        });
-
-        Ok(filtered_stream)
+        }))
     }
 
-    async fn disbursal_approval_concluded(
+    async fn disbursal_updated(
         &self,
         ctx: &Context<'_>,
         disbursal_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = DisbursalApprovalConcludedPayload>> {
+    ) -> async_graphql::Result<impl Stream<Item = CreditFacilityDisbursal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let disbursal_id = DisbursalId::from(disbursal_id);
+        let id = DisbursalId::from(disbursal_id);
 
         app.credit()
             .disbursals()
-            .find_by_id(sub, disbursal_id)
+            .find_by_id(sub, id)
             .await?
             .ok_or_else(|| Error::new("Disbursal not found"))?;
 
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let outbox_stream = app.outbox().listen_persisted(None);
-        let filtered_stream = outbox_stream.filter_map(move |event| async move {
+        Ok(outbox_stream.filter_map(move |event| async move {
             let payload = event.payload.as_ref()?;
-            let event: &CoreCreditEvent = payload.as_event()?;
-            match event {
-                CoreCreditEvent::DisbursalApprovalConcluded { entity }
-                    if entity.id == disbursal_id =>
-                {
-                    Some(DisbursalApprovalConcludedPayload {
-                        disbursal_id,
-                        status: entity.status,
-                    })
-                }
-                _ => None,
+            let credit_event: &CoreCreditEvent = payload.as_event()?;
+            let matches = matches!(
+                credit_event,
+                CoreCreditEvent::DisbursalSettled { entity }
+                | CoreCreditEvent::DisbursalApprovalConcluded { entity }
+                if entity.id == id
+            );
+            if matches {
+                loader.load_one(id).await.ok().flatten()
+            } else {
+                None
             }
-        });
-
-        Ok(filtered_stream)
+        }))
     }
 
-    async fn credit_facility_collateralization_updated(
+    async fn credit_facility_updated(
         &self,
         ctx: &Context<'_>,
         credit_facility_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = CreditFacilityCollateralizationPayload>> {
+    ) -> async_graphql::Result<impl Stream<Item = CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let credit_facility_id = CreditFacilityId::from(credit_facility_id);
+        let id = CreditFacilityId::from(credit_facility_id);
 
         app.credit()
             .facilities()
-            .find_by_id(sub, credit_facility_id)
-            .await?;
+            .find_by_id(sub, id)
+            .await?
+            .ok_or_else(|| Error::new("CreditFacility not found"))?;
 
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let outbox_stream = app.outbox().listen_persisted(None);
-        let filtered_stream = outbox_stream.filter_map(move |message| async move {
-            let payload = message.payload.as_ref()?;
-            let event: &CoreCreditEvent = payload.as_event()?;
-            match event {
-                CoreCreditEvent::FacilityCollateralizationChanged { entity }
-                    if entity.id == credit_facility_id =>
-                {
-                    let collateralization = &entity.collateralization;
-                    Some(CreditFacilityCollateralizationPayload {
-                        credit_facility_id,
-                        update: CreditFacilityCollateralizationUpdated {
-                            state: collateralization.state,
-                            collateral: collateralization.collateral,
-                            outstanding_interest: collateralization.outstanding.interest,
-                            outstanding_disbursal: collateralization.outstanding.disbursed,
-                            recorded_at: message.recorded_at.into(),
-                            effective: message.recorded_at.date_naive().into(),
-                            price: collateralization.price_at_state_change.into_inner(),
-                        },
-                    })
+        Ok(outbox_stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let credit_event: &CoreCreditEvent = payload.as_event()?;
+            let matches = match credit_event {
+                CoreCreditEvent::FacilityActivated { entity }
+                | CoreCreditEvent::FacilityCompleted { entity }
+                | CoreCreditEvent::FacilityCollateralizationChanged { entity }
+                | CoreCreditEvent::FacilityMatured { entity }
+                | CoreCreditEvent::PartialLiquidationInitiated { entity } => entity.id == id,
+                CoreCreditEvent::AccrualPosted { entity } => entity.credit_facility_id == id,
+                CoreCreditEvent::DisbursalSettled { entity }
+                | CoreCreditEvent::DisbursalApprovalConcluded { entity } => {
+                    entity.credit_facility_id == id
                 }
-                _ => None,
+                _ => false,
+            };
+            if matches {
+                loader.load_one(id).await.ok().flatten()
+            } else {
+                None
             }
-        });
-
-        Ok(filtered_stream)
+        }))
     }
 
     async fn ledger_account_csv_export_uploaded(

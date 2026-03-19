@@ -542,17 +542,6 @@ type CreditFacilityCollateralUpdated {
 	txId: UUID!
 }
 
-type CreditFacilityCollateralizationPayload {
-	collateral: Satoshis!
-	creditFacility: CreditFacility!
-	effective: Date!
-	outstandingDisbursal: UsdCents!
-	outstandingInterest: UsdCents!
-	price: UsdCents!
-	recordedAt: Timestamp!
-	state: CollateralizationState!
-}
-
 type CreditFacilityCollateralizationUpdated {
 	collateral: Satoshis!
 	effective: Date!
@@ -745,11 +734,6 @@ type CreditFacilityProposal {
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	facilityAmount: UsdCents!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
-	status: CreditFacilityProposalStatus!
-}
-
-type CreditFacilityProposalConcludedPayload {
-	creditFacilityProposal: CreditFacilityProposal!
 	status: CreditFacilityProposalStatus!
 }
 
@@ -1493,11 +1477,6 @@ enum DepositsSortBy {
 	PUBLIC_ID
 }
 
-type DisbursalApprovalConcludedPayload {
-	disbursal: CreditFacilityDisbursal!
-	status: DisbursalStatus!
-}
-
 type DisbursalEntry {
 	disbursal: CreditFacilityDisbursal!
 	recordedAt: Timestamp!
@@ -2213,15 +2192,6 @@ type PendingCreditFacility {
 	wallet: Wallet
 }
 
-type PendingCreditFacilityCollateralizationPayload {
-	collateral: Satoshis!
-	effective: Date!
-	pendingCreditFacility: PendingCreditFacility!
-	price: UsdCents!
-	recordedAt: Timestamp!
-	state: PendingCreditFacilityCollateralizationState!
-}
-
 enum PendingCreditFacilityCollateralizationState {
 	FULLY_COLLATERALIZED
 	NOT_YET_COLLATERALIZED
@@ -2234,12 +2204,6 @@ type PendingCreditFacilityCollateralizationUpdated {
 	price: UsdCents!
 	recordedAt: Timestamp!
 	state: PendingCreditFacilityCollateralizationState!
-}
-
-type PendingCreditFacilityCompletedPayload {
-	pendingCreditFacility: PendingCreditFacility!
-	recordedAt: Timestamp!
-	status: PendingCreditFacilityStatus!
 }
 
 type PendingCreditFacilityConnection {
@@ -2534,11 +2498,6 @@ input ProspectKycLinkCreateInput {
 
 type ProspectKycLinkCreatePayload {
 	url: String!
-}
-
-type ProspectKycUpdatedPayload {
-	kycStatus: KycStatus!
-	prospect: Prospect!
 }
 
 enum ProspectStage {
@@ -2878,16 +2837,15 @@ enum SortDirection {
 }
 
 type Subscription {
-	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
-	creditFacilityProposalConcluded(creditFacilityProposalId: UUID!): CreditFacilityProposalConcludedPayload!
-	disbursalApprovalConcluded(disbursalId: UUID!): DisbursalApprovalConcludedPayload!
+	creditFacilityProposalUpdated(creditFacilityProposalId: UUID!): CreditFacilityProposal!
+	creditFacilityUpdated(creditFacilityId: UUID!): CreditFacility!
+	disbursalUpdated(disbursalId: UUID!): CreditFacilityDisbursal!
 	ledgerAccountCsvExportUploaded(ledgerAccountId: UUID!): LedgerAccountCsvExportUploadedPayload!
-	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
-	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
-	prospectKycUpdated(prospectId: UUID!): ProspectKycUpdatedPayload!
+	pendingCreditFacilityUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacility!
+	prospectUpdated(prospectId: UUID!): Prospect!
 	realtimePriceUpdated: RealtimePrice!
 	reportRunUpdated: ReportRunUpdatedPayload!
-	withdrawalApprovalConcluded(withdrawalId: UUID!): WithdrawalApprovalConcludedPayload!
+	withdrawalUpdated(withdrawalId: UUID!): Withdrawal!
 }
 
 type System {
@@ -3176,11 +3134,6 @@ type Withdrawal {
 	reference: String!
 	status: WithdrawalStatus!
 	withdrawalId: UUID!
-}
-
-type WithdrawalApprovalConcludedPayload {
-	status: WithdrawalStatus!
-	withdrawal: Withdrawal!
 }
 
 input WithdrawalCancelInput {

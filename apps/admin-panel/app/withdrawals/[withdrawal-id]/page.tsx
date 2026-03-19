@@ -15,7 +15,7 @@ import { NotFound } from "@/components/not-found"
 
 import {
   useGetWithdrawalDetailsQuery,
-  useWithdrawalApprovalConcludedSubscription,
+  useWithdrawalUpdatedSubscription,
   WithdrawalStatus,
 } from "@/lib/graphql/generated"
 
@@ -72,12 +72,9 @@ gql`
     }
   }
 
-  subscription withdrawalApprovalConcluded($withdrawalId: UUID!) {
-    withdrawalApprovalConcluded(withdrawalId: $withdrawalId) {
-      status
-      withdrawal {
-        ...WithdrawDetailsPageFragment
-      }
+  subscription withdrawalUpdated($withdrawalId: UUID!) {
+    withdrawalUpdated(withdrawalId: $withdrawalId) {
+      ...WithdrawDetailsPageFragment
     }
   }
 `
@@ -100,7 +97,7 @@ function WithdrawalPage({
     variables: { publicId },
   })
 
-  useWithdrawalApprovalConcludedSubscription(
+  useWithdrawalUpdatedSubscription(
     data?.withdrawalByPublicId &&
       data.withdrawalByPublicId.status === WithdrawalStatus.PendingApproval
       ? { variables: { withdrawalId: data.withdrawalByPublicId.withdrawalId } }

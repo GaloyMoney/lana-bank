@@ -12,7 +12,7 @@ import { ProspectKycStatus } from "./kyc-status"
 import {
   CustomerType,
   useGetProspectBasicDetailsQuery,
-  useProspectKycUpdatedSubscription,
+  useProspectUpdatedSubscription,
 } from "@/lib/graphql/generated"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -53,11 +53,9 @@ gql`
     }
   }
 
-  subscription ProspectKycUpdated($prospectId: UUID!) {
-    prospectKycUpdated(prospectId: $prospectId) {
-      prospect {
-        ...ProspectDetailsFragment
-      }
+  subscription ProspectUpdated($prospectId: UUID!) {
+    prospectUpdated(prospectId: $prospectId) {
+      ...ProspectDetailsFragment
     }
   }
 `
@@ -80,7 +78,7 @@ export default function ProspectLayout({
     variables: { id: prospectId },
   })
 
-  useProspectKycUpdatedSubscription(
+  useProspectUpdatedSubscription(
     data?.prospectByPublicId?.prospectId
       ? { variables: { prospectId: data.prospectByPublicId.prospectId } }
       : { skip: true },

@@ -17,7 +17,7 @@ import { NotFound } from "@/components/not-found"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import {
   useGetDisbursalDetailsQuery,
-  useDisbursalApprovalConcludedSubscription,
+  useDisbursalUpdatedSubscription,
   DisbursalStatus,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
@@ -64,12 +64,9 @@ gql`
     }
   }
 
-  subscription disbursalApprovalConcluded($disbursalId: UUID!) {
-    disbursalApprovalConcluded(disbursalId: $disbursalId) {
-      status
-      disbursal {
-        ...DisbursalDetailsPageFragment
-      }
+  subscription disbursalUpdated($disbursalId: UUID!) {
+    disbursalUpdated(disbursalId: $disbursalId) {
+      ...DisbursalDetailsPageFragment
     }
   }
 `
@@ -86,7 +83,7 @@ function DisbursalPage({
     variables: { publicId },
   })
 
-  useDisbursalApprovalConcludedSubscription(
+  useDisbursalUpdatedSubscription(
     data?.disbursalByPublicId &&
       data.disbursalByPublicId.status === DisbursalStatus.New
       ? { variables: { disbursalId: data.disbursalByPublicId.creditFacilityDisbursalId } }
