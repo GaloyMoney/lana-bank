@@ -52,23 +52,20 @@ impl Amount {
         Decimal::from(self.minor_units) / Decimal::from(self.minor_units_per_major)
     }
 
-    /// Construct from major-unit decimal at runtime, using `CurrencyCode` metadata.
+    /// Construct from major-unit decimal at runtime.
+    ///
+    /// Dispatches through `MinorUnits<C>` to preserve the invariant that
+    /// `Amount` can only be created from a typed currency value.
     pub fn try_from_major(
         currency: CurrencyCode,
         major: Decimal,
     ) -> Result<Self, crate::ConversionError> {
-        let minor_units_per_major = currency.minor_units_per_major();
-        let minor = major * Decimal::from(minor_units_per_major);
-        if minor.trunc() != minor {
-            return Err(crate::ConversionError::PrecisionLoss(major));
+        use crate::{Btc, Usd};
+        match currency {
+            CurrencyCode::USD => Ok(Self::from(MinorUnits::<Usd>::try_from_major(major)?)),
+            CurrencyCode::BTC => Ok(Self::from(MinorUnits::<Btc>::try_from_major(major)?)),
+            _ => Err(crate::ConversionError::UnsupportedCurrency(currency)),
         }
-        let minor =
-            u64::try_from(minor).map_err(|_| crate::ConversionError::PrecisionLoss(major))?;
-        Ok(Self {
-            currency,
-            minor_units: minor,
-            minor_units_per_major,
-        })
     }
 }
 

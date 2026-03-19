@@ -31,14 +31,6 @@ impl CurrencyCode {
     pub fn iso(&self) -> &'static str {
         self.0
     }
-
-    pub fn minor_units_per_major(self) -> u64 {
-        match self {
-            Self::USD => 100,
-            Self::BTC => 100_000_000,
-            _ => panic!("unknown currency: {}", self.0),
-        }
-    }
 }
 
 impl fmt::Display for CurrencyCode {
