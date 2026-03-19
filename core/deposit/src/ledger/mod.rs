@@ -172,9 +172,9 @@ impl DepositLedger {
             .map(|(currency, spec)| (*currency, omnibus_ids[spec.account_set_ref].clone()))
             .collect();
 
-        let overdraft_prevention_id = velocity::OverdraftPrevention::init(cala).await?;
-
         let deposit_control_id = Self::create_deposit_control(cala).await?;
+        let overdraft_prevention_id = velocity::OverdraftPrevention::init(cala).await?;
+        let currency_guard_id = velocity::CurrencyGuard::init(cala).await?;
 
         match cala
             .velocities()
@@ -184,6 +184,42 @@ impl DepositLedger {
             Ok(_)
             | Err(cala_ledger::velocity::error::VelocityError::LimitAlreadyAddedToControl) => {}
             Err(e) => return Err(e.into()),
+        }
+        match cala
+            .velocities()
+            .add_limit_to_control(deposit_control_id, currency_guard_id)
+            .await
+        {
+            Ok(_)
+            | Err(cala_ledger::velocity::error::VelocityError::LimitAlreadyAddedToControl) => {}
+            Err(e) => return Err(e.into()),
+        }
+        for spec in catalog.deposit_specs() {
+            Self::attach_single_currency_control_to_account_set(
+                cala,
+                deposit_control_id,
+                deposit_ids[spec.external_ref].id,
+                spec.currency,
+            )
+            .await?;
+        }
+        for spec in catalog.frozen_specs() {
+            Self::attach_single_currency_control_to_account_set(
+                cala,
+                deposit_control_id,
+                frozen_ids[spec.external_ref].id,
+                spec.currency,
+            )
+            .await?;
+        }
+        for spec in catalog.omnibus_specs() {
+            Self::attach_single_currency_control_to_account_set(
+                cala,
+                deposit_control_id,
+                omnibus_ids[spec.account_set_ref].account_set_id,
+                spec.currency,
+            )
+            .await?;
         }
         Ok(Self {
             clock,
@@ -887,7 +923,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.add_deposit_control_to_account_in_op(op, account.id)
+        self.add_deposit_control_to_account_in_op(op, account.id, account.currency)
             .await?;
 
         let frozen_deposit_account_name = format!("Frozen Deposit Account {holder_id}");
@@ -1036,20 +1072,54 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         account_id: impl Into<AccountId>,
+        currency: CurrencyCode,
     ) -> Result<(), DepositLedgerError> {
         let account_id = account_id.into();
         tracing::Span::current().record("account_id", tracing::field::debug(&account_id));
+        let mut params = Params::new();
+        params.insert("account_currency", currency.to_string());
         self.cala
             .velocities()
-            .attach_control_to_account_in_op(
-                op,
-                self.deposit_control_id,
-                account_id,
-                Params::default(),
-            )
+            .attach_control_to_account_in_op(op, self.deposit_control_id, account_id, params)
             .await?;
 
         Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "deposit_ledger.attach_single_currency_control_to_account_set",
+        skip(cala),
+        fields(account_set_id = tracing::field::Empty, currency = %currency)
+    )]
+    async fn attach_single_currency_control_to_account_set(
+        cala: &CalaLedger,
+        control_id: VelocityControlId,
+        account_set_id: CalaAccountSetId,
+        currency: CurrencyCode,
+    ) -> Result<(), DepositLedgerError> {
+        tracing::Span::current().record("account_set_id", tracing::field::debug(&account_set_id));
+
+        let mut params = Params::new();
+        params.insert("account_currency", currency.to_string());
+
+        match cala
+            .velocities()
+            .attach_control_to_account_set(control_id, account_set_id.into(), params)
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(cala_ledger::velocity::error::VelocityError::Sqlx(sqlx::Error::Database(
+                db_err,
+            ))) if db_err.constraint().is_some_and(|constraint| {
+                constraint
+                    .contains("cala_velocity_account_controls_account_id_velocity_control_id_key")
+            }) =>
+            {
+                Ok(())
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     #[record_error_severity]

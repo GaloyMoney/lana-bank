@@ -5,7 +5,16 @@ use rust_decimal_macros::dec;
 use uuid::Uuid;
 
 use authz::dummy::DummySubject;
-use cala_ledger::{CalaLedger, CalaLedgerConfig};
+use cala_ledger::{
+    CalaLedger, CalaLedgerConfig, TransactionId,
+    account::NewAccount,
+    error::LedgerError,
+    tx_template::{
+        NewParamDefinition, NewTxTemplate, NewTxTemplateEntry, NewTxTemplateTransaction,
+        ParamDataType, Params,
+    },
+    velocity::error::VelocityError,
+};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_customer::{CustomerType, Customers};
 use core_deposit::*;
@@ -26,6 +35,8 @@ type TestSetup = (
     job::Jobs,
     TestExposedDomainConfigs,
     sqlx::PgPool,
+    CalaLedger,
+    cala_ledger::JournalId,
 );
 
 async fn setup() -> anyhow::Result<TestSetup> {
@@ -104,14 +115,88 @@ async fn setup_at(start: DateTime<Utc>) -> anyhow::Result<(TestSetup, ClockContr
             jobs,
             exposed_domain_configs,
             pool,
+            cala,
+            journal_id,
         ),
         clock_ctrl,
     ))
 }
 
+fn currency_post_template(code: &str) -> NewTxTemplate {
+    let params = vec![
+        NewParamDefinition::builder()
+            .name("recipient")
+            .r#type(ParamDataType::Uuid)
+            .build()
+            .unwrap(),
+        NewParamDefinition::builder()
+            .name("sender")
+            .r#type(ParamDataType::Uuid)
+            .build()
+            .unwrap(),
+        NewParamDefinition::builder()
+            .name("journal_id")
+            .r#type(ParamDataType::Uuid)
+            .build()
+            .unwrap(),
+        NewParamDefinition::builder()
+            .name("amount")
+            .r#type(ParamDataType::Decimal)
+            .build()
+            .unwrap(),
+        NewParamDefinition::builder()
+            .name("currency")
+            .r#type(ParamDataType::String)
+            .build()
+            .unwrap(),
+        NewParamDefinition::builder()
+            .name("effective")
+            .r#type(ParamDataType::Date)
+            .default_expr("date()")
+            .build()
+            .unwrap(),
+    ];
+    let entries = vec![
+        NewTxTemplateEntry::builder()
+            .entry_type("'TEST_DR'")
+            .account_id("params.sender")
+            .layer("'SETTLED'")
+            .direction("DEBIT")
+            .units("params.amount")
+            .currency("params.currency")
+            .build()
+            .unwrap(),
+        NewTxTemplateEntry::builder()
+            .entry_type("'TEST_CR'")
+            .account_id("params.recipient")
+            .layer("'SETTLED'")
+            .direction("CREDIT")
+            .units("params.amount")
+            .currency("params.currency")
+            .build()
+            .unwrap(),
+    ];
+
+    NewTxTemplate::builder()
+        .id(uuid::Uuid::now_v7())
+        .code(code)
+        .params(params)
+        .transaction(
+            NewTxTemplateTransaction::builder()
+                .effective("params.effective")
+                .journal_id("params.journal_id")
+                .build()
+                .unwrap(),
+        )
+        .entries(entries)
+        .build()
+        .unwrap()
+}
+
 #[tokio::test]
 async fn deposit() -> anyhow::Result<()> {
-    let (deposit, customers, _outbox, _jobs, _domain_configs, _pool) = setup().await?;
+    let (deposit, customers, _outbox, _jobs, _domain_configs, _pool, _cala, _journal_id) =
+        setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -145,7 +230,8 @@ async fn deposit() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn revert_deposit() -> anyhow::Result<()> {
-    let (deposit, customers, _outbox, _jobs, _domain_configs, _pool) = setup().await?;
+    let (deposit, customers, _outbox, _jobs, _domain_configs, _pool, _cala, _journal_id) =
+        setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -191,7 +277,8 @@ async fn revert_deposit() -> anyhow::Result<()> {
 /// The event contains a snapshot with the deposit account id and account holder id.
 #[tokio::test]
 async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, _jobs, _domain_configs, _pool) = setup().await?;
+    let (deposit, customers, outbox, _jobs, _domain_configs, _pool, _cala, _journal_id) =
+        setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -227,7 +314,8 @@ async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
 /// The event contains a snapshot with the deposit id, deposit account id, and amount.
 #[tokio::test]
 async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, _jobs, _domain_configs, _pool) = setup().await?;
+    let (deposit, customers, outbox, _jobs, _domain_configs, _pool, _cala, _journal_id) =
+        setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -263,6 +351,74 @@ async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[tokio::test]
+async fn deposit_account_single_currency_velocity_control() -> anyhow::Result<()> {
+    let (deposit, customers, _outbox, _jobs, _domain_configs, _pool, cala, journal_id) =
+        setup().await?;
+
+    let customer = customers
+        .create_customer_bypassing_kyc(
+            &DummySubject,
+            format!("user{}@example.com", Uuid::new_v4()),
+            format!("telegram{}", Uuid::new_v4()),
+            CustomerType::Individual,
+        )
+        .await?;
+    // This is a USD account by default.
+    let account = deposit.create_account(&DummySubject, customer.id).await?;
+
+    let template_code = format!("currency-guard-{}", Uuid::new_v4().simple());
+    cala.tx_templates()
+        .create(currency_post_template(&template_code))
+        .await?;
+
+    let offsetting_account = cala
+        .accounts()
+        .create(
+            NewAccount::builder()
+                .id(uuid::Uuid::now_v7())
+                .name(format!("Offsetting {}", Uuid::new_v4()))
+                .code(format!("offsetting-{}", Uuid::new_v4().simple()))
+                .build()
+                .unwrap(),
+        )
+        .await?;
+
+    let mut usd_params = Params::new();
+    usd_params.insert("journal_id", journal_id.to_string());
+    usd_params.insert("sender", offsetting_account.id());
+    usd_params.insert("recipient", cala_ledger::AccountId::from(account.id));
+    usd_params.insert("amount", dec!(1));
+    usd_params.insert("currency", "USD");
+
+    cala.post_transaction(TransactionId::new(), &template_code, usd_params)
+        .await?;
+
+    let balance = deposit.account_balance(&DummySubject, account.id).await?;
+    assert_eq!(balance.settled, UsdCents::try_from_usd(dec!(1)).unwrap());
+
+    let mut btc_params = Params::new();
+    btc_params.insert("journal_id", journal_id.to_string());
+    btc_params.insert("sender", offsetting_account.id());
+    btc_params.insert("recipient", cala_ledger::AccountId::from(account.id));
+    btc_params.insert("amount", dec!(1));
+    btc_params.insert("currency", "BTC");
+
+    let res = cala
+        .post_transaction(TransactionId::new(), &template_code, btc_params)
+        .await;
+
+    assert!(matches!(
+        res,
+        Err(LedgerError::VelocityError(VelocityError::Enforcement(_)))
+    ));
+
+    let balance = deposit.account_balance(&DummySubject, account.id).await?;
+    assert_eq!(balance.settled, UsdCents::try_from_usd(dec!(1)).unwrap());
+
+    Ok(())
+}
+
 /// `WithdrawalConfirmed` is published when a withdrawal is confirmed via
 /// `CoreDeposit::confirm_withdrawal()`.
 ///
@@ -274,7 +430,8 @@ async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
 /// via the governance → outbox → jobs pipeline.
 #[tokio::test]
 async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, mut jobs, _domain_configs, _pool) = setup().await?;
+    let (deposit, customers, outbox, mut jobs, _domain_configs, _pool, _cala, _journal_id) =
+        setup().await?;
     jobs.start_poll().await?;
 
     let customer = customers
@@ -347,7 +504,8 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
 /// The event contains a snapshot with the deposit id, deposit account id, and amount.
 #[tokio::test]
 async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, _jobs, _domain_configs, _pool) = setup().await?;
+    let (deposit, customers, outbox, _jobs, _domain_configs, _pool, _cala, _journal_id) =
+        setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -407,8 +565,10 @@ async fn apply_activity_reclassifications(
 #[serial_test::file_serial(core_deposit_activity_status)]
 async fn deposit_account_activity_uses_configurable_thresholds() -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap();
-    let ((deposit, customers, _outbox, _jobs, domain_configs, pool), clock_ctrl) =
-        setup_at(start).await?;
+    let (
+        (deposit, customers, _outbox, _jobs, domain_configs, pool, _cala, _journal_id),
+        clock_ctrl,
+    ) = setup_at(start).await?;
 
     domain_configs
         .update::<DepositActivityInactiveThresholdDays>(&DummySubject, 30)
@@ -458,8 +618,10 @@ async fn deposit_account_activity_uses_configurable_thresholds() -> anyhow::Resu
 async fn deposit_account_activity_ignores_internal_freeze_and_unfreeze_transactions()
 -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap();
-    let ((deposit, customers, _outbox, _jobs, domain_configs, pool), clock_ctrl) =
-        setup_at(start).await?;
+    let (
+        (deposit, customers, _outbox, _jobs, domain_configs, pool, _cala, _journal_id),
+        clock_ctrl,
+    ) = setup_at(start).await?;
 
     domain_configs
         .update::<DepositActivityInactiveThresholdDays>(&DummySubject, 30)
@@ -519,8 +681,10 @@ async fn deposit_account_activity_ignores_internal_freeze_and_unfreeze_transacti
 async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date()
 -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2015, 1, 1, 0, 0, 0).unwrap();
-    let ((deposit, customers, _outbox, _jobs, _domain_configs, pool), clock_ctrl) =
-        setup_at(start).await?;
+    let (
+        (deposit, customers, _outbox, _jobs, _domain_configs, pool, _cala, _journal_id),
+        clock_ctrl,
+    ) = setup_at(start).await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -578,8 +742,10 @@ async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date(
 #[serial_test::file_serial(core_deposit_activity_status)]
 async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2015, 1, 1, 0, 0, 0).unwrap();
-    let ((deposit, customers, _outbox, _jobs, _domain_configs, pool), clock_ctrl) =
-        setup_at(start).await?;
+    let (
+        (deposit, customers, _outbox, _jobs, _domain_configs, pool, _cala, _journal_id),
+        clock_ctrl,
+    ) = setup_at(start).await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
