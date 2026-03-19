@@ -91,6 +91,9 @@ where
         use InterestAccrualCycleEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
+                InterestAccrued { .. } => Some(CoreCreditEvent::InterestAccrued {
+                    entity: PublicInterestAccrualCycle::from(entity),
+                }),
                 InterestAccrualsPosted { .. } => Some(CoreCreditEvent::AccrualPosted {
                     entity: PublicInterestAccrualCycle::from(entity),
                 }),

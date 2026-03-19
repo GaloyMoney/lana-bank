@@ -1,39 +1,45 @@
 //! Interest Accrual Process Manager
 //!
 //! A per-facility process manager that coordinates the interest accrual
-//! lifecycle by spawning and awaiting two command jobs:
+//! lifecycle by spawning command jobs and listening for their completion
+//! events via the outbox.
 //!
 //! ```text
 //! ┌─────────────────────────────────────────────────────────────────────┐
 //! │                   InterestAccrualProcessState                      │
 //! ├─────────────────────────────────────────────────────────────────────┤
-//! │  AccruingInterest                                                  │
+//! │  SpawningAccrual                                                   │
+//! │    • Capture outbox sequence                                       │
 //! │    • Spawn AccrueInterestCommand                                   │
-//! │    • Await completion                                              │
-//! │    → success: transition to CompletingCycle                        │
-//! │    → failure: transition to Failed                                 │
+//! │    → transition to AwaitingAccrual                                 │
 //! ├─────────────────────────────────────────────────────────────────────┤
-//! │  CompletingCycle                                                   │
+//! │  AwaitingAccrual { start_sequence }                                │
+//! │    • Listen for CoreCreditEvent::InterestAccrued                   │
+//! │    → success: transition to SpawningCycleCompletion                │
+//! ├─────────────────────────────────────────────────────────────────────┤
+//! │  SpawningCycleCompletion                                           │
+//! │    • Capture outbox sequence                                       │
 //! │    • Spawn CompleteAccrualCycleCommand                             │
-//! │    • Await completion                                              │
+//! │    → transition to AwaitingCycleCompletion                         │
+//! ├─────────────────────────────────────────────────────────────────────┤
+//! │  AwaitingCycleCompletion { start_sequence }                        │
+//! │    • Listen for CoreCreditEvent::AccrualPosted                     │
 //! │    → success: transition to Completed                              │
-//! │    → failure: transition to Failed                                 │
 //! ├─────────────────────────────────────────────────────────────────────┤
 //! │  Completed                                                         │
-//! │    • Set result and complete                                       │
-//! ├─────────────────────────────────────────────────────────────────────┤
-//! │  Failed                                                            │
-//! │    • Record failure and complete                                   │
+//! │    • Complete the job                                              │
 //! └─────────────────────────────────────────────────────────────────────┘
 //! ```
 
 use async_trait::async_trait;
 use chrono::NaiveDate;
+use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use job::{error::JobError, *};
+use obix::out::{Outbox, OutboxEventMarker};
 
 use core_time_events::interest_accrual_process::INTEREST_ACCRUAL_PROCESS_JOB_TYPE;
 
@@ -41,7 +47,10 @@ use super::accrue_interest_command::{AccrueInterestCommandConfig, AccrueInterest
 use super::complete_accrual_cycle_command::{
     CompleteAccrualCycleCommandConfig, CompleteAccrualCycleCommandSpawner,
 };
-use crate::CreditFacilityId;
+use crate::{
+    CreditFacilityId,
+    public::{CoreCreditEvent, PublicInterestAccrualCycle},
+};
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -50,61 +59,52 @@ pub struct InterestAccrualProcessConfig {
     pub date: NaiveDate,
 }
 
-/// Result set on the process manager job upon completion.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InterestAccrualProcessResult {
-    pub credit_facility_id: CreditFacilityId,
-    pub accrual_terminal: JobTerminalState,
-    pub cycle_terminal: Option<JobTerminalState>,
-}
-
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 enum InterestAccrualProcessState {
-    /// Spawn AccrueInterestCommand and await its completion.
+    /// Capture outbox sequence and spawn AccrueInterestCommand.
     #[default]
-    AccruingInterest,
-    /// AccrueInterestCommand spawned; awaiting completion.
-    AwaitingAccrual { accrual_job: JobId },
-    /// Spawn CompleteAccrualCycleCommand and await its completion.
-    SpawningCycleCompletion { accrual_terminal: JobTerminalState },
-    /// CompleteAccrualCycleCommand spawned; awaiting completion.
-    AwaitingCycleCompletion {
-        accrual_terminal: JobTerminalState,
-        cycle_job: JobId,
-    },
-    /// Both commands completed successfully.
-    Completed {
-        result: InterestAccrualProcessResult,
-    },
-    /// One of the child commands failed.
-    Failed {
-        result: InterestAccrualProcessResult,
-    },
+    SpawningAccrual,
+    /// Listen for CoreCreditEvent::InterestAccrued matching this facility.
+    AwaitingAccrual { start_sequence: i64 },
+    /// Capture outbox sequence and spawn CompleteAccrualCycleCommand.
+    SpawningCycleCompletion,
+    /// Listen for CoreCreditEvent::AccrualPosted matching this facility.
+    AwaitingCycleCompletion { start_sequence: i64 },
+    /// Both steps completed successfully.
+    Completed,
 }
 
-pub struct InterestAccrualProcessInit {
-    jobs: Jobs,
+pub struct InterestAccrualProcessInit<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    outbox: Outbox<E>,
     accrue_spawner: AccrueInterestCommandSpawner,
     complete_spawner: CompleteAccrualCycleCommandSpawner,
 }
 
-impl InterestAccrualProcessInit {
+impl<E> InterestAccrualProcessInit<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     pub fn new(
-        jobs: &Jobs,
+        outbox: &Outbox<E>,
         accrue_spawner: AccrueInterestCommandSpawner,
         complete_spawner: CompleteAccrualCycleCommandSpawner,
     ) -> Self {
         Self {
-            jobs: jobs.clone(),
+            outbox: outbox.clone(),
             accrue_spawner,
             complete_spawner,
         }
     }
 }
 
-impl JobInitializer for InterestAccrualProcessInit {
+impl<E> JobInitializer for InterestAccrualProcessInit<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     type Config = InterestAccrualProcessConfig;
 
     fn job_type(&self) -> JobType {
@@ -118,22 +118,214 @@ impl JobInitializer for InterestAccrualProcessInit {
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(InterestAccrualProcessRunner {
             config: job.config()?,
-            jobs: self.jobs.clone(),
+            outbox: self.outbox.clone(),
             accrue_spawner: self.accrue_spawner.clone(),
             complete_spawner: self.complete_spawner.clone(),
         }))
     }
 }
 
-struct InterestAccrualProcessRunner {
+struct InterestAccrualProcessRunner<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     config: InterestAccrualProcessConfig,
-    jobs: Jobs,
+    outbox: Outbox<E>,
     accrue_spawner: AccrueInterestCommandSpawner,
     complete_spawner: CompleteAccrualCycleCommandSpawner,
 }
 
+impl<E> InterestAccrualProcessRunner<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    fn extract_interest_accrued(event: &CoreCreditEvent) -> Option<CreditFacilityId> {
+        match event {
+            CoreCreditEvent::InterestAccrued {
+                entity:
+                    PublicInterestAccrualCycle {
+                        credit_facility_id, ..
+                    },
+            } => Some(*credit_facility_id),
+            _ => None,
+        }
+    }
+
+    fn extract_accrual_posted(event: &CoreCreditEvent) -> Option<CreditFacilityId> {
+        match event {
+            CoreCreditEvent::AccrualPosted {
+                entity:
+                    PublicInterestAccrualCycle {
+                        credit_facility_id, ..
+                    },
+            } => Some(*credit_facility_id),
+            _ => None,
+        }
+    }
+
+    /// Capture outbox sequence, spawn AccrueInterestCommand, transition to AwaitingAccrual.
+    async fn spawn_accrual(
+        &self,
+        mut current_job: CurrentJob,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let start_sequence = self.outbox.current_sequence().await?;
+
+        let mut op = current_job.begin_op().await?;
+
+        match self
+            .accrue_spawner
+            .spawn_all_in_op(
+                &mut op,
+                vec![
+                    JobSpec::new(
+                        JobId::new(),
+                        AccrueInterestCommandConfig {
+                            credit_facility_id: self.config.credit_facility_id,
+                        },
+                    )
+                    .queue_id(self.config.credit_facility_id.to_string()),
+                ],
+            )
+            .await
+        {
+            Ok(_) | Err(JobError::DuplicateId(_)) => {}
+            Err(e) => return Err(e.into()),
+        }
+
+        let new_state = InterestAccrualProcessState::AwaitingAccrual { start_sequence };
+        current_job
+            .update_execution_state_in_op(&mut op, &new_state)
+            .await?;
+        Ok(JobCompletion::RescheduleNowWithOp(op))
+    }
+
+    /// Stream outbox events, waiting for InterestAccrued matching this facility.
+    async fn await_accrual(
+        &self,
+        mut current_job: CurrentJob,
+        mut start_sequence: i64,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        tracing::info!(
+            start_sequence,
+            credit_facility_id = %self.config.credit_facility_id,
+            "Streaming outbox events for InterestAccrued"
+        );
+
+        let mut stream = self.outbox.listen_persisted(Some(start_sequence));
+
+        loop {
+            tokio::select! {
+                Some(event) = stream.next() => {
+                    let matched = event.payload.as_ref()
+                        .and_then(|p| p.as_event::<CoreCreditEvent>())
+                        .and_then(Self::extract_interest_accrued);
+
+                    if let Some(facility_id) = matched {
+                        if facility_id == self.config.credit_facility_id {
+                            start_sequence = event.sequence;
+                            let new_state = InterestAccrualProcessState::SpawningCycleCompletion;
+                            let mut op = current_job.begin_op().await?;
+                            current_job
+                                .update_execution_state_in_op(&mut op, &new_state)
+                                .await?;
+                            return Ok(JobCompletion::RescheduleNowWithOp(op));
+                        }
+                    }
+                }
+                _ = current_job.shutdown_requested() => {
+                    let state = InterestAccrualProcessState::AwaitingAccrual { start_sequence };
+                    current_job.update_execution_state(&state).await?;
+                    tracing::info!("Shutdown requested, rescheduling interest accrual tracking");
+                    return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
+                }
+            }
+        }
+    }
+
+    /// Capture outbox sequence, spawn CompleteAccrualCycleCommand, transition to AwaitingCycleCompletion.
+    async fn spawn_cycle_completion(
+        &self,
+        mut current_job: CurrentJob,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let start_sequence = self.outbox.current_sequence().await?;
+
+        let mut op = current_job.begin_op().await?;
+
+        match self
+            .complete_spawner
+            .spawn_all_in_op(
+                &mut op,
+                vec![
+                    JobSpec::new(
+                        JobId::new(),
+                        CompleteAccrualCycleCommandConfig {
+                            credit_facility_id: self.config.credit_facility_id,
+                        },
+                    )
+                    .queue_id(self.config.credit_facility_id.to_string()),
+                ],
+            )
+            .await
+        {
+            Ok(_) | Err(JobError::DuplicateId(_)) => {}
+            Err(e) => return Err(e.into()),
+        }
+
+        let new_state = InterestAccrualProcessState::AwaitingCycleCompletion { start_sequence };
+        current_job
+            .update_execution_state_in_op(&mut op, &new_state)
+            .await?;
+        Ok(JobCompletion::RescheduleNowWithOp(op))
+    }
+
+    /// Stream outbox events, waiting for AccrualPosted matching this facility.
+    async fn await_cycle_completion(
+        &self,
+        mut current_job: CurrentJob,
+        mut start_sequence: i64,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        tracing::info!(
+            start_sequence,
+            credit_facility_id = %self.config.credit_facility_id,
+            "Streaming outbox events for AccrualPosted"
+        );
+
+        let mut stream = self.outbox.listen_persisted(Some(start_sequence));
+
+        loop {
+            tokio::select! {
+                Some(event) = stream.next() => {
+                    let matched = event.payload.as_ref()
+                        .and_then(|p| p.as_event::<CoreCreditEvent>())
+                        .and_then(Self::extract_accrual_posted);
+
+                    if let Some(facility_id) = matched {
+                        if facility_id == self.config.credit_facility_id {
+                            let new_state = InterestAccrualProcessState::Completed;
+                            let mut op = current_job.begin_op().await?;
+                            current_job
+                                .update_execution_state_in_op(&mut op, &new_state)
+                                .await?;
+                            return Ok(JobCompletion::RescheduleNowWithOp(op));
+                        }
+                    }
+                }
+                _ = current_job.shutdown_requested() => {
+                    let state = InterestAccrualProcessState::AwaitingCycleCompletion { start_sequence };
+                    current_job.update_execution_state(&state).await?;
+                    tracing::info!("Shutdown requested, rescheduling cycle completion tracking");
+                    return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
+                }
+            }
+        }
+    }
+}
+
 #[async_trait]
-impl JobRunner for InterestAccrualProcessRunner {
+impl<E> JobRunner for InterestAccrualProcessRunner<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     #[record_error_severity]
     #[instrument(
         name = "eod.interest-accrual-process.run",
@@ -152,168 +344,18 @@ impl JobRunner for InterestAccrualProcessRunner {
             .unwrap_or_default();
 
         match state {
-            InterestAccrualProcessState::AccruingInterest => {
-                let accrual_job = JobId::new();
-
-                let mut op = current_job.begin_op().await?;
-
-                match self
-                    .accrue_spawner
-                    .spawn_all_in_op(
-                        &mut op,
-                        vec![
-                            JobSpec::new(
-                                accrual_job,
-                                AccrueInterestCommandConfig {
-                                    credit_facility_id: self.config.credit_facility_id,
-                                },
-                            )
-                            .queue_id(self.config.credit_facility_id.to_string()),
-                        ],
-                    )
+            InterestAccrualProcessState::SpawningAccrual => self.spawn_accrual(current_job).await,
+            InterestAccrualProcessState::AwaitingAccrual { start_sequence } => {
+                self.await_accrual(current_job, start_sequence).await
+            }
+            InterestAccrualProcessState::SpawningCycleCompletion => {
+                self.spawn_cycle_completion(current_job).await
+            }
+            InterestAccrualProcessState::AwaitingCycleCompletion { start_sequence } => {
+                self.await_cycle_completion(current_job, start_sequence)
                     .await
-                {
-                    Ok(_) | Err(JobError::DuplicateId(_)) => {}
-                    Err(e) => return Err(e.into()),
-                }
-
-                let new_state = InterestAccrualProcessState::AwaitingAccrual { accrual_job };
-                current_job
-                    .update_execution_state_in_op(&mut op, &new_state)
-                    .await?;
-                Ok(JobCompletion::RescheduleNowWithOp(op))
             }
-
-            InterestAccrualProcessState::AwaitingAccrual { accrual_job } => {
-                let state = InterestAccrualProcessState::AwaitingAccrual { accrual_job };
-                let accrual_terminal = tokio::select! {
-                    result = self.jobs.await_completion(accrual_job) => result?,
-                    _ = current_job.shutdown_requested() => {
-                        current_job.update_execution_state(&state).await?;
-                        return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
-                    }
-                };
-
-                if accrual_terminal != JobTerminalState::Completed {
-                    tracing::error!(
-                        ?accrual_terminal,
-                        credit_facility_id = %self.config.credit_facility_id,
-                        "AccrueInterestCommand failed"
-                    );
-                    let result = InterestAccrualProcessResult {
-                        credit_facility_id: self.config.credit_facility_id,
-                        accrual_terminal,
-                        cycle_terminal: None,
-                    };
-                    let new_state = InterestAccrualProcessState::Failed { result };
-                    let mut op = current_job.begin_op().await?;
-                    current_job
-                        .update_execution_state_in_op(&mut op, &new_state)
-                        .await?;
-                    Ok(JobCompletion::RescheduleNowWithOp(op))
-                } else {
-                    let new_state =
-                        InterestAccrualProcessState::SpawningCycleCompletion { accrual_terminal };
-                    let mut op = current_job.begin_op().await?;
-                    current_job
-                        .update_execution_state_in_op(&mut op, &new_state)
-                        .await?;
-                    Ok(JobCompletion::RescheduleNowWithOp(op))
-                }
-            }
-
-            InterestAccrualProcessState::SpawningCycleCompletion { accrual_terminal } => {
-                let cycle_job = JobId::new();
-
-                let mut op = current_job.begin_op().await?;
-
-                match self
-                    .complete_spawner
-                    .spawn_all_in_op(
-                        &mut op,
-                        vec![
-                            JobSpec::new(
-                                cycle_job,
-                                CompleteAccrualCycleCommandConfig {
-                                    credit_facility_id: self.config.credit_facility_id,
-                                },
-                            )
-                            .queue_id(self.config.credit_facility_id.to_string()),
-                        ],
-                    )
-                    .await
-                {
-                    Ok(_) | Err(JobError::DuplicateId(_)) => {}
-                    Err(e) => return Err(e.into()),
-                }
-
-                let new_state = InterestAccrualProcessState::AwaitingCycleCompletion {
-                    accrual_terminal,
-                    cycle_job,
-                };
-                current_job
-                    .update_execution_state_in_op(&mut op, &new_state)
-                    .await?;
-                Ok(JobCompletion::RescheduleNowWithOp(op))
-            }
-
-            InterestAccrualProcessState::AwaitingCycleCompletion {
-                accrual_terminal,
-                cycle_job,
-            } => {
-                let state = InterestAccrualProcessState::AwaitingCycleCompletion {
-                    accrual_terminal,
-                    cycle_job,
-                };
-                let cycle_terminal = tokio::select! {
-                    result = self.jobs.await_completion(cycle_job) => result?,
-                    _ = current_job.shutdown_requested() => {
-                        current_job.update_execution_state(&state).await?;
-                        return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
-                    }
-                };
-
-                let result = InterestAccrualProcessResult {
-                    credit_facility_id: self.config.credit_facility_id,
-                    accrual_terminal,
-                    cycle_terminal: Some(cycle_terminal),
-                };
-
-                if cycle_terminal != JobTerminalState::Completed {
-                    tracing::error!(
-                        ?cycle_terminal,
-                        credit_facility_id = %self.config.credit_facility_id,
-                        "CompleteAccrualCycleCommand failed"
-                    );
-                    let new_state = InterestAccrualProcessState::Failed { result };
-                    let mut op = current_job.begin_op().await?;
-                    current_job
-                        .update_execution_state_in_op(&mut op, &new_state)
-                        .await?;
-                    Ok(JobCompletion::RescheduleNowWithOp(op))
-                } else {
-                    let new_state = InterestAccrualProcessState::Completed { result };
-                    let mut op = current_job.begin_op().await?;
-                    current_job
-                        .update_execution_state_in_op(&mut op, &new_state)
-                        .await?;
-                    Ok(JobCompletion::RescheduleNowWithOp(op))
-                }
-            }
-
-            InterestAccrualProcessState::Completed { result } => {
-                current_job.set_result(&result).await?;
-                Ok(JobCompletion::Complete)
-            }
-
-            InterestAccrualProcessState::Failed { result } => {
-                current_job.set_result(&result).await?;
-                Err(format!(
-                    "InterestAccrualProcess failed for facility {}: accrual={:?}, cycle={:?}",
-                    result.credit_facility_id, result.accrual_terminal, result.cycle_terminal
-                )
-                .into())
-            }
+            InterestAccrualProcessState::Completed => Ok(JobCompletion::Complete),
         }
     }
 }

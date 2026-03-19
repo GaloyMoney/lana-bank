@@ -204,7 +204,7 @@ where
 
         let interest_accrual_process_spawner = jobs.add_initializer(
             jobs::interest_accrual_process::InterestAccrualProcessInit::new(
-                jobs,
+                outbox,
                 accrue_interest_spawner,
                 complete_accrual_cycle_spawner,
             ),
