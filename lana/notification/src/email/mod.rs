@@ -51,7 +51,7 @@ where
     let template = templates::EmailTemplate::try_new(infra_config.admin_panel_url.clone())?;
     let smtp_client = SmtpClient::try_new(infra_config.to_smtp_config())?;
 
-    let obligation_overdue =
+    let send_obligation_overdue_email =
         jobs.add_initializer(SendObligationOverdueEmailInitializer::<Perms>::new(
             credit,
             customers,
@@ -61,7 +61,7 @@ where
             domain_configs.clone(),
         ));
 
-    let partial_liquidation =
+    let send_partial_liquidation_email =
         jobs.add_initializer(SendPartialLiquidationEmailInitializer::<Perms>::new(
             customers,
             users,
@@ -70,7 +70,7 @@ where
             domain_configs.clone(),
         ));
 
-    let under_margin_call =
+    let send_under_margin_call_email =
         jobs.add_initializer(SendUnderMarginCallEmailInitializer::<Perms>::new(
             customers,
             smtp_client.clone(),
@@ -78,7 +78,7 @@ where
             domain_configs.clone(),
         ));
 
-    let deposit_account_created =
+    let send_deposit_account_created_email =
         jobs.add_initializer(SendDepositAccountCreatedEmailInitializer::<Perms>::new(
             customers,
             smtp_client.clone(),
@@ -86,18 +86,19 @@ where
             domain_configs.clone(),
         ));
 
-    let role_created = jobs.add_initializer(SendRoleCreatedEmailInitializer::<Perms>::new(
-        users,
-        smtp_client,
-        template,
-        domain_configs.clone(),
-    ));
+    let send_role_created_email =
+        jobs.add_initializer(SendRoleCreatedEmailInitializer::<Perms>::new(
+            users,
+            smtp_client,
+            template,
+            domain_configs.clone(),
+        ));
 
     Ok(EmailEventListenerHandler::new(
-        obligation_overdue,
-        partial_liquidation,
-        under_margin_call,
-        deposit_account_created,
-        role_created,
+        send_obligation_overdue_email,
+        send_partial_liquidation_email,
+        send_under_margin_call_email,
+        send_deposit_account_created_email,
+        send_role_created_email,
     ))
 }

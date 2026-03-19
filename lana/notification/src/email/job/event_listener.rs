@@ -14,27 +14,27 @@ use super::send_under_margin_call_email::SendUnderMarginCallEmailConfig;
 pub const EMAIL_LISTENER_JOB: JobType = JobType::new("outbox.email-listener");
 
 pub struct EmailEventListenerHandler {
-    obligation_overdue: JobSpawner<SendObligationOverdueEmailConfig>,
-    partial_liquidation: JobSpawner<SendPartialLiquidationEmailConfig>,
-    under_margin_call: JobSpawner<SendUnderMarginCallEmailConfig>,
-    deposit_account_created: JobSpawner<SendDepositAccountCreatedEmailConfig>,
-    role_created: JobSpawner<SendRoleCreatedEmailConfig>,
+    send_obligation_overdue_email: JobSpawner<SendObligationOverdueEmailConfig>,
+    send_partial_liquidation_email: JobSpawner<SendPartialLiquidationEmailConfig>,
+    send_under_margin_call_email: JobSpawner<SendUnderMarginCallEmailConfig>,
+    send_deposit_account_created_email: JobSpawner<SendDepositAccountCreatedEmailConfig>,
+    send_role_created_email: JobSpawner<SendRoleCreatedEmailConfig>,
 }
 
 impl EmailEventListenerHandler {
     pub fn new(
-        obligation_overdue: JobSpawner<SendObligationOverdueEmailConfig>,
-        partial_liquidation: JobSpawner<SendPartialLiquidationEmailConfig>,
-        under_margin_call: JobSpawner<SendUnderMarginCallEmailConfig>,
-        deposit_account_created: JobSpawner<SendDepositAccountCreatedEmailConfig>,
-        role_created: JobSpawner<SendRoleCreatedEmailConfig>,
+        send_obligation_overdue_email: JobSpawner<SendObligationOverdueEmailConfig>,
+        send_partial_liquidation_email: JobSpawner<SendPartialLiquidationEmailConfig>,
+        send_under_margin_call_email: JobSpawner<SendUnderMarginCallEmailConfig>,
+        send_deposit_account_created_email: JobSpawner<SendDepositAccountCreatedEmailConfig>,
+        send_role_created_email: JobSpawner<SendRoleCreatedEmailConfig>,
     ) -> Self {
         Self {
-            obligation_overdue,
-            partial_liquidation,
-            under_margin_call,
-            deposit_account_created,
-            role_created,
+            send_obligation_overdue_email,
+            send_partial_liquidation_email,
+            send_under_margin_call_email,
+            send_deposit_account_created_email,
+            send_role_created_email,
         }
     }
 }
@@ -60,7 +60,7 @@ where
             Span::current().record("event_type", credit_event.as_ref());
 
             let credit_facility_id: core_credit::CreditFacilityId = entity.beneficiary_id.into();
-            self.obligation_overdue
+            self.send_obligation_overdue_email
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
@@ -84,7 +84,7 @@ where
                 .liquidation_trigger
                 .as_ref()
                 .ok_or("liquidation_trigger must be set for PartialLiquidationInitiated")?;
-            self.partial_liquidation
+            self.send_partial_liquidation_email
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
@@ -110,7 +110,7 @@ where
 
             let collateralization = &entity.collateralization;
             let effective = event.recorded_at.date_naive();
-            self.under_margin_call
+            self.send_under_margin_call_email
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
@@ -134,7 +134,7 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", deposit_event.as_ref());
 
-            self.deposit_account_created
+            self.send_deposit_account_created_email
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
@@ -151,7 +151,7 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", access_event.as_ref());
 
-            self.role_created
+            self.send_role_created_email
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
