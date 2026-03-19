@@ -1,15 +1,70 @@
 use std::{fmt::Display, str::FromStr};
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
+use rust_decimal::Decimal;
+use rust_decimal::RoundingStrategy;
+use serde::{Deserialize, Serialize};
 
+pub use cala_ledger::Currency;
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, JournalId as CalaJournalId,
     TransactionId as CalaTransactionId,
 };
 pub use chart_primitives::ChartId;
 
+use crate::error::CoreFxError;
+
 es_entity::entity_id! {
-    ChartOfAccountsIntegrationConfigId;
+    ChartOfAccountsIntegrationConfigId,
+    FxPositionId;
+}
+
+/// Exchange rate: 1 unit of base currency = rate units of quote currency.
+/// Example: USD/EUR rate of 0.91 means 1 USD = 0.91 EUR.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct ExchangeRate {
+    rate: Decimal,
+    target_precision: u32,
+}
+
+impl ExchangeRate {
+    pub fn try_new(rate: Decimal, target_precision: u32) -> Result<Self, CoreFxError> {
+        if rate <= Decimal::ZERO {
+            return Err(CoreFxError::InvalidExchangeRate);
+        }
+        Ok(Self {
+            rate,
+            target_precision,
+        })
+    }
+
+    pub fn rate(&self) -> Decimal {
+        self.rate
+    }
+
+    pub fn inverse(&self, source_precision: u32) -> Self {
+        Self {
+            rate: Decimal::ONE / self.rate,
+            target_precision: source_precision,
+        }
+    }
+
+    /// Compute target_amount = source_amount * rate, rounded down (conservative for the bank).
+    /// Returns (target_amount, rounding_difference in target currency).
+    pub fn convert(&self, source_amount: Decimal) -> (Decimal, Decimal) {
+        let exact = source_amount * self.rate;
+        let rounded = exact.round_dp_with_strategy(self.target_precision, RoundingStrategy::ToZero);
+        let rounding_diff = exact - rounded;
+        (rounded, rounding_diff)
+    }
+}
+
+/// Result of an FX conversion including any realized gain/loss and rounding.
+#[derive(Debug, Clone)]
+pub struct FxConversionResult {
+    pub target_amount: Decimal,
+    pub rounding_difference: Decimal,
+    pub realized_gain_loss: Decimal,
 }
 
 pub const FX_TRANSACTION_ENTITY_TYPE: chart_primitives::EntityType =

@@ -16,6 +16,12 @@ pub enum CoreFxError {
     ChartOfAccountsIntegrationError(
         #[from] crate::chart_of_accounts_integration::error::ChartOfAccountsIntegrationError,
     ),
+    #[error("CoreFxError - InvalidExchangeRate: rate must be positive")]
+    InvalidExchangeRate,
+    #[error("CoreFxError - ZeroAmount")]
+    ZeroAmount,
+    #[error("CoreFxError - ChartOfAccountsIntegrationNotConfigured")]
+    ChartOfAccountsIntegrationNotConfigured,
 }
 
 impl ErrorSeverity for CoreFxError {
@@ -26,6 +32,9 @@ impl ErrorSeverity for CoreFxError {
             Self::DomainConfigError(e) => e.severity(),
             Self::FxLedgerError(e) => e.severity(),
             Self::ChartOfAccountsIntegrationError(e) => e.severity(),
+            Self::InvalidExchangeRate => Level::WARN,
+            Self::ZeroAmount => Level::WARN,
+            Self::ChartOfAccountsIntegrationNotConfigured => Level::ERROR,
         }
     }
 }
