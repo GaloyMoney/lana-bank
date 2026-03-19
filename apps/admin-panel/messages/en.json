@@ -136,7 +136,8 @@
       "advanceToNextEndOfDay": "Advance to next EOD",
       "advanceSuccess": "Time advanced to the next end of day",
       "advanceError": "Could not advance time",
-      "advanceErrorWithReason": "Could not advance time: {error}"
+      "advanceErrorWithReason": "Could not advance time: {error}",
+      "eodStatus": "EOD status"
     },
     "notification-email-from-email": {
       "title": "Notification from email",

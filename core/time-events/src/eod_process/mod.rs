@@ -69,4 +69,18 @@ where
         self.repo.update_in_op(op, process).await?;
         Ok(())
     }
+
+    pub async fn find_latest(&self) -> Result<Option<EodProcess>, EodProcessError> {
+        let result = self
+            .repo
+            .list_by_date(
+                es_entity::PaginatedQueryArgs {
+                    first: 1,
+                    after: None,
+                },
+                es_entity::ListDirection::Descending,
+            )
+            .await?;
+        Ok(result.entities.into_iter().next())
+    }
 }

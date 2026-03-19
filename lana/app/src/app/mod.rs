@@ -305,6 +305,7 @@ impl LanaApp {
             &eod_pm_spawner,
             &clock,
             clock_controller,
+            &eod_processes,
         )
         .await?;
 

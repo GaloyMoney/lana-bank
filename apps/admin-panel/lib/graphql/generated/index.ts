@@ -1649,6 +1649,16 @@ export type DurationInput = {
   units: Scalars['Int']['input'];
 };
 
+export enum EodProcessStatus {
+  AwaitingPhase1 = 'AWAITING_PHASE1',
+  AwaitingPhase2 = 'AWAITING_PHASE2',
+  Cancelled = 'CANCELLED',
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  Initialized = 'INITIALIZED',
+  Phase1Complete = 'PHASE1_COMPLETE'
+}
+
 export type EventTimelineEntry = {
   __typename?: 'EventTimelineEntry';
   auditEntryId?: Maybe<Scalars['AuditEntryId']['output']>;
@@ -3723,6 +3733,8 @@ export type Time = {
   currentTime: Scalars['Timestamp']['output'];
   /** Configured end-of-day time in HH:MM:SS format. */
   endOfDayTime: Scalars['String']['output'];
+  /** Current status of the most recent end-of-day process, if any. */
+  eodStatus?: Maybe<EodProcessStatus>;
   /** Timestamp when the next end-of-day boundary will be reached. */
   nextEndOfDayAt: Scalars['Timestamp']['output'];
   /** IANA timezone identifier for the environment (e.g. "America/New_York"). */
@@ -5567,7 +5579,7 @@ export type RolesQueryVariables = Exact<{
 
 export type RolesQuery = { __typename?: 'Query', roles: { __typename?: 'RoleConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'RoleEdge', cursor: string, node: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } };
 
-export type SystemInfoTimeFieldsFragment = { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean };
+export type SystemInfoTimeFieldsFragment = { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean, eodStatus?: EodProcessStatus | null };
 
 export type GetBuildInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5577,12 +5589,12 @@ export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: any, buildInf
 export type GetTimeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetTimeQuery = { __typename?: 'Query', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean } };
+export type GetTimeQuery = { __typename?: 'Query', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean, eodStatus?: EodProcessStatus | null } };
 
 export type TimeAdvanceToNextEndOfDayMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TimeAdvanceToNextEndOfDayMutation = { __typename?: 'Mutation', timeAdvanceToNextEndOfDay: { __typename?: 'TimeAdvanceToNextEndOfDayPayload', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean } } };
+export type TimeAdvanceToNextEndOfDayMutation = { __typename?: 'Mutation', timeAdvanceToNextEndOfDay: { __typename?: 'TimeAdvanceToNextEndOfDayPayload', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean, eodStatus?: EodProcessStatus | null } } };
 
 export type TermsTemplateEventHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -6850,6 +6862,7 @@ export const SystemInfoTimeFieldsFragmentDoc = gql`
   timezone
   endOfDayTime
   canAdvanceToNextEndOfDay
+  eodStatus
 }
     `;
 export const TermsTemplateFieldsFragmentDoc = gql`

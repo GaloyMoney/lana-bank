@@ -20,6 +20,7 @@ import { formatDate } from "@lana/web/utils"
 
 import {
   type Time,
+  EodProcessStatus,
   GetTimeDocument,
   useGetBuildInfoQuery,
   useGetTimeQuery,
@@ -35,6 +36,7 @@ gql`
     timezone
     endOfDayTime
     canAdvanceToNextEndOfDay
+    eodStatus
   }
 
   query GetBuildInfo {
@@ -186,6 +188,30 @@ function useBrowserTime() {
   return now
 }
 
+const EOD_IN_PROGRESS_STATUSES: EodProcessStatus[] = [
+  EodProcessStatus.Initialized,
+  EodProcessStatus.AwaitingPhase1,
+  EodProcessStatus.Phase1Complete,
+  EodProcessStatus.AwaitingPhase2,
+]
+
+function isEodInProgress(status: EodProcessStatus | null | undefined): boolean {
+  return status != null && EOD_IN_PROGRESS_STATUSES.includes(status)
+}
+
+function formatEodStatus(status: EodProcessStatus): string {
+  const labels: Record<EodProcessStatus, string> = {
+    [EodProcessStatus.Initialized]: "Initialized",
+    [EodProcessStatus.AwaitingPhase1]: "Awaiting Phase 1",
+    [EodProcessStatus.Phase1Complete]: "Phase 1 Complete",
+    [EodProcessStatus.AwaitingPhase2]: "Awaiting Phase 2",
+    [EodProcessStatus.Completed]: "Completed",
+    [EodProcessStatus.Failed]: "Failed",
+    [EodProcessStatus.Cancelled]: "Cancelled",
+  }
+  return labels[status]
+}
+
 type TimeCardProps = {
   time?: Time
   loading: boolean
@@ -231,12 +257,15 @@ function TimeCard({ time, loading, error, onAdvance, advanceLoading }: TimeCardP
               label={t("timeMode")}
               value={time.canAdvanceToNextEndOfDay ? t("manual") : t("realtime")}
             />
+            {time.eodStatus && (
+              <InfoRow label={tTime("eodStatus")} value={formatEodStatus(time.eodStatus)} />
+            )}
           </div>
         ) : null}
       </CardContent>
       {time?.canAdvanceToNextEndOfDay && (
         <CardFooter>
-          <Button onClick={onAdvance} disabled={advanceLoading}>
+          <Button onClick={onAdvance} disabled={advanceLoading || isEodInProgress(time.eodStatus)}>
             {advanceLoading ? (
               <LoaderCircle className="animate-spin mr-2 h-4 w-4" />
             ) : null}

@@ -10,10 +10,14 @@ pub enum TimeEventsError {
     JobError(#[from] job::error::JobError),
     #[error("TimeEventsError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("TimeEventsError - EodProcessError: {0}")]
+    EodProcessError(#[from] crate::eod_process::error::EodProcessError),
     #[error("TimeEventsError - TimeAdvanceUnavailable")]
     TimeAdvanceUnavailable,
     #[error("TimeEventsError - TimeAdvanceFailed: {0}")]
     TimeAdvanceFailed(String),
+    #[error("TimeEventsError - EodProcessInProgress: cannot advance while EOD process is running")]
+    EodProcessInProgress,
 }
 
 impl ErrorSeverity for TimeEventsError {
@@ -21,9 +25,11 @@ impl ErrorSeverity for TimeEventsError {
         match self {
             Self::DomainConfig(_) => Level::ERROR,
             Self::JobError(_) => Level::ERROR,
+            Self::EodProcessError(_) => Level::ERROR,
             Self::AuthorizationError(_) => Level::WARN,
             Self::TimeAdvanceUnavailable => Level::WARN,
             Self::TimeAdvanceFailed(_) => Level::WARN,
+            Self::EodProcessInProgress => Level::WARN,
         }
     }
 }

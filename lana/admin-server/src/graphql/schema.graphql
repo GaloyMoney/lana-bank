@@ -1522,6 +1522,16 @@ enum DocumentStatus {
 	NEW
 }
 
+enum EodProcessStatus {
+	INITIALIZED
+	AWAITING_PHASE1
+	PHASE1_COMPLETE
+	AWAITING_PHASE2
+	COMPLETED
+	FAILED
+	CANCELLED
+}
+
 type DomainConfig {
 	configType: ConfigType!
 	domainConfigId: UUID!
@@ -2924,6 +2934,10 @@ type Time {
 	Configured end-of-day time in HH:MM:SS format.
 	"""
 	endOfDayTime: String!
+	"""
+	Current status of the most recent end-of-day process, if any.
+	"""
+	eodStatus: EodProcessStatus
 	"""
 	Timestamp when the next end-of-day boundary will be reached.
 	"""

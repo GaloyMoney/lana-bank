@@ -25,3 +25,12 @@ pub enum EodProcessStatus {
     Failed,
     Cancelled,
 }
+
+impl EodProcessStatus {
+    pub fn is_in_progress(&self) -> bool {
+        matches!(
+            self,
+            Self::Initialized | Self::AwaitingPhase1 | Self::Phase1Complete | Self::AwaitingPhase2
+        )
+    }
+}
