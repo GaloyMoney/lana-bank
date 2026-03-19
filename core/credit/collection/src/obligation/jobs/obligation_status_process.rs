@@ -164,11 +164,7 @@ where
             let specs: Vec<_> = rows
                 .iter()
                 .map(|(id, _)| {
-                    let job_id = core_time_events::eod_entity_id(
-                        &self.config.date,
-                        "obligation-status",
-                        &(*id).into(),
-                    );
+                    let job_id = JobId::new();
                     state.pending.insert(*id);
                     JobSpec::new(
                         job_id,

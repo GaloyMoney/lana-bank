@@ -13,7 +13,6 @@ pub mod credit_facility_eod_process;
 pub mod deposit_activity_process;
 pub mod eod_process;
 pub mod interest_accrual_process;
-mod job_id;
 pub mod obligation_status_process;
 mod primitives;
 mod process_manager;
@@ -42,7 +41,6 @@ pub use event::*;
 
 // --- Re-exports merged from core-eod ---
 pub use eod_process::{EodPhase, EodProcess, EodProcessEvent, EodProcesses, NewEodProcess};
-pub use job_id::*;
 pub use primitives::*;
 pub use process_manager::{
     EOD_PROCESS_MANAGER_JOB_TYPE, EodProcessManagerConfig, EodProcessManagerJobInit,

@@ -153,11 +153,7 @@ impl JobRunner for InterestAccrualProcessRunner {
 
         match state {
             InterestAccrualProcessState::AccruingInterest => {
-                let accrual_job = core_time_events::eod_entity_id(
-                    &self.config.date,
-                    "accrue-interest",
-                    &(*self.config.credit_facility_id).into(),
-                );
+                let accrual_job = JobId::new();
 
                 let mut op = current_job.begin_op().await?;
 
@@ -227,11 +223,7 @@ impl JobRunner for InterestAccrualProcessRunner {
             }
 
             InterestAccrualProcessState::SpawningCycleCompletion { accrual_terminal } => {
-                let cycle_job = core_time_events::eod_entity_id(
-                    &self.config.date,
-                    "complete-accrual-cycle",
-                    &(*self.config.credit_facility_id).into(),
-                );
+                let cycle_job = JobId::new();
 
                 let mut op = current_job.begin_op().await?;
 

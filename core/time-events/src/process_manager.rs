@@ -17,7 +17,6 @@ use crate::{
     eod_process::{
         EodPhase, EodProcess, EodProcesses, JobTerminalState, NewEodProcess, error::EodProcessError,
     },
-    job_id,
     obligation_status_process::{ObligationStatusProcessConfig, ObligationStatusProcessSpawner},
     primitives::*,
     public::CoreEodEvent,
@@ -191,7 +190,7 @@ where
         op: &mut es_entity::DbOp<'_>,
         process: &mut EodProcess,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let credit_facility_job = job_id::eod_child_id(&self.config.date, "credit-facility");
+        let credit_facility_job = JobId::new();
 
         match self
             .credit_facility_spawner
@@ -221,8 +220,8 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let obligation_job = job_id::eod_child_id(&self.config.date, "obligation-status");
-        let deposit_job = job_id::eod_child_id(&self.config.date, "deposit-activity");
+        let obligation_job = JobId::new();
+        let deposit_job = JobId::new();
 
         let mut op = current_job.begin_op().await?;
 

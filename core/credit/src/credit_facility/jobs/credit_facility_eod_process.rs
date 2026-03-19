@@ -169,11 +169,7 @@ where
                 let specs: Vec<_> = rows
                     .iter()
                     .map(|(id, _)| {
-                        let job_id = core_time_events::eod_entity_id(
-                            &self.config.date,
-                            "interest-accrual",
-                            &(*id).into(),
-                        );
+                        let job_id = JobId::new();
                         state.pending_accrual_jobs.push(job_id);
                         JobSpec::new(
                             job_id,
@@ -227,11 +223,7 @@ where
             let specs: Vec<_> = rows
                 .iter()
                 .map(|(id, _)| {
-                    let job_id = core_time_events::eod_entity_id(
-                        &self.config.date,
-                        "credit-maturity",
-                        &(*id).into(),
-                    );
+                    let job_id = JobId::new();
                     state.pending_maturity_jobs.push(job_id);
                     JobSpec::new(
                         job_id,

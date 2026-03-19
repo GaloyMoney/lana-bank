@@ -11,7 +11,7 @@ use domain_config::ExposedDomainConfigsReadOnly;
 use crate::{
     ClosingSchedule,
     config::{ClosingTime, Timezone},
-    job_id,
+    primitives::EodProcessId,
     process_manager::{EodProcessManagerConfig, EodProcessManagerJobSpawner},
 };
 
@@ -110,8 +110,8 @@ impl JobRunner for EndOfDayProducerJobRunner {
                 while day <= most_recent_closing_day {
                     let closing_dt = ClosingSchedule::closing_for_day(timezone, closing_time, day);
 
-                    let process_id = job_id::eod_process_id_from_date(&day);
-                    let manager_job_id = job_id::eod_manager_id(&day);
+                    let process_id = EodProcessId::new();
+                    let manager_job_id = job::JobId::new();
 
                     let mut op = current_job.begin_op().await?;
                     let spec = JobSpec::new(
