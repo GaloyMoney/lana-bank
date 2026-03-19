@@ -5972,7 +5972,7 @@ export type GetCreditFacilityPublicIdQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityPublicIdQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null };
+export type GetCreditFacilityPublicIdQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null };
 
 export const ChartAccountBaseFragmentDoc = gql`
     fragment ChartAccountBase on ChartNode {
@@ -15295,6 +15295,7 @@ export type SearchPublicIdTargetQueryResult = Apollo.QueryResult<SearchPublicIdT
 export const GetCreditFacilityPublicIdDocument = gql`
     query GetCreditFacilityPublicId($id: UUID!) {
   creditFacility(id: $id) {
+    creditFacilityId
     publicId
   }
 }

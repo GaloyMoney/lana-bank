@@ -7,6 +7,7 @@ import { useGetCreditFacilityPublicIdQuery } from "@/lib/graphql/generated"
 gql`
   query GetCreditFacilityPublicId($id: UUID!) {
     creditFacility(id: $id) {
+      creditFacilityId
       publicId
     }
   }
