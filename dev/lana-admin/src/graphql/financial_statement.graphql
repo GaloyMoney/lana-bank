@@ -50,7 +50,6 @@ query BalanceSheetGet($asOf: Date!) {
       }
     }
     categories {
-      balanceSheetAccountId
       ledgerAccountId
       code
       name
