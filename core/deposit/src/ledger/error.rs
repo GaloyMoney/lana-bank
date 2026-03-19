@@ -38,6 +38,8 @@ pub enum DepositLedgerError {
     NonAccountMemberFoundInAccountSet(String),
     #[error("DepositLedgerError - JournalIdMismatch: Account sets have wrong JournalId")]
     JournalIdMismatch,
+    #[error("DepositLedgerError - ParseCurrencyError: {0}")]
+    ParseCurrencyError(#[from] cala_ledger::ParseCurrencyError),
     #[error("DepositLedgerError - UnsupportedCurrency: {0}")]
     UnsupportedCurrency(String),
 }
@@ -67,6 +69,7 @@ impl ErrorSeverity for DepositLedgerError {
             Self::MismatchedTxMetadata(_) => Level::WARN,
             Self::NonAccountMemberFoundInAccountSet(_) => Level::ERROR,
             Self::JournalIdMismatch => Level::ERROR,
+            Self::ParseCurrencyError(_) => Level::ERROR,
             Self::UnsupportedCurrency(_) => Level::ERROR,
         }
     }

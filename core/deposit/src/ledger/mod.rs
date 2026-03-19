@@ -14,7 +14,7 @@ mod templates;
 mod velocity;
 
 use cala_ledger::{
-    CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
+    CalaLedger, DebitOrCredit, JournalId, TransactionId,
     account::*,
     account_set::{AccountSetMemberId, NewAccountSet},
     tx_template::Params,
@@ -28,8 +28,7 @@ use crate::{
     history::DepositAccountHistoryEntry,
     primitives::{
         Amount, CalaAccountId, CalaAccountSetId, CurrencyCode, DEPOSIT_ACCOUNT_ENTITY_TYPE,
-        DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountType, DepositId, Satoshis, UsdCents,
-        WithdrawalId,
+        DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountType, DepositId, WithdrawalId,
     },
 };
 
@@ -63,7 +62,6 @@ pub struct DepositLedger {
     deposit_account_sets: DepositAccountSets,
     frozen_deposit_account_sets: DepositAccountSets,
     deposit_omnibus_account_ids: LedgerOmnibusAccountIds,
-    usd: Currency,
     deposit_control_id: VelocityControlId,
 }
 
@@ -178,7 +176,6 @@ impl DepositLedger {
             },
             deposit_omnibus_account_ids,
             deposit_control_id,
-            usd: Currency::USD,
         })
     }
 
@@ -399,7 +396,7 @@ impl DepositLedger {
         let params = templates::RecordDepositParams {
             entity_id: entity_id.into(),
             journal_id: self.journal_id,
-            currency: self.usd,
+            currency: amount.currency().iso().parse()?,
             amount: amount.to_major(),
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id,
@@ -440,7 +437,7 @@ impl DepositLedger {
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id,
             amount: amount.to_major(),
-            currency: self.usd,
+            currency: amount.currency().iso().parse()?,
             initiated_by,
             effective_date: self.clock.today(),
         };
@@ -482,7 +479,7 @@ impl DepositLedger {
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id,
             amount: amount.to_major(),
-            currency: self.usd,
+            currency: amount.currency().iso().parse()?,
             initiated_by,
             effective_date: self.clock.today(),
         };
@@ -499,29 +496,31 @@ impl DepositLedger {
     pub async fn revert_withdrawal_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
-        reversal_data: WithdrawalReversalData,
+        WithdrawalReversalData {
+            entity_id,
+            ledger_tx_id,
+            credit_account_id,
+            amount,
+            correlation_id,
+            external_id,
+        }: WithdrawalReversalData,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let params = templates::RevertWithdrawParams {
-            entity_id: reversal_data.entity_id.into(),
+            entity_id: entity_id.into(),
             journal_id: self.journal_id,
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
-            credit_account_id: reversal_data.credit_account_id.into(),
-            amount: reversal_data.amount.to_major(),
-            currency: self.usd,
-            correlation_id: reversal_data.correlation_id,
-            external_id: reversal_data.external_id,
+            credit_account_id: credit_account_id.into(),
+            amount: amount.to_major(),
+            currency: amount.currency().iso().parse()?,
+            correlation_id,
+            external_id,
             initiated_by,
             effective_date: self.clock.today(),
         };
 
         self.cala
-            .post_transaction_in_op(
-                op,
-                reversal_data.ledger_tx_id,
-                templates::REVERT_WITHDRAW_CODE,
-                params,
-            )
+            .post_transaction_in_op(op, ledger_tx_id, templates::REVERT_WITHDRAW_CODE, params)
             .await?;
 
         Ok(())
@@ -543,7 +542,7 @@ impl DepositLedger {
             correlation_id: reversal_data.correlation_id,
             external_id: reversal_data.external_id,
             amount: reversal_data.amount.to_major(),
-            currency: self.usd,
+            currency: reversal_data.amount.currency().iso().parse()?,
             initiated_by,
             effective_date: self.clock.today(),
         };
@@ -575,16 +574,16 @@ impl DepositLedger {
         account: &DepositAccount,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
-        for (_, pair) in account.account_ids.iter() {
-            let bal = self.cala_account_usd_balance(pair.active).await?;
+        for (&currency, pair) in account.account_ids.iter() {
+            let bal = self.cala_account_balance(pair.active, currency).await?;
 
-            if !bal.is_zero() {
+            if !bal.settled.is_zero() {
                 let params = templates::FreezeAccountParams {
                     journal_id: self.journal_id,
                     account_id: pair.active,
                     frozen_accounts_account_id: pair.frozen,
-                    amount: bal.to_usd(),
-                    currency: self.usd,
+                    amount: bal.settled.to_major(),
+                    currency: currency.iso().parse()?,
                     initiated_by,
                     effective_date: self.clock.today(),
                 };
@@ -620,18 +619,18 @@ impl DepositLedger {
         account: &DepositAccount,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
-        for (_, pair) in account.account_ids.iter() {
-            let frozen_balance = self.cala_account_usd_balance(pair.frozen).await?;
+        for (&currency, pair) in account.account_ids.iter() {
+            let frozen_balance = self.cala_account_balance(pair.frozen, currency).await?;
 
             self.cala.accounts().unlock_in_op(op, pair.active).await?;
 
-            if !frozen_balance.is_zero() {
+            if !frozen_balance.settled.is_zero() {
                 let params = templates::UnfreezeAccountParams {
                     journal_id: self.journal_id,
                     account_id: pair.active,
                     frozen_accounts_account_id: pair.frozen,
-                    amount: frozen_balance.to_usd(),
-                    currency: self.usd,
+                    amount: frozen_balance.settled.to_major(),
+                    currency: currency.iso().parse()?,
                     initiated_by,
                     effective_date: self.clock.today(),
                 };
@@ -691,7 +690,7 @@ impl DepositLedger {
         let params = templates::ConfirmWithdrawParams {
             entity_id: entity_id.into(),
             journal_id: self.journal_id,
-            currency: self.usd,
+            currency: amount.currency().iso().parse()?,
             amount: amount.to_major(),
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id,
@@ -734,7 +733,7 @@ impl DepositLedger {
         let params = templates::CancelWithdrawParams {
             entity_id: entity_id.into(),
             journal_id: self.journal_id,
-            currency: self.usd,
+            currency: amount.currency().iso().parse()?,
             amount: amount.to_major(),
             credit_account_id,
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
@@ -748,20 +747,30 @@ impl DepositLedger {
         Ok(())
     }
 
-    /// Query the USD balance of a single CALA ledger account.
-    async fn cala_account_usd_balance(
+    /// Query the balance of a single CALA ledger account for a given currency.
+    async fn cala_account_balance(
         &self,
         account_id: impl Into<AccountId>,
-    ) -> Result<UsdCents, DepositLedgerError> {
+        currency: CurrencyCode,
+    ) -> Result<DepositAccountBalance, DepositLedgerError> {
         let account_id = account_id.into();
         match self
             .cala
             .balances()
-            .find(self.journal_id, account_id, self.usd)
+            .find(self.journal_id, account_id, currency.iso().parse()?)
             .await
         {
-            Ok(balances) => Ok(UsdCents::try_from_usd(balances.settled())?),
-            Err(cala_ledger::balance::error::BalanceError::NotFound(..)) => Ok(UsdCents::ZERO),
+            Ok(balances) => Ok(DepositAccountBalance {
+                settled: Amount::try_from_major(currency, balances.settled())?,
+                pending: Amount::try_from_major(currency, balances.pending())?,
+            }),
+            Err(cala_ledger::balance::error::BalanceError::NotFound(..)) => {
+                let zero = rust_decimal::Decimal::ZERO;
+                Ok(DepositAccountBalance {
+                    settled: Amount::try_from_major(currency, zero)?,
+                    pending: Amount::try_from_major(currency, zero)?,
+                })
+            }
             Err(e) => Err(e.into()),
         }
     }
@@ -775,45 +784,7 @@ impl DepositLedger {
         let mut result =
             DepositAccountBalances::new(account_ids.allowed_currencies().iter().copied());
         for (&currency, pair) in account_ids.iter() {
-            let account_id = pair.active;
-            let bal = match self
-                .cala
-                .balances()
-                .find(self.journal_id, account_id, self.usd)
-                .await
-            {
-                Ok(balances) => match currency {
-                    c if c == CurrencyCode::USD => DepositAccountBalance {
-                        settled: Amount::from(UsdCents::try_from_usd(balances.settled())?),
-                        pending: Amount::from(UsdCents::try_from_usd(balances.pending())?),
-                    },
-                    c if c == CurrencyCode::BTC => DepositAccountBalance {
-                        settled: Amount::from(Satoshis::try_from_btc(balances.settled())?),
-                        pending: Amount::from(Satoshis::try_from_btc(balances.pending())?),
-                    },
-                    _ => {
-                        return Err(DepositLedgerError::UnsupportedCurrency(
-                            currency.to_string(),
-                        ));
-                    }
-                },
-                Err(cala_ledger::balance::error::BalanceError::NotFound(..)) => match currency {
-                    c if c == CurrencyCode::USD => DepositAccountBalance {
-                        settled: Amount::from(UsdCents::ZERO),
-                        pending: Amount::from(UsdCents::ZERO),
-                    },
-                    c if c == CurrencyCode::BTC => DepositAccountBalance {
-                        settled: Amount::from(Satoshis::ZERO),
-                        pending: Amount::from(Satoshis::ZERO),
-                    },
-                    _ => {
-                        return Err(DepositLedgerError::UnsupportedCurrency(
-                            currency.to_string(),
-                        ));
-                    }
-                },
-                Err(e) => return Err(e.into()),
-            };
+            let bal = self.cala_account_balance(pair.active, currency).await?;
             result
                 .insert(currency, bal)
                 .expect("currency is in allowed set");

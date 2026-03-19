@@ -1,7 +1,8 @@
+use std::fmt;
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-
-use std::{fmt, str::FromStr};
 
 // ---------------------------------------------------------------------------
 // CurrencyCode — runtime currency identifier
@@ -64,6 +65,14 @@ impl FromStr for CurrencyCode {
     }
 }
 
+impl TryFrom<String> for CurrencyCode {
+    type Error = ParseCurrencyCodeError;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        s.parse()
+    }
+}
+
 impl Serialize for CurrencyCode {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.0.serialize(serializer)
@@ -72,16 +81,8 @@ impl Serialize for CurrencyCode {
 
 impl<'de> Deserialize<'de> for CurrencyCode {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let s = String::deserialize(deserializer)?;
+        let s = <&str>::deserialize(deserializer)?;
         s.parse().map_err(serde::de::Error::custom)
-    }
-}
-
-impl TryFrom<String> for CurrencyCode {
-    type Error = ParseCurrencyCodeError;
-
-    fn try_from(s: String) -> Result<Self, Self::Error> {
-        s.parse()
     }
 }
 
