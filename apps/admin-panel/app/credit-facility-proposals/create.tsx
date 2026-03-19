@@ -46,13 +46,12 @@ gql`
   mutation CreditFacilityProposalCreate($input: CreditFacilityProposalCreateInput!) {
     creditFacilityProposalCreate(input: $input) {
       creditFacilityProposal {
-        id
         creditFacilityProposalId
         customer {
-          id
+          customerId
           email
           creditFacilityProposals {
-            id
+            creditFacilityProposalId
           }
         }
       }
@@ -123,7 +122,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       termsTemplatesData.termsTemplates.length > 0
     ) {
       const latestTemplate = termsTemplatesData.termsTemplates[0]
-      setSelectedTemplateId(latestTemplate.id)
+      setSelectedTemplateId(latestTemplate.termsTemplateId)
       setFormValues((prevValues) => ({
         ...prevValues,
         annualRate: latestTemplate.values.annualRate.toString(),
@@ -150,7 +149,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplateId(templateId)
     const selectedTemplate = termsTemplatesData?.termsTemplates.find(
-      (t) => t.id === templateId,
+      (t) => t.termsTemplateId === templateId,
     )
     if (selectedTemplate) {
       setFormValues((prevValues) => ({
@@ -266,7 +265,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       termsTemplatesData.termsTemplates.length > 0
     ) {
       const latestTemplate = termsTemplatesData.termsTemplates[0]
-      setSelectedTemplateId(latestTemplate.id)
+      setSelectedTemplateId(latestTemplate.termsTemplateId)
       setFormValues({
         facility: "0",
         custodianId: "",
@@ -357,7 +356,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
               <SelectContent>
                 {custodiansData?.custodians.edges
                   .map(({ node: custodian }) => (
-                    <SelectItem key={custodian.id} value={custodian.custodianId}>
+                    <SelectItem key={custodian.custodianId} value={custodian.custodianId}>
                       {custodian.name}
                     </SelectItem>
                   ))}
@@ -382,7 +381,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                 </SelectTrigger>
                 <SelectContent>
                   {termsTemplatesData?.termsTemplates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
+                    <SelectItem key={template.termsTemplateId} value={template.termsTemplateId}>
                       {template.name}
                     </SelectItem>
                   ))}

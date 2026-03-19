@@ -24,7 +24,6 @@ pub use lana_app::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Deposit {
-    id: ID,
     deposit_id: UUID,
     account_id: UUID,
     amount: UsdCents,
@@ -37,7 +36,6 @@ pub struct Deposit {
 impl From<DomainDeposit> for Deposit {
     fn from(deposit: DomainDeposit) -> Self {
         Deposit {
-            id: deposit.id.to_global_id(),
             deposit_id: UUID::from(deposit.id),
             account_id: UUID::from(deposit.deposit_account_id),
             amount: deposit.amount,

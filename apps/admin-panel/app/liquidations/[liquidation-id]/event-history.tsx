@@ -10,7 +10,6 @@ import { useLiquidationEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query LiquidationEventHistory($liquidationId: UUID!, $first: Int!, $after: String) {
     liquidation(id: $liquidationId) {
-      id
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

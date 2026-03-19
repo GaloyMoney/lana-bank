@@ -29,7 +29,6 @@ import {
 gql`
   query ChartOfAccountsForLedger {
     chartOfAccounts {
-      id
       chartOfAccountsId
       name
     }

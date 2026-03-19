@@ -36,7 +36,6 @@ crate::mutation_payload! { CollateralRecordProceedsFromLiquidationPayload, colla
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Collateral {
-    id: ID,
     collateral_id: UUID,
     pub(crate) wallet_id: Option<UUID>,
     account_id: UUID,
@@ -48,7 +47,6 @@ pub struct Collateral {
 impl From<DomainCollateral> for Collateral {
     fn from(collateral: DomainCollateral) -> Self {
         Self {
-            id: collateral.id.to_global_id(),
             collateral_id: collateral.id.into(),
             wallet_id: collateral.custody_wallet_id.map(|id| id.into()),
             account_id: collateral.account_ids.collateral_account_id.into(),

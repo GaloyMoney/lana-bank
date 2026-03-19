@@ -3,22 +3,19 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
-use domain_config::DomainConfigId;
 pub use lana_app::price::PriceProviderId;
 
 pub use lana_app::{
-    accounting::{LedgerAccountId, TransactionTemplateId},
+    accounting::LedgerAccountId,
     primitives::{
         ApprovalProcessId, ChartId, CollateralDirection, CollateralId, CommitteeId,
         CreditFacilityId, CreditFacilityProposalId, CreditFacilityProposalStatus, CustodianId,
         CustomerDocumentId, CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus,
-        DocumentId, EntryId, FiscalYearId, LedgerTransactionId, LiquidationId, ManualTransactionId,
-        PaymentAllocationId, PaymentId, PendingCreditFacilityId, PendingCreditFacilityStatus,
-        PermissionSetId, PolicyId, ProspectId, ReportId, RoleId, Satoshis, SignedSatoshis,
-        SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WalletId, WithdrawalId,
+        FiscalYearId, LedgerTransactionId, LiquidationId, PendingCreditFacilityId,
+        PendingCreditFacilityStatus, PermissionSetId, PolicyId, ProspectId, RoleId, Satoshis,
+        SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WalletId,
+        WithdrawalId,
     },
-    public_id::PublicId,
-    report::ReportRunId,
     terms::{CollateralizationState, PendingCreditFacilityCollateralizationState},
 };
 
@@ -112,60 +109,4 @@ impl From<AuditSubjectId> for String {
     fn from(value: AuditSubjectId) -> Self {
         value.0
     }
-}
-
-pub trait ToGlobalId {
-    fn to_global_id(&self) -> async_graphql::types::ID;
-}
-
-macro_rules! impl_to_global_id {
-    ($($ty:ty),*) => {
-        $(
-            impl ToGlobalId for $ty {
-                fn to_global_id(&self) -> async_graphql::types::ID {
-                    async_graphql::types::ID::from(format!("{}:{}", stringify!($ty).trim_end_matches("Id"), self))
-                }
-            }
-        )*
-    };
-}
-
-impl_to_global_id! {
-    UserId,
-    PermissionSetId,
-    RoleId,
-    CustomerId,
-    ChartId,
-    TermsTemplateId,
-    CreditFacilityProposalId,
-    PendingCreditFacilityId,
-    CreditFacilityId,
-    CollateralId,
-    WalletId,
-    CustodianId,
-    DisbursalId,
-    LiquidationId,
-    PaymentId,
-    AuditEntryId,
-    DocumentId,
-    CustomerDocumentId,
-    PolicyId,
-    CommitteeId,
-    WithdrawalId,
-    DepositId,
-    ReportId,
-    ReportRunId,
-    ManualTransactionId,
-    ApprovalProcessId,
-    DepositAccountId,
-    LedgerTransactionId,
-    PaymentAllocationId,
-    PublicId,
-    EntryId,
-    LedgerAccountId,
-    FiscalYearId,
-    ProspectId,
-    DomainConfigId,
-    TransactionTemplateId,
-    PriceProviderId
 }

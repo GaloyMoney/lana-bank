@@ -40,7 +40,7 @@ gql`
   }
 
   fragment TrialBalanceAccountBase on LedgerAccount {
-    id
+    ledgerAccountId
     code
     name
     isRootAccount
@@ -72,9 +72,9 @@ const TrialBalanceRowComponent = ({
 
   return (
     <TableRow
-      key={row.id}
+      key={row.ledgerAccountId}
       className="cursor-pointer hover:bg-muted/50"
-      onClick={() => router.push(`/ledger-accounts/${row.code || row.id}`)}
+      onClick={() => router.push(`/ledger-accounts/${row.code || row.ledgerAccountId}`)}
     >
       <TableCell className="w-32">
         <div
@@ -185,7 +185,7 @@ function TrialBalancePage() {
                   {data.trialBalance.accounts.map((entry) => {
                     return (
                       <TrialBalanceRowComponent
-                        key={entry.id}
+                        key={entry.ledgerAccountId}
                         row={entry}
                         currency={currency}
                         layer={layer}

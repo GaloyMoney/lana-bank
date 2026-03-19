@@ -1,4 +1,4 @@
-use async_graphql::{ComplexObject, Context, ID, SimpleObject, Union, connection::CursorType};
+use async_graphql::{ComplexObject, Context, SimpleObject, Union, connection::CursorType};
 use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
@@ -28,7 +28,6 @@ pub(crate) enum AuditSubject {
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct AuditEntry {
-    id: ID,
     audit_entry_id: AuditEntryId,
     object: String,
     action: String,
@@ -64,7 +63,6 @@ impl From<lana_app::audit::AuditEntry> for AuditEntry {
     fn from(entry: lana_app::audit::AuditEntry) -> Self {
         Self {
             audit_entry_id: entry.id.into(),
-            id: AuditEntryId::from(entry.id).to_global_id(),
             subject: entry.subject,
             object: entry.object.to_string(),
             action: entry.action.to_string(),

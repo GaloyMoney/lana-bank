@@ -88,7 +88,6 @@ export type AccountingCsvDocument = {
   accountingCsvDocumentId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
   filename: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
   ledgerAccountId: Scalars['UUID']['output'];
   status: DocumentStatus;
 };
@@ -121,7 +120,6 @@ export type ApprovalProcess = {
   createdAt: Scalars['Timestamp']['output'];
   deniedReason?: Maybe<Scalars['String']['output']>;
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   policy: Policy;
   rules: ApprovalRules;
   status: ApprovalProcessStatus;
@@ -205,7 +203,6 @@ export type AuditEntry = {
   action: Scalars['String']['output'];
   auditEntryId: Scalars['AuditEntryId']['output'];
   authorized: Scalars['Boolean']['output'];
-  id: Scalars['ID']['output'];
   object: Scalars['String']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   subject: AuditSubject;
@@ -250,7 +247,6 @@ export type BalanceSheet = {
 export type BalanceSheetAccount = {
   __typename?: 'BalanceSheetAccount';
   balance: LedgerAccountBalanceByCurrency;
-  balanceSheetAccountId: Scalars['ID']['output'];
   children: Array<BalanceSheetAccount>;
   code?: Maybe<Scalars['AccountCode']['output']>;
   ledgerAccountId: Scalars['UUID']['output'];
@@ -323,7 +319,6 @@ export type ChartOfAccounts = {
   accountingBaseConfig?: Maybe<AccountingBaseConfigOutput>;
   chartOfAccountsId: Scalars['UUID']['output'];
   children: Array<ChartNode>;
-  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -364,7 +359,6 @@ export type Collateral = {
   collateralId: Scalars['UUID']['output'];
   creditFacility?: Maybe<CreditFacility>;
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   walletId?: Maybe<Scalars['UUID']['output']>;
 };
 
@@ -429,7 +423,6 @@ export type Committee = {
   createdAt: Scalars['Timestamp']['output'];
   currentMembers: Array<User>;
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -551,7 +544,6 @@ export type CreditFacility = {
   eventHistory: EventTimelineEntryConnection;
   facilityAmount: Scalars['UsdCents']['output'];
   history: Array<CreditFacilityHistoryEntry>;
-  id: Scalars['ID']['output'];
   ledgerAccounts: CreditFacilityLedgerAccounts;
   liquidations: Array<Liquidation>;
   maturesAt: Scalars['Timestamp']['output'];
@@ -668,7 +660,6 @@ export type CreditFacilityDisbursal = {
   creditFacility: CreditFacility;
   creditFacilityDisbursalId: Scalars['UUID']['output'];
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   status: DisbursalStatus;
@@ -806,7 +797,6 @@ export type CreditFacilityPaymentAllocation = {
   creditFacility: CreditFacility;
   creditFacilityPaymentAllocationId: Scalars['UUID']['output'];
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
 };
 
 
@@ -827,7 +817,6 @@ export type CreditFacilityProposal = {
   customer: Customer;
   eventHistory: EventTimelineEntryConnection;
   facilityAmount: Scalars['UsdCents']['output'];
-  id: Scalars['ID']['output'];
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: CreditFacilityProposalStatus;
 };
@@ -1064,7 +1053,6 @@ export type Custodian = {
   __typename?: 'Custodian';
   createdAt: Scalars['Timestamp']['output'];
   custodianId: Scalars['UUID']['output'];
-  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   provider: Scalars['String']['output'];
 };
@@ -1137,7 +1125,6 @@ export type Customer = {
   documents: Array<CustomerDocument>;
   email: Scalars['String']['output'];
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   level: KycLevel;
   pendingCreditFacilities: Array<PendingCreditFacility>;
   personalInfo?: Maybe<PersonalInfo>;
@@ -1179,7 +1166,6 @@ export type CustomerDocument = {
   customerId: Scalars['UUID']['output'];
   eventHistory: EventTimelineEntryConnection;
   filename: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
   status: DocumentStatus;
 };
 
@@ -1327,7 +1313,6 @@ export type Deposit = {
   createdAt: Scalars['Timestamp']['output'];
   depositId: Scalars['UUID']['output'];
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
@@ -1351,7 +1336,6 @@ export type DepositAccount = {
   deposits: Array<Deposit>;
   eventHistory: EventTimelineEntryConnection;
   history: DepositAccountHistoryEntryConnection;
-  id: Scalars['ID']['output'];
   ledgerAccounts: DepositAccountLedgerAccounts;
   publicId: Scalars['PublicId']['output'];
   status: DepositAccountStatus;
@@ -1643,7 +1627,6 @@ export type DomainConfig = {
   configType: ConfigType;
   domainConfigId: Scalars['UUID']['output'];
   encrypted: Scalars['Boolean']['output'];
-  id: Scalars['ID']['output'];
   isSet: Scalars['Boolean']['output'];
   key: Scalars['String']['output'];
   value: Scalars['Json']['output'];
@@ -1741,7 +1724,6 @@ export type FiscalYear = {
   createdAt: Scalars['Timestamp']['output'];
   eventHistory: EventTimelineEntryConnection;
   fiscalYearId: Scalars['UUID']['output'];
-  id: Scalars['ID']['output'];
   isLastMonthOfYearClosed: Scalars['Boolean']['output'];
   isOpen: Scalars['Boolean']['output'];
   monthClosures: Array<FiscalMonthClosure>;
@@ -1860,7 +1842,6 @@ export type JournalEntry = {
   description?: Maybe<Scalars['String']['output']>;
   direction: DebitOrCredit;
   entryType: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
   journalEntryId: Scalars['UUID']['output'];
   layer: Layer;
   ledgerAccount: LedgerAccount;
@@ -1928,7 +1909,6 @@ export type LedgerAccount = {
   code?: Maybe<Scalars['AccountCode']['output']>;
   entity?: Maybe<LedgerAccountEntity>;
   history: JournalEntryConnection;
-  id: Scalars['ID']['output'];
   isRootAccount: Scalars['Boolean']['output'];
   ledgerAccountId: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
@@ -1978,7 +1958,6 @@ export type LedgerTransaction = {
   effective: Scalars['Date']['output'];
   entity?: Maybe<LedgerTransactionEntity>;
   entries: Array<JournalEntry>;
-  id: Scalars['ID']['output'];
   initiatedBy: LedgerTransactionInitiator;
   ledgerTransactionId: Scalars['UUID']['output'];
 };
@@ -2015,7 +1994,6 @@ export type Liquidation = {
   createdAt: Scalars['Timestamp']['output'];
   eventHistory: EventTimelineEntryConnection;
   expectedToReceive: Scalars['UsdCents']['output'];
-  id: Scalars['ID']['output'];
   initiallyEstimatedToLiquidate: Scalars['Satoshis']['output'];
   liquidationId: Scalars['UUID']['output'];
   receivedProceeds: Array<LiquidationProceedsReceived>;
@@ -2098,7 +2076,6 @@ export type Loan = {
 export type LoanAgreement = {
   __typename?: 'LoanAgreement';
   createdAt: Scalars['Timestamp']['output'];
-  id: Scalars['ID']['output'];
   loanAgreementId: Scalars['UUID']['output'];
   status: LoanAgreementStatus;
 };
@@ -2631,7 +2608,6 @@ export type PendingCreditFacility = {
   customer: Customer;
   eventHistory: EventTimelineEntryConnection;
   facilityAmount: Scalars['UsdCents']['output'];
-  id: Scalars['ID']['output'];
   pendingCreditFacilityId: Scalars['UUID']['output'];
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: PendingCreditFacilityStatus;
@@ -2709,7 +2685,6 @@ export type PermissionSet = {
   __typename?: 'PermissionSet';
   description: Scalars['String']['output'];
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissionSetId: Scalars['UUID']['output'];
 };
@@ -2753,7 +2728,6 @@ export type Policy = {
   __typename?: 'Policy';
   approvalProcessType: ApprovalProcessType;
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   policyId: Scalars['UUID']['output'];
   rules: ApprovalRules;
 };
@@ -2797,7 +2771,6 @@ export type PriceProvider = {
   __typename?: 'PriceProvider';
   active: Scalars['Boolean']['output'];
   createdAt: Scalars['Timestamp']['output'];
-  id: Scalars['ID']['output'];
   latestPrice?: Maybe<Scalars['UsdCents']['output']>;
   name: Scalars['String']['output'];
   priceProviderId: Scalars['UUID']['output'];
@@ -2864,7 +2837,6 @@ export type ProfitAndLossAccount = {
   code?: Maybe<Scalars['AccountCode']['output']>;
   ledgerAccountId: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
-  profitAndLossAccountId: Scalars['ID']['output'];
 };
 
 export type ProfitAndLossStatement = {
@@ -2882,7 +2854,6 @@ export type Prospect = {
   customerType: CustomerType;
   email: Scalars['String']['output'];
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   kycStatus: KycStatus;
   level: KycLevel;
   personalInfo?: Maybe<PersonalInfo>;
@@ -3461,7 +3432,6 @@ export type Report = {
   createdAt: Scalars['Timestamp']['output'];
   externalId: Scalars['String']['output'];
   files: Array<ReportFile>;
-  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   norm: Scalars['String']['output'];
   reportId: Scalars['UUID']['output'];
@@ -3508,7 +3478,6 @@ export enum ReportOutputFormat {
 
 export type ReportRun = {
   __typename?: 'ReportRun';
-  id: Scalars['ID']['output'];
   reportRunId: Scalars['UUID']['output'];
   reports: Array<Report>;
   requestedAsOfDate?: Maybe<Scalars['Date']['output']>;
@@ -3584,7 +3553,6 @@ export type Role = {
   __typename?: 'Role';
   createdAt: Scalars['Timestamp']['output'];
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissionSets: Array<PermissionSet>;
   roleId: Scalars['UUID']['output'];
@@ -3765,7 +3733,6 @@ export type TermsTemplate = {
   __typename?: 'TermsTemplate';
   createdAt: Scalars['Timestamp']['output'];
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   termsTemplateId: Scalars['UUID']['output'];
   userCanUpdateTermsTemplate: Scalars['Boolean']['output'];
@@ -3829,7 +3796,6 @@ export type Transaction = Deposit | Withdrawal;
 export type TransactionTemplate = {
   __typename?: 'TransactionTemplate';
   code: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
   transactionTemplateId: Scalars['UUID']['output'];
 };
 
@@ -3903,7 +3869,6 @@ export type User = {
   createdAt: Scalars['Timestamp']['output'];
   email: Scalars['String']['output'];
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   role: Role;
   userCanUpdateRoleOfUser: Scalars['Boolean']['output'];
   userId: Scalars['UUID']['output'];
@@ -3981,7 +3946,6 @@ export type Wallet = {
   __typename?: 'Wallet';
   address: Scalars['String']['output'];
   custodian: Custodian;
-  id: Scalars['ID']['output'];
   network: WalletNetwork;
   walletId: Scalars['UUID']['output'];
 };
@@ -4002,7 +3966,6 @@ export type Withdrawal = {
   approvalProcessId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
   eventHistory: EventTimelineEntryConnection;
-  id: Scalars['ID']['output'];
   ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
@@ -4109,38 +4072,38 @@ export enum WithdrawalsSortBy {
   PublicId = 'PUBLIC_ID'
 }
 
-export type ApprovalProcessFieldsFragment = { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type ApprovalProcessFieldsFragment = { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
     | { __typename: 'AutoApproval' }
-    | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-  , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> };
+    | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+  , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> };
 
 export type ApprovalProcessApproveMutationVariables = Exact<{
   input: ApprovalProcessApproveInput;
 }>;
 
 
-export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } };
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } };
 
 export type ApprovalProcessDenyMutationVariables = Exact<{
   input: ApprovalProcessDenyInput;
 }>;
 
 
-export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } };
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } };
 
 export type AllActionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessType: ApprovalProcessType, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, createdAt: string, target:
-          | { __typename: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, publicId: any, creditFacility: { __typename?: 'CreditFacility', publicId: any, customer: { __typename?: 'Customer', email: string } } }
-          | { __typename: 'CreditFacilityProposal', creditFacilityProposalId: string, customer: { __typename?: 'Customer', email: string } }
-          | { __typename: 'Withdrawal', withdrawalId: string, publicId: any, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', email: string } } }
+export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, createdAt: string, target:
+          | { __typename: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, email: string } } }
+          | { __typename: 'CreditFacilityProposal', creditFacilityProposalId: string, customer: { __typename?: 'Customer', customerId: string, email: string } }
+          | { __typename: 'Withdrawal', withdrawalId: string, publicId: any, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } }
          } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
@@ -4153,7 +4116,7 @@ export type AuditLogsQueryVariables = Exact<{
 }>;
 
 
-export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, auditEntryId: any, object: string, action: string, authorized: boolean, recordedAt: string, subject:
+export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', auditEntryId: any, object: string, action: string, authorized: boolean, recordedAt: string, subject:
           | { __typename?: 'System', actor: string }
           | { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string } }
          } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
@@ -4168,28 +4131,28 @@ export type BalanceSheetQueryVariables = Exact<{
 }>;
 
 
-export type BalanceSheetQuery = { __typename?: 'Query', balanceSheet: { __typename?: 'BalanceSheet', name: string, assetsBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, liabilitiesBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, equityBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, categories: Array<{ __typename?: 'BalanceSheetAccount', balanceSheetAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, children: Array<{ __typename?: 'BalanceSheetAccount', balanceSheetAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } } }> }> } };
+export type BalanceSheetQuery = { __typename?: 'Query', balanceSheet: { __typename?: 'BalanceSheet', name: string, assetsBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, liabilitiesBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, equityBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, categories: Array<{ __typename?: 'BalanceSheetAccount', ledgerAccountId: string, name: string, code?: string | null, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, children: Array<{ __typename?: 'BalanceSheetAccount', ledgerAccountId: string, name: string, code?: string | null, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } } }> }> } };
 
 export type ChartOfAccountsForLedgerQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ChartOfAccountsForLedgerQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartOfAccountsId: string, name: string } };
+export type ChartOfAccountsForLedgerQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', chartOfAccountsId: string, name: string } };
 
 export type ChartOfAccountsAddChildNodeMutationVariables = Exact<{
   input: ChartOfAccountsAddChildNodeInput;
 }>;
 
 
-export type ChartOfAccountsAddChildNodeMutation = { __typename?: 'Mutation', chartOfAccountsAddChildNode: { __typename?: 'ChartOfAccountsAddChildNodePayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartOfAccountsId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> } } };
+export type ChartOfAccountsAddChildNodeMutation = { __typename?: 'Mutation', chartOfAccountsAddChildNode: { __typename?: 'ChartOfAccountsAddChildNodePayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', chartOfAccountsId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> } } };
 
 export type ChartAccountBaseFragment = { __typename?: 'ChartNode', name: string, accountCode: string };
 
-export type ChartOfAccountsFieldsFragment = { __typename?: 'ChartOfAccounts', id: string, chartOfAccountsId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> };
+export type ChartOfAccountsFieldsFragment = { __typename?: 'ChartOfAccounts', chartOfAccountsId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> };
 
 export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartOfAccountsId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> } };
+export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', chartOfAccountsId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> } };
 
 export type ChartOfAccountsCsvImportWithBaseConfigMutationVariables = Exact<{
   input: ChartOfAccountsCsvImportWithBaseConfigInput;
@@ -4205,7 +4168,7 @@ export type CommitteeEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type CommitteeEventHistoryQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type CommitteeEventHistoryQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
@@ -4215,23 +4178,23 @@ export type GetCommitteeDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } | null };
+export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } | null };
 
 export type CommitteeAddUserMutationVariables = Exact<{
   input: CommitteeAddUserInput;
 }>;
 
 
-export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } } };
+export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } } };
 
 export type CreateCommitteeMutationVariables = Exact<{
   input: CommitteeCreateInput;
 }>;
 
 
-export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } } };
+export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } } };
 
-export type CommitteeFieldsFragment = { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> };
+export type CommitteeFieldsFragment = { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> };
 
 export type CommitteesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4240,14 +4203,14 @@ export type CommitteesQueryVariables = Exact<{
 }>;
 
 
-export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CommitteeRemoveUserMutationVariables = Exact<{
   input: CommitteeRemoveUserInput;
 }>;
 
 
-export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } } };
+export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } } };
 
 export type DomainConfigsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4255,14 +4218,14 @@ export type DomainConfigsQueryVariables = Exact<{
 }>;
 
 
-export type DomainConfigsQuery = { __typename?: 'Query', domainConfigs: { __typename?: 'DomainConfigConnection', nodes: Array<{ __typename?: 'DomainConfig', id: string, domainConfigId: string, key: string, configType: ConfigType, encrypted: boolean, isSet: boolean, value: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type DomainConfigsQuery = { __typename?: 'Query', domainConfigs: { __typename?: 'DomainConfigConnection', nodes: Array<{ __typename?: 'DomainConfig', domainConfigId: string, key: string, configType: ConfigType, encrypted: boolean, isSet: boolean, value: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type DomainConfigUpdateMutationVariables = Exact<{
   input: DomainConfigUpdateInput;
 }>;
 
 
-export type DomainConfigUpdateMutation = { __typename?: 'Mutation', domainConfigUpdate: { __typename?: 'DomainConfigUpdatePayload', domainConfig: { __typename?: 'DomainConfig', id: string, domainConfigId: string, key: string, configType: ConfigType, encrypted: boolean, isSet: boolean, value: any } } };
+export type DomainConfigUpdateMutation = { __typename?: 'Mutation', domainConfigUpdate: { __typename?: 'DomainConfigUpdatePayload', domainConfig: { __typename?: 'DomainConfig', domainConfigId: string, key: string, configType: ConfigType, encrypted: boolean, isSet: boolean, value: any } } };
 
 export type CreatePermissionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4274,16 +4237,16 @@ export type CreditFacilityCompleteMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityCompleteMutation = { __typename?: 'Mutation', creditFacilityComplete: { __typename?: 'CreditFacilityCompletePayload', creditFacility: { __typename?: 'CreditFacility', id: string, status: CreditFacilityStatus } } };
+export type CreditFacilityCompleteMutation = { __typename?: 'Mutation', creditFacilityComplete: { __typename?: 'CreditFacilityCompletePayload', creditFacility: { __typename?: 'CreditFacility', status: CreditFacilityStatus } } };
 
-export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: string };
+export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: string };
 
 export type GetCreditFacilityDisbursalsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCreditFacilityDisbursalsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: string }> } | null };
+export type GetCreditFacilityDisbursalsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', creditFacilityId: string, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: string }> } | null };
 
 export type CreditFacilityEventHistoryQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -4292,15 +4255,15 @@ export type CreditFacilityEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilityEventHistoryQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type CreditFacilityEventHistoryQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type CreditFacilityLayoutFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, currentCvl:
+export type CreditFacilityLayoutFragmentFragment = { __typename?: 'CreditFacility', creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, currentCvl:
     | { __typename: 'FiniteCvlPct', value: any }
     | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-  , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+  , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
     , marginCallCvl:
@@ -4309,17 +4272,17 @@ export type CreditFacilityLayoutFragmentFragment = { __typename?: 'CreditFacilit
     , initialCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-    , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null };
+    , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null };
 
 export type GetCreditFacilityLayoutDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, currentCvl:
+export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, currentCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-    , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+    , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -4328,17 +4291,17 @@ export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', credit
       , initialCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-      , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } | null };
+      , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } | null };
 
 export type CreditFacilityCollateralizationUpdatedSubscriptionVariables = Exact<{
   creditFacilityId: Scalars['UUID']['input'];
 }>;
 
 
-export type CreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', creditFacilityCollateralizationUpdated: { __typename?: 'CreditFacilityCollateralizationPayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, currentCvl:
+export type CreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', creditFacilityCollateralizationUpdated: { __typename?: 'CreditFacilityCollateralizationPayload', creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, currentCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-      , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+      , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4347,7 +4310,7 @@ export type CreditFacilityCollateralizationUpdatedSubscription = { __typename?: 
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } } };
+        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } } };
 
 export type LedgerAccountInfoFragment = { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
@@ -4359,7 +4322,7 @@ export type CreditFacilityLedgerAccountsQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, ledgerAccounts: { __typename?: 'CreditFacilityLedgerAccounts', facilityAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', ledgerAccounts: { __typename?: 'CreditFacilityLedgerAccounts', facilityAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
           | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
          }, disbursedReceivableNotYetDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
@@ -4412,16 +4375,16 @@ export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFa
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
          } } } | null };
 
-export type LiquidationOnFacilityPageFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean };
+export type LiquidationOnFacilityPageFragment = { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean };
 
 export type GetCreditFacilityLiquidationsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCreditFacilityLiquidationsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, liquidations: Array<{ __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean }> } | null };
+export type GetCreditFacilityLiquidationsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', creditFacilityId: string, liquidations: Array<{ __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean }> } | null };
 
-export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<
+export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', creditFacilityId: string, history: Array<
     | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: string, txId: string, effective: string }
     | { __typename?: 'CreditFacilityCollateralSentOut', amount: Satoshis, recordedAt: string, txId: string, effective: string }
     | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: string, direction: CollateralDirection, txId: string, effective: string }
@@ -4438,7 +4401,7 @@ export type GetCreditFacilityHistoryQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityHistoryQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<
+export type GetCreditFacilityHistoryQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', creditFacilityId: string, history: Array<
       | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: string, txId: string, effective: string }
       | { __typename?: 'CreditFacilityCollateralSentOut', amount: Satoshis, recordedAt: string, txId: string, effective: string }
       | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: string, direction: CollateralDirection, txId: string, effective: string }
@@ -4457,14 +4420,14 @@ export type GetCreditFacilityRepaymentPlanQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityRepaymentPlanQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }> } | null };
+export type GetCreditFacilityRepaymentPlanQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', creditFacilityId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }> } | null };
 
 export type CollateralUpdateMutationVariables = Exact<{
   input: CollateralUpdateInput;
 }>;
 
 
-export type CollateralUpdateMutation = { __typename?: 'Mutation', collateralUpdate: { __typename?: 'CollateralUpdatePayload', collateral: { __typename?: 'Collateral', collateralId: string, creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, history: Array<
+export type CollateralUpdateMutation = { __typename?: 'Mutation', collateralUpdate: { __typename?: 'CollateralUpdatePayload', collateral: { __typename?: 'Collateral', collateralId: string, creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, history: Array<
           | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: string, txId: string, effective: string }
           | { __typename?: 'CreditFacilityCollateralSentOut', amount: Satoshis, recordedAt: string, txId: string, effective: string }
           | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: string, direction: CollateralDirection, txId: string, effective: string }
@@ -4477,7 +4440,7 @@ export type CollateralUpdateMutation = { __typename?: 'Mutation', collateralUpda
         >, currentCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+        , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, status: DisbursalStatus }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
             | { __typename: 'FiniteCvlPct', value: any }
             | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
           , marginCallCvl:
@@ -4486,7 +4449,7 @@ export type CollateralUpdateMutation = { __typename?: 'Mutation', collateralUpda
           , initialCvl:
             | { __typename: 'FiniteCvlPct', value: any }
             | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-          , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } | null } } };
+          , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } | null } } };
 
 type CvlPctData_FiniteCvlPct_Fragment = { __typename: 'FiniteCvlPct', value: any };
 
@@ -4505,7 +4468,7 @@ export type CreditFacilitiesQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, createdAt: string, status: CreditFacilityStatus, facilityAmount: UsdCents, currentCvl:
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, createdAt: string, status: CreditFacilityStatus, facilityAmount: UsdCents, currentCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
@@ -4515,7 +4478,7 @@ export type CreditFacilityPartialPaymentRecordMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityPartialPaymentRecordMutation = { __typename?: 'Mutation', creditFacilityPartialPaymentRecord: { __typename?: 'CreditFacilityPartialPaymentRecordPayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, history: Array<
+export type CreditFacilityPartialPaymentRecordMutation = { __typename?: 'Mutation', creditFacilityPartialPaymentRecord: { __typename?: 'CreditFacilityPartialPaymentRecordPayload', creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, history: Array<
         | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: string, txId: string, effective: string }
         | { __typename?: 'CreditFacilityCollateralSentOut', amount: Satoshis, recordedAt: string, txId: string, effective: string }
         | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: string, direction: CollateralDirection, txId: string, effective: string }
@@ -4528,7 +4491,7 @@ export type CreditFacilityPartialPaymentRecordMutation = { __typename?: 'Mutatio
       >, currentCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-      , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+      , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4537,14 +4500,14 @@ export type CreditFacilityPartialPaymentRecordMutation = { __typename?: 'Mutatio
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } } };
+        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } } };
 
 export type CreditFacilityPartialPaymentWithDateRecordMutationVariables = Exact<{
   input: CreditFacilityPartialPaymentWithDateRecordInput;
 }>;
 
 
-export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 'Mutation', creditFacilityPartialPaymentWithDateRecord: { __typename?: 'CreditFacilityPartialPaymentRecordPayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, history: Array<
+export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 'Mutation', creditFacilityPartialPaymentWithDateRecord: { __typename?: 'CreditFacilityPartialPaymentRecordPayload', creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, history: Array<
         | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: string, txId: string, effective: string }
         | { __typename?: 'CreditFacilityCollateralSentOut', amount: Satoshis, recordedAt: string, txId: string, effective: string }
         | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: string, direction: CollateralDirection, txId: string, effective: string }
@@ -4557,7 +4520,7 @@ export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 
       >, currentCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-      , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+      , disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4566,14 +4529,14 @@ export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } } };
+        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } } };
 
 export type CreditFacilityProposalCustomerApprovalConcludeMutationVariables = Exact<{
   input: CreditFacilityProposalCustomerApprovalConcludeInput;
 }>;
 
 
-export type CreditFacilityProposalCustomerApprovalConcludeMutation = { __typename?: 'Mutation', creditFacilityProposalCustomerApprovalConclude: { __typename?: 'CreditFacilityProposalCustomerApprovalConcludePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalCustomerApprovalConcludeMutation = { __typename?: 'Mutation', creditFacilityProposalCustomerApprovalConclude: { __typename?: 'CreditFacilityProposalCustomerApprovalConcludePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', custodianId: string, name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4582,10 +4545,10 @@ export type CreditFacilityProposalCustomerApprovalConcludeMutation = { __typenam
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-         }, approvalProcess?: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+         }, approvalProcess?: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } | null } } };
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } } };
 
 export type CreditFacilityProposalEventHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -4594,12 +4557,12 @@ export type CreditFacilityProposalEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilityProposalEventHistoryQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type CreditFacilityProposalEventHistoryQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', custodianId: string, name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
     , marginCallCvl:
@@ -4608,17 +4571,17 @@ export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'Credi
     , initialCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-     }, approvalProcess?: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+     }, approvalProcess?: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename: 'AutoApproval' }
-      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-    , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } | null };
+      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+    , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null };
 
 export type GetCreditFacilityProposalLayoutDetailsQueryVariables = Exact<{
   creditFacilityProposalId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', custodianId: string, name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -4627,17 +4590,17 @@ export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query'
       , initialCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-       }, approvalProcess?: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+       }, approvalProcess?: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } | null } | null };
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } | null };
 
 export type CreditFacilityProposalConcludedSubscriptionVariables = Exact<{
   creditFacilityProposalId: Scalars['UUID']['input'];
 }>;
 
 
-export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscription', creditFacilityProposalConcluded: { __typename?: 'CreditFacilityProposalConcludedPayload', status: CreditFacilityProposalStatus, creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscription', creditFacilityProposalConcluded: { __typename?: 'CreditFacilityProposalConcludedPayload', status: CreditFacilityProposalStatus, creditFacilityProposal: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', custodianId: string, name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4646,24 +4609,24 @@ export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscr
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-         }, approvalProcess?: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+         }, approvalProcess?: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } | null } } };
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } } };
 
 export type GetCreditFacilityProposalRepaymentPlanQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCreditFacilityProposalRepaymentPlanQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }> } | null };
+export type GetCreditFacilityProposalRepaymentPlanQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }> } | null };
 
 export type CreditFacilityProposalCreateMutationVariables = Exact<{
   input: CreditFacilityProposalCreateInput;
 }>;
 
 
-export type CreditFacilityProposalCreateMutation = { __typename?: 'Mutation', creditFacilityProposalCreate: { __typename?: 'CreditFacilityProposalCreatePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, customer: { __typename?: 'Customer', id: string, email: string, creditFacilityProposals: Array<{ __typename?: 'CreditFacilityProposal', id: string }> } } } };
+export type CreditFacilityProposalCreateMutation = { __typename?: 'Mutation', creditFacilityProposalCreate: { __typename?: 'CreditFacilityProposalCreatePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, customer: { __typename?: 'Customer', customerId: string, email: string, creditFacilityProposals: Array<{ __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string }> } } } };
 
 export type CreditFacilityProposalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4673,16 +4636,16 @@ export type CreditFacilityProposalsQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilityProposalsQuery = { __typename?: 'Query', creditFacilityProposals: { __typename?: 'CreditFacilityProposalConnection', edges: Array<{ __typename?: 'CreditFacilityProposalEdge', cursor: string, node: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, createdAt: string, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CreditFacilityProposalsQuery = { __typename?: 'Query', creditFacilityProposals: { __typename?: 'CreditFacilityProposalConnection', edges: Array<{ __typename?: 'CreditFacilityProposalEdge', cursor: string, node: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, createdAt: string, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CustodianCreateMutationVariables = Exact<{
   input: CustodianCreateInput;
 }>;
 
 
-export type CustodianCreateMutation = { __typename?: 'Mutation', custodianCreate: { __typename?: 'CustodianCreatePayload', custodian: { __typename?: 'Custodian', id: string, custodianId: string, name: string, createdAt: string } } };
+export type CustodianCreateMutation = { __typename?: 'Mutation', custodianCreate: { __typename?: 'CustodianCreatePayload', custodian: { __typename?: 'Custodian', custodianId: string, name: string, createdAt: string } } };
 
-export type CustodianFieldsFragment = { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string };
+export type CustodianFieldsFragment = { __typename?: 'Custodian', custodianId: string, createdAt: string, name: string, provider: string };
 
 export type CustodiansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4691,28 +4654,28 @@ export type CustodiansQueryVariables = Exact<{
 }>;
 
 
-export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string, provider: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', custodianId: string, createdAt: string, name: string, provider: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CustodianConfigUpdateMutationVariables = Exact<{
   input: CustodianConfigUpdateInput;
 }>;
 
 
-export type CustodianConfigUpdateMutation = { __typename?: 'Mutation', custodianConfigUpdate: { __typename?: 'CustodianConfigUpdatePayload', custodian: { __typename?: 'Custodian', id: string, custodianId: string, name: string, provider: string } } };
+export type CustodianConfigUpdateMutation = { __typename?: 'Mutation', custodianConfigUpdate: { __typename?: 'CustodianConfigUpdatePayload', custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } };
 
 export type CustomerCloseMutationVariables = Exact<{
   input: CustomerCloseInput;
 }>;
 
 
-export type CustomerCloseMutation = { __typename?: 'Mutation', customerClose: { __typename?: 'CustomerClosePayload', customer: { __typename?: 'Customer', id: string, status: CustomerStatus } } };
+export type CustomerCloseMutation = { __typename?: 'Mutation', customerClose: { __typename?: 'CustomerClosePayload', customer: { __typename?: 'Customer', status: CustomerStatus } } };
 
 export type GetCustomerCreditFacilityProposalsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCustomerCreditFacilityProposalsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, creditFacilityProposals: Array<{ __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, createdAt: string, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
+export type GetCustomerCreditFacilityProposalsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', creditFacilityProposals: Array<{ __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, createdAt: string, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
 
 export type CustomerDocumentDownloadLinkGenerateMutationVariables = Exact<{
   input: CustomerDocumentDownloadLinksGenerateInput;
@@ -4734,14 +4697,14 @@ export type CustomerDocumentCreateMutationVariables = Exact<{
 }>;
 
 
-export type CustomerDocumentCreateMutation = { __typename?: 'Mutation', customerDocumentCreate: { __typename?: 'CustomerDocumentCreatePayload', document: { __typename?: 'CustomerDocument', id: string, customerId: string, filename: string } } };
+export type CustomerDocumentCreateMutation = { __typename?: 'Mutation', customerDocumentCreate: { __typename?: 'CustomerDocumentCreatePayload', document: { __typename?: 'CustomerDocument', customerId: string, filename: string } } };
 
 export type GetCustomerDocumentsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCustomerDocumentsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'CustomerDocument', id: string, filename: string, customerDocumentId: string }> } | null };
+export type GetCustomerDocumentsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', customerId: string, documents: Array<{ __typename?: 'CustomerDocument', filename: string, customerDocumentId: string }> } | null };
 
 export type CustomerEventHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4750,7 +4713,7 @@ export type CustomerEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type CustomerEventHistoryQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type CustomerEventHistoryQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
@@ -4760,51 +4723,51 @@ export type CustomerFreezeMutationVariables = Exact<{
 }>;
 
 
-export type CustomerFreezeMutation = { __typename?: 'Mutation', customerFreeze: { __typename?: 'CustomerFreezePayload', customer: { __typename?: 'Customer', id: string, status: CustomerStatus } } };
+export type CustomerFreezeMutation = { __typename?: 'Mutation', customerFreeze: { __typename?: 'CustomerFreezePayload', customer: { __typename?: 'Customer', status: CustomerStatus } } };
 
-export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
+export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', customerId: string, status: CustomerStatus, email: string, telegramHandle: string, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
 
 export type GetCustomerBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', customerId: string, status: CustomerStatus, email: string, telegramHandle: string, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
 
 export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCustomerCreditFacilitiesQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: string, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } } }> } | null };
+export type GetCustomerCreditFacilitiesQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', creditFacilities: Array<{ __typename?: 'CreditFacility', creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: string, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } } }> } | null };
 
 export type GetCustomerPendingCreditFacilitiesQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCustomerPendingCreditFacilitiesQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, pendingCreditFacilities: Array<{ __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, createdAt: string, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: PendingCreditFacilityStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
+export type GetCustomerPendingCreditFacilitiesQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', pendingCreditFacilities: Array<{ __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, createdAt: string, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: PendingCreditFacilityStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
 
 export type CustomerUnfreezeMutationVariables = Exact<{
   input: CustomerUnfreezeInput;
 }>;
 
 
-export type CustomerUnfreezeMutation = { __typename?: 'Mutation', customerUnfreeze: { __typename?: 'CustomerUnfreezePayload', customer: { __typename?: 'Customer', id: string, status: CustomerStatus } } };
+export type CustomerUnfreezeMutation = { __typename?: 'Mutation', customerUnfreeze: { __typename?: 'CustomerUnfreezePayload', customer: { __typename?: 'Customer', status: CustomerStatus } } };
 
 export type CustomerEmailUpdateMutationVariables = Exact<{
   input: CustomerEmailUpdateInput;
 }>;
 
 
-export type CustomerEmailUpdateMutation = { __typename?: 'Mutation', customerEmailUpdate: { __typename?: 'CustomerEmailUpdatePayload', customer: { __typename?: 'Customer', id: string, email: string } } };
+export type CustomerEmailUpdateMutation = { __typename?: 'Mutation', customerEmailUpdate: { __typename?: 'CustomerEmailUpdatePayload', customer: { __typename?: 'Customer', customerId: string, email: string } } };
 
 export type CustomerTelegramHandleUpdateMutationVariables = Exact<{
   input: CustomerTelegramHandleUpdateInput;
 }>;
 
 
-export type CustomerTelegramHandleUpdateMutation = { __typename?: 'Mutation', customerTelegramHandleUpdate: { __typename?: 'CustomerTelegramHandleUpdatePayload', customer: { __typename?: 'Customer', id: string, telegramHandle: string } } };
+export type CustomerTelegramHandleUpdateMutation = { __typename?: 'Mutation', customerTelegramHandleUpdate: { __typename?: 'CustomerTelegramHandleUpdatePayload', customer: { __typename?: 'Customer', customerId: string, telegramHandle: string } } };
 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4814,7 +4777,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, status: CustomerStatus, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', customerId: string, publicId: any, status: CustomerStatus, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4826,7 +4789,7 @@ export type DepositAccountCloseMutationVariables = Exact<{
 }>;
 
 
-export type DepositAccountCloseMutation = { __typename?: 'Mutation', depositAccountClose: { __typename?: 'DepositAccountClosePayload', account: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string } } } };
+export type DepositAccountCloseMutation = { __typename?: 'Mutation', depositAccountClose: { __typename?: 'DepositAccountClosePayload', account: { __typename?: 'DepositAccount', publicId: any, depositAccountId: string, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string } } } };
 
 export type DepositAccountEventHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4835,7 +4798,7 @@ export type DepositAccountEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type DepositAccountEventHistoryQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type DepositAccountEventHistoryQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
@@ -4845,9 +4808,9 @@ export type DepositAccountFreezeMutationVariables = Exact<{
 }>;
 
 
-export type DepositAccountFreezeMutation = { __typename?: 'Mutation', depositAccountFreeze: { __typename?: 'DepositAccountFreezePayload', account: { __typename?: 'DepositAccount', id: string } } };
+export type DepositAccountFreezeMutation = { __typename?: 'Mutation', depositAccountFreeze: { __typename?: 'DepositAccountFreezePayload', account: { __typename?: 'DepositAccount', depositAccountId: string } } };
 
-export type DepositAccountDetailsFragmentFragment = { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string } };
+export type DepositAccountDetailsFragmentFragment = { __typename?: 'DepositAccount', publicId: any, depositAccountId: string, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string } };
 
 export type GetDepositAccountDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -4856,32 +4819,32 @@ export type GetDepositAccountDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetDepositAccountDetailsQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: string, status: DepositAccountStatus, activity: Activity, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
-          | { __typename: 'CancelledWithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: string, reference: string, status: WithdrawalStatus } }
-          | { __typename: 'DepositEntry', recordedAt: string, deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus } }
-          | { __typename: 'DisbursalEntry', recordedAt: string, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, createdAt: string, status: DisbursalStatus } }
+export type GetDepositAccountDetailsQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', publicId: any, depositAccountId: string, createdAt: string, status: DepositAccountStatus, activity: Activity, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
+          | { __typename: 'CancelledWithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: string, reference: string, status: WithdrawalStatus } }
+          | { __typename: 'DepositEntry', recordedAt: string, deposit: { __typename?: 'Deposit', depositId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus } }
+          | { __typename: 'DisbursalEntry', recordedAt: string, disbursal: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, createdAt: string, status: DisbursalStatus } }
           | { __typename: 'FreezeEntry', txId: string, recordedAt: string, amount: UsdCents }
-          | { __typename: 'PaymentEntry', recordedAt: string, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, creditFacilityPaymentAllocationId: string, amount: UsdCents, createdAt: string } }
+          | { __typename: 'PaymentEntry', recordedAt: string, payment: { __typename?: 'CreditFacilityPaymentAllocation', creditFacilityPaymentAllocationId: string, amount: UsdCents, createdAt: string } }
           | { __typename: 'UnfreezeEntry', txId: string, recordedAt: string, amount: UsdCents }
           | { __typename?: 'UnknownEntry' }
-          | { __typename: 'WithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: string, reference: string, status: WithdrawalStatus } }
-         }> }, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string } } | null };
+          | { __typename: 'WithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: string, reference: string, status: WithdrawalStatus } }
+         }> }, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string } } | null };
 
 export type DepositAccountUnfreezeMutationVariables = Exact<{
   input: DepositAccountUnfreezeInput;
 }>;
 
 
-export type DepositAccountUnfreezeMutation = { __typename?: 'Mutation', depositAccountUnfreeze: { __typename?: 'DepositAccountUnfreezePayload', account: { __typename?: 'DepositAccount', id: string } } };
+export type DepositAccountUnfreezeMutation = { __typename?: 'Mutation', depositAccountUnfreeze: { __typename?: 'DepositAccountUnfreezePayload', account: { __typename?: 'DepositAccount', depositAccountId: string } } };
 
 export type DepositAccountCreateMutationVariables = Exact<{
   input: DepositAccountCreateInput;
 }>;
 
 
-export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
+export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, status: CustomerStatus, email: string, telegramHandle: string, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
 
-export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
+export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
 
 export type DepositAccountsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4891,7 +4854,7 @@ export type DepositAccountsQueryVariables = Exact<{
 }>;
 
 
-export type DepositAccountsQuery = { __typename?: 'Query', depositAccounts: { __typename?: 'DepositAccountConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountEdge', cursor: string, node: { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } } }> } };
+export type DepositAccountsQuery = { __typename?: 'Query', depositAccounts: { __typename?: 'DepositAccountConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountEdge', cursor: string, node: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } } }> } };
 
 export type DepositEventHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4900,35 +4863,35 @@ export type DepositEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type DepositEventHistoryQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type DepositEventHistoryQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
+export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
 
 export type GetDepositDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetDepositDetailsQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } | null };
+export type GetDepositDetailsQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } | null };
 
 export type DepositRevertMutationVariables = Exact<{
   input: DepositRevertInput;
 }>;
 
 
-export type DepositRevertMutation = { __typename?: 'Mutation', depositRevert: { __typename?: 'DepositRevertPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type DepositRevertMutation = { __typename?: 'Mutation', depositRevert: { __typename?: 'DepositRevertPayload', deposit: { __typename?: 'Deposit', depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
 export type CreateDepositMutationVariables = Exact<{
   input: DepositRecordInput;
 }>;
 
 
-export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', id: string, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, deposits: Array<{ __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
-export type DepositFieldsFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } };
+export type DepositFieldsFragment = { __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4938,7 +4901,7 @@ export type DepositsQueryVariables = Exact<{
 }>;
 
 
-export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositEdge', cursor: string, node: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
+export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositEdge', cursor: string, node: { __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
 
 export type DisbursalEventHistoryQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -4947,42 +4910,42 @@ export type DisbursalEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type DisbursalEventHistoryQuery = { __typename?: 'Query', disbursalByPublicId?: { __typename?: 'CreditFacilityDisbursal', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type DisbursalEventHistoryQuery = { __typename?: 'Query', disbursalByPublicId?: { __typename?: 'CreditFacilityDisbursal', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type DisbursalDetailsPageFragmentFragment = { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', id: string, email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type DisbursalDetailsPageFragmentFragment = { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename: 'AutoApproval' }
-      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-    , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } };
+      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+    , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } };
 
 export type GetDisbursalDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetDisbursalDetailsQuery = { __typename?: 'Query', disbursalByPublicId?: { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', id: string, email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type GetDisbursalDetailsQuery = { __typename?: 'Query', disbursalByPublicId?: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } | null };
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
 export type DisbursalApprovalConcludedSubscriptionVariables = Exact<{
   disbursalId: Scalars['UUID']['input'];
 }>;
 
 
-export type DisbursalApprovalConcludedSubscription = { __typename?: 'Subscription', disbursalApprovalConcluded: { __typename?: 'DisbursalApprovalConcludedPayload', status: DisbursalStatus, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', id: string, email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type DisbursalApprovalConcludedSubscription = { __typename?: 'Subscription', disbursalApprovalConcluded: { __typename?: 'DisbursalApprovalConcludedPayload', status: DisbursalStatus, disbursal: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
   input: CreditFacilityDisbursalInitiateInput;
 }>;
 
 
-export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: string, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus, id: string, creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, createdAt: string }>, history: Array<
+export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: string, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, status: DisbursalStatus, publicId: any, amount: UsdCents, createdAt: string }>, history: Array<
           | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: string, txId: string, effective: string }
           | { __typename?: 'CreditFacilityCollateralSentOut', amount: Satoshis, recordedAt: string, txId: string, effective: string }
           | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: string, direction: CollateralDirection, txId: string, effective: string }
@@ -5004,7 +4967,7 @@ export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation',
           , initialCvl:
             | { __typename: 'FiniteCvlPct', value: any }
             | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-          , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } } } };
+          , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } } } };
 
 export type DisbursalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5014,7 +4977,7 @@ export type DisbursalsQueryVariables = Exact<{
 }>;
 
 
-export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, createdAt: string, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', customer: { __typename?: 'Customer', email: string } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, createdAt: string, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type FiscalYearEventHistoryQueryVariables = Exact<{
   year: Scalars['String']['input'];
@@ -5023,42 +4986,42 @@ export type FiscalYearEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type FiscalYearEventHistoryQuery = { __typename?: 'Query', fiscalYearByYear?: { __typename?: 'FiscalYear', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type FiscalYearEventHistoryQuery = { __typename?: 'Query', fiscalYearByYear?: { __typename?: 'FiscalYear', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> };
+export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> };
 
 export type GetFiscalYearDetailsQueryVariables = Exact<{
   year: Scalars['String']['input'];
 }>;
 
 
-export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYearByYear?: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } | null };
+export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYearByYear?: { __typename?: 'FiscalYear', fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } | null };
 
 export type FiscalYearCloseMonthMutationVariables = Exact<{
   input: FiscalYearCloseMonthInput;
 }>;
 
 
-export type FiscalYearCloseMonthMutation = { __typename?: 'Mutation', fiscalYearCloseMonth: { __typename?: 'FiscalYearCloseMonthPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
+export type FiscalYearCloseMonthMutation = { __typename?: 'Mutation', fiscalYearCloseMonth: { __typename?: 'FiscalYearCloseMonthPayload', fiscalYear: { __typename?: 'FiscalYear', fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
 
 export type FiscalYearCloseMutationVariables = Exact<{
   input: FiscalYearCloseInput;
 }>;
 
 
-export type FiscalYearCloseMutation = { __typename?: 'Mutation', fiscalYearClose: { __typename?: 'FiscalYearClosePayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
+export type FiscalYearCloseMutation = { __typename?: 'Mutation', fiscalYearClose: { __typename?: 'FiscalYearClosePayload', fiscalYear: { __typename?: 'FiscalYear', fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
 
 export type FiscalYearInitMutationVariables = Exact<{
   input: FiscalYearInitInput;
 }>;
 
 
-export type FiscalYearInitMutation = { __typename?: 'Mutation', fiscalYearInit: { __typename?: 'FiscalYearInitPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, createdAt: string, isLastMonthOfYearClosed: boolean } } };
+export type FiscalYearInitMutation = { __typename?: 'Mutation', fiscalYearInit: { __typename?: 'FiscalYearInitPayload', fiscalYear: { __typename?: 'FiscalYear', fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, createdAt: string, isLastMonthOfYearClosed: boolean } } };
 
-export type FiscalYearFieldsFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, createdAt: string, isLastMonthOfYearClosed: boolean };
+export type FiscalYearFieldsFragment = { __typename?: 'FiscalYear', fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, createdAt: string, isLastMonthOfYearClosed: boolean };
 
 export type FiscalYearsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5067,21 +5030,21 @@ export type FiscalYearsQueryVariables = Exact<{
 }>;
 
 
-export type FiscalYearsQuery = { __typename?: 'Query', fiscalYears: { __typename?: 'FiscalYearConnection', edges: Array<{ __typename?: 'FiscalYearEdge', cursor: string, node: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, createdAt: string, isLastMonthOfYearClosed: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type FiscalYearsQuery = { __typename?: 'Query', fiscalYears: { __typename?: 'FiscalYearConnection', edges: Array<{ __typename?: 'FiscalYearEdge', cursor: string, node: { __typename?: 'FiscalYear', fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, createdAt: string, isLastMonthOfYearClosed: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type FiscalYearOpenNextMutationVariables = Exact<{
   input: FiscalYearOpenNextInput;
 }>;
 
 
-export type FiscalYearOpenNextMutation = { __typename?: 'Mutation', fiscalYearOpenNext: { __typename?: 'FiscalYearOpenNextPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
+export type FiscalYearOpenNextMutation = { __typename?: 'Mutation', fiscalYearOpenNext: { __typename?: 'FiscalYearOpenNextPayload', fiscalYear: { __typename?: 'FiscalYear', fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
 
 export type ExecuteManualTransactionMutationVariables = Exact<{
   input: ManualTransactionExecuteInput;
 }>;
 
 
-export type ExecuteManualTransactionMutation = { __typename?: 'Mutation', manualTransactionExecute: { __typename?: 'ManualTransactionExecutePayload', transaction: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, description?: string | null } } };
+export type ExecuteManualTransactionMutation = { __typename?: 'Mutation', manualTransactionExecute: { __typename?: 'ManualTransactionExecutePayload', transaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, description?: string | null } } };
 
 export type JournalEntriesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5089,24 +5052,24 @@ export type JournalEntriesQueryVariables = Exact<{
 }>;
 
 
-export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, journalEntryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
+export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', journalEntryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
           | { __typename?: 'BtcAmount', btc: Satoshis }
           | { __typename?: 'UsdAmount', usd: UsdCents }
-        , ledgerAccount: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, code?: string | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null }, ledgerTransaction: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, description?: string | null, effective: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+        , ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null }, ledgerTransaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string, description?: string | null, effective: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type AccountEntryCsvQueryVariables = Exact<{
   ledgerAccountId: Scalars['UUID']['input'];
 }>;
 
 
-export type AccountEntryCsvQuery = { __typename?: 'Query', accountEntryCsv?: { __typename?: 'AccountingCsvDocument', id: string, accountingCsvDocumentId: string, status: DocumentStatus, createdAt: string } | null };
+export type AccountEntryCsvQuery = { __typename?: 'Query', accountEntryCsv?: { __typename?: 'AccountingCsvDocument', accountingCsvDocumentId: string, status: DocumentStatus, createdAt: string } | null };
 
 export type LedgerAccountCsvCreateMutationVariables = Exact<{
   input: LedgerAccountCsvCreateInput;
 }>;
 
 
-export type LedgerAccountCsvCreateMutation = { __typename?: 'Mutation', ledgerAccountCsvCreate: { __typename?: 'LedgerAccountCsvCreatePayload', accountingCsvDocument: { __typename?: 'AccountingCsvDocument', id: string, accountingCsvDocumentId: string, status: DocumentStatus, createdAt: string } } };
+export type LedgerAccountCsvCreateMutation = { __typename?: 'Mutation', ledgerAccountCsvCreate: { __typename?: 'LedgerAccountCsvCreatePayload', accountingCsvDocument: { __typename?: 'AccountingCsvDocument', accountingCsvDocumentId: string, status: DocumentStatus, createdAt: string } } };
 
 export type AccountingCsvDownloadLinkGenerateMutationVariables = Exact<{
   input: AccountingCsvDownloadLinkGenerateInput;
@@ -5122,14 +5085,14 @@ export type LedgerAccountCsvExportUploadedSubscriptionVariables = Exact<{
 
 export type LedgerAccountCsvExportUploadedSubscription = { __typename?: 'Subscription', ledgerAccountCsvExportUploaded: { __typename?: 'LedgerAccountCsvExportUploadedPayload', documentId: string } };
 
-export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null, entity?:
+export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null, entity?:
     | { __typename: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null }
     | { __typename: 'CreditFacility', publicId: any }
     | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', publicId: any } }
-   | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
+   | null, ancestors: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
     | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-  , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, journalEntryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
+  , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', journalEntryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
           | { __typename: 'BtcAmount', btc: Satoshis }
           | { __typename: 'UsdAmount', usd: UsdCents }
         , ledgerAccount: { __typename?: 'LedgerAccount', code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
@@ -5141,14 +5104,14 @@ export type LedgerAccountByCodeQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null, entity?:
+export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null, entity?:
       | { __typename: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null }
       | { __typename: 'CreditFacility', publicId: any }
       | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', publicId: any } }
-     | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
+     | null, ancestors: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-    , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, journalEntryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
+    , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', journalEntryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
             | { __typename: 'BtcAmount', btc: Satoshis }
             | { __typename: 'UsdAmount', usd: UsdCents }
           , ledgerAccount: { __typename?: 'LedgerAccount', code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
@@ -5160,14 +5123,14 @@ export type LedgerAccountQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null, entity?:
+export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null, entity?:
       | { __typename: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null }
       | { __typename: 'CreditFacility', publicId: any }
       | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', publicId: any } }
-     | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
+     | null, ancestors: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-    , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, journalEntryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
+    , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', journalEntryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
             | { __typename: 'BtcAmount', btc: Satoshis }
             | { __typename: 'UsdAmount', usd: UsdCents }
           , ledgerAccount: { __typename?: 'LedgerAccount', code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
@@ -5177,38 +5140,38 @@ export type LedgerAccountExistsByCodeQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountExistsByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string } | null };
+export type LedgerAccountExistsByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string } | null };
 
 export type LedgerAccountExistsByIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type LedgerAccountExistsByIdQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string } | null };
+export type LedgerAccountExistsByIdQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', ledgerAccountId: string } | null };
 
 export type LedgerTransactionQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, description?: string | null, effective: string, initiatedBy:
+export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, description?: string | null, effective: string, initiatedBy:
       | { __typename: 'System', actor: string }
       | { __typename: 'User', userId: string, email: string }
     , entity?:
       | { __typename: 'CreditFacilityDisbursal', publicId: any }
       | { __typename: 'Deposit', publicId: any }
       | { __typename: 'Withdrawal', publicId: any }
-     | null, entries: Array<{ __typename?: 'JournalEntry', id: string, journalEntryId: string, entryType: string, direction: DebitOrCredit, layer: Layer, amount:
+     | null, entries: Array<{ __typename?: 'JournalEntry', journalEntryId: string, entryType: string, direction: DebitOrCredit, layer: Layer, amount:
         | { __typename: 'BtcAmount', btc: Satoshis }
         | { __typename: 'UsdAmount', usd: UsdCents }
-      , ledgerAccount: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, code?: string | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null } }> } | null };
+      , ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null } }> } | null };
 
 export type LedgerTransactionExistsByIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type LedgerTransactionExistsByIdQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string } | null };
+export type LedgerTransactionExistsByIdQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', ledgerTransactionId: string } | null };
 
 export type LiquidationEventHistoryQueryVariables = Exact<{
   liquidationId: Scalars['UUID']['input'];
@@ -5217,7 +5180,7 @@ export type LiquidationEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type LiquidationEventHistoryQuery = { __typename?: 'Query', liquidation?: { __typename?: 'Liquidation', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type LiquidationEventHistoryQuery = { __typename?: 'Query', liquidation?: { __typename?: 'Liquidation', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
@@ -5236,7 +5199,7 @@ export type LiquidationCollateralSentFragmentFragment = { __typename?: 'Liquidat
 
 export type LiquidationProceedsReceivedFragmentFragment = { __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string };
 
-export type LiquidationDetailsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, collateralId: string, expectedToReceive: UsdCents, initiallyEstimatedToLiquidate: Satoshis, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: string, maturesAt: string, currentCvl:
+export type LiquidationDetailsFragment = { __typename?: 'Liquidation', liquidationId: string, collateralId: string, expectedToReceive: UsdCents, initiallyEstimatedToLiquidate: Satoshis, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', collateralId: string, creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: string, maturesAt: string, currentCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
@@ -5249,7 +5212,7 @@ export type GetLiquidationDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLiquidationDetailsQuery = { __typename?: 'Query', liquidation?: { __typename?: 'Liquidation', id: string, liquidationId: string, collateralId: string, expectedToReceive: UsdCents, initiallyEstimatedToLiquidate: Satoshis, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: string, maturesAt: string, currentCvl:
+export type GetLiquidationDetailsQuery = { __typename?: 'Query', liquidation?: { __typename?: 'Liquidation', liquidationId: string, collateralId: string, expectedToReceive: UsdCents, initiallyEstimatedToLiquidate: Satoshis, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', collateralId: string, creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: string, maturesAt: string, currentCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
@@ -5262,16 +5225,16 @@ export type CollateralRecordSentToLiquidationMutationVariables = Exact<{
 }>;
 
 
-export type CollateralRecordSentToLiquidationMutation = { __typename?: 'Mutation', collateralRecordSentToLiquidation: { __typename?: 'CollateralRecordSentToLiquidationPayload', collateral: { __typename?: 'Collateral', id: string, collateralId: string } } };
+export type CollateralRecordSentToLiquidationMutation = { __typename?: 'Mutation', collateralRecordSentToLiquidation: { __typename?: 'CollateralRecordSentToLiquidationPayload', collateral: { __typename?: 'Collateral', collateralId: string } } };
 
 export type CollateralRecordProceedsFromLiquidationMutationVariables = Exact<{
   input: CollateralRecordProceedsFromLiquidationInput;
 }>;
 
 
-export type CollateralRecordProceedsFromLiquidationMutation = { __typename?: 'Mutation', collateralRecordProceedsFromLiquidation: { __typename?: 'CollateralRecordProceedsFromLiquidationPayload', collateral: { __typename?: 'Collateral', id: string, collateralId: string } } };
+export type CollateralRecordProceedsFromLiquidationMutation = { __typename?: 'Mutation', collateralRecordProceedsFromLiquidation: { __typename?: 'CollateralRecordProceedsFromLiquidationPayload', collateral: { __typename?: 'Collateral', collateralId: string } } };
 
-export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null } };
+export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null } };
 
 export type LiquidationsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5280,7 +5243,7 @@ export type LiquidationsQueryVariables = Exact<{
 }>;
 
 
-export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CreditModuleConfigureMutationVariables = Exact<{
   input: CreditModuleConfigureInput;
@@ -5309,7 +5272,7 @@ export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typen
 export type ChartAccountingBaseConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ChartAccountingBaseConfigQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, name: string, accountingBaseConfig?: { __typename?: 'AccountingBaseConfigOutput', assetsCode: string, liabilitiesCode: string, equityCode: string, equityRetainedEarningsGainCode: string, equityRetainedEarningsLossCode: string, revenueCode: string, costOfRevenueCode: string, expensesCode: string } | null } };
+export type ChartAccountingBaseConfigQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', name: string, accountingBaseConfig?: { __typename?: 'AccountingBaseConfigOutput', assetsCode: string, liabilitiesCode: string, equityCode: string, equityRetainedEarningsGainCode: string, equityRetainedEarningsLossCode: string, revenueCode: string, costOfRevenueCode: string, expensesCode: string } | null } };
 
 export type CreditAccountSetOptionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5323,12 +5286,12 @@ export type PendingCreditFacilityEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type PendingCreditFacilityEventHistoryQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type PendingCreditFacilityEventHistoryQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
     , marginCallCvl:
@@ -5337,17 +5300,17 @@ export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'Pendin
     , initialCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-     }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+     }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename: 'AutoApproval' }
-      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-    , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } };
+      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+    , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } };
 
 export type GetPendingCreditFacilityLayoutDetailsQueryVariables = Exact<{
   pendingCreditFacilityId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetPendingCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type GetPendingCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -5356,17 +5319,17 @@ export type GetPendingCreditFacilityLayoutDetailsQuery = { __typename?: 'Query',
       , initialCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-       }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+       }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } | null };
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
 export type PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables = Exact<{
   pendingCreditFacilityId: Scalars['UUID']['input'];
 }>;
 
 
-export type PendingCreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCollateralizationUpdated: { __typename?: 'PendingCreditFacilityCollateralizationPayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type PendingCreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCollateralizationUpdated: { __typename?: 'PendingCreditFacilityCollateralizationPayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -5375,17 +5338,17 @@ export type PendingCreditFacilityCollateralizationUpdatedSubscription = { __type
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-         }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+         }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type PendingCreditFacilityCompletedSubscriptionVariables = Exact<{
   pendingCreditFacilityId: Scalars['UUID']['input'];
 }>;
 
 
-export type PendingCreditFacilityCompletedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCompleted: { __typename?: 'PendingCreditFacilityCompletedPayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type PendingCreditFacilityCompletedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCompleted: { __typename?: 'PendingCreditFacilityCompletedPayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -5394,17 +5357,17 @@ export type PendingCreditFacilityCompletedSubscription = { __typename?: 'Subscri
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-         }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+         }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type GetPendingCreditFacilityRepaymentPlanQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetPendingCreditFacilityRepaymentPlanQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }> } | null };
+export type GetPendingCreditFacilityRepaymentPlanQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }> } | null };
 
 export type PendingCollateralUpdateMutationVariables = Exact<{
   input: CollateralUpdateInput;
@@ -5421,16 +5384,16 @@ export type PendingCreditFacilitiesQueryVariables = Exact<{
 }>;
 
 
-export type PendingCreditFacilitiesQuery = { __typename?: 'Query', pendingCreditFacilities: { __typename?: 'PendingCreditFacilityConnection', edges: Array<{ __typename?: 'PendingCreditFacilityEdge', cursor: string, node: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, createdAt: string, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: PendingCreditFacilityStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type PendingCreditFacilitiesQuery = { __typename?: 'Query', pendingCreditFacilities: { __typename?: 'PendingCreditFacilityConnection', edges: Array<{ __typename?: 'PendingCreditFacilityEdge', cursor: string, node: { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, createdAt: string, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: PendingCreditFacilityStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
 }>;
 
 
-export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules:
+export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', policyId: string, approvalProcessType: ApprovalProcessType, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
        } } };
 
 export type PolicyEventHistoryQueryVariables = Exact<{
@@ -5440,7 +5403,7 @@ export type PolicyEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type PolicyEventHistoryQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type PolicyEventHistoryQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
@@ -5450,9 +5413,9 @@ export type GetPolicyDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules:
+export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', policyId: string, approvalProcessType: ApprovalProcessType, rules:
       | { __typename: 'AutoApproval' }
-      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
+      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
      } | null };
 
 export type PoliciesQueryVariables = Exact<{
@@ -5461,12 +5424,12 @@ export type PoliciesQueryVariables = Exact<{
 }>;
 
 
-export type PoliciesQuery = { __typename?: 'Query', policies: { __typename?: 'PolicyConnection', edges: Array<{ __typename?: 'PolicyEdge', cursor: string, node: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules:
+export type PoliciesQuery = { __typename?: 'Query', policies: { __typename?: 'PolicyConnection', edges: Array<{ __typename?: 'PolicyEdge', cursor: string, node: { __typename?: 'Policy', policyId: string, approvalProcessType: ApprovalProcessType, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: string, name: string } }
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string } }
          } }>, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
-export type PriceProviderFieldsFragment = { __typename?: 'PriceProvider', id: string, priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean, latestPrice?: UsdCents | null };
+export type PriceProviderFieldsFragment = { __typename?: 'PriceProvider', priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean, latestPrice?: UsdCents | null };
 
 export type PriceProvidersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5475,28 +5438,28 @@ export type PriceProvidersQueryVariables = Exact<{
 }>;
 
 
-export type PriceProvidersQuery = { __typename?: 'Query', priceProviders: { __typename?: 'PriceProviderConnection', edges: Array<{ __typename?: 'PriceProviderEdge', cursor: string, node: { __typename?: 'PriceProvider', id: string, priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean, latestPrice?: UsdCents | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type PriceProvidersQuery = { __typename?: 'Query', priceProviders: { __typename?: 'PriceProviderConnection', edges: Array<{ __typename?: 'PriceProviderEdge', cursor: string, node: { __typename?: 'PriceProvider', priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean, latestPrice?: UsdCents | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type PriceProviderActivateMutationVariables = Exact<{
   priceProviderId: Scalars['UUID']['input'];
 }>;
 
 
-export type PriceProviderActivateMutation = { __typename?: 'Mutation', priceProviderActivate: { __typename?: 'PriceProviderActivatePayload', priceProvider: { __typename?: 'PriceProvider', id: string, priceProviderId: string, active: boolean } } };
+export type PriceProviderActivateMutation = { __typename?: 'Mutation', priceProviderActivate: { __typename?: 'PriceProviderActivatePayload', priceProvider: { __typename?: 'PriceProvider', priceProviderId: string, active: boolean } } };
 
 export type PriceProviderDeactivateMutationVariables = Exact<{
   priceProviderId: Scalars['UUID']['input'];
 }>;
 
 
-export type PriceProviderDeactivateMutation = { __typename?: 'Mutation', priceProviderDeactivate: { __typename?: 'PriceProviderDeactivatePayload', priceProvider: { __typename?: 'PriceProvider', id: string, priceProviderId: string, active: boolean } } };
+export type PriceProviderDeactivateMutation = { __typename?: 'Mutation', priceProviderDeactivate: { __typename?: 'PriceProviderDeactivatePayload', priceProvider: { __typename?: 'PriceProvider', priceProviderId: string, active: boolean } } };
 
 export type PriceProviderConfigUpdateMutationVariables = Exact<{
   input: PriceProviderConfigUpdateInput;
 }>;
 
 
-export type PriceProviderConfigUpdateMutation = { __typename?: 'Mutation', priceProviderConfigUpdate: { __typename?: 'PriceProviderConfigUpdatePayload', priceProvider: { __typename?: 'PriceProvider', id: string, priceProviderId: string, name: string, provider: string } } };
+export type PriceProviderConfigUpdateMutation = { __typename?: 'Mutation', priceProviderConfigUpdate: { __typename?: 'PriceProviderConfigUpdatePayload', priceProvider: { __typename?: 'PriceProvider', priceProviderId: string, name: string, provider: string } } };
 
 export type ProfitAndLossStatementQueryVariables = Exact<{
   from: Scalars['Date']['input'];
@@ -5504,7 +5467,7 @@ export type ProfitAndLossStatementQueryVariables = Exact<{
 }>;
 
 
-export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement: { __typename?: 'ProfitAndLossStatement', name: string, total: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } }, categories: Array<{ __typename?: 'ProfitAndLossAccount', profitAndLossAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balanceRange: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } }, children: Array<{ __typename?: 'ProfitAndLossAccount', profitAndLossAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balanceRange: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } } }> }> } };
+export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement: { __typename?: 'ProfitAndLossStatement', name: string, total: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } }, categories: Array<{ __typename?: 'ProfitAndLossAccount', ledgerAccountId: string, name: string, code?: string | null, balanceRange: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } }, children: Array<{ __typename?: 'ProfitAndLossAccount', ledgerAccountId: string, name: string, code?: string | null, balanceRange: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } } }> }> } };
 
 export type UsdLedgerBalanceRangeFragmentFragment = { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } };
 
@@ -5519,14 +5482,14 @@ export type ProspectCloseMutationVariables = Exact<{
 }>;
 
 
-export type ProspectCloseMutation = { __typename?: 'Mutation', prospectClose: { __typename?: 'ProspectClosePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
+export type ProspectCloseMutation = { __typename?: 'Mutation', prospectClose: { __typename?: 'ProspectClosePayload', prospect: { __typename?: 'Prospect', prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
 
 export type ProspectConvertMutationVariables = Exact<{
   input: ProspectConvertInput;
 }>;
 
 
-export type ProspectConvertMutation = { __typename?: 'Mutation', prospectConvert: { __typename?: 'ProspectConvertPayload', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any } } };
+export type ProspectConvertMutation = { __typename?: 'Mutation', prospectConvert: { __typename?: 'ProspectConvertPayload', customer: { __typename?: 'Customer', customerId: string, publicId: any } } };
 
 export type ProspectEventHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -5535,7 +5498,7 @@ export type ProspectEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type ProspectEventHistoryQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type ProspectEventHistoryQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
@@ -5547,28 +5510,28 @@ export type ProspectKycLinkCreateMutationVariables = Exact<{
 
 export type ProspectKycLinkCreateMutation = { __typename?: 'Mutation', prospectKycLinkCreate: { __typename?: 'ProspectKycLinkCreatePayload', url: string } };
 
-export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null };
+export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null };
 
 export type GetProspectBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } | null };
+export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } | null };
 
 export type ProspectKycUpdatedSubscriptionVariables = Exact<{
   prospectId: Scalars['UUID']['input'];
 }>;
 
 
-export type ProspectKycUpdatedSubscription = { __typename?: 'Subscription', prospectKycUpdated: { __typename?: 'ProspectKycUpdatedPayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
+export type ProspectKycUpdatedSubscription = { __typename?: 'Subscription', prospectKycUpdated: { __typename?: 'ProspectKycUpdatedPayload', prospect: { __typename?: 'Prospect', prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
 
 export type ProspectCreateMutationVariables = Exact<{
   input: ProspectCreateInput;
 }>;
 
 
-export type ProspectCreateMutation = { __typename?: 'Mutation', prospectCreate: { __typename?: 'ProspectCreatePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, email: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null } } };
+export type ProspectCreateMutation = { __typename?: 'Mutation', prospectCreate: { __typename?: 'ProspectCreatePayload', prospect: { __typename?: 'Prospect', prospectId: string, publicId: any, email: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null } } };
 
 export type ProspectsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5578,14 +5541,14 @@ export type ProspectsQueryVariables = Exact<{
 }>;
 
 
-export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, stage: ProspectStage, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', prospectId: string, publicId: any, stage: ProspectStage, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ReportRunByIdQueryVariables = Exact<{
   reportRunId: Scalars['UUID']['input'];
 }>;
 
 
-export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', id: string, reportRunId: string, state: ReportRunState, runType: ReportRunType, startTime?: string | null, requestedAsOfDate?: string | null, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: string, norm: string, name: string } | null, reports: Array<{ __typename?: 'Report', id: string, reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
+export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', reportRunId: string, state: ReportRunState, runType: ReportRunType, startTime?: string | null, requestedAsOfDate?: string | null, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: string, norm: string, name: string } | null, reports: Array<{ __typename?: 'Report', reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
 
 export type ReportFileGenerateDownloadLinkMutationVariables = Exact<{
   input: ReportFileGenerateDownloadLinkInput;
@@ -5597,14 +5560,14 @@ export type ReportFileGenerateDownloadLinkMutation = { __typename?: 'Mutation', 
 export type AvailableReportDefinitionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AvailableReportDefinitionsQuery = { __typename?: 'Query', availableReportDefinitions: Array<{ __typename?: 'ReportDefinition', reportDefinitionId: string, norm: string, id: string, friendlyName: string, supportsAsOf: boolean, outputs: Array<{ __typename?: 'ReportDefinitionOutput', format: ReportOutputFormat }> }> };
+export type AvailableReportDefinitionsQuery = { __typename?: 'Query', availableReportDefinitions: Array<{ __typename?: 'ReportDefinition', reportDefinitionId: string, norm: string, friendlyName: string, supportsAsOf: boolean, outputs: Array<{ __typename?: 'ReportDefinitionOutput', format: ReportOutputFormat }> }> };
 
 export type ReportGenerateMutationVariables = Exact<{
   input: ReportRunTriggerInput;
 }>;
 
 
-export type ReportGenerateMutation = { __typename?: 'Mutation', reportRunTrigger: { __typename?: 'ReportRunTriggerPayload', reportRun: { __typename?: 'ReportRun', id: string } } };
+export type ReportGenerateMutation = { __typename?: 'Mutation', reportRunTrigger: { __typename?: 'ReportRunTriggerPayload', reportRun: { __typename?: 'ReportRun', reportRunId: string } } };
 
 export type ReportRunsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5613,7 +5576,7 @@ export type ReportRunsQueryVariables = Exact<{
 }>;
 
 
-export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', id: string, reportRunId: string, startTime?: string | null, requestedAsOfDate?: string | null, runType: ReportRunType, state: ReportRunState, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: string, norm: string, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', reportRunId: string, startTime?: string | null, requestedAsOfDate?: string | null, runType: ReportRunType, state: ReportRunState, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: string, norm: string, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ReportRunUpdatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -5625,21 +5588,21 @@ export type RoleAddPermissionSetsMutationVariables = Exact<{
 }>;
 
 
-export type RoleAddPermissionSetsMutation = { __typename?: 'Mutation', roleAddPermissionSets: { __typename?: 'RoleAddPermissionSetsPayload', role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } };
+export type RoleAddPermissionSetsMutation = { __typename?: 'Mutation', roleAddPermissionSets: { __typename?: 'RoleAddPermissionSetsPayload', role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } };
 
 export type RoleRemovePermissionSetsMutationVariables = Exact<{
   input: RoleRemovePermissionSetsInput;
 }>;
 
 
-export type RoleRemovePermissionSetsMutation = { __typename?: 'Mutation', roleRemovePermissionSets: { __typename?: 'RoleRemovePermissionSetsPayload', role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } };
+export type RoleRemovePermissionSetsMutation = { __typename?: 'Mutation', roleRemovePermissionSets: { __typename?: 'RoleRemovePermissionSetsPayload', role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } };
 
 export type RoleQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type RoleQuery = { __typename?: 'Query', role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } | null };
+export type RoleQuery = { __typename?: 'Query', role?: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } | null };
 
 export type RoleEventHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -5648,7 +5611,7 @@ export type RoleEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type RoleEventHistoryQuery = { __typename?: 'Query', role?: { __typename?: 'Role', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type RoleEventHistoryQuery = { __typename?: 'Query', role?: { __typename?: 'Role', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
@@ -5658,7 +5621,7 @@ export type RoleCreateMutationVariables = Exact<{
 }>;
 
 
-export type RoleCreateMutation = { __typename?: 'Mutation', roleCreate: { __typename?: 'RoleCreatePayload', role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } };
+export type RoleCreateMutation = { __typename?: 'Mutation', roleCreate: { __typename?: 'RoleCreatePayload', role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } };
 
 export type PermissionSetsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5666,11 +5629,11 @@ export type PermissionSetsQueryVariables = Exact<{
 }>;
 
 
-export type PermissionSetsQuery = { __typename?: 'Query', permissionSets: { __typename?: 'PermissionSetConnection', edges: Array<{ __typename?: 'PermissionSetEdge', node: { __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string } }> } };
+export type PermissionSetsQuery = { __typename?: 'Query', permissionSets: { __typename?: 'PermissionSetConnection', edges: Array<{ __typename?: 'PermissionSetEdge', node: { __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string } }> } };
 
-export type PermissionSetFieldsFragment = { __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string };
+export type PermissionSetFieldsFragment = { __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string };
 
-export type RoleFieldsFragment = { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> };
+export type RoleFieldsFragment = { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> };
 
 export type RolesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5679,7 +5642,7 @@ export type RolesQueryVariables = Exact<{
 }>;
 
 
-export type RolesQuery = { __typename?: 'Query', roles: { __typename?: 'RoleConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'RoleEdge', cursor: string, node: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } };
+export type RolesQuery = { __typename?: 'Query', roles: { __typename?: 'RoleConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'RoleEdge', cursor: string, node: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } };
 
 export type SystemInfoTimeFieldsFragment = { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean };
 
@@ -5705,7 +5668,7 @@ export type TermsTemplateEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type TermsTemplateEventHistoryQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type TermsTemplateEventHistoryQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
@@ -5715,7 +5678,7 @@ export type TermsTemplateQueryVariables = Exact<{
 }>;
 
 
-export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: string, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', name: string, termsTemplateId: string, createdAt: string, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -5731,7 +5694,7 @@ export type UpdateTermsTemplateMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: string, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', name: string, termsTemplateId: string, createdAt: string, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -5747,7 +5710,7 @@ export type CreateTermsTemplateMutationVariables = Exact<{
 }>;
 
 
-export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: string, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', name: string, termsTemplateId: string, createdAt: string, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -5758,7 +5721,7 @@ export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTempla
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
-export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: string, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', name: string, termsTemplateId: string, createdAt: string, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
     , marginCallCvl:
@@ -5772,7 +5735,7 @@ export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: st
 export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: string, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', name: string, termsTemplateId: string, createdAt: string, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -5790,7 +5753,7 @@ export type LedgerTransactionsForTemplateCodeQueryVariables = Exact<{
 }>;
 
 
-export type LedgerTransactionsForTemplateCodeQuery = { __typename?: 'Query', ledgerTransactionsForTemplateCode: { __typename?: 'LedgerTransactionConnection', edges: Array<{ __typename?: 'LedgerTransactionEdge', cursor: string, node: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, description?: string | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type LedgerTransactionsForTemplateCodeQuery = { __typename?: 'Query', ledgerTransactionsForTemplateCode: { __typename?: 'LedgerTransactionConnection', edges: Array<{ __typename?: 'LedgerTransactionEdge', cursor: string, node: { __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, description?: string | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type TransactionTemplatesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5798,7 +5761,7 @@ export type TransactionTemplatesQueryVariables = Exact<{
 }>;
 
 
-export type TransactionTemplatesQuery = { __typename?: 'Query', transactionTemplates: { __typename?: 'TransactionTemplateConnection', edges: Array<{ __typename?: 'TransactionTemplateEdge', cursor: string, node: { __typename?: 'TransactionTemplate', id: string, transactionTemplateId: string, code: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type TransactionTemplatesQuery = { __typename?: 'Query', transactionTemplates: { __typename?: 'TransactionTemplateConnection', edges: Array<{ __typename?: 'TransactionTemplateEdge', cursor: string, node: { __typename?: 'TransactionTemplate', transactionTemplateId: string, code: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type GetTrialBalanceQueryVariables = Exact<{
   from: Scalars['Date']['input'];
@@ -5806,12 +5769,12 @@ export type GetTrialBalanceQueryVariables = Exact<{
 }>;
 
 
-export type GetTrialBalanceQuery = { __typename?: 'Query', trialBalance: { __typename?: 'TrialBalance', name: string, accounts: Array<{ __typename?: 'LedgerAccount', id: string, code?: string | null, name: string, isRootAccount: boolean, balanceRange:
+export type GetTrialBalanceQuery = { __typename?: 'Query', trialBalance: { __typename?: 'TrialBalance', name: string, accounts: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, name: string, isRootAccount: boolean, balanceRange:
         | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
         | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
        }> } };
 
-export type TrialBalanceAccountBaseFragment = { __typename?: 'LedgerAccount', id: string, code?: string | null, name: string, isRootAccount: boolean, balanceRange:
+export type TrialBalanceAccountBaseFragment = { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, name: string, isRootAccount: boolean, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
     | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
    };
@@ -5823,7 +5786,7 @@ export type UserEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type UserEventHistoryQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type UserEventHistoryQuery = { __typename?: 'Query', user?: { __typename?: 'User', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
@@ -5833,16 +5796,16 @@ export type GetUserDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } | null };
+export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } | null };
 
 export type UserCreateMutationVariables = Exact<{
   input: UserCreateInput;
 }>;
 
 
-export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } } };
+export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } } };
 
-export type UserFieldsFragment = { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } };
+export type UserFieldsFragment = { __typename?: 'User', userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } };
 
 export type UsersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5851,34 +5814,34 @@ export type UsersQueryVariables = Exact<{
 }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'UserEdge', cursor: string, node: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } };
+export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'UserEdge', cursor: string, node: { __typename?: 'User', userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } };
 
 export type UserUpdateRoleMutationVariables = Exact<{
   input: UserUpdateRoleInput;
 }>;
 
 
-export type UserUpdateRoleMutation = { __typename?: 'Mutation', userUpdateRole: { __typename?: 'UserUpdateRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } } };
+export type UserUpdateRoleMutation = { __typename?: 'Mutation', userUpdateRole: { __typename?: 'UserUpdateRolePayload', user: { __typename?: 'User', userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } } };
 
 export type WithdrawalCancelMutationVariables = Exact<{
   input: WithdrawalCancelInput;
 }>;
 
 
-export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type WithdrawalConfirmMutationVariables = Exact<{
   input: WithdrawalConfirmInput;
 }>;
 
 
-export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type WithdrawalEventHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -5887,56 +5850,56 @@ export type WithdrawalEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type WithdrawalEventHistoryQuery = { __typename?: 'Query', withdrawalByPublicId?: { __typename?: 'Withdrawal', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+export type WithdrawalEventHistoryQuery = { __typename?: 'Query', withdrawalByPublicId?: { __typename?: 'Withdrawal', eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type LedgerTransactionFieldsFragment = { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null };
+export type LedgerTransactionFieldsFragment = { __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null };
 
-export type WithdrawDetailsPageFragmentFragment = { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawDetailsPageFragmentFragment = { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename: 'AutoApproval' }
-      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-    , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } };
+      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+    , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } };
 
 export type GetWithdrawalDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawalByPublicId?: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawalByPublicId?: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } | null };
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
 export type WithdrawalApprovalConcludedSubscriptionVariables = Exact<{
   withdrawalId: Scalars['UUID']['input'];
 }>;
 
 
-export type WithdrawalApprovalConcludedSubscription = { __typename?: 'Subscription', withdrawalApprovalConcluded: { __typename?: 'WithdrawalApprovalConcludedPayload', status: WithdrawalStatus, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawalApprovalConcludedSubscription = { __typename?: 'Subscription', withdrawalApprovalConcluded: { __typename?: 'WithdrawalApprovalConcludedPayload', status: WithdrawalStatus, withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type WithdrawalRevertMutationVariables = Exact<{
   input: WithdrawalRevertInput;
 }>;
 
 
-export type WithdrawalRevertMutation = { __typename?: 'Mutation', withdrawalRevert: { __typename?: 'WithdrawalRevertPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawalRevertMutation = { __typename?: 'Mutation', withdrawalRevert: { __typename?: 'WithdrawalRevertPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type WithdrawalInitiateMutationVariables = Exact<{
   input: WithdrawalInitiateInput;
 }>;
 
 
-export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', withdrawals: Array<{ __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
-export type WithdrawalFieldsFragment = { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } };
+export type WithdrawalFieldsFragment = { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } };
 
 export type WithdrawalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5946,7 +5909,7 @@ export type WithdrawalsQueryVariables = Exact<{
 }>;
 
 
-export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'WithdrawalEdge', cursor: string, node: { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
+export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'WithdrawalEdge', cursor: string, node: { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
 
 export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5973,7 +5936,7 @@ export type CreditFacilityAgreementGenerateMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityAgreementGenerateMutation = { __typename?: 'Mutation', creditFacilityAgreementGenerate: { __typename?: 'CreditFacilityAgreementGeneratePayload', loanAgreement: { __typename?: 'LoanAgreement', id: string, loanAgreementId: string, status: LoanAgreementStatus, createdAt: string } } };
+export type CreditFacilityAgreementGenerateMutation = { __typename?: 'Mutation', creditFacilityAgreementGenerate: { __typename?: 'CreditFacilityAgreementGeneratePayload', loanAgreement: { __typename?: 'LoanAgreement', loanAgreementId: string, status: LoanAgreementStatus, createdAt: string } } };
 
 export type LoanAgreementDownloadLinkGenerateMutationVariables = Exact<{
   input: LoanAgreementDownloadLinksGenerateInput;
@@ -5987,7 +5950,7 @@ export type LoanAgreementQueryVariables = Exact<{
 }>;
 
 
-export type LoanAgreementQuery = { __typename?: 'Query', loanAgreement?: { __typename?: 'LoanAgreement', id: string, loanAgreementId: string, status: LoanAgreementStatus, createdAt: string } | null };
+export type LoanAgreementQuery = { __typename?: 'Query', loanAgreement?: { __typename?: 'LoanAgreement', loanAgreementId: string, status: LoanAgreementStatus, createdAt: string } | null };
 
 export type SearchPublicIdTargetQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -5995,13 +5958,13 @@ export type SearchPublicIdTargetQueryVariables = Exact<{
 
 
 export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?:
-    | { __typename: 'CreditFacility', id: string, publicId: any, facilityAmount: UsdCents }
-    | { __typename: 'CreditFacilityDisbursal', id: string, amount: UsdCents, publicId: any }
-    | { __typename: 'Customer', id: string, customerId: string, publicId: any, email: string }
-    | { __typename: 'Deposit', id: string, amount: UsdCents, publicId: any, depositId: string }
-    | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string } }
-    | { __typename: 'Prospect', id: string, prospectId: string, publicId: any, email: string }
-    | { __typename: 'Withdrawal', id: string, amount: UsdCents, publicId: any, withdrawalId: string }
+    | { __typename: 'CreditFacility', creditFacilityId: string, publicId: any, facilityAmount: UsdCents }
+    | { __typename: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, amount: UsdCents, publicId: any }
+    | { __typename: 'Customer', customerId: string, publicId: any, email: string }
+    | { __typename: 'Deposit', amount: UsdCents, publicId: any, depositId: string }
+    | { __typename: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, publicId: any, email: string } }
+    | { __typename: 'Prospect', prospectId: string, publicId: any, email: string }
+    | { __typename: 'Withdrawal', amount: UsdCents, publicId: any, withdrawalId: string }
    | null };
 
 export type GetCreditFacilityPublicIdQueryVariables = Exact<{
@@ -6009,7 +5972,7 @@ export type GetCreditFacilityPublicIdQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityPublicIdQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null };
+export type GetCreditFacilityPublicIdQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null };
 
 export const ChartAccountBaseFragmentDoc = gql`
     fragment ChartAccountBase on ChartNode {
@@ -6019,7 +5982,6 @@ export const ChartAccountBaseFragmentDoc = gql`
     `;
 export const ChartOfAccountsFieldsFragmentDoc = gql`
     fragment ChartOfAccountsFields on ChartOfAccounts {
-  id
   chartOfAccountsId
   name
   children {
@@ -6068,7 +6030,6 @@ export const ChartOfAccountsFieldsFragmentDoc = gql`
     ${ChartAccountBaseFragmentDoc}`;
 export const PermissionSetFieldsFragmentDoc = gql`
     fragment PermissionSetFields on PermissionSet {
-  id
   permissionSetId
   name
   description
@@ -6076,7 +6037,6 @@ export const PermissionSetFieldsFragmentDoc = gql`
     `;
 export const RoleFieldsFragmentDoc = gql`
     fragment RoleFields on Role {
-  id
   roleId
   name
   createdAt
@@ -6087,12 +6047,10 @@ export const RoleFieldsFragmentDoc = gql`
     ${PermissionSetFieldsFragmentDoc}`;
 export const CommitteeFieldsFragmentDoc = gql`
     fragment CommitteeFields on Committee {
-  id
   committeeId
   createdAt
   name
   currentMembers {
-    id
     userId
     email
     role {
@@ -6103,7 +6061,6 @@ export const CommitteeFieldsFragmentDoc = gql`
     ${RoleFieldsFragmentDoc}`;
 export const DisbursalOnFacilityPageFragmentDoc = gql`
     fragment DisbursalOnFacilityPage on CreditFacilityDisbursal {
-  id
   creditFacilityDisbursalId
   publicId
   amount
@@ -6113,7 +6070,6 @@ export const DisbursalOnFacilityPageFragmentDoc = gql`
     `;
 export const CreditFacilityLayoutFragmentFragmentDoc = gql`
     fragment CreditFacilityLayoutFragment on CreditFacility {
-  id
   creditFacilityId
   collateralId
   status
@@ -6133,6 +6089,7 @@ export const CreditFacilityLayoutFragmentFragmentDoc = gql`
   publicId
   collateralToMatchInitialCvl @client
   disbursals {
+    creditFacilityDisbursalId
     status
   }
   balance {
@@ -6217,11 +6174,11 @@ export const CreditFacilityLayoutFragmentFragmentDoc = gql`
     email
   }
   wallet {
-    id
     walletId
     address
     network
     custodian {
+      custodianId
       name
       provider
     }
@@ -6259,7 +6216,6 @@ export const LedgerAccountInfoFragmentDoc = gql`
     `;
 export const LiquidationOnFacilityPageFragmentDoc = gql`
     fragment LiquidationOnFacilityPage on Liquidation {
-  id
   liquidationId
   expectedToReceive
   sentTotal
@@ -6270,7 +6226,6 @@ export const LiquidationOnFacilityPageFragmentDoc = gql`
     `;
 export const CreditFacilityHistoryFragmentFragmentDoc = gql`
     fragment CreditFacilityHistoryFragment on CreditFacility {
-  id
   creditFacilityId
   history {
     ... on CreditFacilityIncrementalPayment {
@@ -6359,7 +6314,6 @@ export const CvlPctDataFragmentDoc = gql`
     `;
 export const ApprovalProcessFieldsFragmentDoc = gql`
     fragment ApprovalProcessFields on ApprovalProcess {
-  id
   approvalProcessId
   deniedReason
   approvalProcessType
@@ -6369,9 +6323,10 @@ export const ApprovalProcessFieldsFragmentDoc = gql`
   rules {
     ... on CommitteeApproval {
       committee {
+        committeeId
         name
         currentMembers {
-          id
+          userId
           email
           role {
             ...RoleFields
@@ -6389,7 +6344,6 @@ export const ApprovalProcessFieldsFragmentDoc = gql`
     didApprove
     didDeny
     user {
-      id
       userId
       email
       role {
@@ -6401,7 +6355,6 @@ export const ApprovalProcessFieldsFragmentDoc = gql`
     ${RoleFieldsFragmentDoc}`;
 export const CreditFacilityProposalLayoutFragmentFragmentDoc = gql`
     fragment CreditFacilityProposalLayoutFragment on CreditFacilityProposal {
-  id
   creditFacilityProposalId
   approvalProcessId
   createdAt
@@ -6414,6 +6367,7 @@ export const CreditFacilityProposalLayoutFragmentFragmentDoc = gql`
     email
   }
   custodian {
+    custodianId
     name
   }
   creditFacilityTerms {
@@ -6462,7 +6416,6 @@ export const CreditFacilityProposalLayoutFragmentFragmentDoc = gql`
     ${ApprovalProcessFieldsFragmentDoc}`;
 export const CustodianFieldsFragmentDoc = gql`
     fragment CustodianFields on Custodian {
-  id
   custodianId
   createdAt
   name
@@ -6471,7 +6424,6 @@ export const CustodianFieldsFragmentDoc = gql`
     `;
 export const CustomerDetailsFragmentFragmentDoc = gql`
     fragment CustomerDetailsFragment on Customer {
-  id
   customerId
   status
   email
@@ -6490,7 +6442,6 @@ export const CustomerDetailsFragmentFragmentDoc = gql`
     companyName
   }
   depositAccount {
-    id
     status
     activity
     publicId
@@ -6508,7 +6459,6 @@ export const CustomerDetailsFragmentFragmentDoc = gql`
     `;
 export const DepositAccountDetailsFragmentFragmentDoc = gql`
     fragment DepositAccountDetailsFragment on DepositAccount {
-  id
   publicId
   depositAccountId
   createdAt
@@ -6523,7 +6473,6 @@ export const DepositAccountDetailsFragmentFragmentDoc = gql`
     frozenDepositAccountId
   }
   customer {
-    id
     customerId
     publicId
     applicantId
@@ -6533,7 +6482,7 @@ export const DepositAccountDetailsFragmentFragmentDoc = gql`
     `;
 export const DepositAccountFieldsFragmentDoc = gql`
     fragment DepositAccountFields on DepositAccount {
-  id
+  depositAccountId
   publicId
   createdAt
   status
@@ -6551,7 +6500,6 @@ export const DepositAccountFieldsFragmentDoc = gql`
     `;
 export const LedgerTransactionFieldsFragmentDoc = gql`
     fragment LedgerTransactionFields on LedgerTransaction {
-  id
   ledgerTransactionId
   createdAt
   effective
@@ -6560,7 +6508,6 @@ export const LedgerTransactionFieldsFragmentDoc = gql`
     `;
 export const DepositDetailsPageFragmentFragmentDoc = gql`
     fragment DepositDetailsPageFragment on Deposit {
-  id
   depositId
   publicId
   amount
@@ -6571,15 +6518,15 @@ export const DepositDetailsPageFragmentFragmentDoc = gql`
     ...LedgerTransactionFields
   }
   account {
-    id
+    depositAccountId
     publicId
     customer {
-      id
       customerId
       publicId
       applicantId
       email
       depositAccount {
+        depositAccountId
         balance {
           settled
           pending
@@ -6591,7 +6538,6 @@ export const DepositDetailsPageFragmentFragmentDoc = gql`
     ${LedgerTransactionFieldsFragmentDoc}`;
 export const DepositFieldsFragmentDoc = gql`
     fragment DepositFields on Deposit {
-  id
   depositId
   publicId
   reference
@@ -6599,6 +6545,7 @@ export const DepositFieldsFragmentDoc = gql`
   amount
   status
   account {
+    depositAccountId
     customer {
       customerId
       email
@@ -6608,7 +6555,6 @@ export const DepositFieldsFragmentDoc = gql`
     `;
 export const DisbursalDetailsPageFragmentFragmentDoc = gql`
     fragment DisbursalDetailsPageFragment on CreditFacilityDisbursal {
-  id
   creditFacilityDisbursalId
   amount
   createdAt
@@ -6618,18 +6564,16 @@ export const DisbursalDetailsPageFragmentFragmentDoc = gql`
     ...LedgerTransactionFields
   }
   creditFacility {
-    id
     creditFacilityId
     facilityAmount
     status
     publicId
     customer {
-      id
       email
       customerId
       publicId
       depositAccount {
-        id
+        depositAccountId
         publicId
         balance {
           settled
@@ -6646,7 +6590,6 @@ export const DisbursalDetailsPageFragmentFragmentDoc = gql`
 ${ApprovalProcessFieldsFragmentDoc}`;
 export const FiscalYearDetailsPageFragmentFragmentDoc = gql`
     fragment FiscalYearDetailsPageFragment on FiscalYear {
-  id
   fiscalYearId
   chartId
   openedAsOf
@@ -6664,7 +6607,6 @@ export const FiscalYearDetailsPageFragmentFragmentDoc = gql`
     `;
 export const FiscalYearFieldsFragmentDoc = gql`
     fragment FiscalYearFields on FiscalYear {
-  id
   fiscalYearId
   chartId
   openedAsOf
@@ -6677,7 +6619,6 @@ export const FiscalYearFieldsFragmentDoc = gql`
     `;
 export const LedgerAccountDetailsFragmentDoc = gql`
     fragment LedgerAccountDetails on LedgerAccount {
-  id
   ledgerAccountId
   name
   code
@@ -6700,13 +6641,11 @@ export const LedgerAccountDetailsFragmentDoc = gql`
     }
   }
   ancestors {
-    id
     ledgerAccountId
     name
     code
   }
   children {
-    id
     ledgerAccountId
     name
     code
@@ -6736,7 +6675,6 @@ export const LedgerAccountDetailsFragmentDoc = gql`
     edges {
       cursor
       node {
-        id
         journalEntryId
         txId
         entryType
@@ -6784,7 +6722,6 @@ export const LiquidationProceedsReceivedFragmentFragmentDoc = gql`
     `;
 export const LiquidationDetailsFragmentDoc = gql`
     fragment LiquidationDetails on Liquidation {
-  id
   liquidationId
   collateralId
   expectedToReceive
@@ -6794,8 +6731,8 @@ export const LiquidationDetailsFragmentDoc = gql`
   createdAt
   completed
   collateral {
+    collateralId
     creditFacility {
-      id
       creditFacilityId
       publicId
       status
@@ -6850,7 +6787,6 @@ export const LiquidationDetailsFragmentDoc = gql`
 ${LiquidationProceedsReceivedFragmentFragmentDoc}`;
 export const LiquidationListFieldsFragmentDoc = gql`
     fragment LiquidationListFields on Liquidation {
-  id
   liquidationId
   expectedToReceive
   sentTotal
@@ -6866,7 +6802,6 @@ export const LiquidationListFieldsFragmentDoc = gql`
     `;
 export const PendingCreditFacilityLayoutFragmentFragmentDoc = gql`
     fragment PendingCreditFacilityLayoutFragment on PendingCreditFacility {
-  id
   pendingCreditFacilityId
   creditFacilityId
   collateralId
@@ -6925,11 +6860,11 @@ export const PendingCreditFacilityLayoutFragmentFragmentDoc = gql`
     }
   }
   wallet {
-    id
     walletId
     address
     network
     custodian {
+      custodianId
       name
       provider
     }
@@ -6941,7 +6876,6 @@ export const PendingCreditFacilityLayoutFragmentFragmentDoc = gql`
     ${ApprovalProcessFieldsFragmentDoc}`;
 export const PriceProviderFieldsFragmentDoc = gql`
     fragment PriceProviderFields on PriceProvider {
-  id
   priceProviderId
   createdAt
   name
@@ -6952,7 +6886,6 @@ export const PriceProviderFieldsFragmentDoc = gql`
     `;
 export const ProspectDetailsFragmentFragmentDoc = gql`
     fragment ProspectDetailsFragment on Prospect {
-  id
   prospectId
   email
   telegramHandle
@@ -6992,7 +6925,6 @@ export const SystemInfoTimeFieldsFragmentDoc = gql`
     `;
 export const TermsTemplateFieldsFragmentDoc = gql`
     fragment TermsTemplateFields on TermsTemplate {
-  id
   name
   termsTemplateId
   createdAt
@@ -7091,7 +7023,7 @@ export const BtcLedgerBalanceRangeFragmentFragmentDoc = gql`
     ${BtcBalanceFragmentFragmentDoc}`;
 export const TrialBalanceAccountBaseFragmentDoc = gql`
     fragment TrialBalanceAccountBase on LedgerAccount {
-  id
+  ledgerAccountId
   code
   name
   isRootAccount
@@ -7105,7 +7037,6 @@ export const TrialBalanceAccountBaseFragmentDoc = gql`
 ${BtcLedgerBalanceRangeFragmentFragmentDoc}`;
 export const UserFieldsFragmentDoc = gql`
     fragment UserFields on User {
-  id
   userId
   email
   role {
@@ -7117,7 +7048,6 @@ export const UserFieldsFragmentDoc = gql`
     ${RoleFieldsFragmentDoc}`;
 export const WithdrawDetailsPageFragmentFragmentDoc = gql`
     fragment WithdrawDetailsPageFragment on Withdrawal {
-  id
   withdrawalId
   publicId
   amount
@@ -7128,15 +7058,15 @@ export const WithdrawDetailsPageFragmentFragmentDoc = gql`
     ...LedgerTransactionFields
   }
   account {
-    id
+    depositAccountId
     publicId
     customer {
-      id
       customerId
       publicId
       applicantId
       email
       depositAccount {
+        depositAccountId
         balance {
           settled
           pending
@@ -7152,7 +7082,6 @@ export const WithdrawDetailsPageFragmentFragmentDoc = gql`
 ${ApprovalProcessFieldsFragmentDoc}`;
 export const WithdrawalFieldsFragmentDoc = gql`
     fragment WithdrawalFields on Withdrawal {
-  id
   status
   reference
   withdrawalId
@@ -7160,6 +7089,7 @@ export const WithdrawalFieldsFragmentDoc = gql`
   createdAt
   amount
   account {
+    depositAccountId
     customer {
       customerId
       email
@@ -7275,7 +7205,7 @@ export const AllActionsDocument = gql`
     }
     edges {
       node {
-        id
+        approvalProcessId
         approvalProcessType
         status
         userCanSubmitDecision
@@ -7286,7 +7216,9 @@ export const AllActionsDocument = gql`
             withdrawalId
             publicId
             account {
+              depositAccountId
               customer {
+                customerId
                 email
               }
             }
@@ -7294,16 +7226,18 @@ export const AllActionsDocument = gql`
           ... on CreditFacilityProposal {
             creditFacilityProposalId
             customer {
+              customerId
               email
             }
           }
           ... on CreditFacilityDisbursal {
-            id
             creditFacilityDisbursalId
             publicId
             creditFacility {
+              creditFacilityId
               publicId
               customer {
+                customerId
                 email
               }
             }
@@ -7363,7 +7297,6 @@ export const AuditLogsDocument = gql`
     edges {
       cursor
       node {
-        id
         auditEntryId
         subject {
           ... on User {
@@ -7533,7 +7466,6 @@ export const BalanceSheetDocument = gql`
       }
     }
     categories {
-      balanceSheetAccountId
       ledgerAccountId
       name
       code
@@ -7556,7 +7488,6 @@ export const BalanceSheetDocument = gql`
         }
       }
       children {
-        balanceSheetAccountId
         ledgerAccountId
         name
         code
@@ -7622,7 +7553,6 @@ export type BalanceSheetQueryResult = Apollo.QueryResult<BalanceSheetQuery, Bala
 export const ChartOfAccountsForLedgerDocument = gql`
     query ChartOfAccountsForLedger {
   chartOfAccounts {
-    id
     chartOfAccountsId
     name
   }
@@ -7778,7 +7708,6 @@ export type ChartOfAccountsCsvImportWithBaseConfigMutationOptions = Apollo.BaseM
 export const CommitteeEventHistoryDocument = gql`
     query CommitteeEventHistory($id: UUID!, $first: Int!, $after: String) {
   committee(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -8031,7 +7960,6 @@ export const DomainConfigsDocument = gql`
     query DomainConfigs($first: Int!, $after: String) {
   domainConfigs(first: $first, after: $after) {
     nodes {
-      id
       domainConfigId
       key
       configType
@@ -8087,7 +8015,6 @@ export const DomainConfigUpdateDocument = gql`
     mutation DomainConfigUpdate($input: DomainConfigUpdateInput!) {
   domainConfigUpdate(input: $input) {
     domainConfig {
-      id
       domainConfigId
       key
       configType
@@ -8172,7 +8099,6 @@ export const CreditFacilityCompleteDocument = gql`
     mutation CreditFacilityComplete($input: CreditFacilityCompleteInput!) {
   creditFacilityComplete(input: $input) {
     creditFacility {
-      id
       status
     }
   }
@@ -8207,7 +8133,6 @@ export type CreditFacilityCompleteMutationOptions = Apollo.BaseMutationOptions<C
 export const GetCreditFacilityDisbursalsDocument = gql`
     query GetCreditFacilityDisbursals($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {
-    id
     creditFacilityId
     disbursals {
       ...DisbursalOnFacilityPage
@@ -8254,7 +8179,6 @@ export type GetCreditFacilityDisbursalsQueryResult = Apollo.QueryResult<GetCredi
 export const CreditFacilityEventHistoryDocument = gql`
     query CreditFacilityEventHistory($publicId: PublicId!, $first: Int!, $after: String) {
   creditFacilityByPublicId(id: $publicId) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -8377,7 +8301,6 @@ export type CreditFacilityCollateralizationUpdatedSubscriptionResult = Apollo.Su
 export const CreditFacilityLedgerAccountsDocument = gql`
     query CreditFacilityLedgerAccounts($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {
-    id
     ledgerAccounts {
       facilityAccount {
         ...LedgerAccountInfo
@@ -8473,7 +8396,6 @@ export type CreditFacilityLedgerAccountsQueryResult = Apollo.QueryResult<CreditF
 export const GetCreditFacilityLiquidationsDocument = gql`
     query GetCreditFacilityLiquidations($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {
-    id
     creditFacilityId
     liquidations {
       ...LiquidationOnFacilityPage
@@ -8563,7 +8485,6 @@ export type GetCreditFacilityHistoryQueryResult = Apollo.QueryResult<GetCreditFa
 export const GetCreditFacilityRepaymentPlanDocument = gql`
     query GetCreditFacilityRepaymentPlan($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {
-    id
     creditFacilityId
     repaymentPlan {
       ...RepaymentOnFacilityPage
@@ -8613,7 +8534,6 @@ export const CollateralUpdateDocument = gql`
     collateral {
       collateralId
       creditFacility {
-        id
         creditFacilityId
         balance {
           collateral {
@@ -8660,7 +8580,6 @@ export const CreditFacilitiesDocument = gql`
     edges {
       cursor
       node {
-        id
         creditFacilityId
         publicId
         collateralizationState
@@ -8740,7 +8659,6 @@ export const CreditFacilityPartialPaymentRecordDocument = gql`
     mutation CreditFacilityPartialPaymentRecord($input: CreditFacilityPartialPaymentRecordInput!) {
   creditFacilityPartialPaymentRecord(input: $input) {
     creditFacility {
-      id
       creditFacilityId
       ...CreditFacilityHistoryFragment
       ...CreditFacilityLayoutFragment
@@ -8779,7 +8697,6 @@ export const CreditFacilityPartialPaymentWithDateRecordDocument = gql`
     mutation CreditFacilityPartialPaymentWithDateRecord($input: CreditFacilityPartialPaymentWithDateRecordInput!) {
   creditFacilityPartialPaymentWithDateRecord(input: $input) {
     creditFacility {
-      id
       creditFacilityId
       ...CreditFacilityHistoryFragment
       ...CreditFacilityLayoutFragment
@@ -8852,7 +8769,6 @@ export type CreditFacilityProposalCustomerApprovalConcludeMutationOptions = Apol
 export const CreditFacilityProposalEventHistoryDocument = gql`
     query CreditFacilityProposalEventHistory($id: UUID!, $first: Int!, $after: String) {
   creditFacilityProposal(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -8978,7 +8894,6 @@ export type CreditFacilityProposalConcludedSubscriptionResult = Apollo.Subscript
 export const GetCreditFacilityProposalRepaymentPlanDocument = gql`
     query GetCreditFacilityProposalRepaymentPlan($id: UUID!) {
   creditFacilityProposal(id: $id) {
-    id
     creditFacilityProposalId
     repaymentPlan {
       ...RepaymentOnFacilityPage
@@ -9026,13 +8941,12 @@ export const CreditFacilityProposalCreateDocument = gql`
     mutation CreditFacilityProposalCreate($input: CreditFacilityProposalCreateInput!) {
   creditFacilityProposalCreate(input: $input) {
     creditFacilityProposal {
-      id
       creditFacilityProposalId
       customer {
-        id
+        customerId
         email
         creditFacilityProposals {
-          id
+          creditFacilityProposalId
         }
       }
     }
@@ -9076,7 +8990,6 @@ export const CreditFacilityProposalsDocument = gql`
     edges {
       cursor
       node {
-        id
         creditFacilityProposalId
         createdAt
         facilityAmount
@@ -9137,7 +9050,6 @@ export const CustodianCreateDocument = gql`
     mutation CustodianCreate($input: CustodianCreateInput!) {
   custodianCreate(input: $input) {
     custodian {
-      id
       custodianId
       name
       createdAt
@@ -9231,7 +9143,6 @@ export const CustodianConfigUpdateDocument = gql`
     mutation CustodianConfigUpdate($input: CustodianConfigUpdateInput!) {
   custodianConfigUpdate(input: $input) {
     custodian {
-      id
       custodianId
       name
       provider
@@ -9269,7 +9180,6 @@ export const CustomerCloseDocument = gql`
     mutation CustomerClose($input: CustomerCloseInput!) {
   customerClose(input: $input) {
     customer {
-      id
       status
     }
   }
@@ -9304,9 +9214,7 @@ export type CustomerCloseMutationOptions = Apollo.BaseMutationOptions<CustomerCl
 export const GetCustomerCreditFacilityProposalsDocument = gql`
     query GetCustomerCreditFacilityProposals($id: PublicId!) {
   customerByPublicId(id: $id) {
-    id
     creditFacilityProposals {
-      id
       creditFacilityProposalId
       createdAt
       facilityAmount
@@ -9425,7 +9333,6 @@ export const CustomerDocumentCreateDocument = gql`
     mutation CustomerDocumentCreate($file: Upload!, $customerId: UUID!) {
   customerDocumentCreate(input: {file: $file, customerId: $customerId}) {
     document {
-      id
       customerId
       filename
     }
@@ -9462,10 +9369,8 @@ export type CustomerDocumentCreateMutationOptions = Apollo.BaseMutationOptions<C
 export const GetCustomerDocumentsDocument = gql`
     query GetCustomerDocuments($id: PublicId!) {
   customerByPublicId(id: $id) {
-    id
     customerId
     documents {
-      id
       filename
       customerDocumentId
     }
@@ -9511,7 +9416,6 @@ export type GetCustomerDocumentsQueryResult = Apollo.QueryResult<GetCustomerDocu
 export const CustomerEventHistoryDocument = gql`
     query CustomerEventHistory($id: PublicId!, $first: Int!, $after: String) {
   customerByPublicId(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -9560,7 +9464,6 @@ export const CustomerFreezeDocument = gql`
     mutation CustomerFreeze($input: CustomerFreezeInput!) {
   customerFreeze(input: $input) {
     customer {
-      id
       status
     }
   }
@@ -9638,9 +9541,7 @@ export type GetCustomerBasicDetailsQueryResult = Apollo.QueryResult<GetCustomerB
 export const GetCustomerCreditFacilitiesDocument = gql`
     query GetCustomerCreditFacilities($id: PublicId!) {
   customerByPublicId(id: $id) {
-    id
     creditFacilities {
-      id
       creditFacilityId
       publicId
       collateralizationState
@@ -9697,9 +9598,7 @@ export type GetCustomerCreditFacilitiesQueryResult = Apollo.QueryResult<GetCusto
 export const GetCustomerPendingCreditFacilitiesDocument = gql`
     query GetCustomerPendingCreditFacilities($id: PublicId!) {
   customerByPublicId(id: $id) {
-    id
     pendingCreditFacilities {
-      id
       pendingCreditFacilityId
       createdAt
       collateralizationState
@@ -9756,7 +9655,6 @@ export const CustomerUnfreezeDocument = gql`
     mutation CustomerUnfreeze($input: CustomerUnfreezeInput!) {
   customerUnfreeze(input: $input) {
     customer {
-      id
       status
     }
   }
@@ -9792,7 +9690,7 @@ export const CustomerEmailUpdateDocument = gql`
     mutation CustomerEmailUpdate($input: CustomerEmailUpdateInput!) {
   customerEmailUpdate(input: $input) {
     customer {
-      id
+      customerId
       email
     }
   }
@@ -9828,7 +9726,7 @@ export const CustomerTelegramHandleUpdateDocument = gql`
     mutation CustomerTelegramHandleUpdate($input: CustomerTelegramHandleUpdateInput!) {
   customerTelegramHandleUpdate(input: $input) {
     customer {
-      id
+      customerId
       telegramHandle
     }
   }
@@ -9865,7 +9763,6 @@ export const CustomersDocument = gql`
   customers(first: $first, after: $after, sort: $sort, filter: $filter) {
     edges {
       node {
-        id
         customerId
         publicId
         status
@@ -10015,7 +9912,6 @@ export type DepositAccountCloseMutationOptions = Apollo.BaseMutationOptions<Depo
 export const DepositAccountEventHistoryDocument = gql`
     query DepositAccountEventHistory($id: PublicId!, $first: Int!, $after: String) {
   depositAccountByPublicId(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -10064,7 +9960,7 @@ export const DepositAccountFreezeDocument = gql`
     mutation DepositAccountFreeze($input: DepositAccountFreezeInput!) {
   depositAccountFreeze(input: $input) {
     account {
-      id
+      depositAccountId
     }
   }
 }
@@ -10113,7 +10009,6 @@ export const GetDepositAccountDetailsDocument = gql`
             __typename
             recordedAt
             deposit {
-              id
               depositId
               publicId
               accountId
@@ -10127,7 +10022,6 @@ export const GetDepositAccountDetailsDocument = gql`
             __typename
             recordedAt
             withdrawal {
-              id
               withdrawalId
               publicId
               accountId
@@ -10141,7 +10035,6 @@ export const GetDepositAccountDetailsDocument = gql`
             __typename
             recordedAt
             withdrawal {
-              id
               withdrawalId
               publicId
               accountId
@@ -10155,7 +10048,6 @@ export const GetDepositAccountDetailsDocument = gql`
             __typename
             recordedAt
             disbursal {
-              id
               creditFacilityDisbursalId
               publicId
               amount
@@ -10167,7 +10059,6 @@ export const GetDepositAccountDetailsDocument = gql`
             __typename
             recordedAt
             payment {
-              id
               creditFacilityPaymentAllocationId
               amount
               createdAt
@@ -10233,7 +10124,7 @@ export const DepositAccountUnfreezeDocument = gql`
     mutation DepositAccountUnfreeze($input: DepositAccountUnfreezeInput!) {
   depositAccountUnfreeze(input: $input) {
     account {
-      id
+      depositAccountId
     }
   }
 }
@@ -10268,7 +10159,7 @@ export const DepositAccountCreateDocument = gql`
     mutation DepositAccountCreate($input: DepositAccountCreateInput!) {
   depositAccountCreate(input: $input) {
     account {
-      id
+      depositAccountId
       customer {
         ...CustomerDetailsFragment
       }
@@ -10362,7 +10253,6 @@ export type DepositAccountsQueryResult = Apollo.QueryResult<DepositAccountsQuery
 export const DepositEventHistoryDocument = gql`
     query DepositEventHistory($id: PublicId!, $first: Int!, $after: String) {
   depositByPublicId(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -10491,17 +10381,17 @@ export const CreateDepositDocument = gql`
     deposit {
       ...DepositFields
       account {
+        depositAccountId
         customer {
-          id
           customerId
           depositAccount {
-            id
+            depositAccountId
             deposits {
               ...DepositFields
             }
           }
           depositAccount {
-            id
+            depositAccountId
             balance {
               settled
               pending
@@ -10599,7 +10489,6 @@ export type DepositsQueryResult = Apollo.QueryResult<DepositsQuery, DepositsQuer
 export const DisbursalEventHistoryDocument = gql`
     query DisbursalEventHistory($publicId: PublicId!, $first: Int!, $after: String) {
   disbursalByPublicId(id: $publicId) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -10724,14 +10613,12 @@ export const CreditFacilityDisbursalInitiateDocument = gql`
     mutation CreditFacilityDisbursalInitiate($input: CreditFacilityDisbursalInitiateInput!) {
   creditFacilityDisbursalInitiate(input: $input) {
     disbursal {
-      id
       creditFacilityDisbursalId
       publicId
       amount
       status
       createdAt
       creditFacility {
-        id
         disbursals {
           ...DisbursalOnFacilityPage
         }
@@ -10775,14 +10662,15 @@ export const DisbursalsDocument = gql`
   disbursals(first: $first, after: $after, sort: $sort, filter: $filter) {
     edges {
       node {
-        id
         creditFacilityDisbursalId
         publicId
         amount
         createdAt
         status
         creditFacility {
+          creditFacilityId
           customer {
+            customerId
             email
           }
         }
@@ -10840,7 +10728,6 @@ export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, Disbursa
 export const FiscalYearEventHistoryDocument = gql`
     query FiscalYearEventHistory($year: String!, $first: Int!, $after: String) {
   fiscalYearByYear(year: $year) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -11128,7 +11015,6 @@ export const ExecuteManualTransactionDocument = gql`
     mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
   manualTransactionExecute(input: $input) {
     transaction {
-      id
       ledgerTransactionId
       createdAt
       description
@@ -11168,7 +11054,6 @@ export const JournalEntriesDocument = gql`
     edges {
       cursor
       node {
-        id
         journalEntryId
         entryType
         description
@@ -11184,7 +11069,6 @@ export const JournalEntriesDocument = gql`
           }
         }
         ledgerAccount {
-          id
           ledgerAccountId
           code
           name
@@ -11193,7 +11077,6 @@ export const JournalEntriesDocument = gql`
           }
         }
         ledgerTransaction {
-          id
           ledgerTransactionId
           description
           effective
@@ -11249,7 +11132,6 @@ export type JournalEntriesQueryResult = Apollo.QueryResult<JournalEntriesQuery, 
 export const AccountEntryCsvDocument = gql`
     query AccountEntryCsv($ledgerAccountId: UUID!) {
   accountEntryCsv(ledgerAccountId: $ledgerAccountId) {
-    id
     accountingCsvDocumentId
     status
     createdAt
@@ -11296,7 +11178,6 @@ export const LedgerAccountCsvCreateDocument = gql`
     mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
   ledgerAccountCsvCreate(input: $input) {
     accountingCsvDocument {
-      id
       accountingCsvDocumentId
       status
       createdAt
@@ -11489,7 +11370,7 @@ export type LedgerAccountQueryResult = Apollo.QueryResult<LedgerAccountQuery, Le
 export const LedgerAccountExistsByCodeDocument = gql`
     query LedgerAccountExistsByCode($code: String!) {
   ledgerAccountByCode(code: $code) {
-    id
+    ledgerAccountId
   }
 }
     `;
@@ -11532,7 +11413,7 @@ export type LedgerAccountExistsByCodeQueryResult = Apollo.QueryResult<LedgerAcco
 export const LedgerAccountExistsByIdDocument = gql`
     query LedgerAccountExistsById($id: UUID!) {
   ledgerAccount(id: $id) {
-    id
+    ledgerAccountId
   }
 }
     `;
@@ -11575,7 +11456,6 @@ export type LedgerAccountExistsByIdQueryResult = Apollo.QueryResult<LedgerAccoun
 export const LedgerTransactionDocument = gql`
     query LedgerTransaction($id: UUID!) {
   ledgerTransaction(id: $id) {
-    id
     ledgerTransactionId
     createdAt
     description
@@ -11603,7 +11483,6 @@ export const LedgerTransactionDocument = gql`
       }
     }
     entries {
-      id
       journalEntryId
       entryType
       amount {
@@ -11618,7 +11497,6 @@ export const LedgerTransactionDocument = gql`
       direction
       layer
       ledgerAccount {
-        id
         ledgerAccountId
         code
         name
@@ -11669,7 +11547,7 @@ export type LedgerTransactionQueryResult = Apollo.QueryResult<LedgerTransactionQ
 export const LedgerTransactionExistsByIdDocument = gql`
     query LedgerTransactionExistsById($id: UUID!) {
   ledgerTransaction(id: $id) {
-    id
+    ledgerTransactionId
   }
 }
     `;
@@ -11712,7 +11590,6 @@ export type LedgerTransactionExistsByIdQueryResult = Apollo.QueryResult<LedgerTr
 export const LiquidationEventHistoryDocument = gql`
     query LiquidationEventHistory($liquidationId: UUID!, $first: Int!, $after: String) {
   liquidation(id: $liquidationId) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -11860,7 +11737,6 @@ export const CollateralRecordSentToLiquidationDocument = gql`
     mutation CollateralRecordSentToLiquidation($input: CollateralRecordSentToLiquidationInput!) {
   collateralRecordSentToLiquidation(input: $input) {
     collateral {
-      id
       collateralId
     }
   }
@@ -11896,7 +11772,6 @@ export const CollateralRecordProceedsFromLiquidationDocument = gql`
     mutation CollateralRecordProceedsFromLiquidation($input: CollateralRecordProceedsFromLiquidationInput!) {
   collateralRecordProceedsFromLiquidation(input: $input) {
     collateral {
-      id
       collateralId
     }
   }
@@ -12267,7 +12142,6 @@ export type CreditConfigQueryResult = Apollo.QueryResult<CreditConfigQuery, Cred
 export const ChartAccountingBaseConfigDocument = gql`
     query ChartAccountingBaseConfig {
   chartOfAccounts {
-    id
     name
     accountingBaseConfig {
       assetsCode
@@ -12394,7 +12268,6 @@ export type CreditAccountSetOptionsQueryResult = Apollo.QueryResult<CreditAccoun
 export const PendingCreditFacilityEventHistoryDocument = gql`
     query PendingCreditFacilityEventHistory($id: UUID!, $first: Int!, $after: String) {
   pendingCreditFacility(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -12553,7 +12426,6 @@ export type PendingCreditFacilityCompletedSubscriptionResult = Apollo.Subscripti
 export const GetPendingCreditFacilityRepaymentPlanDocument = gql`
     query GetPendingCreditFacilityRepaymentPlan($id: UUID!) {
   pendingCreditFacility(id: $id) {
-    id
     pendingCreditFacilityId
     repaymentPlan {
       ...RepaymentOnFacilityPage
@@ -12643,7 +12515,6 @@ export const PendingCreditFacilitiesDocument = gql`
     edges {
       cursor
       node {
-        id
         pendingCreditFacilityId
         createdAt
         collateralizationState
@@ -12708,7 +12579,6 @@ export const PolicyAssignCommitteeDocument = gql`
     mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
   policyAssignCommittee(input: $input) {
     policy {
-      id
       policyId
       approvalProcessType
       rules {
@@ -12754,7 +12624,6 @@ export type PolicyAssignCommitteeMutationOptions = Apollo.BaseMutationOptions<Po
 export const PolicyEventHistoryDocument = gql`
     query PolicyEventHistory($id: UUID!, $first: Int!, $after: String) {
   policy(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -12802,7 +12671,6 @@ export type PolicyEventHistoryQueryResult = Apollo.QueryResult<PolicyEventHistor
 export const GetPolicyDetailsDocument = gql`
     query GetPolicyDetails($id: UUID!) {
   policy(id: $id) {
-    id
     policyId
     approvalProcessType
     rules {
@@ -12860,13 +12728,11 @@ export const PoliciesDocument = gql`
     edges {
       cursor
       node {
-        id
         policyId
         approvalProcessType
         rules {
           ... on CommitteeApproval {
             committee {
-              id
               committeeId
               createdAt
               name
@@ -12984,7 +12850,6 @@ export const PriceProviderActivateDocument = gql`
     mutation PriceProviderActivate($priceProviderId: UUID!) {
   priceProviderActivate(priceProviderId: $priceProviderId) {
     priceProvider {
-      id
       priceProviderId
       active
     }
@@ -13021,7 +12886,6 @@ export const PriceProviderDeactivateDocument = gql`
     mutation PriceProviderDeactivate($priceProviderId: UUID!) {
   priceProviderDeactivate(priceProviderId: $priceProviderId) {
     priceProvider {
-      id
       priceProviderId
       active
     }
@@ -13058,7 +12922,6 @@ export const PriceProviderConfigUpdateDocument = gql`
     mutation PriceProviderConfigUpdate($input: PriceProviderConfigUpdateInput!) {
   priceProviderConfigUpdate(input: $input) {
     priceProvider {
-      id
       priceProviderId
       name
       provider
@@ -13105,7 +12968,6 @@ export const ProfitAndLossStatementDocument = gql`
       }
     }
     categories {
-      profitAndLossAccountId
       ledgerAccountId
       name
       code
@@ -13118,7 +12980,6 @@ export const ProfitAndLossStatementDocument = gql`
         }
       }
       children {
-        profitAndLossAccountId
         ledgerAccountId
         name
         code
@@ -13212,7 +13073,6 @@ export const ProspectConvertDocument = gql`
     mutation ProspectConvert($input: ProspectConvertInput!) {
   prospectConvert(input: $input) {
     customer {
-      id
       customerId
       publicId
     }
@@ -13248,7 +13108,6 @@ export type ProspectConvertMutationOptions = Apollo.BaseMutationOptions<Prospect
 export const ProspectEventHistoryDocument = gql`
     query ProspectEventHistory($id: PublicId!, $first: Int!, $after: String) {
   prospectByPublicId(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -13405,7 +13264,6 @@ export const ProspectCreateDocument = gql`
     mutation ProspectCreate($input: ProspectCreateInput!) {
   prospectCreate(input: $input) {
     prospect {
-      id
       prospectId
       publicId
       email
@@ -13447,7 +13305,6 @@ export const ProspectsDocument = gql`
   prospects(first: $first, after: $after, sort: $sort, filter: $filter) {
     edges {
       node {
-        id
         prospectId
         publicId
         stage
@@ -13511,7 +13368,6 @@ export type ProspectsQueryResult = Apollo.QueryResult<ProspectsQuery, ProspectsQ
 export const ReportRunByIdDocument = gql`
     query ReportRunById($reportRunId: UUID!) {
   reportRun(id: $reportRunId) {
-    id
     reportRunId
     state
     runType
@@ -13523,7 +13379,6 @@ export const ReportRunByIdDocument = gql`
       name
     }
     reports {
-      id
       reportId
       externalId
       name
@@ -13609,7 +13464,6 @@ export const AvailableReportDefinitionsDocument = gql`
   availableReportDefinitions {
     reportDefinitionId
     norm
-    id
     friendlyName
     supportsAsOf
     outputs {
@@ -13657,7 +13511,7 @@ export const ReportGenerateDocument = gql`
     mutation ReportGenerate($input: ReportRunTriggerInput!) {
   reportRunTrigger(input: $input) {
     reportRun {
-      id
+      reportRunId
     }
   }
 }
@@ -13694,7 +13548,6 @@ export const ReportRunsDocument = gql`
     edges {
       cursor
       node {
-        id
         reportRunId
         startTime
         requestedAsOfDate
@@ -13899,7 +13752,6 @@ export type RoleQueryResult = Apollo.QueryResult<RoleQuery, RoleQueryVariables>;
 export const RoleEventHistoryDocument = gql`
     query RoleEventHistory($id: UUID!, $first: Int!, $after: String) {
   role(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -14208,7 +14060,6 @@ export type TimeAdvanceToNextEndOfDayMutationOptions = Apollo.BaseMutationOption
 export const TermsTemplateEventHistoryDocument = gql`
     query TermsTemplateEventHistory($id: UUID!, $first: Int!, $after: String) {
   termsTemplate(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -14418,7 +14269,6 @@ export const LedgerTransactionsForTemplateCodeDocument = gql`
     edges {
       cursor
       node {
-        id
         ledgerTransactionId
         createdAt
         description
@@ -14477,7 +14327,6 @@ export const TransactionTemplatesDocument = gql`
     edges {
       cursor
       node {
-        id
         transactionTemplateId
         code
       }
@@ -14578,7 +14427,6 @@ export type GetTrialBalanceQueryResult = Apollo.QueryResult<GetTrialBalanceQuery
 export const UserEventHistoryDocument = gql`
     query UserEventHistory($id: UUID!, $first: Int!, $after: String) {
   user(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -14865,7 +14713,6 @@ export type WithdrawalConfirmMutationOptions = Apollo.BaseMutationOptions<Withdr
 export const WithdrawalEventHistoryDocument = gql`
     query WithdrawalEventHistory($id: PublicId!, $first: Int!, $after: String) {
   withdrawalByPublicId(id: $id) {
-    id
     eventHistory(first: $first, after: $after) {
       ...EventHistoryConnectionFields
     }
@@ -15027,9 +14874,11 @@ export const WithdrawalInitiateDocument = gql`
     withdrawal {
       ...WithdrawalFields
       account {
+        depositAccountId
         customer {
-          id
+          customerId
           depositAccount {
+            depositAccountId
             withdrawals {
               ...WithdrawalFields
             }
@@ -15251,7 +15100,6 @@ export const CreditFacilityAgreementGenerateDocument = gql`
     mutation CreditFacilityAgreementGenerate($input: CreditFacilityAgreementGenerateInput!) {
   creditFacilityAgreementGenerate(input: $input) {
     loanAgreement {
-      id
       loanAgreementId
       status
       createdAt
@@ -15322,7 +15170,6 @@ export type LoanAgreementDownloadLinkGenerateMutationOptions = Apollo.BaseMutati
 export const LoanAgreementDocument = gql`
     query LoanAgreement($id: UUID!) {
   loanAgreement(id: $id) {
-    id
     loanAgreementId
     status
     createdAt
@@ -15370,44 +15217,39 @@ export const SearchPublicIdTargetDocument = gql`
   publicIdTarget(id: $publicId) {
     __typename
     ... on Customer {
-      id
       customerId
       publicId
       email
     }
     ... on Prospect {
-      id
       prospectId
       publicId
       email
     }
     ... on DepositAccount {
-      id
+      depositAccountId
       customer {
-        id
         customerId
         publicId
         email
       }
     }
     ... on CreditFacility {
-      id
+      creditFacilityId
       publicId
       facilityAmount
     }
     ... on CreditFacilityDisbursal {
-      id
+      creditFacilityDisbursalId
       amount
       publicId
     }
     ... on Deposit {
-      id
       amount
       publicId
       depositId
     }
     ... on Withdrawal {
-      id
       amount
       publicId
       withdrawalId
@@ -15454,6 +15296,7 @@ export type SearchPublicIdTargetQueryResult = Apollo.QueryResult<SearchPublicIdT
 export const GetCreditFacilityPublicIdDocument = gql`
     query GetCreditFacilityPublicId($id: UUID!) {
   creditFacility(id: $id) {
+    creditFacilityId
     publicId
   }
 }

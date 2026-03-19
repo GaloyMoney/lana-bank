@@ -28,7 +28,6 @@ gql`
   ) {
     creditFacilityPartialPaymentRecord(input: $input) {
       creditFacility {
-        id
         creditFacilityId
         ...CreditFacilityHistoryFragment
 
@@ -44,7 +43,6 @@ gql`
   ) {
     creditFacilityPartialPaymentWithDateRecord(input: $input) {
       creditFacility {
-        id
         creditFacilityId
         ...CreditFacilityHistoryFragment
         ...CreditFacilityLayoutFragment

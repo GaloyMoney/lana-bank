@@ -42,7 +42,6 @@ gql`
   mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
     manualTransactionExecute(input: $input) {
       transaction {
-        id
         ledgerTransactionId
         createdAt
         description

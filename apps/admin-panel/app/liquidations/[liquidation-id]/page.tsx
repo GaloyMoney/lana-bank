@@ -29,7 +29,6 @@ gql`
   }
 
   fragment LiquidationDetails on Liquidation {
-    id
     liquidationId
     collateralId
     expectedToReceive
@@ -39,8 +38,8 @@ gql`
     createdAt
     completed
     collateral {
+      collateralId
       creditFacility {
-        id
         creditFacilityId
         publicId
         status

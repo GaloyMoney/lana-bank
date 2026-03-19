@@ -46,7 +46,6 @@ import { useCreateContext } from "@/app/create"
 
 gql`
   fragment LedgerAccountDetails on LedgerAccount {
-    id
     ledgerAccountId
     name
     code
@@ -69,13 +68,11 @@ gql`
       }
     }
     ancestors {
-      id
       ledgerAccountId
       name
       code
     }
     children {
-      id
       ledgerAccountId
       name
       code
@@ -105,7 +102,6 @@ gql`
       edges {
         cursor
         node {
-          id
           journalEntryId
           txId
           entryType

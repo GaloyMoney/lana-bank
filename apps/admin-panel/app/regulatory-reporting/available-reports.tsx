@@ -35,7 +35,6 @@ gql`
     availableReportDefinitions {
       reportDefinitionId
       norm
-      id
       friendlyName
       supportsAsOf
       outputs {
@@ -47,7 +46,7 @@ gql`
   mutation ReportGenerate($input: ReportRunTriggerInput!) {
     reportRunTrigger(input: $input) {
       reportRun {
-        id
+        reportRunId
       }
     }
   }

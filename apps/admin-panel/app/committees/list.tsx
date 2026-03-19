@@ -24,12 +24,10 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment CommitteeFields on Committee {
-    id
     committeeId
     createdAt
     name
     currentMembers {
-      id
       userId
       email
       role {

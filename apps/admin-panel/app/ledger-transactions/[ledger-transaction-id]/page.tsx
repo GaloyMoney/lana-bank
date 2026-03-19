@@ -25,7 +25,6 @@ import LayerLabel from "@/app/journal/layer-label"
 gql`
   query LedgerTransaction($id: UUID!) {
     ledgerTransaction(id: $id) {
-      id
       ledgerTransactionId
       createdAt
       description
@@ -53,7 +52,6 @@ gql`
         }
       }
       entries {
-        id
         journalEntryId
         entryType
         amount {
@@ -68,7 +66,6 @@ gql`
         direction
         layer
         ledgerAccount {
-          id
           ledgerAccountId
           code
           name

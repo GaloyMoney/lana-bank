@@ -9,7 +9,6 @@ import { useGetCreditFacilityHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
   fragment CreditFacilityHistoryFragment on CreditFacility {
-    id
     creditFacilityId
     history {
       ... on CreditFacilityIncrementalPayment {

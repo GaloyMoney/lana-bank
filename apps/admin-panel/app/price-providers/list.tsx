@@ -30,7 +30,6 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment PriceProviderFields on PriceProvider {
-    id
     priceProviderId
     createdAt
     name
@@ -59,7 +58,6 @@ gql`
   mutation PriceProviderActivate($priceProviderId: UUID!) {
     priceProviderActivate(priceProviderId: $priceProviderId) {
       priceProvider {
-        id
         priceProviderId
         active
       }
@@ -69,7 +67,6 @@ gql`
   mutation PriceProviderDeactivate($priceProviderId: UUID!) {
     priceProviderDeactivate(priceProviderId: $priceProviderId) {
       priceProvider {
-        id
         priceProviderId
         active
       }
@@ -190,9 +187,9 @@ const columns = (
     sortable: true,
   },
   {
-    key: "id",
+    key: "priceProviderId",
     label: "",
-    render: (_id, record) => (
+    render: (_priceProviderId, record) => (
       <div className="flex gap-2">
         {record.active ? (
           <Button

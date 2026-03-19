@@ -24,7 +24,7 @@ export const Account = ({ account, currency, depth = 0, layer }: AccountProps) =
 
   return (
     <TableRow
-      key={account.balanceSheetAccountId}
+      key={account.ledgerAccountId}
       className="cursor-pointer hover:bg-muted/50"
       onClick={handleRowClick}
     >

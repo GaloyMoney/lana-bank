@@ -3,13 +3,11 @@ query FiscalYears($first: Int!, $after: String) {
         edges {
             cursor
             node {
-                id
                 fiscalYearId
                 openedAsOf
             }
         }
         nodes {
-            id
             fiscalYearId
             openedAsOf
             monthClosures {

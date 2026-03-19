@@ -36,7 +36,6 @@ gql`
     customers(first: $first, after: $after, sort: $sort, filter: $filter) {
       edges {
         node {
-          id
           customerId
           publicId
           status

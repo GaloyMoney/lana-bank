@@ -31,7 +31,6 @@ gql`
   mutation ProspectCreate($input: ProspectCreateInput!) {
     prospectCreate(input: $input) {
       prospect {
-        id
         prospectId
         publicId
         email

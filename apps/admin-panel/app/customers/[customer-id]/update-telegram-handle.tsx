@@ -26,7 +26,7 @@ gql`
   mutation CustomerTelegramHandleUpdate($input: CustomerTelegramHandleUpdateInput!) {
     customerTelegramHandleUpdate(input: $input) {
       customer {
-        id
+        customerId
         telegramHandle
       }
     }

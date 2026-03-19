@@ -42,7 +42,6 @@ gql`
       edges {
         cursor
         node {
-          id
           journalEntryId
           entryType
           description
@@ -58,7 +57,6 @@ gql`
             }
           }
           ledgerAccount {
-            id
             ledgerAccountId
             code
             name
@@ -67,7 +65,6 @@ gql`
             }
           }
           ledgerTransaction {
-            id
             ledgerTransactionId
             description
             effective

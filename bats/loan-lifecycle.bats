@@ -51,7 +51,7 @@ wait_for_lc_disbursal() {
   num_disbursals=$(
     graphql_output \
       --arg disbursal_id "$disbursal_id" \
-      '[.data.creditFacility.disbursals[] | select(.id == $disbursal_id)] | length'
+      '[.data.creditFacility.disbursals[] | select(.creditFacilityDisbursalId == $disbursal_id)] | length'
   )
   [[ "$num_disbursals" -eq "1" ]]
 }
@@ -188,7 +188,7 @@ wait_for_outstanding_zero() {
     --arg creditFacilityId "$credit_facility_id" \
     '{ input: { creditFacilityId: $creditFacilityId, amount: 100000 } }')
   exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
-  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.id')
+  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.creditFacilityDisbursalId')
   [[ "$disbursal_id" != "null" ]] || exit 1
 
   retry 30 2 wait_for_lc_disbursal "$credit_facility_id" "$disbursal_id"

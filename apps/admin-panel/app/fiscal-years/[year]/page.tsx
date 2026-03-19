@@ -15,7 +15,6 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
   fragment FiscalYearDetailsPageFragment on FiscalYear {
-    id
     fiscalYearId
     chartId
     openedAsOf

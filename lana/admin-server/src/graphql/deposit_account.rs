@@ -23,7 +23,6 @@ use super::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct DepositAccount {
-    id: ID,
     deposit_account_id: UUID,
     customer_id: UUID,
     created_at: Timestamp,
@@ -37,7 +36,6 @@ pub struct DepositAccount {
 impl From<DomainDepositAccount> for DepositAccount {
     fn from(account: DomainDepositAccount) -> Self {
         DepositAccount {
-            id: account.id.to_global_id(),
             deposit_account_id: account.id.into(),
             customer_id: account.account_holder_id.into(),
             created_at: account.created_at().into(),

@@ -25,7 +25,6 @@ gql`
   mutation CustomerUnfreeze($input: CustomerUnfreezeInput!) {
     customerUnfreeze(input: $input) {
       customer {
-        id
         status
       }
     }

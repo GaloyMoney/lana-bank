@@ -19,7 +19,6 @@ gql`
 
   query GetCreditFacilityRepaymentPlan($publicId: PublicId!) {
     creditFacilityByPublicId(id: $publicId) {
-      id
       creditFacilityId
       repaymentPlan {
         ...RepaymentOnFacilityPage

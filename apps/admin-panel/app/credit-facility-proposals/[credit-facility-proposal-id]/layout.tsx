@@ -23,7 +23,6 @@ import {
 
 gql`
   fragment CreditFacilityProposalLayoutFragment on CreditFacilityProposal {
-    id
     creditFacilityProposalId
     approvalProcessId
     createdAt
@@ -36,6 +35,7 @@ gql`
       email
     }
     custodian {
+      custodianId
       name
     }
     creditFacilityTerms {

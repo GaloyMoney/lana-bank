@@ -9,7 +9,6 @@ pub use lana_app::report::{Report as DomainReport, ReportFile as DomainReportFil
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Report {
-    id: ID,
     report_id: UUID,
     external_id: String,
     name: String,
@@ -23,7 +22,6 @@ pub struct Report {
 impl From<lana_app::report::Report> for Report {
     fn from(report: lana_app::report::Report) -> Self {
         Report {
-            id: report.id.to_global_id(),
             created_at: report.created_at().into(),
             report_id: UUID::from(report.id),
             external_id: report.external_id.clone(),

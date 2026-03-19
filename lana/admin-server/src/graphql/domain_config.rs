@@ -36,7 +36,6 @@ impl From<DomainConfigType> for ConfigType {
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct DomainConfig {
-    id: ID,
     domain_config_id: UUID,
     config_type: ConfigType,
     encrypted: bool,
@@ -48,7 +47,6 @@ pub struct DomainConfig {
 impl From<DomainConfigEntity> for DomainConfig {
     fn from(config: DomainConfigEntity) -> Self {
         Self {
-            id: config.id.to_global_id(),
             domain_config_id: UUID::from(config.id),
             config_type: config.config_type.into(),
             encrypted: config.encrypted,

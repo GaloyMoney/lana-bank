@@ -13,7 +13,6 @@ pub use lana_app::price::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct PriceProvider {
-    id: ID,
     price_provider_id: UUID,
     created_at: Timestamp,
     #[graphql(skip)]
@@ -23,7 +22,6 @@ pub struct PriceProvider {
 impl From<DomainPriceProvider> for PriceProvider {
     fn from(provider: DomainPriceProvider) -> Self {
         Self {
-            id: provider.id.to_global_id(),
             price_provider_id: provider.id.into(),
             created_at: provider.created_at().into(),
             entity: Arc::new(provider),

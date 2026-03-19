@@ -18,7 +18,6 @@ pub use lana_app::customer::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Prospect {
-    id: ID,
     prospect_id: UUID,
     kyc_status: KycStatus,
     level: KycLevel,
@@ -31,7 +30,6 @@ pub struct Prospect {
 impl From<DomainProspect> for Prospect {
     fn from(prospect: DomainProspect) -> Self {
         Prospect {
-            id: prospect.id.to_global_id(),
             prospect_id: UUID::from(prospect.id),
             kyc_status: prospect.kyc_status,
             level: prospect.level,

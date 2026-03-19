@@ -31,14 +31,12 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment PermissionSetFields on PermissionSet {
-    id
     permissionSetId
     name
     description
   }
 
   fragment RoleFields on Role {
-    id
     roleId
     name
     createdAt

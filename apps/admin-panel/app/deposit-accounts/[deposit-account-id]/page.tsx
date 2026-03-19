@@ -20,7 +20,6 @@ import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useCreateContext } from "@/app/create"
 gql`
   fragment DepositAccountDetailsFragment on DepositAccount {
-    id
     publicId
     depositAccountId
     createdAt
@@ -35,7 +34,6 @@ gql`
       frozenDepositAccountId
     }
     customer {
-      id
       customerId
       publicId
       applicantId
@@ -60,7 +58,6 @@ gql`
               __typename
               recordedAt
               deposit {
-                id
                 depositId
                 publicId
                 accountId
@@ -74,7 +71,6 @@ gql`
               __typename
               recordedAt
               withdrawal {
-                id
                 withdrawalId
                 publicId
                 accountId
@@ -88,7 +84,6 @@ gql`
               __typename
               recordedAt
               withdrawal {
-                id
                 withdrawalId
                 publicId
                 accountId
@@ -102,7 +97,6 @@ gql`
               __typename
               recordedAt
               disbursal {
-                id
                 creditFacilityDisbursalId
                 publicId
                 amount
@@ -114,7 +108,6 @@ gql`
               __typename
               recordedAt
               payment {
-                id
                 creditFacilityPaymentAllocationId
                 amount
                 createdAt

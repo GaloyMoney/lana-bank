@@ -17,7 +17,6 @@ pub use lana_app::governance::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Committee {
-    id: ID,
     committee_id: UUID,
     created_at: Timestamp,
     #[graphql(skip)]
@@ -27,7 +26,6 @@ pub struct Committee {
 impl From<DomainCommittee> for Committee {
     fn from(committee: DomainCommittee) -> Self {
         Self {
-            id: committee.id.to_global_id(),
             committee_id: committee.id.into(),
             created_at: committee.created_at().into(),
             entity: Arc::new(committee),

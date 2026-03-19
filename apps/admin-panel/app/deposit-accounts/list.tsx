@@ -29,7 +29,7 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment DepositAccountFields on DepositAccount {
-    id
+    depositAccountId
     publicId
     createdAt
     status

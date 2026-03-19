@@ -38,7 +38,6 @@ impl From<&CustomerConversion> for ConversionReason {
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Customer {
-    id: ID,
     customer_id: UUID,
     status: CustomerStatus,
     level: KycLevel,
@@ -51,7 +50,6 @@ pub struct Customer {
 impl From<DomainCustomer> for Customer {
     fn from(customer: DomainCustomer) -> Self {
         Customer {
-            id: customer.id.to_global_id(),
             customer_id: UUID::from(customer.id),
             status: customer.status,
             level: customer.level,

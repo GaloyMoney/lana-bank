@@ -27,7 +27,6 @@ gql`
   mutation PriceProviderConfigUpdate($input: PriceProviderConfigUpdateInput!) {
     priceProviderConfigUpdate(input: $input) {
       priceProvider {
-        id
         priceProviderId
         name
         provider

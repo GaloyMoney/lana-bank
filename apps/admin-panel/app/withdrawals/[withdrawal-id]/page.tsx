@@ -28,7 +28,6 @@ import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   fragment LedgerTransactionFields on LedgerTransaction {
-    id
     ledgerTransactionId
     createdAt
     effective
@@ -36,7 +35,6 @@ gql`
   }
 
   fragment WithdrawDetailsPageFragment on Withdrawal {
-    id
     withdrawalId
     publicId
     amount
@@ -47,15 +45,15 @@ gql`
       ...LedgerTransactionFields
     }
     account {
-      id
+      depositAccountId
       publicId
       customer {
-        id
         customerId
         publicId
         applicantId
         email
         depositAccount {
+          depositAccountId
           balance {
             settled
             pending

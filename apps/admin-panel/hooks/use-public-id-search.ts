@@ -12,44 +12,39 @@ gql`
     publicIdTarget(id: $publicId) {
       __typename
       ... on Customer {
-        id
         customerId
         publicId
         email
       }
       ... on Prospect {
-        id
         prospectId
         publicId
         email
       }
       ... on DepositAccount {
-        id
+        depositAccountId
         customer {
-          id
           customerId
           publicId
           email
         }
       }
       ... on CreditFacility {
-        id
+        creditFacilityId
         publicId
         facilityAmount
       }
       ... on CreditFacilityDisbursal {
-        id
+        creditFacilityDisbursalId
         amount
         publicId
       }
       ... on Deposit {
-        id
         amount
         publicId
         depositId
       }
       ... on Withdrawal {
-        id
         amount
         publicId
         withdrawalId

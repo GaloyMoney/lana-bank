@@ -28,7 +28,6 @@ gql`
       collateral {
         collateralId
         creditFacility {
-          id
           creditFacilityId
           balance {
             collateral {

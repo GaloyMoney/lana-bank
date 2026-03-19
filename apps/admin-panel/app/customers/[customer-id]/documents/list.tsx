@@ -56,7 +56,6 @@ gql`
   mutation CustomerDocumentCreate($file: Upload!, $customerId: UUID!) {
     customerDocumentCreate(input: { file: $file, customerId: $customerId }) {
       document {
-        id
         customerId
         filename
       }

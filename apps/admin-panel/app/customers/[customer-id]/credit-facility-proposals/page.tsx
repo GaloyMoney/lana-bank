@@ -14,9 +14,7 @@ import { useGetCustomerCreditFacilityProposalsQuery } from "@/lib/graphql/genera
 gql`
   query GetCustomerCreditFacilityProposals($id: PublicId!) {
     customerByPublicId(id: $id) {
-      id
       creditFacilityProposals {
-        id
         creditFacilityProposalId
         createdAt
         facilityAmount

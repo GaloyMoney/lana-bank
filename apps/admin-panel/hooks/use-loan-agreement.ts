@@ -16,7 +16,6 @@ gql`
   mutation CreditFacilityAgreementGenerate($input: CreditFacilityAgreementGenerateInput!) {
     creditFacilityAgreementGenerate(input: $input) {
       loanAgreement {
-        id
         loanAgreementId
         status
         createdAt
@@ -35,7 +34,6 @@ gql`
 
   query LoanAgreement($id: UUID!) {
     loanAgreement(id: $id) {
-      id
       loanAgreementId
       status
       createdAt

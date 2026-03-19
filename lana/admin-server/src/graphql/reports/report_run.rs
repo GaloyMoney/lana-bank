@@ -78,7 +78,6 @@ impl From<DomainRequestedReport> for RequestedReport {
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct ReportRun {
-    id: ID,
     report_run_id: UUID,
     state: ReportRunState,
     run_type: ReportRunType,
@@ -93,7 +92,6 @@ pub struct ReportRun {
 impl From<lana_app::report::ReportRun> for ReportRun {
     fn from(report_run: lana_app::report::ReportRun) -> Self {
         ReportRun {
-            id: report_run.id.to_global_id(),
             report_run_id: UUID::from(report_run.id),
             state: ReportRunState::from(report_run.state),
             run_type: ReportRunType::from(report_run.run_type),

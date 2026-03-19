@@ -109,83 +109,158 @@ export const makeClient = ({
         },
       },
       LedgerAccount: {
+        keyFields: ["ledgerAccountId"],
         fields: {
           history: relayStylePagination(),
         },
       },
       DepositAccount: {
+        keyFields: ["depositAccountId"],
         fields: {
           history: relayStylePagination(),
           eventHistory: relayStylePagination(),
         },
       },
       User: {
+        keyFields: ["userId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       Customer: {
+        keyFields: ["customerId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       Prospect: {
+        keyFields: ["prospectId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       CreditFacility: {
+        keyFields: ["creditFacilityId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       CreditFacilityProposal: {
+        keyFields: ["creditFacilityProposalId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       CreditFacilityDisbursal: {
+        keyFields: ["creditFacilityDisbursalId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       Committee: {
+        keyFields: ["committeeId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       Policy: {
+        keyFields: ["policyId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       TermsTemplate: {
+        keyFields: ["termsTemplateId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       Liquidation: {
+        keyFields: ["liquidationId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       Deposit: {
+        keyFields: ["depositId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       Withdrawal: {
+        keyFields: ["withdrawalId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       Role: {
+        keyFields: ["roleId"],
         fields: {
           eventHistory: relayStylePagination(),
         },
       },
       ReportDefinition: {
         keyFields: ["reportDefinitionId"],
+      },
+      ApprovalProcess: {
+        keyFields: ["approvalProcessId"],
+      },
+      AuditEntry: {
+        keyFields: ["auditEntryId"],
+      },
+      Collateral: {
+        keyFields: ["collateralId"],
+      },
+      CreditFacilityPaymentAllocation: {
+        keyFields: ["creditFacilityPaymentAllocationId"],
+      },
+      CustomerDocument: {
+        keyFields: ["customerDocumentId"],
+      },
+      Custodian: {
+        keyFields: ["custodianId"],
+      },
+      Wallet: {
+        keyFields: ["walletId"],
+      },
+      LedgerTransaction: {
+        keyFields: ["ledgerTransactionId"],
+      },
+      FiscalYear: {
+        keyFields: ["fiscalYearId"],
+      },
+      ChartOfAccounts: {
+        keyFields: ["chartOfAccountsId"],
+      },
+      TransactionTemplate: {
+        keyFields: ["transactionTemplateId"],
+      },
+      AccountingCsvDocument: {
+        keyFields: ["accountingCsvDocumentId"],
+      },
+      Report: {
+        keyFields: ["reportId"],
+      },
+      ReportRun: {
+        keyFields: ["reportRunId"],
+      },
+      PermissionSet: {
+        keyFields: ["permissionSetId"],
+      },
+      PriceProvider: {
+        keyFields: ["priceProviderId"],
+      },
+      DomainConfig: {
+        keyFields: ["domainConfigId"],
+      },
+      PendingCreditFacility: {
+        keyFields: ["pendingCreditFacilityId"],
+      },
+      LoanAgreement: {
+        keyFields: false,
+      },
+      JournalEntry: {
+        keyFields: ["journalEntryId"],
       },
       Query: {
         fields: {

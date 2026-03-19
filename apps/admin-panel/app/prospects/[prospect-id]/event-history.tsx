@@ -10,7 +10,6 @@ import { useProspectEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query ProspectEventHistory($id: PublicId!, $first: Int!, $after: String) {
     prospectByPublicId(id: $id) {
-      id
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

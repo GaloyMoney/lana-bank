@@ -26,7 +26,6 @@ pub use lana_app::credit::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct PendingCreditFacility {
-    id: ID,
     pending_credit_facility_id: UUID,
     /// Canonical credit facility identifier reserved for this facility.
     /// Today this matches `pendingCreditFacilityId`, but clients should use
@@ -173,7 +172,6 @@ impl From<DomainPendingCreditFacility> for PendingCreditFacility {
         let created_at = pending_credit_facility.created_at();
 
         Self {
-            id: pending_credit_facility.id.to_global_id(),
             pending_credit_facility_id: UUID::from(pending_credit_facility.id),
             credit_facility_id: UUID::from(CreditFacilityId::from(pending_credit_facility.id)),
             collateral_id: UUID::from(pending_credit_facility.collateral_id),

@@ -31,7 +31,6 @@ import { TableLoadingSkeleton } from "@/components/table-loading-skeleton"
 gql`
   query ReportRunById($reportRunId: UUID!) {
     reportRun(id: $reportRunId) {
-      id
       reportRunId
       state
       runType
@@ -43,7 +42,6 @@ gql`
         name
       }
       reports {
-        id
         reportId
         externalId
         name

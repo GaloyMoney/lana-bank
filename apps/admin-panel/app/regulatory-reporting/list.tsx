@@ -27,7 +27,6 @@ gql`
       edges {
         cursor
         node {
-          id
           reportRunId
           startTime
           requestedAsOfDate

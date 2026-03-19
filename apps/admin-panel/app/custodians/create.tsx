@@ -40,7 +40,6 @@ gql`
   mutation CustodianCreate($input: CustodianCreateInput!) {
     custodianCreate(input: $input) {
       custodian {
-        id
         custodianId
         name
         createdAt

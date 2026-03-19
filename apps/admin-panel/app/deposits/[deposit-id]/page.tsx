@@ -20,7 +20,6 @@ import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   fragment DepositDetailsPageFragment on Deposit {
-    id
     depositId
     publicId
     amount
@@ -31,15 +30,15 @@ gql`
       ...LedgerTransactionFields
     }
     account {
-      id
+      depositAccountId
       publicId
       customer {
-        id
         customerId
         publicId
         applicantId
         email
         depositAccount {
+          depositAccountId
           balance {
             settled
             pending

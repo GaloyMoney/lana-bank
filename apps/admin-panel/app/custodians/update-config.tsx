@@ -31,7 +31,6 @@ gql`
   mutation CustodianConfigUpdate($input: CustodianConfigUpdateInput!) {
     custodianConfigUpdate(input: $input) {
       custodian {
-        id
         custodianId
         name
         provider

@@ -24,7 +24,7 @@ gql`
   mutation DepositAccountUnfreeze($input: DepositAccountUnfreezeInput!) {
     depositAccountUnfreeze(input: $input) {
       account {
-        id
+        depositAccountId
       }
     }
   }

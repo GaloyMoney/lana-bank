@@ -24,7 +24,6 @@ import { useCreateContext } from "@/app/create"
 
 gql`
   fragment CreditFacilityLayoutFragment on CreditFacility {
-    id
     creditFacilityId
     collateralId
     status
@@ -44,6 +43,7 @@ gql`
     publicId
     collateralToMatchInitialCvl @client
     disbursals {
+      creditFacilityDisbursalId
       status
     }
     balance {
@@ -128,11 +128,11 @@ gql`
       email
     }
     wallet {
-      id
       walletId
       address
       network
       custodian {
+        custodianId
         name
         provider
       }

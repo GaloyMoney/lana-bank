@@ -15,7 +15,6 @@ interface CreditFacilityProposalDetailsPageProps {
 gql`
   query GetCreditFacilityProposalRepaymentPlan($id: UUID!) {
     creditFacilityProposal(id: $id) {
-      id
       creditFacilityProposalId
       repaymentPlan {
         ...RepaymentOnFacilityPage

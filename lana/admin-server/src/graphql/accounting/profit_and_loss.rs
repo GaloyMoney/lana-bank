@@ -90,7 +90,6 @@ impl ProfitAndLossStatement {
 #[derive(Clone, SimpleObject)]
 #[graphql(complex)]
 pub struct ProfitAndLossAccount {
-    profit_and_loss_account_id: ID,
     ledger_account_id: UUID,
     code: Option<AccountCode>,
     name: String,
@@ -106,7 +105,6 @@ pub struct ProfitAndLossAccount {
 impl ProfitAndLossAccount {
     pub fn new(account: DomainLedgerAccount, from: NaiveDate, until: Option<NaiveDate>) -> Self {
         Self {
-            profit_and_loss_account_id: account.id.to_global_id(),
             ledger_account_id: UUID::from(account.id),
             code: account.code.as_ref().map(|code| code.into()),
             name: account.name.clone(),

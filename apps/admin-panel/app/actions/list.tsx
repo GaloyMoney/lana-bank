@@ -34,7 +34,7 @@ gql`
       }
       edges {
         node {
-          id
+          approvalProcessId
           approvalProcessType
           status
           userCanSubmitDecision
@@ -45,7 +45,9 @@ gql`
               withdrawalId
               publicId
               account {
+                depositAccountId
                 customer {
+                  customerId
                   email
                 }
               }
@@ -53,16 +55,18 @@ gql`
             ... on CreditFacilityProposal {
               creditFacilityProposalId
               customer {
+                customerId
                 email
               }
             }
             ... on CreditFacilityDisbursal {
-              id
               creditFacilityDisbursalId
               publicId
               creditFacility {
+                creditFacilityId
                 publicId
                 customer {
+                  customerId
                   email
                 }
               }

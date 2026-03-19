@@ -24,7 +24,6 @@ pub use lana_app::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct CreditFacilityDisbursal {
-    id: ID,
     credit_facility_disbursal_id: UUID,
     amount: UsdCents,
     status: DisbursalStatus,
@@ -37,7 +36,6 @@ pub struct CreditFacilityDisbursal {
 impl From<DomainDisbursal> for CreditFacilityDisbursal {
     fn from(disbursal: DomainDisbursal) -> Self {
         Self {
-            id: disbursal.id.to_global_id(),
             credit_facility_disbursal_id: UUID::from(disbursal.id),
             amount: disbursal.amount,
             status: disbursal.status(),

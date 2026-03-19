@@ -49,7 +49,6 @@ gql`
       edges {
         cursor
         node {
-          id
           creditFacilityId
           publicId
           collateralizationState

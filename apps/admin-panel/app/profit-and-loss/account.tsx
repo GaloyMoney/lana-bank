@@ -44,7 +44,7 @@ export const Account = ({ account, currency, depth = 0, layer }: AccountProps) =
 
   return (
     <TableRow
-      data-testid={`account-${account.profitAndLossAccountId}`}
+      data-testid={`account-${account.ledgerAccountId}`}
       className="cursor-pointer hover:bg-muted/50"
       onClick={handleRowClick}
     >

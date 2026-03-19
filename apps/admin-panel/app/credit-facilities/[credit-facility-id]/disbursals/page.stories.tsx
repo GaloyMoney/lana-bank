@@ -42,7 +42,7 @@ const layoutMocks = [
     result: {
       data: {
         creditFacility: mockCreditFacility({
-          id: "test-id",
+          creditFacilityId: "test-id",
         }),
       },
     },
@@ -60,7 +60,7 @@ const disbursalsMocks = [
     result: {
       data: {
         creditFacility: mockCreditFacility({
-          id: "test-id",
+          creditFacilityId: "test-id",
           disbursals: [
             mockCreditFacilityDisbursal({}),
             mockCreditFacilityDisbursal({

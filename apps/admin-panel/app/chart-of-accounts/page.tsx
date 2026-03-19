@@ -38,7 +38,6 @@ gql`
   }
 
   fragment ChartOfAccountsFields on ChartOfAccounts {
-    id
     chartOfAccountsId
     name
     children {

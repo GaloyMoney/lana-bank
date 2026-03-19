@@ -25,7 +25,6 @@ import { formatCvl } from "@/lib/utils"
 
 gql`
   fragment TermsTemplateFields on TermsTemplate {
-    id
     name
     termsTemplateId
     createdAt

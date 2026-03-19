@@ -26,7 +26,6 @@ import { useProcessTypeLabel } from "@/app/actions/hooks"
 
 gql`
   fragment ApprovalProcessFields on ApprovalProcess {
-    id
     approvalProcessId
     deniedReason
     approvalProcessType
@@ -36,9 +35,10 @@ gql`
     rules {
       ... on CommitteeApproval {
         committee {
+          committeeId
           name
           currentMembers {
-            id
+            userId
             email
             role {
               ...RoleFields
@@ -56,7 +56,6 @@ gql`
       didApprove
       didDeny
       user {
-        id
         userId
         email
         role {

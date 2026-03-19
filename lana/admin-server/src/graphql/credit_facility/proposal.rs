@@ -22,7 +22,6 @@ pub use lana_app::credit::{
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct CreditFacilityProposal {
-    id: ID,
     credit_facility_proposal_id: UUID,
     approval_process_id: Option<UUID>,
     status: CreditFacilityProposalStatus,
@@ -99,7 +98,6 @@ impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {
         let created_at = proposal.created_at();
 
         Self {
-            id: proposal.id.to_global_id(),
             credit_facility_proposal_id: UUID::from(proposal.id),
             approval_process_id: proposal.approval_process_id.map(|id| id.into()),
             status: proposal.status(),

@@ -40,7 +40,6 @@ gql`
       edges {
         cursor
         node {
-          id
           ledgerTransactionId
           createdAt
           description
