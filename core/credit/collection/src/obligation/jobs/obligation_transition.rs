@@ -257,18 +257,18 @@ where
         loop {
             tokio::select! {
                 Some(event) = stream.next() => {
-                    if let Some(payload) = event.payload.as_ref() {
-                        if let Some(collection_event) = payload.as_event::<CoreCreditCollectionEvent>() {
-                            if let Some(obligation_id) = Self::extract_obligation_completion(collection_event) {
-                                if pending.remove(&obligation_id) {
-                                    start_sequence = event.sequence;
-                                    let state = ObligationTransitionState::AwaitingTransitions {
-                                        pending: pending.clone(),
-                                        start_sequence,
-                                    };
-                                    current_job.update_execution_state(&state).await?;
-                                }
-                            }
+                    let matched_id = event.payload.as_ref()
+                        .and_then(|p| p.as_event::<CoreCreditCollectionEvent>())
+                        .and_then(Self::extract_obligation_completion);
+
+                    if let Some(obligation_id) = matched_id {
+                        if pending.remove(&obligation_id) {
+                            start_sequence = event.sequence;
+                            let state = ObligationTransitionState::AwaitingTransitions {
+                                pending: pending.clone(),
+                                start_sequence,
+                            };
+                            current_job.update_execution_state(&state).await?;
                         }
                     }
                     if pending.is_empty() {
