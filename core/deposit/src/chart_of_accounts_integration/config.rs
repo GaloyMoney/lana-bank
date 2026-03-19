@@ -1,10 +1,14 @@
+use money::CurrencyCode;
 use serde::{Deserialize, Serialize};
 
 use chart_primitives::{AccountCode, CalaAccountSetId, ChartId, ChartLookup, ChartLookupError};
 use domain_config::define_internal_config;
 
 use super::error::ChartOfAccountsIntegrationError;
-use crate::primitives::account_sets::{DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountCategory};
+use crate::primitives::{
+    DepositAccountType,
+    account_sets::{DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountCategory},
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ChartOfAccountsIntegrationConfig {
@@ -73,85 +77,126 @@ impl ResolvedChartOfAccountsIntegrationConfig {
                     })
             };
 
-        let catalog = DEPOSIT_ACCOUNT_SET_CATALOG;
+        let catalog = &DEPOSIT_ACCOUNT_SET_CATALOG;
         let deposit = catalog.deposit();
         let frozen = catalog.frozen();
-        let omnibus = catalog.omnibus();
+        let omnibus_account =
+            |currency: CurrencyCode| -> Result<_, ChartOfAccountsIntegrationError> {
+                catalog.find_omnibus(currency).ok_or(
+                    ChartOfAccountsIntegrationError::MissingOmnibusAccountSetSpec { currency },
+                )
+            };
+        let deposit_account_category =
+            |account_type: DepositAccountType,
+             currency: CurrencyCode|
+             -> Result<DepositAccountCategory, ChartOfAccountsIntegrationError> {
+                deposit
+                    .find(account_type, currency)
+                    .map(|spec| spec.account_category)
+                    .ok_or(ChartOfAccountsIntegrationError::MissingAccountSetSpec {
+                        account_type,
+                        currency,
+                    })
+            };
+        let frozen_account_category =
+            |account_type: DepositAccountType,
+             currency: CurrencyCode|
+             -> Result<DepositAccountCategory, ChartOfAccountsIntegrationError> {
+                frozen
+                    .find(account_type, currency)
+                    .map(|spec| spec.account_category)
+                    .ok_or(ChartOfAccountsIntegrationError::MissingAccountSetSpec {
+                        account_type,
+                        currency,
+                    })
+            };
 
         let omnibus_parent_account_set_id = category_account_set_member_parent_id(
             &config.chart_of_accounts_omnibus_parent_code,
-            omnibus.account_category,
+            omnibus_account(CurrencyCode::USD)?.account_category,
         )?;
 
         let individual_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_individual_deposit_accounts_parent_code,
-                deposit.individual.account_category,
+                deposit_account_category(DepositAccountType::Individual, CurrencyCode::USD)?,
             )?;
 
         let government_entity_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_government_entity_deposit_accounts_parent_code,
-                deposit.government_entity.account_category,
+                deposit_account_category(DepositAccountType::GovernmentEntity, CurrencyCode::USD)?,
             )?;
 
         let private_company_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_private_company_deposit_accounts_parent_code,
-                deposit.private_company.account_category,
+                deposit_account_category(DepositAccountType::PrivateCompany, CurrencyCode::USD)?,
             )?;
 
         let bank_deposit_accounts_parent_account_set_id = category_account_set_member_parent_id(
             &config.chart_of_accounts_bank_deposit_accounts_parent_code,
-            deposit.bank.account_category,
+            deposit_account_category(DepositAccountType::Bank, CurrencyCode::USD)?,
         )?;
 
         let financial_institution_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_financial_institution_deposit_accounts_parent_code,
-                deposit.financial_institution.account_category,
+                deposit_account_category(
+                    DepositAccountType::FinancialInstitution,
+                    CurrencyCode::USD,
+                )?,
             )?;
 
         let non_domiciled_company_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_non_domiciled_company_deposit_accounts_parent_code,
-                deposit.non_domiciled_company.account_category,
+                deposit_account_category(
+                    DepositAccountType::NonDomiciledCompany,
+                    CurrencyCode::USD,
+                )?,
             )?;
 
         let frozen_individual_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_frozen_individual_deposit_accounts_parent_code,
-                frozen.individual.account_category,
+                frozen_account_category(DepositAccountType::Individual, CurrencyCode::USD)?,
             )?;
 
         let frozen_government_entity_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code,
-                frozen.government_entity.account_category,
+                frozen_account_category(DepositAccountType::GovernmentEntity, CurrencyCode::USD)?,
             )?;
 
         let frozen_private_company_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_frozen_private_company_deposit_accounts_parent_code,
-                frozen.private_company.account_category,
+                frozen_account_category(DepositAccountType::PrivateCompany, CurrencyCode::USD)?,
             )?;
 
         let frozen_bank_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_frozen_bank_deposit_accounts_parent_code,
-                frozen.bank.account_category,
+                frozen_account_category(DepositAccountType::Bank, CurrencyCode::USD)?,
             )?;
 
         let frozen_financial_institution_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_frozen_financial_institution_deposit_accounts_parent_code,
-                frozen.financial_institution.account_category,
+                frozen_account_category(
+                    DepositAccountType::FinancialInstitution,
+                    CurrencyCode::USD,
+                )?,
             )?;
 
         let frozen_non_domiciled_company_deposit_accounts_parent_account_set_id =
             category_account_set_member_parent_id(
                 &config.chart_of_accounts_frozen_non_domiciled_company_deposit_accounts_parent_code,
-                frozen.non_domiciled_company.account_category,
+                frozen_account_category(
+                    DepositAccountType::NonDomiciledCompany,
+                    CurrencyCode::USD,
+                )?,
             )?;
 
         Ok(Self {

@@ -1,5 +1,6 @@
 mod helpers;
 
+use money::CurrencyCode;
 use rand::RngExt;
 use std::collections::HashMap;
 
@@ -191,7 +192,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .set_config(&DummySubject, &chart, chart_of_accounts_config.clone())
         .await?;
 
-    let catalog = DEPOSIT_ACCOUNT_SET_CATALOG;
+    let catalog = &DEPOSIT_ACCOUNT_SET_CATALOG;
     let deposit_account_set_ids =
         resolve_account_set_ids(&cala, journal_id, catalog.deposit_specs()).await?;
     let frozen_account_set_ids =
@@ -200,42 +201,54 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         resolve_omnibus_account_set_ids(&cala, journal_id, catalog.omnibus_specs()).await?;
     let deposit_catalog = catalog.deposit();
     let frozen = catalog.frozen();
-    let omnibus = catalog.omnibus();
+    let omnibus = |currency: CurrencyCode| catalog.find_omnibus(currency).unwrap();
 
     let omnibus_pairs = [(
         &chart_of_accounts_config.chart_of_accounts_omnibus_parent_code,
-        *omnibus,
+        omnibus(CurrencyCode::USD),
     )];
     assert_omnibus_pairs(&cala, &chart, &omnibus_account_set_ids, &omnibus_pairs).await?;
 
     let deposit_pairs = [
         (
             &chart_of_accounts_config.chart_of_accounts_individual_deposit_accounts_parent_code,
-            deposit_catalog.individual,
+            deposit_catalog
+                .find(DepositAccountType::Individual, CurrencyCode::USD)
+                .unwrap(),
         ),
         (
             &chart_of_accounts_config
                 .chart_of_accounts_government_entity_deposit_accounts_parent_code,
-            deposit_catalog.government_entity,
+            deposit_catalog
+                .find(DepositAccountType::GovernmentEntity, CurrencyCode::USD)
+                .unwrap(),
         ),
         (
             &chart_of_accounts_config
                 .chart_of_accounts_private_company_deposit_accounts_parent_code,
-            deposit_catalog.private_company,
+            deposit_catalog
+                .find(DepositAccountType::PrivateCompany, CurrencyCode::USD)
+                .unwrap(),
         ),
         (
             &chart_of_accounts_config.chart_of_accounts_bank_deposit_accounts_parent_code,
-            deposit_catalog.bank,
+            deposit_catalog
+                .find(DepositAccountType::Bank, CurrencyCode::USD)
+                .unwrap(),
         ),
         (
             &chart_of_accounts_config
                 .chart_of_accounts_financial_institution_deposit_accounts_parent_code,
-            deposit_catalog.financial_institution,
+            deposit_catalog
+                .find(DepositAccountType::FinancialInstitution, CurrencyCode::USD)
+                .unwrap(),
         ),
         (
             &chart_of_accounts_config
                 .chart_of_accounts_non_domiciled_company_deposit_accounts_parent_code,
-            deposit_catalog.non_domiciled_company,
+            deposit_catalog
+                .find(DepositAccountType::NonDomiciledCompany, CurrencyCode::USD)
+                .unwrap(),
         ),
     ];
     assert_deposit_pairs(&cala, &chart, &deposit_account_set_ids, &deposit_pairs).await?;
@@ -244,31 +257,43 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         (
             &chart_of_accounts_config
                 .chart_of_accounts_frozen_individual_deposit_accounts_parent_code,
-            frozen.individual,
+            frozen
+                .find(DepositAccountType::Individual, CurrencyCode::USD)
+                .unwrap(),
         ),
         (
             &chart_of_accounts_config
                 .chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code,
-            frozen.government_entity,
+            frozen
+                .find(DepositAccountType::GovernmentEntity, CurrencyCode::USD)
+                .unwrap(),
         ),
         (
             &chart_of_accounts_config
                 .chart_of_accounts_frozen_private_company_deposit_accounts_parent_code,
-            frozen.private_company,
+            frozen
+                .find(DepositAccountType::PrivateCompany, CurrencyCode::USD)
+                .unwrap(),
         ),
         (
             &chart_of_accounts_config.chart_of_accounts_frozen_bank_deposit_accounts_parent_code,
-            frozen.bank,
+            frozen
+                .find(DepositAccountType::Bank, CurrencyCode::USD)
+                .unwrap(),
         ),
         (
             &chart_of_accounts_config
                 .chart_of_accounts_frozen_financial_institution_deposit_accounts_parent_code,
-            frozen.financial_institution,
+            frozen
+                .find(DepositAccountType::FinancialInstitution, CurrencyCode::USD)
+                .unwrap(),
         ),
         (
             &chart_of_accounts_config
                 .chart_of_accounts_frozen_non_domiciled_company_deposit_accounts_parent_code,
-            frozen.non_domiciled_company,
+            frozen
+                .find(DepositAccountType::NonDomiciledCompany, CurrencyCode::USD)
+                .unwrap(),
         ),
     ];
     assert_deposit_pairs(&cala, &chart, &frozen_account_set_ids, &frozen_pairs).await?;

@@ -1,3 +1,4 @@
+use money::CurrencyCode;
 use rust_decimal::Decimal;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -15,7 +16,7 @@ pub const CANCEL_WITHDRAW_CODE: &str = "CANCEL_WITHDRAW";
 pub struct CancelWithdrawParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
-    pub currency: Currency,
+    pub currency: CurrencyCode,
     pub amount: Decimal,
     pub deposit_omnibus_account_id: AccountId,
     pub credit_account_id: AccountId,
@@ -80,7 +81,7 @@ impl<S: std::fmt::Display> From<CancelWithdrawParams<S>> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("currency", currency);
+        params.insert("currency", currency.to_string());
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);

@@ -16,6 +16,7 @@ pub enum DepositAccountEvent {
     Initialized {
         id: DepositAccountId,
         account_holder_id: DepositAccountHolderId,
+        currency: CurrencyCode,
         account_ids: DepositAccountLedgerAccountIds,
         status: DepositAccountStatus,
         #[serde(default = "default_account_activity")]
@@ -41,6 +42,7 @@ pub enum DepositAccountEvent {
 pub struct DepositAccount {
     pub id: DepositAccountId,
     pub account_holder_id: DepositAccountHolderId,
+    pub currency: CurrencyCode,
     pub account_ids: DepositAccountLedgerAccountIds,
     pub status: DepositAccountStatus,
     pub activity: Activity,
@@ -138,6 +140,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                 DepositAccountEvent::Initialized {
                     id,
                     account_holder_id,
+                    currency,
                     status,
                     activity,
                     public_id,
@@ -147,6 +150,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                     builder = builder
                         .id(*id)
                         .account_holder_id(*account_holder_id)
+                        .currency(*currency)
                         .account_ids(*account_ids)
                         .status(*status)
                         .activity(*activity)
@@ -176,6 +180,7 @@ pub struct NewDepositAccount {
     pub(super) id: DepositAccountId,
     #[builder(setter(into))]
     pub(super) account_holder_id: DepositAccountHolderId,
+    pub(super) currency: CurrencyCode,
     #[builder(setter(into))]
     pub(super) account_ids: DepositAccountLedgerAccountIds,
     #[builder(setter(into))]
@@ -199,6 +204,7 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
             [DepositAccountEvent::Initialized {
                 id: self.id,
                 account_holder_id: self.account_holder_id,
+                currency: self.currency,
                 account_ids: self.account_ids,
                 status: DepositAccountStatus::Active,
                 activity: self.activity,
@@ -215,6 +221,7 @@ fn default_account_activity() -> Activity {
 #[cfg(test)]
 mod tests {
     use es_entity::{EntityEvents, TryFromEvents as _};
+    use money::CurrencyCode;
     use public_id::PublicId;
 
     use crate::{Activity, DepositAccountHolderId, DepositAccountId, DepositAccountStatus};
@@ -228,6 +235,7 @@ mod tests {
         vec![DepositAccountEvent::Initialized {
             id,
             account_holder_id: DepositAccountHolderId::new(),
+            currency: CurrencyCode::USD,
             account_ids: DepositAccountLedgerAccountIds::new(id),
             status: DepositAccountStatus::Active,
             activity: Activity::Active,
