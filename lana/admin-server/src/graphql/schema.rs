@@ -2796,7 +2796,8 @@ impl Subscription {
         app.credit()
             .pending_credit_facilities()
             .find_by_id(sub, id)
-            .await?;
+            .await?
+            .ok_or_else(|| Error::new("PendingCreditFacility not found"))?;
 
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let outbox_stream = app.outbox().listen_persisted(None);
@@ -2923,7 +2924,11 @@ impl Subscription {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let id = CreditFacilityId::from(credit_facility_id);
 
-        app.credit().facilities().find_by_id(sub, id).await?;
+        app.credit()
+            .facilities()
+            .find_by_id(sub, id)
+            .await?
+            .ok_or_else(|| Error::new("CreditFacility not found"))?;
 
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let outbox_stream = app.outbox().listen_persisted(None);
