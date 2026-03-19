@@ -16,23 +16,35 @@ impl CurrencyGuard {
         let limit = NewVelocityLimit::builder()
             .id(CURRENCY_GUARD_ID)
             .name("Currency Guard")
-            .description("Reject postings in currencies other than the account currency")
+            .description("Reject BTC postings on deposit accounts")
             .window(vec![])
-            .condition("params.account_currency != context.vars.entry.currency")
-            .params(vec![
-                NewParamDefinition::builder()
-                    .name("account_currency")
-                    .r#type(ParamDataType::String)
-                    .build()
-                    .expect("account currency param"),
-            ])
+            .currency(Currency::BTC)
+            .params(vec![])
             .limit(
                 NewLimit::builder()
                     .balance(vec![
                         NewBalanceLimit::builder()
-                            .layer("context.vars.entry.layer")
+                            .layer("SETTLED")
                             .amount("decimal('0')")
-                            .enforcement_direction("context.vars.entry.direction")
+                            .enforcement_direction("DEBIT")
+                            .build()
+                            .expect("balance limit"),
+                        NewBalanceLimit::builder()
+                            .layer("SETTLED")
+                            .amount("decimal('0')")
+                            .enforcement_direction("CREDIT")
+                            .build()
+                            .expect("balance limit"),
+                        NewBalanceLimit::builder()
+                            .layer("PENDING")
+                            .amount("decimal('0')")
+                            .enforcement_direction("DEBIT")
+                            .build()
+                            .expect("balance limit"),
+                        NewBalanceLimit::builder()
+                            .layer("PENDING")
+                            .amount("decimal('0')")
+                            .enforcement_direction("CREDIT")
                             .build()
                             .expect("balance limit"),
                     ])

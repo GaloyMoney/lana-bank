@@ -199,7 +199,6 @@ impl DepositLedger {
                 cala,
                 deposit_control_id,
                 deposit_ids[spec.external_ref].id,
-                spec.currency,
             )
             .await?;
         }
@@ -208,7 +207,6 @@ impl DepositLedger {
                 cala,
                 deposit_control_id,
                 frozen_ids[spec.external_ref].id,
-                spec.currency,
             )
             .await?;
         }
@@ -217,7 +215,6 @@ impl DepositLedger {
                 cala,
                 deposit_control_id,
                 omnibus_ids[spec.account_set_ref].account_set_id,
-                spec.currency,
             )
             .await?;
         }
@@ -923,7 +920,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.add_deposit_control_to_account_in_op(op, account.id, account.currency)
+        self.add_deposit_control_to_account_in_op(op, account.id)
             .await?;
 
         let frozen_deposit_account_name = format!("Frozen Deposit Account {holder_id}");
@@ -1072,15 +1069,12 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         account_id: impl Into<AccountId>,
-        currency: CurrencyCode,
     ) -> Result<(), DepositLedgerError> {
         let account_id = account_id.into();
         tracing::Span::current().record("account_id", tracing::field::debug(&account_id));
-        let mut params = Params::new();
-        params.insert("account_currency", currency.to_string());
         self.cala
             .velocities()
-            .attach_control_to_account_in_op(op, self.deposit_control_id, account_id, params)
+            .attach_control_to_account_in_op(op, self.deposit_control_id, account_id, Params::new())
             .await?;
 
         Ok(())
@@ -1090,22 +1084,18 @@ impl DepositLedger {
     #[instrument(
         name = "deposit_ledger.attach_single_currency_control_to_account_set",
         skip(cala),
-        fields(account_set_id = tracing::field::Empty, currency = %currency)
+        fields(account_set_id = tracing::field::Empty)
     )]
     async fn attach_single_currency_control_to_account_set(
         cala: &CalaLedger,
         control_id: VelocityControlId,
         account_set_id: CalaAccountSetId,
-        currency: CurrencyCode,
     ) -> Result<(), DepositLedgerError> {
         tracing::Span::current().record("account_set_id", tracing::field::debug(&account_set_id));
 
-        let mut params = Params::new();
-        params.insert("account_currency", currency.to_string());
-
         match cala
             .velocities()
-            .attach_control_to_account_set(control_id, account_set_id.into(), params)
+            .attach_control_to_account_set(control_id, account_set_id.into(), Params::new())
             .await
         {
             Ok(_) => Ok(()),
