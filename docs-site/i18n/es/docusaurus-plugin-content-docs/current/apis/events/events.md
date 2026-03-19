@@ -69,7 +69,7 @@ CoreCreditCollateralEvent module_description
 |-------|-------------|----------------|
 | `CollateralUpdated` | CollateralUpdated | `entity.adjustment`, `entity.amount`, `entity.id`, `entity.secured_loan_id` |
 | `LiquidationCollateralSentOut` | LiquidationCollateralSentOut | `amount`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at`, `secured_loan_id` |
-| `LiquidationProceedsReceived` | LiquidationProceedsReceived | `amount`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at`, `secured_loan_id` |
+| `LiquidationProceedsReceived` | LiquidationProceedsReceived | `amount`, `collateral_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at`, `secured_loan_id` |
 | `LiquidationCompleted` | LiquidationCompleted | `liquidation_id`, `secured_loan_id` |
 
 ---
