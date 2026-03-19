@@ -33,6 +33,7 @@ gql`
     completed
     collateral {
       creditFacility {
+        creditFacilityId
         publicId
       }
     }

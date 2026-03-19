@@ -4237,7 +4237,7 @@ export type CreditFacilityCompleteMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityCompleteMutation = { __typename?: 'Mutation', creditFacilityComplete: { __typename?: 'CreditFacilityCompletePayload', creditFacility: { __typename?: 'CreditFacility', status: CreditFacilityStatus } } };
+export type CreditFacilityCompleteMutation = { __typename?: 'Mutation', creditFacilityComplete: { __typename?: 'CreditFacilityCompletePayload', creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, status: CreditFacilityStatus } } };
 
 export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: string };
 
@@ -4668,7 +4668,7 @@ export type CustomerCloseMutationVariables = Exact<{
 }>;
 
 
-export type CustomerCloseMutation = { __typename?: 'Mutation', customerClose: { __typename?: 'CustomerClosePayload', customer: { __typename?: 'Customer', status: CustomerStatus } } };
+export type CustomerCloseMutation = { __typename?: 'Mutation', customerClose: { __typename?: 'CustomerClosePayload', customer: { __typename?: 'Customer', customerId: string, status: CustomerStatus } } };
 
 export type GetCustomerCreditFacilityProposalsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4697,7 +4697,7 @@ export type CustomerDocumentCreateMutationVariables = Exact<{
 }>;
 
 
-export type CustomerDocumentCreateMutation = { __typename?: 'Mutation', customerDocumentCreate: { __typename?: 'CustomerDocumentCreatePayload', document: { __typename?: 'CustomerDocument', customerId: string, filename: string } } };
+export type CustomerDocumentCreateMutation = { __typename?: 'Mutation', customerDocumentCreate: { __typename?: 'CustomerDocumentCreatePayload', document: { __typename?: 'CustomerDocument', customerDocumentId: string, customerId: string, filename: string } } };
 
 export type GetCustomerDocumentsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4777,7 +4777,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', customerId: string, publicId: any, status: CustomerStatus, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', customerId: string, publicId: any, status: CustomerStatus, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5234,7 +5234,7 @@ export type CollateralRecordProceedsFromLiquidationMutationVariables = Exact<{
 
 export type CollateralRecordProceedsFromLiquidationMutation = { __typename?: 'Mutation', collateralRecordProceedsFromLiquidation: { __typename?: 'CollateralRecordProceedsFromLiquidationPayload', collateral: { __typename?: 'Collateral', collateralId: string } } };
 
-export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null } };
+export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null } };
 
 export type LiquidationsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5243,7 +5243,7 @@ export type LiquidationsQueryVariables = Exact<{
 }>;
 
 
-export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CreditModuleConfigureMutationVariables = Exact<{
   input: CreditModuleConfigureInput;
@@ -6795,6 +6795,7 @@ export const LiquidationListFieldsFragmentDoc = gql`
   completed
   collateral {
     creditFacility {
+      creditFacilityId
       publicId
     }
   }
@@ -8099,6 +8100,7 @@ export const CreditFacilityCompleteDocument = gql`
     mutation CreditFacilityComplete($input: CreditFacilityCompleteInput!) {
   creditFacilityComplete(input: $input) {
     creditFacility {
+      creditFacilityId
       status
     }
   }
@@ -9180,6 +9182,7 @@ export const CustomerCloseDocument = gql`
     mutation CustomerClose($input: CustomerCloseInput!) {
   customerClose(input: $input) {
     customer {
+      customerId
       status
     }
   }
@@ -9333,6 +9336,7 @@ export const CustomerDocumentCreateDocument = gql`
     mutation CustomerDocumentCreate($file: Upload!, $customerId: UUID!) {
   customerDocumentCreate(input: {file: $file, customerId: $customerId}) {
     document {
+      customerDocumentId
       customerId
       filename
     }
@@ -9773,6 +9777,7 @@ export const CustomersDocument = gql`
         customerType
         createdAt
         depositAccount {
+          depositAccountId
           balance {
             settled
             pending
