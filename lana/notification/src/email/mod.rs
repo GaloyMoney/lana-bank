@@ -8,7 +8,7 @@ use core_access::user::Users;
 use core_credit::CoreCredit;
 use core_customer::Customers;
 use domain_config::ExposedDomainConfigsReadOnly;
-use job::{EmailEventListenerHandler, EmailSenderInit, EmailSenderJobSpawner};
+use job::EmailEventListenerHandler;
 use lana_events::LanaEvent;
 use smtp_client::SmtpClient;
 
@@ -51,38 +51,44 @@ where
     let template = templates::EmailTemplate::try_new(infra_config.admin_panel_url.clone())?;
     let smtp_client = SmtpClient::try_new(infra_config.to_smtp_config())?;
 
-    let email_sender_job_spawner: EmailSenderJobSpawner = jobs.add_initializer(
-        EmailSenderInit::new(smtp_client, template, domain_configs.clone()),
-    );
-
     let obligation_overdue = jobs.add_initializer(ObligationOverdueEmailInitializer::<Perms>::new(
         credit,
         customers,
         users,
-        email_sender_job_spawner.clone(),
+        smtp_client.clone(),
+        template.clone(),
+        domain_configs.clone(),
     ));
 
     let partial_liquidation =
         jobs.add_initializer(PartialLiquidationEmailInitializer::<Perms>::new(
             customers,
             users,
-            email_sender_job_spawner.clone(),
+            smtp_client.clone(),
+            template.clone(),
+            domain_configs.clone(),
         ));
 
     let under_margin_call = jobs.add_initializer(UnderMarginCallEmailInitializer::<Perms>::new(
         customers,
-        email_sender_job_spawner.clone(),
+        smtp_client.clone(),
+        template.clone(),
+        domain_configs.clone(),
     ));
 
     let deposit_account_created =
         jobs.add_initializer(DepositAccountCreatedEmailInitializer::<Perms>::new(
             customers,
-            email_sender_job_spawner.clone(),
+            smtp_client.clone(),
+            template.clone(),
+            domain_configs.clone(),
         ));
 
     let role_created = jobs.add_initializer(RoleCreatedEmailInitializer::<Perms>::new(
         users,
-        email_sender_job_spawner,
+        smtp_client,
+        template,
+        domain_configs.clone(),
     ));
 
     Ok(EmailEventListenerHandler::new(

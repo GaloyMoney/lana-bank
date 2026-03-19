@@ -3,23 +3,61 @@ mod event_listener;
 pub(crate) mod obligation_overdue_email;
 pub(crate) mod partial_liquidation_email;
 pub(crate) mod role_created_email;
-pub(crate) mod sender;
 pub(crate) mod under_margin_call_email;
 
 pub(crate) use event_listener::*;
-pub(crate) use sender::*;
 
 use audit::AuditSvc;
 use core_access::user::Users;
+use domain_config::ExposedDomainConfigsReadOnly;
 use obix::out::OutboxEventMarker;
+use smtp_client::SmtpClient;
 
-use crate::email::templates::EmailType;
+use crate::email::config::{NotificationFromEmail, NotificationFromName};
+use crate::email::templates::{EmailTemplate, EmailType};
 
-pub(crate) async fn spawn_email_to_all_users_in_op<Audit, E>(
-    op: &mut impl es_entity::AtomicOperation,
+pub(crate) async fn send_rendered_email(
+    smtp_client: &SmtpClient,
+    template: &EmailTemplate,
+    domain_configs: &ExposedDomainConfigsReadOnly,
+    recipient: &str,
+    email_type: &EmailType,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let from_email_config = domain_configs
+        .get_without_audit::<NotificationFromEmail>()
+        .await?;
+    let from_email = match from_email_config.maybe_value() {
+        Some(from_email) => from_email,
+        None => {
+            tracing::warn!("no configured notification from email; skipping email");
+            return Ok(());
+        }
+    };
+
+    let from_name_config = domain_configs
+        .get_without_audit::<NotificationFromName>()
+        .await?;
+    let from_name = match from_name_config.maybe_value() {
+        Some(from_name) => from_name,
+        None => {
+            tracing::warn!("no configured notification from name; skipping email");
+            return Ok(());
+        }
+    };
+
+    let (subject, body) = template.render_email(email_type)?;
+    smtp_client
+        .send_email(&from_email, Some(&from_name), recipient, &subject, body)
+        .await?;
+    Ok(())
+}
+
+pub(crate) async fn send_email_to_all_users<Audit, E>(
+    smtp_client: &SmtpClient,
+    template: &EmailTemplate,
+    domain_configs: &ExposedDomainConfigsReadOnly,
     users: &Users<Audit, E>,
-    email_sender_job_spawner: &sender::EmailSenderJobSpawner,
-    email_type: EmailType,
+    email_type: &EmailType,
 ) -> Result<(), Box<dyn std::error::Error>>
 where
     Audit: AuditSvc,
@@ -36,8 +74,7 @@ where
             has_next_page: next_page,
             end_cursor,
         } = users
-            .list_users_without_audit_in_op(
-                &mut *op,
+            .list_users_without_audit(
                 es_entity::PaginatedQueryArgs { first: 20, after },
                 es_entity::ListDirection::Descending,
             )
@@ -45,13 +82,21 @@ where
         (after, has_next_page) = (end_cursor, next_page);
 
         for user in entities {
-            let email_config = sender::EmailSenderConfig {
-                recipient: user.email,
-                email_type: email_type.clone(),
-            };
-            email_sender_job_spawner
-                .spawn_in_op(op, ::job::JobId::new(), email_config)
-                .await?;
+            if let Err(e) = send_rendered_email(
+                smtp_client,
+                template,
+                domain_configs,
+                &user.email,
+                email_type,
+            )
+            .await
+            {
+                tracing::warn!(
+                    recipient = %user.email,
+                    error = %e,
+                    "failed to send email to user; continuing with remaining recipients"
+                );
+            }
         }
     }
     Ok(())

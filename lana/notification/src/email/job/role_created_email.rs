@@ -1,5 +1,7 @@
 use async_trait::async_trait;
+use domain_config::ExposedDomainConfigsReadOnly;
 use serde::{Deserialize, Serialize};
+use smtp_client::SmtpClient;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -8,8 +10,7 @@ use job::*;
 use lana_events::LanaEvent;
 use tracing_macros::record_error_severity;
 
-use crate::email::job::sender::EmailSenderJobSpawner;
-use crate::email::templates::{EmailType, RoleCreatedEmailData};
+use crate::email::templates::{EmailTemplate, EmailType, RoleCreatedEmailData};
 
 pub const ROLE_CREATED_EMAIL_COMMAND: JobType =
     JobType::new("command.notification.role-created-email");
@@ -26,7 +27,9 @@ where
     Perms: PermissionCheck,
 {
     users: Users<Perms::Audit, LanaEvent>,
-    email_sender_job_spawner: EmailSenderJobSpawner,
+    smtp_client: SmtpClient,
+    template: EmailTemplate,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 impl<Perms> RoleCreatedEmailInitializer<Perms>
@@ -35,11 +38,15 @@ where
 {
     pub fn new(
         users: &Users<Perms::Audit, LanaEvent>,
-        email_sender_job_spawner: EmailSenderJobSpawner,
+        smtp_client: SmtpClient,
+        template: EmailTemplate,
+        domain_configs: ExposedDomainConfigsReadOnly,
     ) -> Self {
         Self {
             users: users.clone(),
-            email_sender_job_spawner,
+            smtp_client,
+            template,
+            domain_configs,
         }
     }
 }
@@ -65,7 +72,9 @@ where
         Ok(Box::new(RoleCreatedEmailRunner::<Perms> {
             config: job.config()?,
             users: self.users.clone(),
-            email_sender_job_spawner: self.email_sender_job_spawner.clone(),
+            smtp_client: self.smtp_client.clone(),
+            template: self.template.clone(),
+            domain_configs: self.domain_configs.clone(),
         }))
     }
 }
@@ -76,7 +85,9 @@ where
 {
     config: RoleCreatedEmailConfig,
     users: Users<Perms::Audit, LanaEvent>,
-    email_sender_job_spawner: EmailSenderJobSpawner,
+    smtp_client: SmtpClient,
+    template: EmailTemplate,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 #[async_trait]
@@ -91,23 +102,22 @@ where
     #[tracing::instrument(name = "notification.role_created_email.run", skip_all)]
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut op = current_job.begin_op().await?;
-
         let email_data = RoleCreatedEmailData {
             role_id: self.config.role_id.to_string(),
             role_name: self.config.role_name.clone(),
         };
 
-        super::spawn_email_to_all_users_in_op(
-            &mut op,
+        super::send_email_to_all_users(
+            &self.smtp_client,
+            &self.template,
+            &self.domain_configs,
             &self.users,
-            &self.email_sender_job_spawner,
-            EmailType::RoleCreated(email_data),
+            &EmailType::RoleCreated(email_data),
         )
         .await?;
 
-        Ok(JobCompletion::CompleteWithOp(op))
+        Ok(JobCompletion::Complete)
     }
 }

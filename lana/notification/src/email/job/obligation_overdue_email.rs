@@ -1,5 +1,7 @@
 use async_trait::async_trait;
+use domain_config::ExposedDomainConfigsReadOnly;
 use serde::{Deserialize, Serialize};
+use smtp_client::SmtpClient;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -11,8 +13,7 @@ use lana_events::LanaEvent;
 use money::UsdCents;
 use tracing_macros::record_error_severity;
 
-use crate::email::job::sender::EmailSenderJobSpawner;
-use crate::email::templates::{EmailType, OverduePaymentEmailData};
+use crate::email::templates::{EmailTemplate, EmailType, OverduePaymentEmailData};
 
 pub const OBLIGATION_OVERDUE_EMAIL_COMMAND: JobType =
     JobType::new("command.notification.obligation-overdue-email");
@@ -32,7 +33,9 @@ where
     credit: CoreCredit<Perms, LanaEvent>,
     customers: Customers<Perms, LanaEvent>,
     users: Users<Perms::Audit, LanaEvent>,
-    email_sender_job_spawner: EmailSenderJobSpawner,
+    smtp_client: SmtpClient,
+    template: EmailTemplate,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 impl<Perms> ObligationOverdueEmailInitializer<Perms>
@@ -43,13 +46,17 @@ where
         credit: &CoreCredit<Perms, LanaEvent>,
         customers: &Customers<Perms, LanaEvent>,
         users: &Users<Perms::Audit, LanaEvent>,
-        email_sender_job_spawner: EmailSenderJobSpawner,
+        smtp_client: SmtpClient,
+        template: EmailTemplate,
+        domain_configs: ExposedDomainConfigsReadOnly,
     ) -> Self {
         Self {
             credit: credit.clone(),
             customers: customers.clone(),
             users: users.clone(),
-            email_sender_job_spawner,
+            smtp_client,
+            template,
+            domain_configs,
         }
     }
 }
@@ -89,7 +96,9 @@ where
             credit: self.credit.clone(),
             customers: self.customers.clone(),
             users: self.users.clone(),
-            email_sender_job_spawner: self.email_sender_job_spawner.clone(),
+            smtp_client: self.smtp_client.clone(),
+            template: self.template.clone(),
+            domain_configs: self.domain_configs.clone(),
         }))
     }
 }
@@ -102,7 +111,9 @@ where
     credit: CoreCredit<Perms, LanaEvent>,
     customers: Customers<Perms, LanaEvent>,
     users: Users<Perms::Audit, LanaEvent>,
-    email_sender_job_spawner: EmailSenderJobSpawner,
+    smtp_client: SmtpClient,
+    template: EmailTemplate,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 #[async_trait]
@@ -129,26 +140,24 @@ where
     #[tracing::instrument(name = "notification.obligation_overdue_email.run", skip_all)]
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut op = current_job.begin_op().await?;
-
         let obligation = self
             .credit
             .collections()
             .obligations()
-            .find_by_id_without_audit_in_op(&mut op, self.config.obligation_id)
+            .find_by_id_without_audit(self.config.obligation_id)
             .await?;
 
         let credit_facility = self
             .credit
             .facilities()
-            .find_by_id_without_audit_in_op(&mut op, self.config.credit_facility_id)
+            .find_by_id_without_audit(self.config.credit_facility_id)
             .await?;
 
         let party = self
             .customers
-            .find_party_by_customer_id_without_audit_in_op(&mut op, credit_facility.customer_id)
+            .find_party_by_customer_id_without_audit(credit_facility.customer_id)
             .await?;
 
         let email_data = OverduePaymentEmailData {
@@ -163,14 +172,15 @@ where
             customer_email: party.email,
         };
 
-        super::spawn_email_to_all_users_in_op(
-            &mut op,
+        super::send_email_to_all_users(
+            &self.smtp_client,
+            &self.template,
+            &self.domain_configs,
             &self.users,
-            &self.email_sender_job_spawner,
-            EmailType::OverduePayment(email_data),
+            &EmailType::OverduePayment(email_data),
         )
         .await?;
 
-        Ok(JobCompletion::CompleteWithOp(op))
+        Ok(JobCompletion::Complete)
     }
 }

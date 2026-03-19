@@ -1,5 +1,7 @@
 use async_trait::async_trait;
+use domain_config::ExposedDomainConfigsReadOnly;
 use serde::{Deserialize, Serialize};
+use smtp_client::SmtpClient;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -11,8 +13,7 @@ use lana_events::LanaEvent;
 use money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
 
-use crate::email::job::sender::{EmailSenderConfig, EmailSenderJobSpawner};
-use crate::email::templates::{EmailType, PartialLiquidationInitiatedEmailData};
+use crate::email::templates::{EmailTemplate, EmailType, PartialLiquidationInitiatedEmailData};
 
 pub const PARTIAL_LIQUIDATION_EMAIL_COMMAND: JobType =
     JobType::new("command.notification.partial-liquidation-email");
@@ -33,7 +34,9 @@ where
 {
     customers: Customers<Perms, LanaEvent>,
     users: Users<Perms::Audit, LanaEvent>,
-    email_sender_job_spawner: EmailSenderJobSpawner,
+    smtp_client: SmtpClient,
+    template: EmailTemplate,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 impl<Perms> PartialLiquidationEmailInitializer<Perms>
@@ -43,12 +46,16 @@ where
     pub fn new(
         customers: &Customers<Perms, LanaEvent>,
         users: &Users<Perms::Audit, LanaEvent>,
-        email_sender_job_spawner: EmailSenderJobSpawner,
+        smtp_client: SmtpClient,
+        template: EmailTemplate,
+        domain_configs: ExposedDomainConfigsReadOnly,
     ) -> Self {
         Self {
             customers: customers.clone(),
             users: users.clone(),
-            email_sender_job_spawner,
+            smtp_client,
+            template,
+            domain_configs,
         }
     }
 }
@@ -77,7 +84,9 @@ where
             config: job.config()?,
             customers: self.customers.clone(),
             users: self.users.clone(),
-            email_sender_job_spawner: self.email_sender_job_spawner.clone(),
+            smtp_client: self.smtp_client.clone(),
+            template: self.template.clone(),
+            domain_configs: self.domain_configs.clone(),
         }))
     }
 }
@@ -89,7 +98,9 @@ where
     config: PartialLiquidationEmailConfig,
     customers: Customers<Perms, LanaEvent>,
     users: Users<Perms::Audit, LanaEvent>,
-    email_sender_job_spawner: EmailSenderJobSpawner,
+    smtp_client: SmtpClient,
+    template: EmailTemplate,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 #[async_trait]
@@ -106,13 +117,11 @@ where
     #[tracing::instrument(name = "notification.partial_liquidation_email.run", skip_all)]
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut op = current_job.begin_op().await?;
-
         let party = self
             .customers
-            .find_party_by_customer_id_without_audit_in_op(&mut op, self.config.customer_id)
+            .find_party_by_customer_id_without_audit(self.config.customer_id)
             .await?;
 
         let email_data = PartialLiquidationInitiatedEmailData {
@@ -124,22 +133,31 @@ where
 
         let email_type = EmailType::PartialLiquidationInitiated(email_data);
 
-        super::spawn_email_to_all_users_in_op(
-            &mut op,
+        super::send_email_to_all_users(
+            &self.smtp_client,
+            &self.template,
+            &self.domain_configs,
             &self.users,
-            &self.email_sender_job_spawner,
-            email_type.clone(),
+            &email_type,
         )
         .await?;
 
-        let email_config = EmailSenderConfig {
-            recipient: party.email,
-            email_type,
-        };
-        self.email_sender_job_spawner
-            .spawn_in_op(&mut op, JobId::new(), email_config)
-            .await?;
+        if let Err(e) = super::send_rendered_email(
+            &self.smtp_client,
+            &self.template,
+            &self.domain_configs,
+            &party.email,
+            &email_type,
+        )
+        .await
+        {
+            tracing::warn!(
+                recipient = %party.email,
+                error = %e,
+                "failed to send partial liquidation email to customer"
+            );
+        }
 
-        Ok(JobCompletion::CompleteWithOp(op))
+        Ok(JobCompletion::Complete)
     }
 }

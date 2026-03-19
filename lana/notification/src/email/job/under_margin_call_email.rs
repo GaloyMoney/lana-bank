@@ -1,6 +1,8 @@
 use async_trait::async_trait;
 use chrono::NaiveDate;
+use domain_config::ExposedDomainConfigsReadOnly;
 use serde::{Deserialize, Serialize};
+use smtp_client::SmtpClient;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -11,8 +13,7 @@ use lana_events::LanaEvent;
 use money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
 
-use crate::email::job::sender::{EmailSenderConfig, EmailSenderJobSpawner};
-use crate::email::templates::{EmailType, UnderMarginCallEmailData};
+use crate::email::templates::{EmailTemplate, EmailType, UnderMarginCallEmailData};
 
 pub const UNDER_MARGIN_CALL_EMAIL_COMMAND: JobType =
     JobType::new("command.notification.under-margin-call-email");
@@ -34,7 +35,9 @@ where
     Perms: PermissionCheck,
 {
     customers: Customers<Perms, LanaEvent>,
-    email_sender_job_spawner: EmailSenderJobSpawner,
+    smtp_client: SmtpClient,
+    template: EmailTemplate,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 impl<Perms> UnderMarginCallEmailInitializer<Perms>
@@ -43,11 +46,15 @@ where
 {
     pub fn new(
         customers: &Customers<Perms, LanaEvent>,
-        email_sender_job_spawner: EmailSenderJobSpawner,
+        smtp_client: SmtpClient,
+        template: EmailTemplate,
+        domain_configs: ExposedDomainConfigsReadOnly,
     ) -> Self {
         Self {
             customers: customers.clone(),
-            email_sender_job_spawner,
+            smtp_client,
+            template,
+            domain_configs,
         }
     }
 }
@@ -73,7 +80,9 @@ where
         Ok(Box::new(UnderMarginCallEmailRunner::<Perms> {
             config: job.config()?,
             customers: self.customers.clone(),
-            email_sender_job_spawner: self.email_sender_job_spawner.clone(),
+            smtp_client: self.smtp_client.clone(),
+            template: self.template.clone(),
+            domain_configs: self.domain_configs.clone(),
         }))
     }
 }
@@ -84,7 +93,9 @@ where
 {
     config: UnderMarginCallEmailConfig,
     customers: Customers<Perms, LanaEvent>,
-    email_sender_job_spawner: EmailSenderJobSpawner,
+    smtp_client: SmtpClient,
+    template: EmailTemplate,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 #[async_trait]
@@ -99,13 +110,11 @@ where
     #[tracing::instrument(name = "notification.under_margin_call_email.run", skip_all)]
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut op = current_job.begin_op().await?;
-
         let party = self
             .customers
-            .find_party_by_customer_id_without_audit_in_op(&mut op, self.config.customer_id)
+            .find_party_by_customer_id_without_audit(self.config.customer_id)
             .await?;
 
         let total_outstanding =
@@ -120,14 +129,15 @@ where
             price: self.config.price,
         };
 
-        let email_config = EmailSenderConfig {
-            recipient: party.email,
-            email_type: EmailType::UnderMarginCall(email_data),
-        };
-        self.email_sender_job_spawner
-            .spawn_in_op(&mut op, JobId::new(), email_config)
-            .await?;
+        super::send_rendered_email(
+            &self.smtp_client,
+            &self.template,
+            &self.domain_configs,
+            &party.email,
+            &EmailType::UnderMarginCall(email_data),
+        )
+        .await?;
 
-        Ok(JobCompletion::CompleteWithOp(op))
+        Ok(JobCompletion::Complete)
     }
 }
