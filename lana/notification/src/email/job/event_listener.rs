@@ -157,7 +157,6 @@ where
                         JobId::new(),
                         SendPartialLiquidationEmailConfig {
                             credit_facility_id: entity.id,
-                            customer_id: entity.customer_id,
                             trigger_price: trigger.trigger_price,
                             initially_estimated_to_liquidate: trigger
                                 .initially_estimated_to_liquidate,
@@ -179,7 +178,6 @@ where
                     JobId::new(),
                     SendPartialLiquidationEmailConfig {
                         credit_facility_id: entity.id,
-                        customer_id: entity.customer_id,
                         trigger_price: trigger.trigger_price,
                         initially_estimated_to_liquidate: trigger.initially_estimated_to_liquidate,
                         initially_expected_to_receive: trigger.initially_expected_to_receive,

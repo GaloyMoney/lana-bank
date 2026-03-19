@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
 
 use authz::PermissionCheck;
-use core_credit::{CreditFacilityId, CustomerId, PriceOfOneBTC};
+use core_credit::{CreditFacilityId, PriceOfOneBTC};
 use job::*;
 use money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
@@ -18,7 +18,6 @@ pub const SEND_PARTIAL_LIQUIDATION_EMAIL_COMMAND: JobType =
 #[serde(rename_all = "camelCase")]
 pub struct SendPartialLiquidationEmailConfig {
     pub credit_facility_id: CreditFacilityId,
-    pub customer_id: CustomerId,
     pub trigger_price: PriceOfOneBTC,
     pub initially_estimated_to_liquidate: Satoshis,
     pub initially_expected_to_receive: UsdCents,
