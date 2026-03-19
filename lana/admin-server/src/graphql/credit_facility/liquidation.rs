@@ -18,7 +18,10 @@ pub use lana_app::credit::{
 use super::{Collateral, SortDirection};
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("liquidationId".to_string())
+)]
 pub struct Liquidation {
     liquidation_id: UUID,
     collateral_id: UUID,

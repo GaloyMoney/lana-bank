@@ -6,6 +6,7 @@ use lana_app::accounting::transaction_templates::TransactionTemplate as DomainTr
 pub use lana_app::accounting::transaction_templates::TransactionTemplateCursor;
 
 #[derive(Clone, SimpleObject)]
+#[graphql(directive = crate::graphql::entity_key::entity_key::apply("transactionTemplateId".to_string()))]
 pub struct TransactionTemplate {
     transaction_template_id: UUID,
     code: String,

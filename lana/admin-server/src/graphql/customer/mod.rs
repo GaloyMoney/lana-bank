@@ -36,7 +36,10 @@ impl From<&CustomerConversion> for ConversionReason {
 }
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("customerId".to_string())
+)]
 pub struct Customer {
     customer_id: UUID,
     status: CustomerStatus,

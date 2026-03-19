@@ -16,7 +16,10 @@ pub use lana_app::customer::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("prospectId".to_string())
+)]
 pub struct Prospect {
     prospect_id: UUID,
     kyc_status: KycStatus,

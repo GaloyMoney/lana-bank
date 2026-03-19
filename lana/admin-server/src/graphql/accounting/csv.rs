@@ -7,7 +7,10 @@ pub use lana_app::document::{
 use std::sync::Arc;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("ledgerAccountCsvDocumentId".to_string())
+)]
 pub struct LedgerAccountCsvDocument {
     ledger_account_csv_document_id: UUID,
     ledger_account_id: UUID,

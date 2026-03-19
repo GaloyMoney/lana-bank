@@ -13,7 +13,10 @@ use lana_app::access::role::Role as DomainRole;
 use lana_app::access::role::RolesSortBy as DomainRolesSortBy;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("roleId".to_string())
+)]
 pub struct Role {
     role_id: UUID,
     created_at: Timestamp,

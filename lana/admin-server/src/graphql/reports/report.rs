@@ -7,7 +7,10 @@ use super::super::loader::LanaDataLoader;
 pub use lana_app::report::{Report as DomainReport, ReportFile as DomainReportFile};
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("reportId".to_string())
+)]
 pub struct Report {
     report_id: UUID,
     external_id: String,

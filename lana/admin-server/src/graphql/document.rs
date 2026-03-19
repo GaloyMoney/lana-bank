@@ -6,7 +6,10 @@ use super::event_timeline::{self, EventTimelineCursor, EventTimelineEntry};
 pub use lana_app::document::{Document as DomainDocument, DocumentStatus};
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("customerDocumentId".to_string())
+)]
 pub struct CustomerDocument {
     customer_document_id: UUID,
     customer_id: UUID,

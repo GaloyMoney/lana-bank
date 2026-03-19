@@ -22,7 +22,10 @@ pub use lana_app::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("creditFacilityDisbursalId".to_string())
+)]
 pub struct CreditFacilityDisbursal {
     credit_facility_disbursal_id: UUID,
     amount: UsdCents,

@@ -8,7 +8,10 @@ use lana_app::access::permission_set::PermissionSet as DomainPermissionSet;
 pub use lana_app::access::permission_set::PermissionSetsByIdCursor;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("permissionSetId".to_string())
+)]
 pub struct PermissionSet {
     permission_set_id: UUID,
 

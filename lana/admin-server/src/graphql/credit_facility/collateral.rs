@@ -34,7 +34,10 @@ pub struct CollateralRecordProceedsFromLiquidationInput {
 crate::mutation_payload! { CollateralRecordProceedsFromLiquidationPayload, collateral: Collateral }
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("collateralId".to_string())
+)]
 pub struct Collateral {
     collateral_id: UUID,
     pub(crate) wallet_id: Option<UUID>,

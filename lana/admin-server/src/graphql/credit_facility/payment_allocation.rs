@@ -8,7 +8,10 @@ use crate::{
 pub use lana_app::credit::PaymentAllocation as DomainPaymentAllocation;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("creditFacilityPaymentAllocationId".to_string())
+)]
 pub struct CreditFacilityPaymentAllocation {
     credit_facility_payment_allocation_id: UUID,
     amount: UsdCents,

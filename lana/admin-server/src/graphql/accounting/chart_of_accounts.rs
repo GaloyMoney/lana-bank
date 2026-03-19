@@ -9,7 +9,10 @@ use lana_app::accounting::{
 use lana_app::primitives::AccountingBaseConfig;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("chartOfAccountsId".to_string())
+)]
 pub struct ChartOfAccounts {
     chart_of_accounts_id: UUID,
     name: String,

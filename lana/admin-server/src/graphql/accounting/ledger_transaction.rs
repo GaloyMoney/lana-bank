@@ -21,7 +21,10 @@ use crate::{
 use super::JournalEntry;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("ledgerTransactionId".to_string())
+)]
 pub struct LedgerTransaction {
     ledger_transaction_id: UUID,
     created_at: Timestamp,

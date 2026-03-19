@@ -9,7 +9,8 @@ const RULE_NAME: &str = "graphql-id-naming";
 /// Rule that enforces GraphQL ID naming conventions in schema.graphql files.
 ///
 /// Three checks:
-/// 1. Entity types with `id: ID!` must also have a `<camelCasedTypeName>Id: UUID!` field
+/// 1. Entity types with `@entity_key(field: "X")` must have a matching field `X`
+///    AND types with a `<typeName>Id: UUID!` field that lack `@entity_key` are flagged
 /// 2. Input types must not have a bare `id: UUID!` field
 /// 3. Query fields should not have redundant `<queryName>Id: UUID!` parameters
 pub struct GraphqlIdNamingRule;
@@ -40,6 +41,7 @@ struct SchemaBlock {
     name: String,
     fields: Vec<SchemaField>,
     start_line: usize,
+    entity_key_field: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -109,12 +111,24 @@ fn try_parse_block_start(line: &str, line_number: usize) -> Option<SchemaBlock> 
         return None;
     }
 
+    // Extract @entity_key(field: "...") directive if present
+    let entity_key_field = extract_entity_key_field(rest);
+
     Some(SchemaBlock {
         kind,
         name,
         fields: Vec::new(),
         start_line: line_number,
+        entity_key_field,
     })
+}
+
+fn extract_entity_key_field(line: &str) -> Option<String> {
+    let marker = "@entity_key(field: \"";
+    let start = line.find(marker)?;
+    let after = &line[start + marker.len()..];
+    let end = after.find('"')?;
+    Some(after[..end].to_string())
 }
 
 fn try_parse_field(line: &str, line_number: usize) -> Option<SchemaField> {
@@ -212,40 +226,50 @@ fn is_excluded_type(name: &str) -> bool {
         || name.ends_with("PageInfo")
 }
 
-/// Check 1: Entity types with `id: ID!` must have `<camelCasedTypeName>Id: UUID!`
-fn check_entity_dual_id(block: &SchemaBlock, schema_file: &str) -> Vec<Violation> {
+/// Check 1a: Types with `@entity_key(field: "X")` must have a matching field `X`
+/// Check 1b: Types with a `<typeName>Id` field that lack `@entity_key` are flagged
+fn check_entity_key(block: &SchemaBlock, schema_file: &str) -> Vec<Violation> {
     if block.kind != BlockKind::Type || is_excluded_type(&block.name) {
         return Vec::new();
     }
 
-    let has_id_field = block
-        .fields
-        .iter()
-        .any(|f| f.name == "id" && f.field_type == "ID");
+    let expected_id_field = type_name_to_camel_case_id(&block.name);
 
-    if !has_id_field {
-        return Vec::new();
+    if let Some(ref key_field) = block.entity_key_field {
+        // Has @entity_key — verify the declared field exists
+        let has_field = block.fields.iter().any(|f| &f.name == key_field);
+        if !has_field {
+            return vec![
+                Violation::new(
+                    RULE_NAME,
+                    schema_file,
+                    format!(
+                        "Type `{}` has @entity_key(field: \"{}\") but no such field exists",
+                        block.name, key_field
+                    ),
+                )
+                .with_line(block.start_line),
+            ];
+        }
+        Vec::new()
+    } else {
+        // No @entity_key — check if it has a <typeName>Id field (missing annotation)
+        let has_id_field = block.fields.iter().any(|f| f.name == expected_id_field);
+        if has_id_field {
+            return vec![
+                Violation::new(
+                    RULE_NAME,
+                    schema_file,
+                    format!(
+                        "Type `{}` has `{}` field but is missing @entity_key directive",
+                        block.name, expected_id_field
+                    ),
+                )
+                .with_line(block.start_line),
+            ];
+        }
+        Vec::new()
     }
-
-    let expected_field = type_name_to_camel_case_id(&block.name);
-
-    let has_expected = block.fields.iter().any(|f| f.name == expected_field);
-
-    if has_expected {
-        return Vec::new();
-    }
-
-    vec![
-        Violation::new(
-            RULE_NAME,
-            schema_file,
-            format!(
-                "Type `{}` has `id: ID!` but is missing `{}`",
-                block.name, expected_field
-            ),
-        )
-        .with_line(block.start_line),
-    ]
 }
 
 /// Check 2: Input types must not have a bare `id: UUID!` field
@@ -332,8 +356,13 @@ impl WorkspaceRule for GraphqlIdNamingRule {
             let content = std::fs::read_to_string(&full_path)?;
             let blocks = parse_schema(&content);
 
+            // Only run @entity_key checks on schemas that use it
+            let schema_uses_entity_key = blocks.iter().any(|b| b.entity_key_field.is_some());
+
             for block in &blocks {
-                violations.extend(check_entity_dual_id(block, schema_path));
+                if schema_uses_entity_key {
+                    violations.extend(check_entity_key(block, schema_path));
+                }
                 violations.extend(check_input_no_bare_id(block, schema_path));
                 violations.extend(check_query_id_params(block, schema_path));
             }
@@ -351,7 +380,7 @@ mod tests {
         let blocks = parse_schema(schema);
         let mut violations = Vec::new();
         for block in &blocks {
-            violations.extend(check_entity_dual_id(block, "test.graphql"));
+            violations.extend(check_entity_key(block, "test.graphql"));
             violations.extend(check_input_no_bare_id(block, "test.graphql"));
             violations.extend(check_query_id_params(block, "test.graphql"));
         }
@@ -359,10 +388,9 @@ mod tests {
     }
 
     #[test]
-    fn test_valid_entity_with_dual_id() {
+    fn test_entity_with_entity_key_and_matching_field() {
         let schema = r#"
-type Customer {
-	id: ID!
+type Customer @entity_key(field: "customerId") {
 	customerId: UUID!
 	email: String!
 }
@@ -375,59 +403,36 @@ type Customer {
     }
 
     #[test]
-    fn test_entity_missing_typed_id() {
+    fn test_entity_key_with_missing_field() {
         let schema = r#"
-type Customer {
-	id: ID!
+type Customer @entity_key(field: "customerId") {
 	email: String!
 }
 "#;
         let violations = parse_and_check(schema);
         assert_eq!(violations.len(), 1);
-        assert!(violations[0].message.contains("customerId"));
+        assert!(violations[0].message.contains("no such field exists"));
     }
 
     #[test]
-    fn test_entity_wrong_id_name() {
+    fn test_entity_with_id_field_but_no_entity_key() {
         let schema = r#"
-type CreditFacilityDisbursal {
-	id: ID!
-	disbursalId: UUID!
-	amount: UsdCents!
+type Customer {
+	customerId: UUID!
+	email: String!
 }
 "#;
         let violations = parse_and_check(schema);
         assert_eq!(violations.len(), 1);
-        assert!(violations[0].message.contains("creditFacilityDisbursalId"));
-    }
-
-    #[test]
-    fn test_payload_types_are_excluded() {
-        let schema = r#"
-type CustomerCreatePayload {
-	id: ID!
-	customer: Customer!
-}
-
-type CustomerConnection {
-	id: ID!
-	edges: [CustomerEdge!]!
-}
-
-type CustomerEdge {
-	id: ID!
-	node: Customer!
-}
-"#;
-        let violations = parse_and_check(schema);
         assert!(
-            violations.is_empty(),
-            "Payload/Connection/Edge types should be excluded: {violations:?}"
+            violations[0]
+                .message
+                .contains("missing @entity_key directive")
         );
     }
 
     #[test]
-    fn test_type_without_id_is_ignored() {
+    fn test_type_without_id_field_or_entity_key_is_ok() {
         let schema = r#"
 type ChartNode {
 	name: String!
@@ -437,7 +442,32 @@ type ChartNode {
         let violations = parse_and_check(schema);
         assert!(
             violations.is_empty(),
-            "Types without id: ID! should be ignored: {violations:?}"
+            "Types without entity key or id field should be ignored: {violations:?}"
+        );
+    }
+
+    #[test]
+    fn test_payload_types_are_excluded() {
+        let schema = r#"
+type CustomerCreatePayload {
+	customerCreatePayloadId: UUID!
+	customer: Customer!
+}
+
+type CustomerConnection {
+	customerConnectionId: UUID!
+	edges: [CustomerEdge!]!
+}
+
+type CustomerEdge {
+	customerEdgeId: UUID!
+	node: Customer!
+}
+"#;
+        let violations = parse_and_check(schema);
+        assert!(
+            violations.is_empty(),
+            "Payload/Connection/Edge types should be excluded: {violations:?}"
         );
     }
 
