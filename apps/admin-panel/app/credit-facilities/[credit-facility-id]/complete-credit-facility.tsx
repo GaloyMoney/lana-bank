@@ -24,6 +24,7 @@ gql`
   mutation CreditFacilityComplete($input: CreditFacilityCompleteInput!) {
     creditFacilityComplete(input: $input) {
       creditFacility {
+        creditFacilityId
         status
       }
     }

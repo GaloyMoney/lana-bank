@@ -32,7 +32,9 @@ gql`
     createdAt
     completed
     collateral {
+      collateralId
       creditFacility {
+        creditFacilityId
         publicId
       }
     }

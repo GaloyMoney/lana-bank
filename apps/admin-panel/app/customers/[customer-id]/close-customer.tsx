@@ -25,6 +25,7 @@ gql`
   mutation CustomerClose($input: CustomerCloseInput!) {
     customerClose(input: $input) {
       customer {
+        customerId
         status
       }
     }

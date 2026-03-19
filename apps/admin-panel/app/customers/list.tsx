@@ -46,6 +46,7 @@ gql`
           customerType
           createdAt
           depositAccount {
+            depositAccountId
             balance {
               settled
               pending
