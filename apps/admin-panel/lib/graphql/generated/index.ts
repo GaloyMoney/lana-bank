@@ -5086,9 +5086,9 @@ export type LedgerAccountCsvExportUploadedSubscriptionVariables = Exact<{
 export type LedgerAccountCsvExportUploadedSubscription = { __typename?: 'Subscription', ledgerAccountCsvExportUploaded: { __typename?: 'LedgerAccountCsvExportUploadedPayload', documentId: string } };
 
 export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null, entity?:
-    | { __typename: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null }
-    | { __typename: 'CreditFacility', publicId: any }
-    | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', publicId: any } }
+    | { __typename: 'Collateral', collateralId: string, creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null }
+    | { __typename: 'CreditFacility', creditFacilityId: string, publicId: any }
+    | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any } }
    | null, ancestors: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
     | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
@@ -5105,9 +5105,9 @@ export type LedgerAccountByCodeQueryVariables = Exact<{
 
 
 export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null, entity?:
-      | { __typename: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null }
-      | { __typename: 'CreditFacility', publicId: any }
-      | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', publicId: any } }
+      | { __typename: 'Collateral', collateralId: string, creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null }
+      | { __typename: 'CreditFacility', creditFacilityId: string, publicId: any }
+      | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any } }
      | null, ancestors: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
@@ -5124,9 +5124,9 @@ export type LedgerAccountQueryVariables = Exact<{
 
 
 export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null, entity?:
-      | { __typename: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null }
-      | { __typename: 'CreditFacility', publicId: any }
-      | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', publicId: any } }
+      | { __typename: 'Collateral', collateralId: string, creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null }
+      | { __typename: 'CreditFacility', creditFacilityId: string, publicId: any }
+      | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any } }
      | null, ancestors: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
@@ -6628,14 +6628,18 @@ export const LedgerAccountDetailsFragmentDoc = gql`
       depositAccountId
       publicId
       customer {
+        customerId
         publicId
       }
     }
     ... on CreditFacility {
+      creditFacilityId
       publicId
     }
     ... on Collateral {
+      collateralId
       creditFacility {
+        creditFacilityId
         publicId
       }
     }

@@ -55,14 +55,18 @@ gql`
         depositAccountId
         publicId
         customer {
+          customerId
           publicId
         }
       }
       ... on CreditFacility {
+        creditFacilityId
         publicId
       }
       ... on Collateral {
+        collateralId
         creditFacility {
+          creditFacilityId
           publicId
         }
       }
