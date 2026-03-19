@@ -31,7 +31,11 @@ pub async fn principal_under_payment_scenario(
     );
 
     let target_time = Utc::now() - chrono::Duration::days(240);
-    clock_ctrl.reset_to(target_time);
+    let current_time = clock.now();
+    if target_time > current_time {
+        let advance_by = (target_time - current_time).to_std()?;
+        clock_ctrl.advance(advance_by).await;
+    }
 
     let (customer_id, _) = helpers::create_customer(&sub, app, "6-principal-under-payment").await?;
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
