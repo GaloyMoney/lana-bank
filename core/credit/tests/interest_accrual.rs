@@ -40,7 +40,9 @@ async fn setup_with_clock_control() -> anyhow::Result<(
 
     let outbox = obix::Outbox::<helpers::event::DummyEvent>::init(
         &pool,
-        obix::MailboxConfig::builder().build()?,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
     )
     .await?;
 

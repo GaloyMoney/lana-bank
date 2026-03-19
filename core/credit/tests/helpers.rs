@@ -549,8 +549,13 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     cleanup_stale_jobs(&pool).await?;
     let (clock, _ctrl) = ClockHandle::manual();
 
-    let outbox =
-        obix::Outbox::<TestEvent>::init(&pool, obix::MailboxConfig::builder().build()?).await?;
+    let outbox = obix::Outbox::<TestEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
+    )
+    .await?;
 
     let authz = TestPerms::new();
     let storage = Storage::new(&StorageConfig::default());

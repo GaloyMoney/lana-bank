@@ -62,9 +62,13 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let (clock, _) = ClockHandle::manual();
 
-    let outbox =
-        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
-            .await?;
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
+    )
+    .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone(), None);
 
