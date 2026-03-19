@@ -33,6 +33,7 @@ mod withdrawal;
 #[macro_use]
 pub(crate) mod macros;
 mod access;
+pub(crate) mod entity_key;
 mod policy;
 mod schema;
 

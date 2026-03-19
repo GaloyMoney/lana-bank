@@ -45,7 +45,10 @@ pub use proposal::*;
 pub use repayment::*;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("creditFacilityId".to_string())
+)]
 pub struct CreditFacility {
     credit_facility_id: UUID,
     collateral_id: UUID,

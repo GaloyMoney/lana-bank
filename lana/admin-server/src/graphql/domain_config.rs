@@ -34,7 +34,10 @@ impl From<DomainConfigType> for ConfigType {
 }
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("domainConfigId".to_string())
+)]
 pub struct DomainConfig {
     domain_config_id: UUID,
     config_type: ConfigType,

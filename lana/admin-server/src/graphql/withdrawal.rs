@@ -22,7 +22,10 @@ pub use lana_app::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("withdrawalId".to_string())
+)]
 pub struct Withdrawal {
     withdrawal_id: UUID,
     account_id: UUID,

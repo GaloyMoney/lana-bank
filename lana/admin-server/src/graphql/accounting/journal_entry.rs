@@ -11,7 +11,10 @@ use super::{ledger_account::LedgerAccount, ledger_transaction::LedgerTransaction
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
 
 #[derive(SimpleObject)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("journalEntryId".to_string())
+)]
 pub struct JournalEntry {
     journal_entry_id: UUID,
     tx_id: UUID,

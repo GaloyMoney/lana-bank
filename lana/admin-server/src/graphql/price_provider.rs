@@ -11,7 +11,10 @@ pub use lana_app::price::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("priceProviderId".to_string())
+)]
 pub struct PriceProvider {
     price_provider_id: UUID,
     created_at: Timestamp,

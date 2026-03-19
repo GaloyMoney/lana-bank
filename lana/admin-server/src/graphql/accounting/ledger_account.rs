@@ -32,7 +32,10 @@ pub enum LedgerAccountEntity {
 }
 
 #[derive(Clone, SimpleObject)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("ledgerAccountId".to_string())
+)]
 pub struct LedgerAccount {
     ledger_account_id: UUID,
     code: Option<AccountCode>,

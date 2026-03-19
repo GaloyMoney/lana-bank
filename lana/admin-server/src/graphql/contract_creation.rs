@@ -21,6 +21,7 @@ impl From<lana_app::contract_creation::LoanAgreementStatus> for LoanAgreementSta
 }
 
 #[derive(SimpleObject, Clone)]
+#[graphql(directive = crate::graphql::entity_key::entity_key::apply("loanAgreementId".to_string()))]
 pub struct LoanAgreement {
     loan_agreement_id: UUID,
     status: LoanAgreementStatus,

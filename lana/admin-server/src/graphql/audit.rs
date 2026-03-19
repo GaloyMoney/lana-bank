@@ -26,7 +26,10 @@ pub(crate) enum AuditSubject {
 }
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("auditEntryId".to_string())
+)]
 pub struct AuditEntry {
     audit_entry_id: AuditEntryId,
     object: String,

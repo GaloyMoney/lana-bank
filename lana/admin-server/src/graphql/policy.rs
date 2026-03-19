@@ -11,7 +11,10 @@ use super::{
 pub use lana_app::governance::{Policy as DomainPolicy, policy_cursor::PoliciesByCreatedAtCursor};
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("policyId".to_string())
+)]
 pub struct Policy {
     policy_id: UUID,
     approval_process_type: ApprovalProcessType,

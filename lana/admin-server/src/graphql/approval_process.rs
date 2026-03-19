@@ -15,7 +15,10 @@ pub use lana_app::governance::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("approvalProcessId".to_string())
+)]
 pub struct ApprovalProcess {
     approval_process_id: UUID,
     approval_process_type: ApprovalProcessType,

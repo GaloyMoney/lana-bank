@@ -23,7 +23,10 @@ pub use lana_app::credit::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("pendingCreditFacilityId".to_string())
+)]
 pub struct PendingCreditFacility {
     pending_credit_facility_id: UUID,
     /// Canonical credit facility identifier reserved for this facility.
