@@ -40,8 +40,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     update_collateralization: JobSpawner<UpdateCollateralizationConfig>,
     repo: Arc<CreditFacilityRepo<E>>,
@@ -57,8 +56,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(
         update_collateralization: JobSpawner<UpdateCollateralizationConfig>,
@@ -188,8 +186,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[record_error_severity]
     #[instrument(

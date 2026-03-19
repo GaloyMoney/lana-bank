@@ -11,7 +11,7 @@ use core_credit_collateral::{
 };
 use core_credit_collection::{CoreCreditCollectionAction, CoreCreditCollectionObject};
 use core_custody::CoreCustodyEvent;
-use core_price::{CorePriceEvent, Price};
+use core_price::Price;
 use governance::GovernanceEvent;
 use job::*;
 use obix::out::OutboxEventMarker;
@@ -38,8 +38,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     repo: Arc<CreditFacilityRepo<E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
@@ -55,8 +54,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(
         repo: Arc<CreditFacilityRepo<E>>,
@@ -88,8 +86,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     type Config = UpdateCollateralizationConfig;
 
@@ -120,8 +117,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     config: UpdateCollateralizationConfig,
     repo: Arc<CreditFacilityRepo<E>>,
@@ -145,8 +141,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[record_error_severity]
     #[tracing::instrument(

@@ -11,7 +11,7 @@ use core_credit_collateral::{
 };
 use core_credit_collection::{CoreCreditCollectionAction, CoreCreditCollectionEvent};
 use core_custody::CoreCustodyEvent;
-use core_price::{CorePriceEvent, Price};
+use core_price::Price;
 use governance::GovernanceEvent;
 use job::*;
 use obix::out::OutboxEventMarker;
@@ -37,8 +37,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     repo: Arc<PendingCreditFacilityRepo<E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
@@ -53,8 +52,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(
         repo: Arc<PendingCreditFacilityRepo<E>>,
@@ -74,18 +72,15 @@ where
 impl<Perms, E> JobInitializer for UpdatePendingCollateralizationJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<CoreCreditCollectionAction>
-        + From<CoreCreditCollateralAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<CoreCreditCollectionObject>
-        + From<CoreCreditCollateralObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditCollectionAction> + From<CoreCreditCollateralAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditCollectionObject> + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     type Config = UpdatePendingCollateralizationConfig;
 
@@ -115,8 +110,7 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     config: UpdatePendingCollateralizationConfig,
     repo: Arc<PendingCreditFacilityRepo<E>>,
@@ -129,18 +123,15 @@ where
 impl<Perms, E> JobRunner for UpdatePendingCollateralizationJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<CoreCreditCollectionAction>
-        + From<CoreCreditCollateralAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<CoreCreditCollectionObject>
-        + From<CoreCreditCollateralObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditCollectionAction> + From<CoreCreditCollateralAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditCollectionObject> + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[record_error_severity]
     #[tracing::instrument(
