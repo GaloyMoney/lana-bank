@@ -1,10 +1,12 @@
 db:
   pool_size: 20
 admin_server:
+  enabled: true
   port: 5253
   jwks_url: http://localhost:4456/.well-known/jwks.json
   aud: https://admin-api/graphql
 customer_server:
+  enabled: true
   port: 5254
   jwks_url: http://localhost:4456/.well-known/jwks.json
   aud: https://customer-api/graphql
@@ -70,7 +72,6 @@ time:
   mode: realtime
 bootstrap:
   active: false
-  seed_only: false
   num_facilities: 0
   num_customers: 0
 

@@ -4,6 +4,8 @@ use url::Url;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct CustomerServerConfig {
+    #[serde(default = "default_enabled")]
+    pub enabled: bool,
     #[serde(default = "default_port")]
     pub port: u16,
     #[serde(default = "default_jwks_url")]
@@ -15,11 +17,16 @@ pub struct CustomerServerConfig {
 impl Default for CustomerServerConfig {
     fn default() -> Self {
         Self {
+            enabled: true,
             port: default_port(),
             jwks_url: default_jwks_url(),
             aud: "https://customer-api/graphql".to_string(),
         }
     }
+}
+
+fn default_enabled() -> bool {
+    true
 }
 
 fn default_port() -> u16 {

@@ -152,7 +152,7 @@ impl Config {
 }
 
 /// Apply a dot-separated key override to a YAML value tree.
-/// e.g. "bootstrap.seed_only" with value "true" sets yaml["bootstrap"]["seed_only"] = true
+/// e.g. "admin_server.enabled" with value "false" sets yaml["admin_server"]["enabled"] = false
 fn apply_yaml_override(root: &mut serde_yaml::Value, key: &str, value: &str) -> anyhow::Result<()> {
     let parts: Vec<&str> = key.split('.').collect();
     let mut current = root;

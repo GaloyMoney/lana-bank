@@ -67,7 +67,7 @@ run-server-with-bootstrap:
 	cargo run --features mock-custodian --bin lana-cli -- --config ./bats/lana-bootstrap.yml | tee .e2e-logs
 
 seed-data:
-	cargo run --features mock-custodian --bin lana-cli -- --config ./bats/lana-bootstrap.yml --set bootstrap.seed_only=true
+	cargo run --features mock-custodian --bin lana-cli -- --config ./bats/lana-bootstrap.yml --set admin_server.enabled=false --set customer_server.enabled=false
 
 check-code:
 	nix flake check
