@@ -5234,7 +5234,7 @@ export type CollateralRecordProceedsFromLiquidationMutationVariables = Exact<{
 
 export type CollateralRecordProceedsFromLiquidationMutation = { __typename?: 'Mutation', collateralRecordProceedsFromLiquidation: { __typename?: 'CollateralRecordProceedsFromLiquidationPayload', collateral: { __typename?: 'Collateral', collateralId: string } } };
 
-export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null } };
+export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', collateralId: string, creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null } };
 
 export type LiquidationsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5243,7 +5243,7 @@ export type LiquidationsQueryVariables = Exact<{
 }>;
 
 
-export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', collateralId: string, creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CreditModuleConfigureMutationVariables = Exact<{
   input: CreditModuleConfigureInput;
@@ -6794,6 +6794,7 @@ export const LiquidationListFieldsFragmentDoc = gql`
   createdAt
   completed
   collateral {
+    collateralId
     creditFacility {
       creditFacilityId
       publicId
