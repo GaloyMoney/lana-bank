@@ -35,6 +35,7 @@ gql`
     rules {
       ... on CommitteeApproval {
         committee {
+          committeeId
           name
           currentMembers {
             userId

@@ -4074,7 +4074,7 @@ export enum WithdrawalsSortBy {
 
 export type ApprovalProcessFieldsFragment = { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
     | { __typename: 'AutoApproval' }
-    | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+    | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
   , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> };
 
 export type ApprovalProcessApproveMutationVariables = Exact<{
@@ -4084,7 +4084,7 @@ export type ApprovalProcessApproveMutationVariables = Exact<{
 
 export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } };
 
 export type ApprovalProcessDenyMutationVariables = Exact<{
@@ -4094,16 +4094,16 @@ export type ApprovalProcessDenyMutationVariables = Exact<{
 
 export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } };
 
 export type AllActionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', approvalProcessType: ApprovalProcessType, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, createdAt: string, target:
-          | { __typename: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, creditFacility: { __typename?: 'CreditFacility', publicId: any, customer: { __typename?: 'Customer', email: string } } }
-          | { __typename: 'CreditFacilityProposal', creditFacilityProposalId: string, customer: { __typename?: 'Customer', email: string } }
-          | { __typename: 'Withdrawal', withdrawalId: string, publicId: any, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', email: string } } }
+export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, createdAt: string, target:
+          | { __typename: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, email: string } } }
+          | { __typename: 'CreditFacilityProposal', creditFacilityProposalId: string, customer: { __typename?: 'Customer', customerId: string, email: string } }
+          | { __typename: 'Withdrawal', withdrawalId: string, publicId: any, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } }
          } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
@@ -4272,7 +4272,7 @@ export type CreditFacilityLayoutFragmentFragment = { __typename?: 'CreditFacilit
     , initialCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-    , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null };
+    , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null };
 
 export type GetCreditFacilityLayoutDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -4291,7 +4291,7 @@ export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', credit
       , initialCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-      , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } | null };
+      , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } | null };
 
 export type CreditFacilityCollateralizationUpdatedSubscriptionVariables = Exact<{
   creditFacilityId: Scalars['UUID']['input'];
@@ -4310,7 +4310,7 @@ export type CreditFacilityCollateralizationUpdatedSubscription = { __typename?: 
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } } };
+        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } } };
 
 export type LedgerAccountInfoFragment = { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
@@ -4449,7 +4449,7 @@ export type CollateralUpdateMutation = { __typename?: 'Mutation', collateralUpda
           , initialCvl:
             | { __typename: 'FiniteCvlPct', value: any }
             | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-          , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } | null } } };
+          , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } | null } } };
 
 type CvlPctData_FiniteCvlPct_Fragment = { __typename: 'FiniteCvlPct', value: any };
 
@@ -4500,7 +4500,7 @@ export type CreditFacilityPartialPaymentRecordMutation = { __typename?: 'Mutatio
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } } };
+        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } } };
 
 export type CreditFacilityPartialPaymentWithDateRecordMutationVariables = Exact<{
   input: CreditFacilityPartialPaymentWithDateRecordInput;
@@ -4529,14 +4529,14 @@ export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } } };
+        , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } } };
 
 export type CreditFacilityProposalCustomerApprovalConcludeMutationVariables = Exact<{
   input: CreditFacilityProposalCustomerApprovalConcludeInput;
 }>;
 
 
-export type CreditFacilityProposalCustomerApprovalConcludeMutation = { __typename?: 'Mutation', creditFacilityProposalCustomerApprovalConclude: { __typename?: 'CreditFacilityProposalCustomerApprovalConcludePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalCustomerApprovalConcludeMutation = { __typename?: 'Mutation', creditFacilityProposalCustomerApprovalConclude: { __typename?: 'CreditFacilityProposalCustomerApprovalConcludePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', custodianId: string, name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4547,7 +4547,7 @@ export type CreditFacilityProposalCustomerApprovalConcludeMutation = { __typenam
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
          }, approvalProcess?: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } } };
 
 export type CreditFacilityProposalEventHistoryQueryVariables = Exact<{
@@ -4562,7 +4562,7 @@ export type CreditFacilityProposalEventHistoryQuery = { __typename?: 'Query', cr
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', custodianId: string, name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
     , marginCallCvl:
@@ -4573,7 +4573,7 @@ export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'Credi
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
      }, approvalProcess?: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename: 'AutoApproval' }
-      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
     , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null };
 
 export type GetCreditFacilityProposalLayoutDetailsQueryVariables = Exact<{
@@ -4581,7 +4581,7 @@ export type GetCreditFacilityProposalLayoutDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', custodianId: string, name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -4592,7 +4592,7 @@ export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query'
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
        }, approvalProcess?: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } | null };
 
 export type CreditFacilityProposalConcludedSubscriptionVariables = Exact<{
@@ -4600,7 +4600,7 @@ export type CreditFacilityProposalConcludedSubscriptionVariables = Exact<{
 }>;
 
 
-export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscription', creditFacilityProposalConcluded: { __typename?: 'CreditFacilityProposalConcludedPayload', status: CreditFacilityProposalStatus, creditFacilityProposal: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscription', creditFacilityProposalConcluded: { __typename?: 'CreditFacilityProposalConcludedPayload', status: CreditFacilityProposalStatus, creditFacilityProposal: { __typename?: 'CreditFacilityProposal', creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian: { __typename?: 'Custodian', custodianId: string, name: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, effectiveAnnualRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4611,7 +4611,7 @@ export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscr
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
          }, approvalProcess?: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } } };
 
 export type GetCreditFacilityProposalRepaymentPlanQueryVariables = Exact<{
@@ -4844,7 +4844,7 @@ export type DepositAccountCreateMutationVariables = Exact<{
 
 export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, status: CustomerStatus, email: string, telegramHandle: string, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
 
-export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
+export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
 
 export type DepositAccountsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4854,7 +4854,7 @@ export type DepositAccountsQueryVariables = Exact<{
 }>;
 
 
-export type DepositAccountsQuery = { __typename?: 'Query', depositAccounts: { __typename?: 'DepositAccountConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountEdge', cursor: string, node: { __typename?: 'DepositAccount', publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } } }> } };
+export type DepositAccountsQuery = { __typename?: 'Query', depositAccounts: { __typename?: 'DepositAccountConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountEdge', cursor: string, node: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } } }> } };
 
 export type DepositEventHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4868,30 +4868,30 @@ export type DepositEventHistoryQuery = { __typename?: 'Query', depositByPublicId
             | { __typename?: 'User', userId: string, email: string }
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
-export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
+export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
 
 export type GetDepositDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetDepositDetailsQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } | null };
+export type GetDepositDetailsQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } | null };
 
 export type DepositRevertMutationVariables = Exact<{
   input: DepositRevertInput;
 }>;
 
 
-export type DepositRevertMutation = { __typename?: 'Mutation', depositRevert: { __typename?: 'DepositRevertPayload', deposit: { __typename?: 'Deposit', depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type DepositRevertMutation = { __typename?: 'Mutation', depositRevert: { __typename?: 'DepositRevertPayload', deposit: { __typename?: 'Deposit', depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
 export type CreateDepositMutationVariables = Exact<{
   input: DepositRecordInput;
 }>;
 
 
-export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, deposits: Array<{ __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, deposits: Array<{ __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
-export type DepositFieldsFragment = { __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } };
+export type DepositFieldsFragment = { __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4901,7 +4901,7 @@ export type DepositsQueryVariables = Exact<{
 }>;
 
 
-export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositEdge', cursor: string, node: { __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
+export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositEdge', cursor: string, node: { __typename?: 'Deposit', depositId: string, publicId: any, reference: string, createdAt: string, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
 
 export type DisbursalEventHistoryQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -4917,7 +4917,7 @@ export type DisbursalEventHistoryQuery = { __typename?: 'Query', disbursalByPubl
 
 export type DisbursalDetailsPageFragmentFragment = { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename: 'AutoApproval' }
-      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
     , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } };
 
 export type GetDisbursalDetailsQueryVariables = Exact<{
@@ -4927,7 +4927,7 @@ export type GetDisbursalDetailsQueryVariables = Exact<{
 
 export type GetDisbursalDetailsQuery = { __typename?: 'Query', disbursalByPublicId?: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
 export type DisbursalApprovalConcludedSubscriptionVariables = Exact<{
@@ -4937,7 +4937,7 @@ export type DisbursalApprovalConcludedSubscriptionVariables = Exact<{
 
 export type DisbursalApprovalConcludedSubscription = { __typename?: 'Subscription', disbursalApprovalConcluded: { __typename?: 'DisbursalApprovalConcludedPayload', status: DisbursalStatus, disbursal: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
@@ -4967,7 +4967,7 @@ export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation',
           , initialCvl:
             | { __typename: 'FiniteCvlPct', value: any }
             | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-          , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null } } } };
+          , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } } } };
 
 export type DisbursalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4977,7 +4977,7 @@ export type DisbursalsQueryVariables = Exact<{
 }>;
 
 
-export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, createdAt: string, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', customer: { __typename?: 'Customer', email: string } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, createdAt: string, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', creditFacilityId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type FiscalYearEventHistoryQueryVariables = Exact<{
   year: Scalars['String']['input'];
@@ -5300,9 +5300,9 @@ export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'Pendin
     , initialCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-     }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+     }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename: 'AutoApproval' }
-      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
     , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } };
 
 export type GetPendingCreditFacilityLayoutDetailsQueryVariables = Exact<{
@@ -5319,9 +5319,9 @@ export type GetPendingCreditFacilityLayoutDetailsQuery = { __typename?: 'Query',
       , initialCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-       }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+       }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
 export type PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables = Exact<{
@@ -5338,9 +5338,9 @@ export type PendingCreditFacilityCollateralizationUpdatedSubscription = { __type
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-         }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+         }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type PendingCreditFacilityCompletedSubscriptionVariables = Exact<{
@@ -5357,9 +5357,9 @@ export type PendingCreditFacilityCompletedSubscription = { __typename?: 'Subscri
         , initialCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
-         }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+         }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type GetPendingCreditFacilityRepaymentPlanQueryVariables = Exact<{
@@ -5830,7 +5830,7 @@ export type WithdrawalCancelMutationVariables = Exact<{
 
 export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type WithdrawalConfirmMutationVariables = Exact<{
@@ -5840,7 +5840,7 @@ export type WithdrawalConfirmMutationVariables = Exact<{
 
 export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type WithdrawalEventHistoryQueryVariables = Exact<{
@@ -5859,7 +5859,7 @@ export type LedgerTransactionFieldsFragment = { __typename?: 'LedgerTransaction'
 
 export type WithdrawDetailsPageFragmentFragment = { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename: 'AutoApproval' }
-      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+      | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
     , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } };
 
 export type GetWithdrawalDetailsQueryVariables = Exact<{
@@ -5869,7 +5869,7 @@ export type GetWithdrawalDetailsQueryVariables = Exact<{
 
 export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawalByPublicId?: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename: 'AutoApproval' }
-        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+        | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
 export type WithdrawalApprovalConcludedSubscriptionVariables = Exact<{
@@ -5879,7 +5879,7 @@ export type WithdrawalApprovalConcludedSubscriptionVariables = Exact<{
 
 export type WithdrawalApprovalConcludedSubscription = { __typename?: 'Subscription', withdrawalApprovalConcluded: { __typename?: 'WithdrawalApprovalConcludedPayload', status: WithdrawalStatus, withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type WithdrawalRevertMutationVariables = Exact<{
@@ -5889,7 +5889,7 @@ export type WithdrawalRevertMutationVariables = Exact<{
 
 export type WithdrawalRevertMutation = { __typename?: 'Mutation', withdrawalRevert: { __typename?: 'WithdrawalRevertPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: string, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename: 'AutoApproval' }
-          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
+          | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type WithdrawalInitiateMutationVariables = Exact<{
@@ -5897,9 +5897,9 @@ export type WithdrawalInitiateMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
-export type WithdrawalFieldsFragment = { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } };
+export type WithdrawalFieldsFragment = { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } };
 
 export type WithdrawalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5909,7 +5909,7 @@ export type WithdrawalsQueryVariables = Exact<{
 }>;
 
 
-export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'WithdrawalEdge', cursor: string, node: { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
+export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'WithdrawalEdge', cursor: string, node: { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: string, amount: UsdCents, account: { __typename?: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
 
 export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -6177,6 +6177,7 @@ export const CreditFacilityLayoutFragmentFragmentDoc = gql`
     address
     network
     custodian {
+      custodianId
       name
       provider
     }
@@ -6321,6 +6322,7 @@ export const ApprovalProcessFieldsFragmentDoc = gql`
   rules {
     ... on CommitteeApproval {
       committee {
+        committeeId
         name
         currentMembers {
           userId
@@ -6364,6 +6366,7 @@ export const CreditFacilityProposalLayoutFragmentFragmentDoc = gql`
     email
   }
   custodian {
+    custodianId
     name
   }
   creditFacilityTerms {
@@ -6478,6 +6481,7 @@ export const DepositAccountDetailsFragmentFragmentDoc = gql`
     `;
 export const DepositAccountFieldsFragmentDoc = gql`
     fragment DepositAccountFields on DepositAccount {
+  depositAccountId
   publicId
   createdAt
   status
@@ -6521,6 +6525,7 @@ export const DepositDetailsPageFragmentFragmentDoc = gql`
       applicantId
       email
       depositAccount {
+        depositAccountId
         balance {
           settled
           pending
@@ -6539,6 +6544,7 @@ export const DepositFieldsFragmentDoc = gql`
   amount
   status
   account {
+    depositAccountId
     customer {
       customerId
       email
@@ -6857,6 +6863,7 @@ export const PendingCreditFacilityLayoutFragmentFragmentDoc = gql`
     address
     network
     custodian {
+      custodianId
       name
       provider
     }
@@ -7081,6 +7088,7 @@ export const WithdrawalFieldsFragmentDoc = gql`
   createdAt
   amount
   account {
+    depositAccountId
     customer {
       customerId
       email
@@ -7196,6 +7204,7 @@ export const AllActionsDocument = gql`
     }
     edges {
       node {
+        approvalProcessId
         approvalProcessType
         status
         userCanSubmitDecision
@@ -7206,7 +7215,9 @@ export const AllActionsDocument = gql`
             withdrawalId
             publicId
             account {
+              depositAccountId
               customer {
+                customerId
                 email
               }
             }
@@ -7214,6 +7225,7 @@ export const AllActionsDocument = gql`
           ... on CreditFacilityProposal {
             creditFacilityProposalId
             customer {
+              customerId
               email
             }
           }
@@ -7221,8 +7233,10 @@ export const AllActionsDocument = gql`
             creditFacilityDisbursalId
             publicId
             creditFacility {
+              creditFacilityId
               publicId
               customer {
+                customerId
                 email
               }
             }
@@ -10653,7 +10667,9 @@ export const DisbursalsDocument = gql`
         createdAt
         status
         creditFacility {
+          creditFacilityId
           customer {
+            customerId
             email
           }
         }

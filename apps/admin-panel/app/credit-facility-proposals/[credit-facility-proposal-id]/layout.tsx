@@ -35,6 +35,7 @@ gql`
       email
     }
     custodian {
+      custodianId
       name
     }
     creditFacilityTerms {

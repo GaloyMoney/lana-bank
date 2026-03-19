@@ -33,6 +33,7 @@ gql`
     createdAt
     amount
     account {
+      depositAccountId
       customer {
         customerId
         email

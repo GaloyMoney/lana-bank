@@ -33,6 +33,7 @@ gql`
     amount
     status
     account {
+      depositAccountId
       customer {
         customerId
         email

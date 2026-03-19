@@ -36,7 +36,9 @@ gql`
           createdAt
           status
           creditFacility {
+            creditFacilityId
             customer {
+              customerId
               email
             }
           }

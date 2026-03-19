@@ -131,6 +131,7 @@ gql`
       address
       network
       custodian {
+        custodianId
         name
         provider
       }
