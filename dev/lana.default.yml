@@ -67,7 +67,7 @@ app:
 tracing:
   service_name: lana-dev
 time:
-  type: realtime
+  mode: realtime
 bootstrap:
   active: false
   seed_only: false

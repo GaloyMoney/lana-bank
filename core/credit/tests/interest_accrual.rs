@@ -7,7 +7,7 @@ use core_credit::*;
 use core_time_events::CoreTimeEvent;
 use document_storage::DocumentStorage;
 use es_entity::DbOp;
-use es_entity::clock::{ArtificialClockConfig, ClockController, ClockHandle};
+use es_entity::clock::{ClockController, ClockHandle};
 use futures::StreamExt;
 use money::{Satoshis, UsdCents};
 use public_id::PublicIds;
@@ -36,11 +36,13 @@ async fn setup_with_clock_control() -> anyhow::Result<(
 )> {
     let pool = helpers::init_pool().await?;
     cleanup_stale_accrual_jobs(&pool).await?;
-    let (clock, clock_ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, clock_ctrl) = ClockHandle::manual();
 
     let outbox = obix::Outbox::<helpers::event::DummyEvent>::init(
         &pool,
-        obix::MailboxConfig::builder().build()?,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
     )
     .await?;
 
@@ -103,6 +105,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
 
@@ -416,12 +419,6 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
     assert_eq!(matched.cents, UsdCents::from(329));
     assert_eq!(matched.days, 1);
 
-    // `shutdown()` calls `kill_remaining_jobs`, which rewrites still-running
-    // rows to `pending` with `execute_at = clock.now()`. Because this test
-    // advances artificial time, those timestamps can end up ahead of wall-clock
-    // time. Transition first so rewritten rows use real time and are immediately
-    // eligible in subsequent realtime tests.
-    clock_ctrl.transition_to_realtime();
     ctx.jobs.shutdown().await?;
     cleanup_stale_accrual_jobs(&pool).await?;
     Ok(())

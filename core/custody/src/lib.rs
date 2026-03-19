@@ -695,7 +695,7 @@ mod tests {
     use std::net::SocketAddr;
 
     use axum::{Router, routing::get};
-    use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+    use es_entity::clock::ClockHandle;
     use serde::{Deserialize, Serialize};
 
     use super::*;
@@ -763,7 +763,7 @@ mod tests {
         };
 
         let pool = sqlx::PgPool::connect(&pg_con).await?;
-        let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+        let (clock, _time) = ClockHandle::manual();
         let outbox = obix::Outbox::<DummyEvent>::init(
             &pool,
             obix::MailboxConfig::builder()
@@ -774,6 +774,7 @@ mod tests {
         let mut jobs = job::Jobs::init(
             job::JobSvcConfig::builder()
                 .pool(pool.clone())
+                .clock(clock.clone())
                 .build()
                 .unwrap(),
         )

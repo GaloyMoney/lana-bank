@@ -1,7 +1,7 @@
 mod helpers;
 
 use authz::Authorization;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 
 use core_access::{
     AuthRoleToken, CoreAccess, CoreAccessAction, CoreAccessEvent, CoreAccessObject,
@@ -12,7 +12,7 @@ use helpers::{TestAudit, TestSubject, event};
 #[tokio::test]
 async fn create_role_publishes_event() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
-    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _time) = ClockHandle::manual();
 
     let outbox = obix::Outbox::<event::DummyEvent>::init(
         &pool,

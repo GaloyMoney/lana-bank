@@ -10,7 +10,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_customer::{CustomerType, Customers};
 use core_deposit::*;
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockController, ClockHandle};
+use es_entity::clock::{ClockController, ClockHandle};
 use helpers::{action, event, object};
 use obix::test_utils::expect_event;
 
@@ -35,7 +35,7 @@ async fn setup() -> anyhow::Result<TestSetup> {
 
 async fn setup_at(start: DateTime<Utc>) -> anyhow::Result<(TestSetup, ClockController)> {
     let pool = helpers::init_pool().await?;
-    let (clock, clock_ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual_at(start));
+    let (clock, clock_ctrl) = ClockHandle::manual_at(start);
 
     let outbox = obix::Outbox::<event::DummyEvent>::init(
         &pool,

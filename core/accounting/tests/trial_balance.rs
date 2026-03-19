@@ -5,7 +5,7 @@ use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use chrono::{TimeZone, Utc};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use job::{JobSvcConfig, Jobs};
 
 use core_accounting::*;
@@ -17,10 +17,11 @@ async fn atomic_import_adds_accounts_to_trial_balance() -> anyhow::Result<()> {
 
     let pool = helpers::init_pool().await?;
     let start_time = Utc.with_ymd_and_hms(2024, 6, 15, 12, 0, 0).unwrap();
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual_at(start_time));
+    let (clock, _ctrl) = ClockHandle::manual_at(start_time);
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
@@ -29,7 +30,14 @@ async fn atomic_import_adds_accounts_to_trial_balance() -> anyhow::Result<()> {
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
-    let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let mut jobs = Jobs::init(
+        JobSvcConfig::builder()
+            .pool(pool.clone())
+            .clock(clock.clone())
+            .build()
+            .unwrap(),
+    )
+    .await?;
 
     let accounting = CoreAccounting::new(
         &pool,

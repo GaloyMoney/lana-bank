@@ -6,7 +6,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::{AccountCode, CalaAccountSetId, CoreAccounting};
 use core_credit::*;
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use std::collections::HashMap;
 
 use helpers::{
@@ -66,10 +66,14 @@ async fn assert_omnibus_pairs(
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
-    let outbox =
-        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
-            .await?;
+    let (clock, _ctrl) = ClockHandle::manual();
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
+    )
+    .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
@@ -78,6 +82,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
+            .clock(clock.clone())
             .build()
             .unwrap(),
     )
@@ -96,6 +101,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
 

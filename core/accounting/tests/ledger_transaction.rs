@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use job::{JobSvcConfig, Jobs};
 
 use cala_ledger::{
@@ -188,10 +188,11 @@ async fn prepare_test() -> anyhow::Result<(
 )> {
     use rand::RngExt;
     let pool = helpers::init_pool().await?;
-    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _) = ClockHandle::manual();
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
@@ -200,7 +201,14 @@ async fn prepare_test() -> anyhow::Result<(
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
-    let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let mut jobs = Jobs::init(
+        JobSvcConfig::builder()
+            .pool(pool.clone())
+            .clock(clock.clone())
+            .build()
+            .unwrap(),
+    )
+    .await?;
 
     let accounting = CoreAccounting::new(
         &pool,

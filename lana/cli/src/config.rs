@@ -1,6 +1,7 @@
 use anyhow::Context;
 
-use es_entity::clock::{ArtificialClockConfig, ClockController, ClockHandle};
+use chrono::{DateTime, Utc};
+use es_entity::clock::{ClockController, ClockHandle};
 use serde::{Deserialize, Serialize};
 use tracing_utils::TracingConfig;
 
@@ -14,13 +15,16 @@ use lana_app::app::AppConfig;
 
 /// Time configuration for the application clock
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "mode", rename_all = "snake_case")]
 pub enum TimeConfig {
     /// Use real system time
     #[default]
     Realtime,
-    /// Use artificial/simulated time with configurable behavior
-    Artificial(ArtificialClockConfig),
+    /// Use manual/simulated time with explicit advance
+    Manual {
+        #[serde(default = "chrono::Utc::now")]
+        start_at: DateTime<Utc>,
+    },
 }
 
 pub(super) struct AppClock {
@@ -35,11 +39,11 @@ impl TimeConfig {
                 clock: ClockHandle::realtime(),
                 controller: None,
             },
-            Self::Artificial(cfg) => {
-                let (clock, ctrl) = ClockHandle::artificial(cfg);
+            Self::Manual { start_at } => {
+                let (clock, controller) = ClockHandle::manual_at(start_at);
                 AppClock {
                     clock,
-                    controller: Some(ctrl),
+                    controller: Some(controller),
                 }
             }
         }
@@ -65,7 +69,7 @@ pub struct Config {
     /// OpenTelemetry tracing configuration for observability
     #[serde(default)]
     pub tracing: TracingConfig,
-    /// Time configuration (realtime or artificial)
+    /// Time configuration (realtime or manual)
     #[serde(default)]
     pub time: TimeConfig,
 

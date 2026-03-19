@@ -17,7 +17,7 @@ use domain_config::{
     EncryptionConfig as DomainEncryptionConfig, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
 };
 use encryption::EncryptionConfig;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use money::Satoshis;
 use public_id::PublicIds;
 use rand::RngExt;
@@ -547,10 +547,15 @@ pub fn test_terms() -> TermValues {
 pub async fn setup() -> anyhow::Result<TestContext> {
     let pool = init_pool().await?;
     cleanup_stale_jobs(&pool).await?;
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _ctrl) = ClockHandle::manual();
 
-    let outbox =
-        obix::Outbox::<TestEvent>::init(&pool, obix::MailboxConfig::builder().build()?).await?;
+    let outbox = obix::Outbox::<TestEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
+    )
+    .await?;
 
     let authz = TestPerms::new();
     let storage = Storage::new(&StorageConfig::default());
@@ -561,6 +566,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
+            .clock(clock.clone())
             .build()
             .unwrap(),
     )
@@ -608,6 +614,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
 

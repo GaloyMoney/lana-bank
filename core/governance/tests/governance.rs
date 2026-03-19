@@ -1,6 +1,6 @@
 mod helpers;
 
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::ClockHandle;
 use uuid::Uuid;
 
 use governance::{
@@ -19,7 +19,7 @@ async fn setup() -> anyhow::Result<(
     sqlx::PgPool,
 )> {
     let pool = helpers::init_pool().await?;
-    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _time) = ClockHandle::manual();
 
     let outbox = obix::Outbox::<event::DummyEvent>::init(
         &pool,
@@ -91,7 +91,7 @@ async fn approval_process_concluded_publishes_event() -> anyhow::Result<()> {
 #[serial_test::file_serial(governance_domain_config)]
 async fn init_policy_uses_default_committee_when_require_committee_enabled() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
-    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _time) = ClockHandle::manual();
     let authz = TestAuthz::new();
 
     let outbox = obix::Outbox::<event::DummyEvent>::init(
@@ -147,7 +147,7 @@ async fn init_policy_uses_default_committee_when_require_committee_enabled() -> 
 async fn init_policy_fails_without_default_committee_when_require_committee_enabled()
 -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
-    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _time) = ClockHandle::manual();
     let authz = TestAuthz::new();
 
     let outbox = obix::Outbox::<event::DummyEvent>::init(
@@ -207,7 +207,7 @@ async fn init_policy_fails_without_default_committee_when_require_committee_enab
 async fn init_policy_returns_existing_policy_when_require_committee_enabled() -> anyhow::Result<()>
 {
     let pool = helpers::init_pool().await?;
-    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _time) = ClockHandle::manual();
     let authz = TestAuthz::new();
     let outbox = obix::Outbox::<event::DummyEvent>::init(
         &pool,
