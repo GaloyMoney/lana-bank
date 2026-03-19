@@ -81,6 +81,7 @@ pub async fn run(
     }
     join_all(handles).await;
 
+    info!("sim_bootstrap complete");
     Ok(())
 }
 
