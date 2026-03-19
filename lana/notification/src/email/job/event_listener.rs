@@ -132,7 +132,7 @@ where
                             outstanding_amount: entity.outstanding_amount,
                             recipient_email: email,
                         },
-                        entity.id.to_string(),
+                        format!("{}:{}", entity.id, email),
                     )
                     .await?;
             }
@@ -164,7 +164,7 @@ where
                             initially_expected_to_receive: trigger.initially_expected_to_receive,
                             recipient_email: email,
                         },
-                        entity.id.to_string(),
+                        format!("{}:{}", entity.id, email),
                     )
                     .await?;
             }
@@ -183,9 +183,9 @@ where
                         trigger_price: trigger.trigger_price,
                         initially_estimated_to_liquidate: trigger.initially_estimated_to_liquidate,
                         initially_expected_to_receive: trigger.initially_expected_to_receive,
-                        recipient_email: party.email,
+                        recipient_email: party.email.clone(),
                     },
-                    entity.id.to_string(),
+                    format!("{}:{}", entity.id, party.email),
                 )
                 .await?;
         }
@@ -252,7 +252,7 @@ where
                             role_name: entity.name.clone(),
                             recipient_email: email,
                         },
-                        entity.id.to_string(),
+                        format!("{}:{}", entity.id, email),
                     )
                     .await?;
             }
