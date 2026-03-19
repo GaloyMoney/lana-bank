@@ -238,7 +238,14 @@ async fn setup_test() -> anyhow::Result<Test> {
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
-    let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let mut jobs = Jobs::init(
+        JobSvcConfig::builder()
+            .pool(pool.clone())
+            .clock(clock.clone())
+            .build()
+            .unwrap(),
+    )
+    .await?;
 
     let fiscal_year_repo = FiscalYearRepo::new(&pool, clock.clone());
     let accounting = CoreAccounting::new(

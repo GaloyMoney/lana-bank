@@ -32,6 +32,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
+            .clock(clock.clone())
             .build()
             .unwrap(),
     )
