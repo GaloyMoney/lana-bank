@@ -296,8 +296,7 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut db = self.credit_facility_repo.begin_op().await?;
-
+        // Load configs before opening transaction to avoid holding it open across async reads
         let dp_config = self
             .domain_configs
             .get_without_audit::<AccrualPrecisionDp>()
@@ -315,6 +314,8 @@ where
             .ok_or(CreditFacilityError::AccrualRoundingStrategyNotConfigured)?;
         let accrual_rounding_strategy =
             crate::rounding_policy::parse_rounding_strategy(&accrual_rounding_strategy_str);
+
+        let mut db = self.credit_facility_repo.begin_op().await?;
 
         let outcome = self
             .confirm_interest_accrual_in_op(

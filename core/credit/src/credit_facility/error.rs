@@ -101,7 +101,9 @@ pub enum CreditFacilityError {
         "CreditFacilityError - AccrualPrecisionNotConfigured: admin must set 'credit-accrual-precision-dp'"
     )]
     AccrualPrecisionNotConfigured,
-    #[error("CreditFacilityError - AccrualRoundingStrategyNotConfigured")]
+    #[error(
+        "CreditFacilityError - AccrualRoundingStrategyNotConfigured: admin must set 'credit-accrual-rounding-strategy'"
+    )]
     AccrualRoundingStrategyNotConfigured,
     #[error("CreditFacilityError - DomainConfigError: {0}")]
     DomainConfigError(#[from] domain_config::DomainConfigError),
