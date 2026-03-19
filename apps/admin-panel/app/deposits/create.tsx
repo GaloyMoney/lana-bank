@@ -30,14 +30,17 @@ gql`
       deposit {
         ...DepositFields
         account {
+          depositAccountId
           customer {
             customerId
             depositAccount {
+              depositAccountId
               deposits {
                 ...DepositFields
               }
             }
             depositAccount {
+              depositAccountId
               balance {
                 settled
                 pending

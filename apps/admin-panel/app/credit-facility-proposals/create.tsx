@@ -48,6 +48,7 @@ gql`
       creditFacilityProposal {
         creditFacilityProposalId
         customer {
+          customerId
           email
           creditFacilityProposals {
             creditFacilityProposalId

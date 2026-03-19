@@ -22,6 +22,7 @@ gql`
   mutation DepositAccountCreate($input: DepositAccountCreateInput!) {
     depositAccountCreate(input: $input) {
       account {
+        depositAccountId
         customer {
           ...CustomerDetailsFragment
         }
