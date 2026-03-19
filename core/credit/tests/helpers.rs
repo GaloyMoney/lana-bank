@@ -561,6 +561,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
+            .clock(clock.clone())
             .build()
             .unwrap(),
     )
