@@ -43,6 +43,7 @@ gql`
     publicId
     collateralToMatchInitialCvl @client
     disbursals {
+      creditFacilityDisbursalId
       status
     }
     balance {
