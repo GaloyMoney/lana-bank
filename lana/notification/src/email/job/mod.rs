@@ -1,9 +1,9 @@
-pub(crate) mod deposit_account_created_email;
 mod event_listener;
-pub(crate) mod obligation_overdue_email;
-pub(crate) mod partial_liquidation_email;
-pub(crate) mod role_created_email;
-pub(crate) mod under_margin_call_email;
+pub(crate) mod send_deposit_account_created_email;
+pub(crate) mod send_obligation_overdue_email;
+pub(crate) mod send_partial_liquidation_email;
+pub(crate) mod send_role_created_email;
+pub(crate) mod send_under_margin_call_email;
 
 pub(crate) use event_listener::*;
 

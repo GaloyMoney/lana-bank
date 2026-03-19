@@ -12,17 +12,17 @@ use tracing_macros::record_error_severity;
 
 use crate::email::templates::{EmailTemplate, EmailType, RoleCreatedEmailData};
 
-pub const ROLE_CREATED_EMAIL_COMMAND: JobType =
-    JobType::new("command.notification.role-created-email");
+pub const SEND_ROLE_CREATED_EMAIL_COMMAND: JobType =
+    JobType::new("command.notification.send-role-created-email");
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct RoleCreatedEmailConfig {
+pub struct SendRoleCreatedEmailConfig {
     pub role_id: core_access::RoleId,
     pub role_name: String,
 }
 
-pub struct RoleCreatedEmailInitializer<Perms>
+pub struct SendRoleCreatedEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -32,7 +32,7 @@ where
     domain_configs: ExposedDomainConfigsReadOnly,
 }
 
-impl<Perms> RoleCreatedEmailInitializer<Perms>
+impl<Perms> SendRoleCreatedEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -51,17 +51,17 @@ where
     }
 }
 
-impl<Perms> JobInitializer for RoleCreatedEmailInitializer<Perms>
+impl<Perms> JobInitializer for SendRoleCreatedEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<core_access::CoreAccessAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_access::CoreAccessObject>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: From<core_access::UserId>,
 {
-    type Config = RoleCreatedEmailConfig;
+    type Config = SendRoleCreatedEmailConfig;
 
     fn job_type(&self) -> JobType {
-        ROLE_CREATED_EMAIL_COMMAND
+        SEND_ROLE_CREATED_EMAIL_COMMAND
     }
 
     fn init(
@@ -69,7 +69,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(RoleCreatedEmailRunner::<Perms> {
+        Ok(Box::new(SendRoleCreatedEmailRunner::<Perms> {
             config: job.config()?,
             users: self.users.clone(),
             smtp_client: self.smtp_client.clone(),
@@ -79,11 +79,11 @@ where
     }
 }
 
-struct RoleCreatedEmailRunner<Perms>
+struct SendRoleCreatedEmailRunner<Perms>
 where
     Perms: PermissionCheck,
 {
-    config: RoleCreatedEmailConfig,
+    config: SendRoleCreatedEmailConfig,
     users: Users<Perms::Audit, LanaEvent>,
     smtp_client: SmtpClient,
     template: EmailTemplate,
@@ -91,7 +91,7 @@ where
 }
 
 #[async_trait]
-impl<Perms> JobRunner for RoleCreatedEmailRunner<Perms>
+impl<Perms> JobRunner for SendRoleCreatedEmailRunner<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<core_access::CoreAccessAction>,
@@ -99,7 +99,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: From<core_access::UserId>,
 {
     #[record_error_severity]
-    #[tracing::instrument(name = "notification.role_created_email.run", skip_all)]
+    #[tracing::instrument(name = "notification.send_role_created_email.run", skip_all)]
     async fn run(
         &self,
         _current_job: CurrentJob,

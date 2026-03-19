@@ -1,29 +1,36 @@
 use async_trait::async_trait;
+use chrono::NaiveDate;
 use domain_config::ExposedDomainConfigsReadOnly;
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_credit::{CreditFacilityId, CustomerId, PriceOfOneBTC};
 use core_customer::Customers;
-use core_deposit::{DepositAccountHolderId, DepositAccountId};
 use job::*;
 use lana_events::LanaEvent;
+use money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
 
-use crate::email::templates::{DepositAccountCreatedEmailData, EmailTemplate, EmailType};
+use crate::email::templates::{EmailTemplate, EmailType, UnderMarginCallEmailData};
 
-pub const DEPOSIT_ACCOUNT_CREATED_EMAIL_COMMAND: JobType =
-    JobType::new("command.notification.deposit-account-created-email");
+pub const SEND_UNDER_MARGIN_CALL_EMAIL_COMMAND: JobType =
+    JobType::new("command.notification.send-under-margin-call-email");
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct DepositAccountCreatedEmailConfig {
-    pub account_id: DepositAccountId,
-    pub account_holder_id: DepositAccountHolderId,
+pub struct SendUnderMarginCallEmailConfig {
+    pub credit_facility_id: CreditFacilityId,
+    pub customer_id: CustomerId,
+    pub effective_date: NaiveDate,
+    pub collateral: Satoshis,
+    pub outstanding_disbursed: UsdCents,
+    pub outstanding_interest: UsdCents,
+    pub price: PriceOfOneBTC,
 }
 
-pub struct DepositAccountCreatedEmailInitializer<Perms>
+pub struct SendUnderMarginCallEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -33,7 +40,7 @@ where
     domain_configs: ExposedDomainConfigsReadOnly,
 }
 
-impl<Perms> DepositAccountCreatedEmailInitializer<Perms>
+impl<Perms> SendUnderMarginCallEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -52,17 +59,17 @@ where
     }
 }
 
-impl<Perms> JobInitializer for DepositAccountCreatedEmailInitializer<Perms>
+impl<Perms> JobInitializer for SendUnderMarginCallEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<core_customer::CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
 {
-    type Config = DepositAccountCreatedEmailConfig;
+    type Config = SendUnderMarginCallEmailConfig;
 
     fn job_type(&self) -> JobType {
-        DEPOSIT_ACCOUNT_CREATED_EMAIL_COMMAND
+        SEND_UNDER_MARGIN_CALL_EMAIL_COMMAND
     }
 
     fn init(
@@ -70,7 +77,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(DepositAccountCreatedEmailRunner::<Perms> {
+        Ok(Box::new(SendUnderMarginCallEmailRunner::<Perms> {
             config: job.config()?,
             customers: self.customers.clone(),
             smtp_client: self.smtp_client.clone(),
@@ -80,11 +87,11 @@ where
     }
 }
 
-struct DepositAccountCreatedEmailRunner<Perms>
+struct SendUnderMarginCallEmailRunner<Perms>
 where
     Perms: PermissionCheck,
 {
-    config: DepositAccountCreatedEmailConfig,
+    config: SendUnderMarginCallEmailConfig,
     customers: Customers<Perms, LanaEvent>,
     smtp_client: SmtpClient,
     template: EmailTemplate,
@@ -92,7 +99,7 @@ where
 }
 
 #[async_trait]
-impl<Perms> JobRunner for DepositAccountCreatedEmailRunner<Perms>
+impl<Perms> JobRunner for SendUnderMarginCallEmailRunner<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -100,20 +107,26 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
 {
     #[record_error_severity]
-    #[tracing::instrument(name = "notification.deposit_account_created_email.run", skip_all)]
+    #[tracing::instrument(name = "notification.send_under_margin_call_email.run", skip_all)]
     async fn run(
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let customer_id: core_customer::CustomerId = self.config.account_holder_id.into();
         let party = self
             .customers
-            .find_party_by_customer_id_without_audit(customer_id)
+            .find_party_by_customer_id_without_audit(self.config.customer_id)
             .await?;
 
-        let email_data = DepositAccountCreatedEmailData {
-            account_id: self.config.account_id.to_string(),
-            customer_email: party.email.clone(),
+        let total_outstanding =
+            self.config.outstanding_disbursed + self.config.outstanding_interest;
+        let email_data = UnderMarginCallEmailData {
+            facility_id: self.config.credit_facility_id.to_string(),
+            effective: self.config.effective_date,
+            collateral: self.config.collateral,
+            outstanding_disbursed: self.config.outstanding_disbursed,
+            outstanding_interest: self.config.outstanding_interest,
+            total_outstanding,
+            price: self.config.price,
         };
 
         super::send_rendered_email(
@@ -121,7 +134,7 @@ where
             &self.template,
             &self.domain_configs,
             &party.email,
-            &EmailType::DepositAccountCreated(email_data),
+            &EmailType::UnderMarginCall(email_data),
         )
         .await?;
 

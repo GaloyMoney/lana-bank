@@ -5,29 +5,29 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::{JobId, JobSpawner, JobType};
 
-use super::deposit_account_created_email::DepositAccountCreatedEmailConfig;
-use super::obligation_overdue_email::ObligationOverdueEmailConfig;
-use super::partial_liquidation_email::PartialLiquidationEmailConfig;
-use super::role_created_email::RoleCreatedEmailConfig;
-use super::under_margin_call_email::UnderMarginCallEmailConfig;
+use super::send_deposit_account_created_email::SendDepositAccountCreatedEmailConfig;
+use super::send_obligation_overdue_email::SendObligationOverdueEmailConfig;
+use super::send_partial_liquidation_email::SendPartialLiquidationEmailConfig;
+use super::send_role_created_email::SendRoleCreatedEmailConfig;
+use super::send_under_margin_call_email::SendUnderMarginCallEmailConfig;
 
 pub const EMAIL_LISTENER_JOB: JobType = JobType::new("outbox.email-listener");
 
 pub struct EmailEventListenerHandler {
-    obligation_overdue: JobSpawner<ObligationOverdueEmailConfig>,
-    partial_liquidation: JobSpawner<PartialLiquidationEmailConfig>,
-    under_margin_call: JobSpawner<UnderMarginCallEmailConfig>,
-    deposit_account_created: JobSpawner<DepositAccountCreatedEmailConfig>,
-    role_created: JobSpawner<RoleCreatedEmailConfig>,
+    obligation_overdue: JobSpawner<SendObligationOverdueEmailConfig>,
+    partial_liquidation: JobSpawner<SendPartialLiquidationEmailConfig>,
+    under_margin_call: JobSpawner<SendUnderMarginCallEmailConfig>,
+    deposit_account_created: JobSpawner<SendDepositAccountCreatedEmailConfig>,
+    role_created: JobSpawner<SendRoleCreatedEmailConfig>,
 }
 
 impl EmailEventListenerHandler {
     pub fn new(
-        obligation_overdue: JobSpawner<ObligationOverdueEmailConfig>,
-        partial_liquidation: JobSpawner<PartialLiquidationEmailConfig>,
-        under_margin_call: JobSpawner<UnderMarginCallEmailConfig>,
-        deposit_account_created: JobSpawner<DepositAccountCreatedEmailConfig>,
-        role_created: JobSpawner<RoleCreatedEmailConfig>,
+        obligation_overdue: JobSpawner<SendObligationOverdueEmailConfig>,
+        partial_liquidation: JobSpawner<SendPartialLiquidationEmailConfig>,
+        under_margin_call: JobSpawner<SendUnderMarginCallEmailConfig>,
+        deposit_account_created: JobSpawner<SendDepositAccountCreatedEmailConfig>,
+        role_created: JobSpawner<SendRoleCreatedEmailConfig>,
     ) -> Self {
         Self {
             obligation_overdue,
@@ -64,7 +64,7 @@ where
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    ObligationOverdueEmailConfig {
+                    SendObligationOverdueEmailConfig {
                         obligation_id: entity.id,
                         credit_facility_id,
                         outstanding_amount: entity.outstanding_amount,
@@ -88,7 +88,7 @@ where
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    PartialLiquidationEmailConfig {
+                    SendPartialLiquidationEmailConfig {
                         credit_facility_id: entity.id,
                         customer_id: entity.customer_id,
                         trigger_price: trigger.trigger_price,
@@ -114,7 +114,7 @@ where
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    UnderMarginCallEmailConfig {
+                    SendUnderMarginCallEmailConfig {
                         credit_facility_id: entity.id,
                         customer_id: entity.customer_id,
                         effective_date: effective,
@@ -138,7 +138,7 @@ where
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    DepositAccountCreatedEmailConfig {
+                    SendDepositAccountCreatedEmailConfig {
                         account_id: entity.id,
                         account_holder_id: entity.account_holder_id,
                     },
@@ -155,7 +155,7 @@ where
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    RoleCreatedEmailConfig {
+                    SendRoleCreatedEmailConfig {
                         role_id: entity.id,
                         role_name: entity.name.clone(),
                     },

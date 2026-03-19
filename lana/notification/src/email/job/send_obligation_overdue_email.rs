@@ -15,18 +15,18 @@ use tracing_macros::record_error_severity;
 
 use crate::email::templates::{EmailTemplate, EmailType, OverduePaymentEmailData};
 
-pub const OBLIGATION_OVERDUE_EMAIL_COMMAND: JobType =
-    JobType::new("command.notification.obligation-overdue-email");
+pub const SEND_OBLIGATION_OVERDUE_EMAIL_COMMAND: JobType =
+    JobType::new("command.notification.send-obligation-overdue-email");
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct ObligationOverdueEmailConfig {
+pub struct SendObligationOverdueEmailConfig {
     pub obligation_id: ObligationId,
     pub credit_facility_id: CreditFacilityId,
     pub outstanding_amount: UsdCents,
 }
 
-pub struct ObligationOverdueEmailInitializer<Perms>
+pub struct SendObligationOverdueEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -38,7 +38,7 @@ where
     domain_configs: ExposedDomainConfigsReadOnly,
 }
 
-impl<Perms> ObligationOverdueEmailInitializer<Perms>
+impl<Perms> SendObligationOverdueEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -61,7 +61,7 @@ where
     }
 }
 
-impl<Perms> JobInitializer for ObligationOverdueEmailInitializer<Perms>
+impl<Perms> JobInitializer for SendObligationOverdueEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<core_credit::CoreCreditAction>
@@ -80,10 +80,10 @@ where
         + From<core_custody::CoreCustodyObject>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: From<core_access::UserId>,
 {
-    type Config = ObligationOverdueEmailConfig;
+    type Config = SendObligationOverdueEmailConfig;
 
     fn job_type(&self) -> JobType {
-        OBLIGATION_OVERDUE_EMAIL_COMMAND
+        SEND_OBLIGATION_OVERDUE_EMAIL_COMMAND
     }
 
     fn init(
@@ -91,7 +91,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ObligationOverdueEmailRunner::<Perms> {
+        Ok(Box::new(SendObligationOverdueEmailRunner::<Perms> {
             config: job.config()?,
             credit: self.credit.clone(),
             customers: self.customers.clone(),
@@ -103,11 +103,11 @@ where
     }
 }
 
-struct ObligationOverdueEmailRunner<Perms>
+struct SendObligationOverdueEmailRunner<Perms>
 where
     Perms: PermissionCheck,
 {
-    config: ObligationOverdueEmailConfig,
+    config: SendObligationOverdueEmailConfig,
     credit: CoreCredit<Perms, LanaEvent>,
     customers: Customers<Perms, LanaEvent>,
     users: Users<Perms::Audit, LanaEvent>,
@@ -117,7 +117,7 @@ where
 }
 
 #[async_trait]
-impl<Perms> JobRunner for ObligationOverdueEmailRunner<Perms>
+impl<Perms> JobRunner for SendObligationOverdueEmailRunner<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<core_credit::CoreCreditAction>
@@ -137,7 +137,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: From<core_access::UserId>,
 {
     #[record_error_severity]
-    #[tracing::instrument(name = "notification.obligation_overdue_email.run", skip_all)]
+    #[tracing::instrument(name = "notification.send_obligation_overdue_email.run", skip_all)]
     async fn run(
         &self,
         _current_job: CurrentJob,

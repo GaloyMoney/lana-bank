@@ -12,11 +12,11 @@ use job::EmailEventListenerHandler;
 use lana_events::LanaEvent;
 use smtp_client::SmtpClient;
 
-use job::deposit_account_created_email::DepositAccountCreatedEmailInitializer;
-use job::obligation_overdue_email::ObligationOverdueEmailInitializer;
-use job::partial_liquidation_email::PartialLiquidationEmailInitializer;
-use job::role_created_email::RoleCreatedEmailInitializer;
-use job::under_margin_call_email::UnderMarginCallEmailInitializer;
+use job::send_deposit_account_created_email::SendDepositAccountCreatedEmailInitializer;
+use job::send_obligation_overdue_email::SendObligationOverdueEmailInitializer;
+use job::send_partial_liquidation_email::SendPartialLiquidationEmailInitializer;
+use job::send_role_created_email::SendRoleCreatedEmailInitializer;
+use job::send_under_margin_call_email::SendUnderMarginCallEmailInitializer;
 
 pub use config::{EmailInfraConfig, NotificationFromEmail, NotificationFromName};
 pub use error::EmailError;
@@ -51,17 +51,9 @@ where
     let template = templates::EmailTemplate::try_new(infra_config.admin_panel_url.clone())?;
     let smtp_client = SmtpClient::try_new(infra_config.to_smtp_config())?;
 
-    let obligation_overdue = jobs.add_initializer(ObligationOverdueEmailInitializer::<Perms>::new(
-        credit,
-        customers,
-        users,
-        smtp_client.clone(),
-        template.clone(),
-        domain_configs.clone(),
-    ));
-
-    let partial_liquidation =
-        jobs.add_initializer(PartialLiquidationEmailInitializer::<Perms>::new(
+    let obligation_overdue =
+        jobs.add_initializer(SendObligationOverdueEmailInitializer::<Perms>::new(
+            credit,
             customers,
             users,
             smtp_client.clone(),
@@ -69,22 +61,32 @@ where
             domain_configs.clone(),
         ));
 
-    let under_margin_call = jobs.add_initializer(UnderMarginCallEmailInitializer::<Perms>::new(
-        customers,
-        smtp_client.clone(),
-        template.clone(),
-        domain_configs.clone(),
-    ));
+    let partial_liquidation =
+        jobs.add_initializer(SendPartialLiquidationEmailInitializer::<Perms>::new(
+            customers,
+            users,
+            smtp_client.clone(),
+            template.clone(),
+            domain_configs.clone(),
+        ));
 
-    let deposit_account_created =
-        jobs.add_initializer(DepositAccountCreatedEmailInitializer::<Perms>::new(
+    let under_margin_call =
+        jobs.add_initializer(SendUnderMarginCallEmailInitializer::<Perms>::new(
             customers,
             smtp_client.clone(),
             template.clone(),
             domain_configs.clone(),
         ));
 
-    let role_created = jobs.add_initializer(RoleCreatedEmailInitializer::<Perms>::new(
+    let deposit_account_created =
+        jobs.add_initializer(SendDepositAccountCreatedEmailInitializer::<Perms>::new(
+            customers,
+            smtp_client.clone(),
+            template.clone(),
+            domain_configs.clone(),
+        ));
+
+    let role_created = jobs.add_initializer(SendRoleCreatedEmailInitializer::<Perms>::new(
         users,
         smtp_client,
         template,

@@ -15,12 +15,12 @@ use tracing_macros::record_error_severity;
 
 use crate::email::templates::{EmailTemplate, EmailType, PartialLiquidationInitiatedEmailData};
 
-pub const PARTIAL_LIQUIDATION_EMAIL_COMMAND: JobType =
-    JobType::new("command.notification.partial-liquidation-email");
+pub const SEND_PARTIAL_LIQUIDATION_EMAIL_COMMAND: JobType =
+    JobType::new("command.notification.send-partial-liquidation-email");
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct PartialLiquidationEmailConfig {
+pub struct SendPartialLiquidationEmailConfig {
     pub credit_facility_id: CreditFacilityId,
     pub customer_id: CustomerId,
     pub trigger_price: PriceOfOneBTC,
@@ -28,7 +28,7 @@ pub struct PartialLiquidationEmailConfig {
     pub initially_expected_to_receive: UsdCents,
 }
 
-pub struct PartialLiquidationEmailInitializer<Perms>
+pub struct SendPartialLiquidationEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -39,7 +39,7 @@ where
     domain_configs: ExposedDomainConfigsReadOnly,
 }
 
-impl<Perms> PartialLiquidationEmailInitializer<Perms>
+impl<Perms> SendPartialLiquidationEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -60,7 +60,7 @@ where
     }
 }
 
-impl<Perms> JobInitializer for PartialLiquidationEmailInitializer<Perms>
+impl<Perms> JobInitializer for SendPartialLiquidationEmailInitializer<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -69,10 +69,10 @@ where
         From<core_customer::CustomerObject> + From<core_access::CoreAccessObject>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: From<core_access::UserId>,
 {
-    type Config = PartialLiquidationEmailConfig;
+    type Config = SendPartialLiquidationEmailConfig;
 
     fn job_type(&self) -> JobType {
-        PARTIAL_LIQUIDATION_EMAIL_COMMAND
+        SEND_PARTIAL_LIQUIDATION_EMAIL_COMMAND
     }
 
     fn init(
@@ -80,7 +80,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(PartialLiquidationEmailRunner::<Perms> {
+        Ok(Box::new(SendPartialLiquidationEmailRunner::<Perms> {
             config: job.config()?,
             customers: self.customers.clone(),
             users: self.users.clone(),
@@ -91,11 +91,11 @@ where
     }
 }
 
-struct PartialLiquidationEmailRunner<Perms>
+struct SendPartialLiquidationEmailRunner<Perms>
 where
     Perms: PermissionCheck,
 {
-    config: PartialLiquidationEmailConfig,
+    config: SendPartialLiquidationEmailConfig,
     customers: Customers<Perms, LanaEvent>,
     users: Users<Perms::Audit, LanaEvent>,
     smtp_client: SmtpClient,
@@ -104,7 +104,7 @@ where
 }
 
 #[async_trait]
-impl<Perms> JobRunner for PartialLiquidationEmailRunner<Perms>
+impl<Perms> JobRunner for SendPartialLiquidationEmailRunner<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -114,7 +114,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: From<core_access::UserId>,
 {
     #[record_error_severity]
-    #[tracing::instrument(name = "notification.partial_liquidation_email.run", skip_all)]
+    #[tracing::instrument(name = "notification.send_partial_liquidation_email.run", skip_all)]
     async fn run(
         &self,
         _current_job: CurrentJob,
