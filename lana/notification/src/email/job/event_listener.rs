@@ -122,6 +122,7 @@ where
             let credit_facility_id: core_credit::CreditFacilityId = entity.beneficiary_id.into();
             let user_emails = self.list_all_user_emails().await?;
             for email in user_emails {
+                let queue_id = format!("{}:{}", entity.id, email);
                 self.send_obligation_overdue_email
                     .spawn_with_queue_id_in_op(
                         op,
@@ -132,7 +133,7 @@ where
                             outstanding_amount: entity.outstanding_amount,
                             recipient_email: email,
                         },
-                        format!("{}:{}", entity.id, email),
+                        queue_id,
                     )
                     .await?;
             }
@@ -151,6 +152,7 @@ where
 
             let user_emails = self.list_all_user_emails().await?;
             for email in user_emails {
+                let queue_id = format!("{}:{}", entity.id, email);
                 self.send_partial_liquidation_email
                     .spawn_with_queue_id_in_op(
                         op,
@@ -163,7 +165,7 @@ where
                             initially_expected_to_receive: trigger.initially_expected_to_receive,
                             recipient_email: email,
                         },
-                        format!("{}:{}", entity.id, email),
+                        queue_id,
                     )
                     .await?;
             }
@@ -241,6 +243,7 @@ where
 
             let user_emails = self.list_all_user_emails().await?;
             for email in user_emails {
+                let queue_id = format!("{}:{}", entity.id, email);
                 self.send_role_created_email
                     .spawn_with_queue_id_in_op(
                         op,
@@ -250,7 +253,7 @@ where
                             role_name: entity.name.clone(),
                             recipient_email: email,
                         },
-                        format!("{}:{}", entity.id, email),
+                        queue_id,
                     )
                     .await?;
             }
