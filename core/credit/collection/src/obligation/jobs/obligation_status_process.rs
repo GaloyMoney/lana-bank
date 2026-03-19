@@ -9,13 +9,15 @@ use tracing_macros::record_error_severity;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_time_events::CoreTimeEvent;
-use core_time_events::obligation_transition_process::{
-    OBLIGATION_TRANSITION_PROCESS_JOB_TYPE, ObligationTransitionProcessConfig,
+use core_time_events::obligation_status_process::{
+    OBLIGATION_STATUS_PROCESS_JOB_TYPE, ObligationStatusProcessConfig,
 };
 use job::{error::JobError, *};
 use obix::out::{Outbox, OutboxEventMarker};
 
-use super::transition_obligation::{TransitionObligationJobConfig, TransitionObligationJobSpawner};
+use super::evaluate_obligation_status::{
+    EvaluateObligationStatusConfig, EvaluateObligationStatusSpawner,
+};
 use crate::{
     obligation::Obligations,
     primitives::*,
@@ -24,17 +26,17 @@ use crate::{
 
 const PAGE_SIZE: i64 = 100;
 
-pub struct ObligationTransitionProcessInit<Perms, E>
+pub struct ObligationStatusProcessInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     outbox: Outbox<E>,
     obligations: Obligations<Perms, E>,
-    transition_spawner: TransitionObligationJobSpawner<Perms, E>,
+    evaluate_spawner: EvaluateObligationStatusSpawner<Perms, E>,
 }
 
-impl<Perms, E> ObligationTransitionProcessInit<Perms, E>
+impl<Perms, E> ObligationStatusProcessInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
@@ -42,27 +44,27 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         obligations: &Obligations<Perms, E>,
-        transition_spawner: TransitionObligationJobSpawner<Perms, E>,
+        evaluate_spawner: EvaluateObligationStatusSpawner<Perms, E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             obligations: obligations.clone(),
-            transition_spawner,
+            evaluate_spawner,
         }
     }
 }
 
-impl<Perms, E> JobInitializer for ObligationTransitionProcessInit<Perms, E>
+impl<Perms, E> JobInitializer for ObligationStatusProcessInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
 {
-    type Config = ObligationTransitionProcessConfig;
+    type Config = ObligationStatusProcessConfig;
 
     fn job_type(&self) -> JobType {
-        OBLIGATION_TRANSITION_PROCESS_JOB_TYPE
+        OBLIGATION_STATUS_PROCESS_JOB_TYPE
     }
 
     fn init(
@@ -70,32 +72,32 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ObligationTransitionProcessRunner {
+        Ok(Box::new(ObligationStatusProcessRunner {
             config: job.config()?,
             outbox: self.outbox.clone(),
             obligations: self.obligations.clone(),
-            transition_spawner: self.transition_spawner.clone(),
+            evaluate_spawner: self.evaluate_spawner.clone(),
         }))
     }
 }
 
-struct ObligationTransitionProcessRunner<Perms, E>
+struct ObligationStatusProcessRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    config: ObligationTransitionProcessConfig,
+    config: ObligationStatusProcessConfig,
     outbox: Outbox<E>,
     obligations: Obligations<Perms, E>,
-    transition_spawner: TransitionObligationJobSpawner<Perms, E>,
+    evaluate_spawner: EvaluateObligationStatusSpawner<Perms, E>,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-enum ObligationTransitionState {
+enum ObligationStatusState {
     #[default]
-    SpawningTransitionJobs(SpawningTransitionJobsState),
-    AwaitingTransitions {
+    SpawningStatusJobs(SpawningStatusJobsState),
+    AwaitingStatusUpdates {
         pending: HashSet<ObligationId>,
         start_sequence: i64,
     },
@@ -103,7 +105,7 @@ enum ObligationTransitionState {
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct SpawningTransitionJobsState {
+struct SpawningStatusJobsState {
     last_cursor: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
     pending: HashSet<ObligationId>,
     /// Captured once on first entry; reused on crash-restart to avoid
@@ -111,7 +113,7 @@ struct SpawningTransitionJobsState {
     start_sequence: Option<i64>,
 }
 
-impl<Perms, E> ObligationTransitionProcessRunner<Perms, E>
+impl<Perms, E> ObligationStatusProcessRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
@@ -119,12 +121,12 @@ where
     E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
 {
     /// Step 1: Capture the outbox sequence, then query obligations needing
-    /// transition (paginated) and spawn a per-obligation transition job for
-    /// each. Transitions to AwaitingTransitions when all pages are processed.
-    async fn spawn_transition_jobs(
+    /// status evaluation (paginated) and spawn a per-obligation status job for
+    /// each. Transitions to AwaitingStatusUpdates when all pages are processed.
+    async fn spawn_status_jobs(
         &self,
         mut current_job: CurrentJob,
-        mut state: SpawningTransitionJobsState,
+        mut state: SpawningStatusJobsState,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         // Capture sequence ONCE on first entry; reuse the persisted value on
         // crash-restart so we never miss events from fast-finishing children.
@@ -134,7 +136,7 @@ where
                 let seq = self.outbox.current_sequence().await?;
                 state.start_sequence = Some(seq);
                 current_job
-                    .update_execution_state(&ObligationTransitionState::SpawningTransitionJobs(
+                    .update_execution_state(&ObligationStatusState::SpawningStatusJobs(
                         state.clone(),
                     ))
                     .await?;
@@ -164,13 +166,13 @@ where
                 .map(|(id, _)| {
                     let job_id = core_time_events::eod_entity_id(
                         &self.config.date,
-                        "obligation-transition",
+                        "obligation-status",
                         &(*id).into(),
                     );
                     state.pending.insert(*id);
                     JobSpec::new(
                         job_id,
-                        TransitionObligationJobConfig {
+                        EvaluateObligationStatusConfig {
                             obligation_id: *id,
                             day: self.config.date,
                             _phantom: std::marker::PhantomData,
@@ -180,11 +182,7 @@ where
                 })
                 .collect();
 
-            match self
-                .transition_spawner
-                .spawn_all_in_op(&mut op, specs)
-                .await
-            {
+            match self.evaluate_spawner.spawn_all_in_op(&mut op, specs).await {
                 Ok(_) | Err(JobError::DuplicateId(_)) => {}
                 Err(e) => return Err(e.into()),
             }
@@ -193,7 +191,7 @@ where
             current_job
                 .update_execution_state_in_op(
                     &mut op,
-                    &ObligationTransitionState::SpawningTransitionJobs(state.clone()),
+                    &ObligationStatusState::SpawningStatusJobs(state.clone()),
                 )
                 .await?;
             op.commit().await?;
@@ -202,10 +200,10 @@ where
         tracing::info!(
             entities = state.pending.len(),
             start_sequence,
-            "Obligation transition spawning complete, transitioning to awaiting"
+            "Obligation status spawning complete, transitioning to awaiting"
         );
 
-        let new_state = ObligationTransitionState::AwaitingTransitions {
+        let new_state = ObligationStatusState::AwaitingStatusUpdates {
             pending: state.pending,
             start_sequence,
         };
@@ -232,10 +230,10 @@ where
     }
 
     /// Step 2: Stream outbox events from the saved sequence, matching
-    /// obligation transition completion events. Removes completed obligations
+    /// obligation status completion events. Removes completed obligations
     /// from the pending set and checkpoints on each match. Completes when all
-    /// obligations have transitioned.
-    async fn await_transition_events(
+    /// obligations have been evaluated.
+    async fn await_status_events(
         &self,
         mut current_job: CurrentJob,
         mut pending: HashSet<ObligationId>,
@@ -249,7 +247,7 @@ where
         tracing::info!(
             remaining = pending.len(),
             start_sequence,
-            "Streaming outbox events for obligation transition completion"
+            "Streaming outbox events for obligation status completion"
         );
 
         let mut stream = self.outbox.listen_persisted(Some(start_sequence));
@@ -264,7 +262,7 @@ where
                     if let Some(obligation_id) = matched_id {
                         if pending.remove(&obligation_id) {
                             start_sequence = event.sequence;
-                            let state = ObligationTransitionState::AwaitingTransitions {
+                            let state = ObligationStatusState::AwaitingStatusUpdates {
                                 pending: pending.clone(),
                                 start_sequence,
                             };
@@ -272,17 +270,17 @@ where
                         }
                     }
                     if pending.is_empty() {
-                        tracing::info!("All obligation transitions completed");
+                        tracing::info!("All obligation status updates completed");
                         return Ok(JobCompletion::Complete);
                     }
                 }
                 _ = current_job.shutdown_requested() => {
-                    let state = ObligationTransitionState::AwaitingTransitions {
+                    let state = ObligationStatusState::AwaitingStatusUpdates {
                         pending,
                         start_sequence,
                     };
                     current_job.update_execution_state(&state).await?;
-                    tracing::info!("Shutdown requested, rescheduling obligation transition tracking");
+                    tracing::info!("Shutdown requested, rescheduling obligation status tracking");
                     return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
                 }
             }
@@ -291,7 +289,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for ObligationTransitionProcessRunner<Perms, E>
+impl<Perms, E> JobRunner for ObligationStatusProcessRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
@@ -300,7 +298,7 @@ where
 {
     #[record_error_severity]
     #[instrument(
-        name = "eod.obligation-transition-process.run",
+        name = "eod.obligation-status-process.run",
         skip(self, current_job),
         fields(date = %self.config.date)
     )]
@@ -309,18 +307,18 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let state = current_job
-            .execution_state::<ObligationTransitionState>()?
+            .execution_state::<ObligationStatusState>()?
             .unwrap_or_default();
 
         match state {
-            ObligationTransitionState::SpawningTransitionJobs(spawning) => {
-                self.spawn_transition_jobs(current_job, spawning).await
+            ObligationStatusState::SpawningStatusJobs(spawning) => {
+                self.spawn_status_jobs(current_job, spawning).await
             }
-            ObligationTransitionState::AwaitingTransitions {
+            ObligationStatusState::AwaitingStatusUpdates {
                 pending,
                 start_sequence,
             } => {
-                self.await_transition_events(current_job, pending, start_sequence)
+                self.await_status_events(current_job, pending, start_sequence)
                     .await
             }
         }

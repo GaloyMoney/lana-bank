@@ -238,7 +238,7 @@ impl LanaApp {
         )
         .await?;
 
-        let (credit, obligation_transition_spawner, credit_facility_eod_spawner) = Credit::init(
+        let (credit, obligation_status_spawner, credit_facility_eod_spawner) = Credit::init(
             &pool,
             &governance,
             &mut jobs,
@@ -288,7 +288,7 @@ impl LanaApp {
         let eod_pm_spawner = jobs.add_initializer(core_time_events::EodProcessManagerJobInit::new(
             &jobs,
             eod_processes.clone(),
-            obligation_transition_spawner,
+            obligation_status_spawner,
             deposit_activity_spawner,
             credit_facility_eod_spawner,
         ));

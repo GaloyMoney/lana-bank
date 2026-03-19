@@ -41,8 +41,8 @@ use ledger::CollectionLedger;
 pub use ledger::error::CollectionLedgerError;
 
 use obligation::jobs::{
-    obligation_transition::ObligationTransitionProcessInit,
-    transition_obligation::TransitionObligationJobInit,
+    evaluate_obligation_status::EvaluateObligationStatusJobInit,
+    obligation_status_process::ObligationStatusProcessInit,
 };
 
 pub struct CoreCreditCollection<Perms, E>
@@ -103,7 +103,7 @@ where
     ) -> Result<
         (
             Self,
-            core_time_events::obligation_transition_process::ObligationTransitionProcessSpawner,
+            core_time_events::obligation_status_process::ObligationStatusProcessSpawner,
         ),
         CoreCreditCollectionError,
     > {
@@ -120,16 +120,16 @@ where
         );
         let obligations_arc = Arc::new(obligations);
 
-        let transition_spawner =
-            jobs.add_initializer(TransitionObligationJobInit::new(obligations_arc.as_ref()));
+        let evaluate_spawner = jobs.add_initializer(EvaluateObligationStatusJobInit::new(
+            obligations_arc.as_ref(),
+        ));
 
         // EOD child process — spawned by the EOD process manager
-        let obligation_transition_spawner =
-            jobs.add_initializer(ObligationTransitionProcessInit::new(
-                outbox,
-                obligations_arc.as_ref(),
-                transition_spawner,
-            ));
+        let obligation_status_spawner = jobs.add_initializer(ObligationStatusProcessInit::new(
+            outbox,
+            obligations_arc.as_ref(),
+            evaluate_spawner,
+        ));
 
         let payments = Payments::new(pool, authz, ledger_arc, clock, publisher);
         let payments_arc = Arc::new(payments);
@@ -139,7 +139,7 @@ where
                 obligations: obligations_arc,
                 payments: payments_arc,
             },
-            obligation_transition_spawner,
+            obligation_status_spawner,
         ))
     }
 }

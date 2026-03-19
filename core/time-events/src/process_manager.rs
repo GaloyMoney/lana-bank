@@ -18,9 +18,7 @@ use crate::{
         EodPhase, EodProcess, EodProcesses, JobTerminalState, NewEodProcess, error::EodProcessError,
     },
     job_id,
-    obligation_transition_process::{
-        ObligationTransitionProcessConfig, ObligationTransitionProcessSpawner,
-    },
+    obligation_status_process::{ObligationStatusProcessConfig, ObligationStatusProcessSpawner},
     primitives::*,
     public::CoreEodEvent,
 };
@@ -41,7 +39,7 @@ where
 {
     jobs: Jobs,
     eod_processes: EodProcesses<E>,
-    obligation_spawner: ObligationTransitionProcessSpawner,
+    obligation_spawner: ObligationStatusProcessSpawner,
     deposit_spawner: DepositActivityProcessSpawner,
     credit_facility_spawner: CreditFacilityEodProcessSpawner,
 }
@@ -53,7 +51,7 @@ where
     pub fn new(
         jobs: &Jobs,
         eod_processes: EodProcesses<E>,
-        obligation_spawner: ObligationTransitionProcessSpawner,
+        obligation_spawner: ObligationStatusProcessSpawner,
         deposit_spawner: DepositActivityProcessSpawner,
         credit_facility_spawner: CreditFacilityEodProcessSpawner,
     ) -> Self {
@@ -100,7 +98,7 @@ where
     config: EodProcessManagerConfig,
     jobs: Jobs,
     eod_processes: EodProcesses<E>,
-    obligation_spawner: ObligationTransitionProcessSpawner,
+    obligation_spawner: ObligationStatusProcessSpawner,
     deposit_spawner: DepositActivityProcessSpawner,
     credit_facility_spawner: CreditFacilityEodProcessSpawner,
 }
@@ -223,7 +221,7 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let obligation_job = job_id::eod_child_id(&self.config.date, "obligation-transition");
+        let obligation_job = job_id::eod_child_id(&self.config.date, "obligation-status");
         let deposit_job = job_id::eod_child_id(&self.config.date, "deposit-activity");
 
         let mut op = current_job.begin_op().await?;
@@ -235,11 +233,11 @@ where
                 vec![
                     JobSpec::new(
                         obligation_job,
-                        ObligationTransitionProcessConfig {
+                        ObligationStatusProcessConfig {
                             date: self.config.date,
                         },
                     )
-                    .queue_id("eod-obligation-transition".to_string()),
+                    .queue_id("eod-obligation-status".to_string()),
                 ],
             )
             .await

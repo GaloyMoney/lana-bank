@@ -188,7 +188,7 @@ where
     ) -> Result<
         (
             Self,
-            core_time_events::obligation_transition_process::ObligationTransitionProcessSpawner,
+            core_time_events::obligation_status_process::ObligationStatusProcessSpawner,
             core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
         ),
         CoreCreditError,
@@ -213,7 +213,7 @@ where
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
-        let (collections, obligation_transition_spawner) = CoreCreditCollection::init(
+        let (collections, obligation_status_spawner) = CoreCreditCollection::init(
             pool,
             authz_arc.clone(),
             cala,
@@ -386,7 +386,7 @@ where
                 chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
                 public_ids: public_ids_arc,
             },
-            obligation_transition_spawner,
+            obligation_status_spawner,
             credit_facility_eod_spawner,
         ))
     }

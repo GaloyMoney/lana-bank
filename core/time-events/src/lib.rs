@@ -14,7 +14,7 @@ pub mod deposit_activity_process;
 pub mod eod_process;
 pub mod interest_accrual_process;
 mod job_id;
-pub mod obligation_transition_process;
+pub mod obligation_status_process;
 mod primitives;
 mod process_manager;
 pub mod public;

@@ -203,7 +203,7 @@ where
 
         // EOD child process — spawned by the EOD process manager
         let credit_facility_eod_spawner = jobs.add_initializer(
-            jobs::credit_facility_eod::CreditFacilityEodProcessInit::new(
+            jobs::credit_facility_eod_process::CreditFacilityEodProcessInit::new(
                 jobs,
                 repo.clone(),
                 interest_accrual_process_spawner,
