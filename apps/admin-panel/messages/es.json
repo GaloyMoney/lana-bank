@@ -136,7 +136,8 @@
       "advanceToNextEndOfDay": "Avanzar al próximo fin de día",
       "advanceSuccess": "El tiempo avanzó al próximo fin de día",
       "advanceError": "No se pudo avanzar el tiempo",
-      "advanceErrorWithReason": "No se pudo avanzar el tiempo: {error}"
+      "advanceErrorWithReason": "No se pudo avanzar el tiempo: {error}",
+      "eodStatus": "Estado EOD"
     },
     "notification-email-from-email": {
       "title": "Correo del remitente de notificaciones",
