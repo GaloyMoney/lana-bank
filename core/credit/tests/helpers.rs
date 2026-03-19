@@ -614,6 +614,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
 

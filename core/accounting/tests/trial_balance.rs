@@ -21,6 +21,7 @@ async fn atomic_import_adds_accounts_to_trial_balance() -> anyhow::Result<()> {
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();

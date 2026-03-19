@@ -230,6 +230,7 @@ async fn setup_test() -> anyhow::Result<Test> {
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();

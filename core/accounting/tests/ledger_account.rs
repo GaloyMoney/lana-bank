@@ -21,6 +21,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
@@ -176,6 +177,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
@@ -299,6 +301,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();

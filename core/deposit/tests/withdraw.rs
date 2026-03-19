@@ -31,6 +31,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let mut jobs = job::Jobs::init(

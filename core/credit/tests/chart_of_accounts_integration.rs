@@ -101,6 +101,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
 
