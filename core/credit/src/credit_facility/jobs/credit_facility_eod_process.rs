@@ -186,17 +186,9 @@ where
                     })
                     .collect();
 
-                match self
-                    .interest_accrual_process_spawner
+                self.interest_accrual_process_spawner
                     .spawn_all_in_op(&mut op, specs)
-                    .await
-                {
-                    Ok(_) => {}
-                    Err(job::error::JobError::DuplicateId(_)) => {
-                        op = current_job.begin_op().await?;
-                    }
-                    Err(e) => return Err(e.into()),
-                }
+                    .await?;
 
                 state.accrual_cursor = rows.last().map(|(id, ts)| (*ts, *id));
                 current_job
@@ -242,13 +234,9 @@ where
                 })
                 .collect();
 
-            match self.maturity_spawner.spawn_all_in_op(&mut op, specs).await {
-                Ok(_) => {}
-                Err(job::error::JobError::DuplicateId(_)) => {
-                    op = current_job.begin_op().await?;
-                }
-                Err(e) => return Err(e.into()),
-            }
+            self.maturity_spawner
+                .spawn_all_in_op(&mut op, specs)
+                .await?;
 
             state.maturity_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job

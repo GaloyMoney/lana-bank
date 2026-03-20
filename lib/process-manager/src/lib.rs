@@ -15,7 +15,7 @@ use std::hash::Hash;
 use futures::StreamExt;
 use serde::{Serialize, de::DeserializeOwned};
 
-use job::{error::JobError, *};
+use job::*;
 use obix::{
     EventSequence,
     out::{Outbox, OutboxEventMarker},
@@ -59,13 +59,7 @@ where
 {
     let mut op = current_job.begin_op().await?;
 
-    match spawner.spawn_all_in_op(&mut op, specs).await {
-        Ok(_) => {}
-        Err(JobError::DuplicateId(_)) => {
-            op = current_job.begin_op().await?;
-        }
-        Err(e) => return Err(e.into()),
-    }
+    spawner.spawn_all_in_op(&mut op, specs).await?;
 
     let new_state = state_update_fn(start_sequence);
     current_job

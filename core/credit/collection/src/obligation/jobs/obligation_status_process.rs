@@ -183,13 +183,9 @@ where
                 })
                 .collect();
 
-            match self.evaluate_spawner.spawn_all_in_op(&mut op, specs).await {
-                Ok(_) => {}
-                Err(job::error::JobError::DuplicateId(_)) => {
-                    op = current_job.begin_op().await?;
-                }
-                Err(e) => return Err(e.into()),
-            }
+            self.evaluate_spawner
+                .spawn_all_in_op(&mut op, specs)
+                .await?;
 
             state.last_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
