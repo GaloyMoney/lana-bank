@@ -236,6 +236,7 @@ where
                 tracing::Span::current().record("credit_facility_id", facility.id.to_string());
 
                 if facility.status() == CreditFacilityStatus::Closed {
+                    all_fully_collateralized = false;
                     continue;
                 }
                 let collateral_account_id = self

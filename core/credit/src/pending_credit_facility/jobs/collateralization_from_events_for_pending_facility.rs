@@ -198,6 +198,7 @@ where
                 );
 
                 if pending_facility.status() == PendingCreditFacilityStatus::Completed {
+                    all_fully_collateralized = false;
                     continue;
                 }
                 let collateral_account_id = self
