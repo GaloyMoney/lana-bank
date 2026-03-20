@@ -4,7 +4,7 @@ use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_credit::*;
-use core_time_events::CoreTimeEvent;
+use core_time_events::{CoreTimeEvent, EodProcessId, EodProcessStatus, PublicEodProcess};
 use document_storage::DocumentStorage;
 use es_entity::DbOp;
 use es_entity::clock::{ClockController, ClockHandle};
@@ -21,7 +21,7 @@ async fn cleanup_stale_accrual_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
     sqlx::query(
         "DELETE FROM job_executions
          WHERE state = 'pending'
-           AND job_type IN ('task.process-accrual-cycle', 'task.collect-facilities-for-accrual')",
+           AND job_type IN ('task.process-accrual-cycle')",
     )
     .execute(pool)
     .await?;
@@ -133,7 +133,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
         clock.clone(),
     );
 
-    let credit = CoreCredit::init(
+    let credit_init = CoreCredit::init(
         &pool,
         &governance,
         &mut jobs,
@@ -149,6 +149,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
         &internal_domain_configs,
     )
     .await?;
+    let credit = credit_init.service;
 
     let deposit_public_ids = PublicIds::new(&pool);
     let deposit = core_deposit::CoreDeposit::init(
@@ -310,8 +311,8 @@ async fn create_active_facility_with_clock(
 /// `AccrualPosted` is published when an interest accrual cycle completes.
 ///
 /// # Trigger
-/// `ProcessAccrualCycleJobRunner::complete_cycle`
-/// (the final state in the AccruePeriod → AwaitObligationsSync → CompleteCycle machine)
+/// `CompleteAccrualCycleCommandRunner::run`
+/// (via InterestAccrualProcess → CompleteAccrualCycleCommand)
 ///
 /// # Consumers
 /// - `History::process_credit_event` - records accrual posting
@@ -336,7 +337,7 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
     let facility_id = state.facility_id;
 
     // Advance the clock day-by-day, publishing EndOfDay events to trigger the
-    // accrual pipeline: EndOfDay → CollectFacilitiesForAccrual → ProcessAccrualCycle
+    // accrual pipeline: EndOfDay → EodProcessManager → CreditFacilityEodJob → InterestAccrualProcess
     let recorded = tokio::time::timeout(Duration::from_secs(60), async {
         let mut current_day = chrono::Utc::now().date_naive();
         loop {
@@ -357,9 +358,11 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
                         .publish_persisted_in_op(
                             &mut op,
                             CoreTimeEvent::EndOfDay {
-                                day: current_day,
-                                closing_time: chrono::Utc::now(),
-                                timezone: chrono_tz::UTC,
+                                entity: PublicEodProcess {
+                                    id: EodProcessId::new(),
+                                    date: current_day,
+                                    status: EodProcessStatus::Initialized,
+                                },
                             },
                         )
                         .await

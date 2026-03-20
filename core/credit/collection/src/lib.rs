@@ -14,9 +14,8 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_time_events::CoreTimeEvent;
 use es_entity::clock::ClockHandle;
-use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 
 pub use error::CoreCreditCollectionError;
 pub use obligation::{
@@ -41,10 +40,19 @@ use ledger::CollectionLedger;
 pub use ledger::error::CollectionLedgerError;
 
 use obligation::jobs::{
-    end_of_day::{OBLIGATION_END_OF_DAY, ObligationEndOfDayHandler},
-    process_obligations::ProcessObligationsJobInit,
-    transition_obligation::TransitionObligationJobInit,
+    evaluate_obligation_status::EvaluateObligationStatusJobInit,
+    obligation_status_process::ObligationStatusProcessInit,
 };
+
+pub struct CoreCreditCollectionComponents<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
+{
+    pub service: CoreCreditCollection<Perms, E>,
+    pub obligation_status_spawner:
+        core_time_events::obligation_status_process::ObligationStatusProcessSpawner,
+}
 
 pub struct CoreCreditCollection<Perms, E>
 where
@@ -89,7 +97,7 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -98,10 +106,10 @@ where
         journal_id: cala_ledger::JournalId,
         payments_made_omnibus_account_id: CalaAccountId,
         jobs: &mut job::Jobs,
-        publisher: &CollectionPublisher<E>,
         outbox: &Outbox<E>,
+        publisher: &CollectionPublisher<E>,
         clock: ClockHandle,
-    ) -> Result<Self, CoreCreditCollectionError> {
+    ) -> Result<CoreCreditCollectionComponents<Perms, E>, CoreCreditCollectionError> {
         let ledger =
             CollectionLedger::init(cala, journal_id, payments_made_omnibus_account_id).await?;
         let ledger_arc = Arc::new(ledger);
@@ -115,28 +123,26 @@ where
         );
         let obligations_arc = Arc::new(obligations);
 
-        let transition_spawner =
-            jobs.add_initializer(TransitionObligationJobInit::new(obligations_arc.as_ref()));
-
-        let process_obligations_spawner = jobs.add_initializer(ProcessObligationsJobInit::new(
+        let evaluate_spawner = jobs.add_initializer(EvaluateObligationStatusJobInit::new(
             obligations_arc.as_ref(),
-            transition_spawner,
         ));
 
-        outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(OBLIGATION_END_OF_DAY),
-                ObligationEndOfDayHandler::new(process_obligations_spawner),
-            )
-            .await?;
+        // EOD child process — spawned by the EOD process manager
+        let obligation_status_spawner = jobs.add_initializer(ObligationStatusProcessInit::new(
+            outbox,
+            obligations_arc.as_ref(),
+            evaluate_spawner,
+        ));
 
         let payments = Payments::new(pool, authz, ledger_arc, clock, publisher);
         let payments_arc = Arc::new(payments);
 
-        Ok(Self {
-            obligations: obligations_arc,
-            payments: payments_arc,
+        Ok(CoreCreditCollectionComponents {
+            service: Self {
+                obligations: obligations_arc,
+                payments: payments_arc,
+            },
+            obligation_status_spawner,
         })
     }
 }

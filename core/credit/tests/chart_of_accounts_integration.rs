@@ -126,7 +126,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &exposed_domain_configs,
         clock.clone(),
     );
-    let credit = CoreCredit::init(
+    let credit_init = CoreCredit::init(
         &pool,
         &governance,
         &mut jobs,
@@ -142,6 +142,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &internal_domain_configs,
     )
     .await?;
+    let credit = credit_init.service;
 
     let accounting_document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
     let accounting = CoreAccounting::new(

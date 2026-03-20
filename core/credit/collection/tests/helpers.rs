@@ -119,18 +119,19 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     .await?;
 
     let publisher = CollectionPublisher::new(&outbox);
-    let collections = CoreCreditCollection::init(
+    let collection_init = CoreCreditCollection::init(
         &pool,
         Arc::new(authz),
         &cala,
         journal_id,
         accounts.payments_made_omnibus,
         &mut jobs,
-        &publisher,
         &outbox,
+        &publisher,
         clock.clone(),
     )
     .await?;
+    let collections = collection_init.service;
 
     Ok(TestContext {
         pool,

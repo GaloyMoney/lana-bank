@@ -4,16 +4,16 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_time_events::CoreTimeEvent;
 use job::*;
 use obix::out::OutboxEventMarker;
 
 use crate::{obligation::Obligations, primitives::*, public::CoreCreditCollectionEvent};
 
-const TRANSITION_OBLIGATION_JOB: JobType = JobType::new("task.transition-obligation");
+const EVALUATE_OBLIGATION_STATUS_COMMAND: JobType =
+    JobType::new("command.eod.evaluate-obligation-status");
 
 #[derive(Serialize, Deserialize)]
-pub struct TransitionObligationJobConfig<Perms, E>
+pub struct EvaluateObligationStatusConfig<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
@@ -23,7 +23,7 @@ where
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> Clone for TransitionObligationJobConfig<Perms, E>
+impl<Perms, E> Clone for EvaluateObligationStatusConfig<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
@@ -37,7 +37,7 @@ where
     }
 }
 
-pub struct TransitionObligationJobInit<Perms, E>
+pub struct EvaluateObligationStatusJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
@@ -45,7 +45,7 @@ where
     obligations: Obligations<Perms, E>,
 }
 
-impl<Perms, E> TransitionObligationJobInit<Perms, E>
+impl<Perms, E> EvaluateObligationStatusJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
@@ -57,17 +57,17 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for TransitionObligationJobInit<Perms, E>
+impl<Perms, E> JobInitializer for EvaluateObligationStatusJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    type Config = TransitionObligationJobConfig<Perms, E>;
+    type Config = EvaluateObligationStatusConfig<Perms, E>;
 
     fn job_type(&self) -> JobType {
-        TRANSITION_OBLIGATION_JOB
+        EVALUATE_OBLIGATION_STATUS_COMMAND
     }
 
     fn init(
@@ -75,32 +75,32 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(TransitionObligationJobRunner {
+        Ok(Box::new(EvaluateObligationStatusJobRunner {
             config: job.config()?,
             obligations: self.obligations.clone(),
         }))
     }
 }
 
-pub struct TransitionObligationJobRunner<Perms, E>
+pub struct EvaluateObligationStatusJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    config: TransitionObligationJobConfig<Perms, E>,
+    config: EvaluateObligationStatusConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for TransitionObligationJobRunner<Perms, E>
+impl<Perms, E> JobRunner for EvaluateObligationStatusJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     #[instrument(
-        name = "collection.obligation.transition_obligation_job",
+        name = "collection.obligation.evaluate_obligation_status",
         skip(self, current_job),
         fields(obligation_id = %self.config.obligation_id, day = %self.config.day)
     )]
@@ -116,5 +116,5 @@ where
     }
 }
 
-pub type TransitionObligationJobSpawner<Perms, E> =
-    JobSpawner<TransitionObligationJobConfig<Perms, E>>;
+pub type EvaluateObligationStatusSpawner<Perms, E> =
+    JobSpawner<EvaluateObligationStatusConfig<Perms, E>>;

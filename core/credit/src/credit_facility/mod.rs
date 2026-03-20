@@ -48,6 +48,21 @@ pub use repo::{
     credit_facility_cursor::*,
 };
 
+pub struct CreditFacilitiesComponents<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
+{
+    pub service: CreditFacilities<Perms, E>,
+    pub credit_facility_eod_spawner:
+        core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
+}
+
 pub struct CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
@@ -138,10 +153,7 @@ where
         outbox: &Outbox<E>,
         clock: ClockHandle,
         collaterals: Arc<core_credit_collateral::Collaterals<Perms, E>>,
-    ) -> Result<Self, CreditFacilityError>
-    where
-        E: OutboxEventMarker<core_time_events::CoreTimeEvent>,
-    {
+    ) -> Result<CreditFacilitiesComponents<Perms, E>, CreditFacilityError> {
         let repo = Arc::new(CreditFacilityRepo::new(pool, publisher, clock.clone()));
 
         let update_collateralization_spawner = jobs.add_initializer(
@@ -177,42 +189,43 @@ where
             jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo.clone()),
         );
 
-        let process_accrual_cycle_spawner =
-            jobs.add_initializer(jobs::process_accrual_cycle::ProcessAccrualCycleJobInit::<
+        let accrue_interest_spawner =
+            jobs.add_initializer(jobs::accrue_interest_command::AccrueInterestCommandInit::<
                 Perms,
                 E,
             >::new(
                 ledger.clone(),
-                collections.clone(),
                 repo.clone(),
                 collaterals.clone(),
                 authz.clone(),
             ));
 
-        let collect_facilities_for_accrual_spawner = jobs.add_initializer(
-            jobs::collect_facilities_for_accrual::CollectFacilitiesForAccrualJobInit::new(
-                repo.as_ref(),
-                process_accrual_cycle_spawner,
-            ),
-        );
-
-        let process_facility_maturities_spawner = jobs.add_initializer(
-            jobs::process_facility_maturities::ProcessFacilityMaturitiesJobInit::new(
+        let complete_accrual_cycle_spawner = jobs.add_initializer(
+            jobs::complete_accrual_cycle_command::CompleteAccrualCycleCommandInit::<Perms, E>::new(
+                ledger.clone(),
+                collections.clone(),
                 repo.clone(),
-                maturity_spawner.clone(),
+                authz.clone(),
             ),
         );
 
-        outbox
-            .register_event_handler(
+        let interest_accrual_process_spawner = jobs.add_initializer(
+            jobs::interest_accrual_process::InterestAccrualProcessInit::new(
+                outbox,
+                accrue_interest_spawner,
+                complete_accrual_cycle_spawner,
+            ),
+        );
+
+        // EOD child process — spawned by the EOD process manager
+        let credit_facility_eod_spawner = jobs.add_initializer(
+            jobs::credit_facility_eod_process::CreditFacilityEodProcessInit::new(
                 jobs,
-                OutboxEventJobConfig::new(jobs::end_of_day::FACILITY_END_OF_DAY),
-                jobs::end_of_day::FacilityEndOfDayHandler::new(
-                    collect_facilities_for_accrual_spawner,
-                    process_facility_maturities_spawner,
-                ),
-            )
-            .await?;
+                repo.clone(),
+                interest_accrual_process_spawner,
+                maturity_spawner,
+            ),
+        );
 
         let record_liquidation_started_spawner = jobs.add_initializer(
             jobs::record_liquidation_started::RecordLiquidationStartedJobInitializer::new(
@@ -242,18 +255,21 @@ where
             )
             .await?;
 
-        Ok(Self {
-            repo,
-            collaterals,
-            collections,
-            pending_credit_facilities,
-            disbursals,
-            authz,
-            ledger,
-            price,
-            governance,
-            public_ids,
-            clock,
+        Ok(CreditFacilitiesComponents {
+            service: Self {
+                repo,
+                collaterals,
+                collections,
+                pending_credit_facilities,
+                disbursals,
+                authz,
+                ledger,
+                price,
+                governance,
+                public_ids,
+                clock,
+            },
+            credit_facility_eod_spawner,
         })
     }
 

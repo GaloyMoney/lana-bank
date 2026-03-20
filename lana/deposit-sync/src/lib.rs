@@ -15,19 +15,31 @@ use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
 };
-use core_time_events::CoreTimeEvent;
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use sumsub::SumsubClient;
 use tracing_macros::record_error_severity;
 
+pub struct DepositSyncComponents<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<LanaEvent>
+        + std::fmt::Debug,
+{
+    pub service: DepositSync<Perms, E>,
+    pub deposit_activity_spawner:
+        core_time_events::deposit_activity_process::DepositActivityProcessSpawner,
+}
+
 pub struct DepositSync<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreTimeEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -41,7 +53,6 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreTimeEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -63,7 +74,6 @@ where
         From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreTimeEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -76,21 +86,16 @@ where
         deposits: &CoreDeposit<Perms, E>,
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
-    ) -> Result<Self, DepositSyncError> {
+    ) -> Result<DepositSyncComponents<Perms, E>, DepositSyncError> {
         let evaluate_spawner =
             jobs.add_initializer(EvaluateDepositAccountActivityJobInit::new(deposits));
 
-        let collect_spawner = jobs.add_initializer(
-            CollectAccountsForActivityEvaluationJobInit::new(deposits, evaluate_spawner),
-        );
-
-        outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(DEPOSIT_END_OF_DAY),
-                DepositEndOfDayHandler::new(collect_spawner),
-            )
-            .await?;
+        // EOD child process — spawned by the EOD process manager
+        let deposit_activity_spawner = jobs.add_initializer(DepositActivityProcessInit::new(
+            jobs,
+            deposits,
+            evaluate_spawner,
+        ));
 
         let export_sumsub_deposit_spawner = jobs.add_initializer(
             ExportSumsubDepositJobInitializer::new(sumsub_client.clone(), deposits, customers),
@@ -111,9 +116,12 @@ where
             )
             .await?;
 
-        Ok(Self {
-            _phantom: std::marker::PhantomData,
-            _outbox: outbox.clone(),
+        Ok(DepositSyncComponents {
+            service: Self {
+                _phantom: std::marker::PhantomData,
+                _outbox: outbox.clone(),
+            },
+            deposit_activity_spawner,
         })
     }
 }

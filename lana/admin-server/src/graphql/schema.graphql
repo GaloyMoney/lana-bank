@@ -1579,6 +1579,15 @@ input DurationInput {
 	units: Int!
 }
 
+enum EodProcessStatus {
+	AWAITING_CREDIT_FACILITY_EOD
+	AWAITING_OBLIGATIONS_AND_DEPOSITS
+	COMPLETED
+	FAILED
+	INITIALIZED
+	OBLIGATIONS_AND_DEPOSITS_COMPLETE
+}
+
 type EventTimelineEntry {
 	auditEntryId: AuditEntryId
 	eventType: String!
@@ -2924,6 +2933,10 @@ type Time {
 	Configured end-of-day time in HH:MM:SS format.
 	"""
 	endOfDayTime: String!
+	"""
+	Current status of the most recent end-of-day process, if any.
+	"""
+	eodStatus: EodProcessStatus
 	"""
 	Timestamp when the next end-of-day boundary will be reached.
 	"""

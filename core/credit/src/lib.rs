@@ -28,7 +28,6 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::{CorePriceEvent, Price};
-use core_time_events::CoreTimeEvent;
 use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -76,6 +75,24 @@ pub mod event_schema {
     };
 
     pub use core_credit_collateral::{CollateralEvent, LiquidationEvent};
+}
+
+pub struct CoreCreditComponents<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
+{
+    pub service: CoreCredit<Perms, E>,
+    pub obligation_status_spawner:
+        core_time_events::obligation_status_process::ObligationStatusProcessSpawner,
+    pub credit_facility_eod_spawner:
+        core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
 }
 
 pub struct CoreCredit<Perms, E>
@@ -185,16 +202,12 @@ where
         public_ids: &PublicIds,
         domain_configs: &ExposedDomainConfigsReadOnly,
         internal_domain_configs: &InternalDomainConfigs,
-    ) -> Result<Self, CoreCreditError>
-    where
-        E: OutboxEventMarker<CoreTimeEvent>,
-    {
+    ) -> Result<CoreCreditComponents<Perms, E>, CoreCreditError> {
         let clock = jobs.clock().clone();
 
         // Create Arc-wrapped versions of parameters once
         let authz_arc = Arc::new(authz.clone());
         let governance_arc = Arc::new(governance.clone());
-        // let jobs_arc = Arc::new(jobs.clone());
         let price_arc = Arc::new(price.clone());
         let public_ids_arc = Arc::new(public_ids.clone());
         let customer_arc = Arc::new(customer.clone());
@@ -207,19 +220,20 @@ where
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
-        let collections = CoreCreditCollection::init(
+        let collection_init = CoreCreditCollection::init(
             pool,
             authz_arc.clone(),
             cala,
             journal_id,
             ledger_arc.payments_made_omnibus_account_ids().account_id,
             jobs,
-            &collections_publisher,
             outbox,
+            &collections_publisher,
             clock.clone(),
         )
         .await?;
-        let collections_arc = Arc::new(collections);
+        let obligation_status_spawner = collection_init.obligation_status_spawner;
+        let collections_arc = Arc::new(collection_init.service);
 
         let credit_facility_proposals = CreditFacilityProposals::init(
             pool,
@@ -273,7 +287,7 @@ where
         .await?;
         let disbursals_arc = Arc::new(disbursals);
 
-        let credit_facilities = CreditFacilities::init(
+        let facilities_init = CreditFacilities::init(
             pool,
             authz_arc.clone(),
             collections_arc.clone(),
@@ -290,7 +304,8 @@ where
             collaterals_arc.clone(),
         )
         .await?;
-        let facilities_arc = Arc::new(credit_facilities);
+        let credit_facility_eod_spawner = facilities_init.credit_facility_eod_spawner;
+        let facilities_arc = Arc::new(facilities_init.service);
 
         let histories_arc = Arc::new(Histories::init(pool, outbox, jobs, authz_arc.clone()).await?);
 
@@ -358,26 +373,30 @@ where
             )
             .await?;
 
-        Ok(Self {
-            clock,
-            authz: authz_arc,
-            customer: customer_arc,
-            credit_facility_proposals: proposals_arc,
-            pending_credit_facilities: pending_credit_facilities_arc,
-            facilities: facilities_arc,
-            collections: collections_arc,
-            collaterals: collaterals_arc,
-            custody: custody_arc,
-            disbursals: disbursals_arc,
-            histories: histories_arc,
-            repayment_plans: repayment_plans_arc,
-            governance: governance_arc,
-            ledger: ledger_arc,
-            price: price_arc,
-            domain_configs: domain_configs.clone(),
-            cala: cala_arc,
-            chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
-            public_ids: public_ids_arc,
+        Ok(CoreCreditComponents {
+            service: Self {
+                clock,
+                authz: authz_arc,
+                customer: customer_arc,
+                credit_facility_proposals: proposals_arc,
+                pending_credit_facilities: pending_credit_facilities_arc,
+                facilities: facilities_arc,
+                collections: collections_arc,
+                collaterals: collaterals_arc,
+                custody: custody_arc,
+                disbursals: disbursals_arc,
+                histories: histories_arc,
+                repayment_plans: repayment_plans_arc,
+                governance: governance_arc,
+                ledger: ledger_arc,
+                price: price_arc,
+                domain_configs: domain_configs.clone(),
+                cala: cala_arc,
+                chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
+                public_ids: public_ids_arc,
+            },
+            obligation_status_spawner,
+            credit_facility_eod_spawner,
         })
     }
 

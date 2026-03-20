@@ -40,7 +40,7 @@ pub async fn cleanup_stale_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
     sqlx::query(
         "DELETE FROM job_executions
          WHERE state = 'pending'
-           AND job_type IN ('task.process-accrual-cycle', 'task.collect-facilities-for-accrual', 'task.credit-facility-maturity', 'task.process-facility-maturities')",
+           AND job_type IN ('task.process-accrual-cycle', 'task.credit-facility-maturity')",
     )
     .execute(pool)
     .await?;
@@ -638,7 +638,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         clock.clone(),
     );
 
-    let credit = CoreCredit::init(
+    let credit_init = CoreCredit::init(
         &pool,
         &governance,
         &mut jobs,
@@ -654,6 +654,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         &internal_domain_configs,
     )
     .await?;
+    let credit = credit_init.service;
 
     let deposit_public_ids = PublicIds::new(&pool);
     let deposit = core_deposit::CoreDeposit::init(

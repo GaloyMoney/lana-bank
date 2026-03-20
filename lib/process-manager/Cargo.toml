@@ -1,0 +1,15 @@
+[package]
+name = "process-manager"
+license = "BUSL-1.1"
+edition = "2024"
+
+[dependencies]
+futures.workspace = true
+job.workspace = true
+obix.workspace = true
+serde.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+
+[features]
+fail-on-warnings = []

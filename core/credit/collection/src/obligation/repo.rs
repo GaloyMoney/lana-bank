@@ -81,8 +81,9 @@ where
             .await
     }
 
-    pub async fn list_ids_needing_transition(
+    pub async fn list_ids_needing_transition_in_op(
         &self,
+        op: &mut es_entity::DbOp<'_>,
         day: chrono::NaiveDate,
         after: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
         limit: i64,
@@ -104,7 +105,7 @@ where
             after_id as Option<ObligationId>,
             limit,
         )
-        .fetch_all(self.pool())
+        .fetch_all(op.as_executor())
         .await?;
         Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }

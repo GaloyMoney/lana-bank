@@ -6,13 +6,26 @@ pub mod error;
 mod event;
 mod jobs;
 
+// --- Modules merged from core-eod ---
+pub mod accrue_interest_command;
+pub mod complete_accrual_cycle_command;
+pub mod credit_facility_eod_process;
+pub mod deposit_activity_process;
+pub mod eod_process;
+pub mod interest_accrual_process;
+pub mod obligation_status_process;
+mod primitives;
+mod process_manager;
+pub mod public;
+mod publisher;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
 use chrono_tz::Tz;
 use domain_config::{DomainConfigAction, DomainConfigObject, ExposedDomainConfigsReadOnly};
 use es_entity::clock::{ClockController, ClockHandle};
-use obix::{Outbox, out::OutboxEventMarker};
+use obix::out::OutboxEventMarker;
 use std::{sync::Arc, time::Duration};
 use tokio::sync::Mutex;
 use tracing_macros::record_error_severity;
@@ -26,6 +39,16 @@ use crate::{
 pub use closing_schedule::ClosingSchedule;
 pub use event::*;
 
+// --- Re-exports merged from core-eod ---
+pub use eod_process::{EodProcess, EodProcessEvent, EodProcesses, NewEodProcess};
+pub use primitives::*;
+pub use process_manager::{
+    EOD_PROCESS_MANAGER_JOB, EodProcessManagerConfig, EodProcessManagerJobInit,
+    EodProcessManagerJobSpawner,
+};
+pub use public::*;
+pub use publisher::EodPublisher;
+
 #[derive(Clone, Debug)]
 pub struct TimeState {
     pub current_date: NaiveDate,
@@ -34,48 +57,61 @@ pub struct TimeState {
     pub timezone: Tz,
     pub end_of_day_time: NaiveTime,
     pub can_advance_to_next_end_of_day: bool,
+    pub eod_status: Option<EodProcessStatus>,
 }
 
-#[derive(Clone)]
-pub struct TimeEvents<Perms>
+pub struct TimeEvents<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     authz: Perms,
     clock: ClockHandle,
     clock_controller: Option<ClockController>,
     manual_advance_guard: Arc<Mutex<()>>,
     domain_configs: ExposedDomainConfigsReadOnly,
+    eod_processes: EodProcesses<E>,
 }
 
-impl<Perms> TimeEvents<Perms>
+impl<Perms, E> Clone for TimeEvents<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreTimeEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            clock: self.clock.clone(),
+            clock_controller: self.clock_controller.clone(),
+            manual_advance_guard: self.manual_advance_guard.clone(),
+            domain_configs: self.domain_configs.clone(),
+            eod_processes: self.eod_processes.clone(),
+        }
+    }
+}
+
+impl<Perms, E> TimeEvents<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreTimeEvent>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
 {
     #[record_error_severity]
     #[tracing::instrument(name = "core_time_events.init", skip_all)]
-    pub async fn init<E>(
+    pub async fn init(
         authz: &Perms,
         domain_configs: &ExposedDomainConfigsReadOnly,
         jobs: &mut job::Jobs,
-        outbox: &Outbox<E>,
+        pm_spawner: &EodProcessManagerJobSpawner,
         clock: &ClockHandle,
         clock_controller: Option<ClockController>,
-    ) -> Result<Self, TimeEventsError>
-    where
-        E: OutboxEventMarker<CoreTimeEvent>,
-    {
+        eod_processes: &EodProcesses<E>,
+    ) -> Result<Self, TimeEventsError> {
         let end_of_day_producer_job_spawner =
-            jobs.add_initializer(EndOfDayProducerJobInit::new(outbox, domain_configs));
+            jobs.add_initializer(EndOfDayProducerJobInit::new(pm_spawner, domain_configs));
         end_of_day_producer_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                EndOfDayProducerJobConfig {
-                    _phantom: std::marker::PhantomData,
-                },
-            )
+            .spawn_unique(job::JobId::new(), EndOfDayProducerJobConfig {})
             .await?;
 
         Ok(Self {
@@ -84,6 +120,7 @@ where
             clock_controller,
             manual_advance_guard: Arc::new(Mutex::new(())),
             domain_configs: domain_configs.clone(),
+            eod_processes: eod_processes.clone(),
         })
     }
 
@@ -128,9 +165,14 @@ where
 
         // Serialize manual clock advancement so concurrent requests cannot
         // compute the same target and double-advance the shared clock.
-        // FIXME: The long-term fix is to reject another move-to-next-day request
-        // until all processing for the current EOD has completed.
         let _manual_advance_guard = self.manual_advance_guard.lock().await;
+
+        // Reject advance if an EOD process is still running
+        if let Some(latest) = self.eod_processes.find_latest().await?
+            && latest.status().is_in_progress()
+        {
+            return Err(TimeEventsError::EodProcessInProgress);
+        }
 
         let before = self.state_inner().await?;
         tracing::Span::current().record(
@@ -173,6 +215,8 @@ where
             .value();
         let schedule = ClosingSchedule::from_time(timezone, closing_time, current_time);
 
+        let eod_status = self.eod_processes.find_latest().await?.map(|p| p.status());
+
         Ok(TimeState {
             current_date: schedule.current_day(),
             current_time,
@@ -180,6 +224,7 @@ where
             timezone,
             end_of_day_time: closing_time,
             can_advance_to_next_end_of_day: self.clock_controller.is_some(),
+            eod_status,
         })
     }
 }

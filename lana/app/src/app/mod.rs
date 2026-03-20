@@ -152,15 +152,6 @@ impl LanaApp {
         let reports =
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
         let core_price = CorePrice::init(&pool, &authz, &mut jobs, &outbox, clock.clone()).await?;
-        let time_events = TimeEvents::init(
-            &authz,
-            &exposed_domain_configs_readonly,
-            &mut jobs,
-            &outbox,
-            &clock,
-            clock_controller,
-        )
-        .await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
         let public_ids = PublicIds::new(&pool);
 
@@ -227,7 +218,7 @@ impl LanaApp {
         )
         .await?;
 
-        let deposit_sync = DepositSync::init(
+        let deposit_sync_init = DepositSync::init(
             &mut jobs,
             &outbox,
             &deposits,
@@ -235,6 +226,8 @@ impl LanaApp {
             customer_kyc.sumsub_client().clone(),
         )
         .await?;
+        let deposit_activity_spawner = deposit_sync_init.deposit_activity_spawner;
+        let deposit_sync = deposit_sync_init.service;
 
         let custody = Custody::init(
             &pool,
@@ -247,7 +240,7 @@ impl LanaApp {
         )
         .await?;
 
-        let credit = Credit::init(
+        let credit_init = Credit::init(
             &pool,
             &governance,
             &mut jobs,
@@ -263,6 +256,9 @@ impl LanaApp {
             &internal_domain_configs,
         )
         .await?;
+        let obligation_status_spawner = credit_init.obligation_status_spawner;
+        let credit_facility_eod_spawner = credit_init.credit_facility_eod_spawner;
+        let credit = credit_init.service;
 
         let terms_templates =
             TermsTemplates::new(&pool, std::sync::Arc::new(authz.clone()), clock.clone());
@@ -289,6 +285,29 @@ impl LanaApp {
 
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
             .await?;
+
+        // Wire EOD process manager
+        let eod_publisher = core_time_events::EodPublisher::new(&outbox);
+        let eod_processes =
+            core_time_events::EodProcesses::new(&pool, &eod_publisher, clock.clone());
+        let eod_pm_spawner = jobs.add_initializer(core_time_events::EodProcessManagerJobInit::new(
+            &jobs,
+            eod_processes.clone(),
+            obligation_status_spawner,
+            deposit_activity_spawner,
+            credit_facility_eod_spawner,
+        ));
+
+        let time_events = TimeEvents::init(
+            &authz,
+            &exposed_domain_configs_readonly,
+            &mut jobs,
+            &eod_pm_spawner,
+            &clock,
+            clock_controller,
+            &eod_processes,
+        )
+        .await?;
 
         jobs.start_poll().await?;
 
