@@ -1117,15 +1117,15 @@
         },
         "buttons": {
           "loanTerms": "Loan Terms",
-          "loanAgreement": "Loan Agreement",
+          "creditFacilityAgreement": "Credit Facility Agreement",
           "updateCollateral": "Update Collateral",
           "approve": "Approve",
           "deny": "Deny",
           "complete": "Complete"
         },
-        "loanAgreement": {
-          "success": "Loan agreement generated successfully",
-          "error": "Failed to generate loan agreement"
+        "creditFacilityAgreement": {
+          "success": "Credit facility agreement generated successfully",
+          "error": "Failed to generate credit facility agreement"
         }
       },
       "completeCreditFacility": {

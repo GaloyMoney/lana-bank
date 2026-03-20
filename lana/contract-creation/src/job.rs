@@ -11,11 +11,11 @@ use job::*;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use super::{LoanAgreementData, templates::ContractTemplates};
+use super::{CreditFacilityAgreementData, templates::ContractTemplates};
 use crate::{CustomerKyc, Customers};
 
 #[derive(Serialize, Deserialize)]
-pub struct GenerateLoanAgreementConfig<Perms, E>
+pub struct GenerateCreditFacilityAgreementConfig<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -25,7 +25,7 @@ where
     pub phantom: PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> Clone for GenerateLoanAgreementConfig<Perms, E>
+impl<Perms, E> Clone for GenerateCreditFacilityAgreementConfig<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -38,7 +38,7 @@ where
     }
 }
 
-pub struct GenerateLoanAgreementJobInitializer<Perms, E>
+pub struct GenerateCreditFacilityAgreementJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
@@ -52,7 +52,7 @@ where
     renderer: rendering::Renderer,
 }
 
-impl<Perms, E> GenerateLoanAgreementJobInitializer<Perms, E>
+impl<Perms, E> GenerateCreditFacilityAgreementJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
@@ -76,18 +76,19 @@ where
     }
 }
 
-pub const GENERATE_LOAN_AGREEMENT_JOB: JobType = JobType::new("task.generate-loan-agreement");
+pub const GENERATE_CREDIT_FACILITY_AGREEMENT_JOB: JobType =
+    JobType::new("task.generate-credit-facility-agreement");
 
-impl<Perms, E> JobInitializer for GenerateLoanAgreementJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for GenerateCreditFacilityAgreementJobInitializer<Perms, E>
 where
     Perms: PermissionCheck + Send + Sync,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
 {
-    type Config = GenerateLoanAgreementConfig<Perms, E>;
+    type Config = GenerateCreditFacilityAgreementConfig<Perms, E>;
     fn job_type(&self) -> JobType {
-        GENERATE_LOAN_AGREEMENT_JOB
+        GENERATE_CREDIT_FACILITY_AGREEMENT_JOB
     }
 
     fn init(
@@ -95,7 +96,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(GenerateLoanAgreementJobRunner {
+        Ok(Box::new(GenerateCreditFacilityAgreementJobRunner {
             config: job.config()?,
             customers: self.customers.clone(),
             customer_kyc: self.customer_kyc.clone(),
@@ -106,14 +107,14 @@ where
     }
 }
 
-pub struct GenerateLoanAgreementJobRunner<Perms, E>
+pub struct GenerateCreditFacilityAgreementJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    config: GenerateLoanAgreementConfig<Perms, E>,
+    config: GenerateCreditFacilityAgreementConfig<Perms, E>,
     customers: Customers<Perms, E>,
     customer_kyc: CustomerKyc<Perms, E>,
     document_storage: DocumentStorage,
@@ -122,7 +123,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for GenerateLoanAgreementJobRunner<Perms, E>
+impl<Perms, E> JobRunner for GenerateCreditFacilityAgreementJobRunner<Perms, E>
 where
     Perms: PermissionCheck + Send + Sync,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
@@ -131,7 +132,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "contract_creation.generate_loan_agreement_job.run",
+        name = "contract_creation.generate_credit_facility_agreement_job.run",
         skip_all,
         fields(
             job_id = %current_job.id(),
@@ -164,7 +165,7 @@ where
             Err(_) => ("N/A (applicant info not available)".to_string(), None, None),
         };
 
-        let loan_data = LoanAgreementData::new(
+        let loan_data = CreditFacilityAgreementData::new(
             party.email,
             party.telegram_handle,
             self.config.customer_id,
@@ -176,7 +177,7 @@ where
 
         let content = self
             .contract_templates
-            .render_template("loan_agreement", &loan_data)?;
+            .render_template("credit_facility_agreement", &loan_data)?;
         let pdf_bytes = self.renderer.render_template_to_pdf(&content).await?;
 
         // Convert job ID to document ID (they should be the same as per the pattern)
@@ -194,5 +195,5 @@ where
     }
 }
 
-pub type GenerateLoanAgreementJobSpawner<Perms, E> =
-    JobSpawner<GenerateLoanAgreementConfig<Perms, E>>;
+pub type GenerateCreditFacilityAgreementJobSpawner<Perms, E> =
+    JobSpawner<GenerateCreditFacilityAgreementConfig<Perms, E>>;

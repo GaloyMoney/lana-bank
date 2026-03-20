@@ -480,12 +480,33 @@ type CreditFacility {
 	wallet: Wallet
 }
 
+type CreditFacilityAgreement {
+	createdAt: Timestamp!
+	creditFacilityAgreementId: UUID!
+	status: CreditFacilityAgreementStatus!
+}
+
+input CreditFacilityAgreementDownloadLinksGenerateInput {
+	creditFacilityAgreementId: UUID!
+}
+
+type CreditFacilityAgreementDownloadLinksGeneratePayload {
+	creditFacilityAgreementId: UUID!
+	link: String!
+}
+
 input CreditFacilityAgreementGenerateInput {
-	customerId: UUID!
+	creditFacilityId: UUID!
 }
 
 type CreditFacilityAgreementGeneratePayload {
-	loanAgreement: LoanAgreement!
+	creditFacilityAgreement: CreditFacilityAgreement!
+}
+
+enum CreditFacilityAgreementStatus {
+	COMPLETED
+	FAILED
+	PENDING
 }
 
 type CreditFacilityApproved {
@@ -1985,27 +2006,6 @@ enum LiquidationsSortBy {
 	SENT_TOTAL
 }
 
-type LoanAgreement {
-	createdAt: Timestamp!
-	loanAgreementId: UUID!
-	status: LoanAgreementStatus!
-}
-
-input LoanAgreementDownloadLinksGenerateInput {
-	loanAgreementId: UUID!
-}
-
-type LoanAgreementDownloadLinksGeneratePayload {
-	link: String!
-	loanAgreementId: UUID!
-}
-
-enum LoanAgreementStatus {
-	COMPLETED
-	FAILED
-	PENDING
-}
-
 input ManualConfig {
 	name: String!
 }
@@ -2054,6 +2054,7 @@ type Mutation {
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
+	creditFacilityAgreementDownloadLinkGenerate(input: CreditFacilityAgreementDownloadLinksGenerateInput!): CreditFacilityAgreementDownloadLinksGeneratePayload!
 	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
@@ -2087,7 +2088,6 @@ type Mutation {
 	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	ledgerAccountCsvDownloadLinkGenerate(input: LedgerAccountCsvDownloadLinkGenerateInput!): LedgerAccountCsvDownloadLinkGeneratePayload!
-	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	priceProviderActivate(priceProviderId: UUID!): PriceProviderActivatePayload!
@@ -2543,6 +2543,7 @@ type Query {
 	creditConfig: CreditModuleConfig
 	creditFacilities(after: String, filter: CreditFacilitiesFilter, first: Int!, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): CreditFacilityConnection!
 	creditFacility(id: UUID!): CreditFacility
+	creditFacilityAgreement(id: UUID!): CreditFacilityAgreement
 	creditFacilityByPublicId(id: PublicId!): CreditFacility
 	creditFacilityProposal(id: UUID!): CreditFacilityProposal
 	creditFacilityProposals(after: String, filter: CreditFacilityProposalsFilter, first: Int!, sort: CreditFacilityProposalsSort = {by: CREATED_AT, direction: DESC}): CreditFacilityProposalConnection!
@@ -2577,7 +2578,6 @@ type Query {
 	liquidation(id: UUID!): Liquidation
 	liquidationPaymentCalculate(input: LiquidationPaymentCalculateInput!): LiquidationPayment!
 	liquidations(after: String, first: Int!, sort: LiquidationsSort = {by: CREATED_AT, direction: DESC}): LiquidationConnection!
-	loanAgreement(id: UUID!): LoanAgreement
 	me: Me!
 	pendingCreditFacilities(after: String, filter: PendingCreditFacilitiesFilter, first: Int!, sort: PendingCreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): PendingCreditFacilityConnection!
 	pendingCreditFacility(id: UUID!): PendingCreditFacility

@@ -256,7 +256,7 @@ export const makeClient = ({
       PendingCreditFacility: {
         keyFields: ["pendingCreditFacilityId"],
       },
-      LoanAgreement: {
+      CreditFacilityAgreement: {
         keyFields: false,
       },
       JournalEntry: {

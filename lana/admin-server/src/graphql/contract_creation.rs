@@ -3,78 +3,84 @@ use async_graphql::*;
 use crate::primitives::*;
 
 #[derive(async_graphql::Enum, Clone, Debug, PartialEq, Eq, Copy)]
-pub enum LoanAgreementStatus {
+pub enum CreditFacilityAgreementStatus {
     Pending,
     Completed,
     Failed,
 }
 
-impl From<lana_app::contract_creation::LoanAgreementStatus> for LoanAgreementStatus {
-    fn from(status: lana_app::contract_creation::LoanAgreementStatus) -> Self {
+impl From<lana_app::contract_creation::CreditFacilityAgreementStatus>
+    for CreditFacilityAgreementStatus
+{
+    fn from(status: lana_app::contract_creation::CreditFacilityAgreementStatus) -> Self {
         match status {
-            lana_app::contract_creation::LoanAgreementStatus::Pending => Self::Pending,
-            lana_app::contract_creation::LoanAgreementStatus::Completed => Self::Completed,
-            lana_app::contract_creation::LoanAgreementStatus::Failed => Self::Failed,
-            lana_app::contract_creation::LoanAgreementStatus::Removed => Self::Failed,
+            lana_app::contract_creation::CreditFacilityAgreementStatus::Pending => Self::Pending,
+            lana_app::contract_creation::CreditFacilityAgreementStatus::Completed => {
+                Self::Completed
+            }
+            lana_app::contract_creation::CreditFacilityAgreementStatus::Failed => Self::Failed,
+            lana_app::contract_creation::CreditFacilityAgreementStatus::Removed => Self::Failed,
         }
     }
 }
 
 #[derive(SimpleObject, Clone)]
-pub struct LoanAgreement {
-    loan_agreement_id: UUID,
-    status: LoanAgreementStatus,
+pub struct CreditFacilityAgreement {
+    credit_facility_agreement_id: UUID,
+    status: CreditFacilityAgreementStatus,
     created_at: Timestamp,
 }
 
-impl LoanAgreement {
+impl CreditFacilityAgreement {
     pub fn new(
         id: uuid::Uuid,
-        status: LoanAgreementStatus,
+        status: CreditFacilityAgreementStatus,
         created_at: chrono::DateTime<chrono::Utc>,
     ) -> Self {
         Self {
-            loan_agreement_id: UUID::from(id),
+            credit_facility_agreement_id: UUID::from(id),
             status,
             created_at: created_at.into(),
         }
     }
 }
 
-impl From<lana_app::contract_creation::LoanAgreement> for LoanAgreement {
-    fn from(domain_loan_agreement: lana_app::contract_creation::LoanAgreement) -> Self {
+impl From<lana_app::contract_creation::CreditFacilityAgreement> for CreditFacilityAgreement {
+    fn from(
+        domain_credit_facility_agreement: lana_app::contract_creation::CreditFacilityAgreement,
+    ) -> Self {
         Self::new(
-            domain_loan_agreement.id,
-            domain_loan_agreement.status.into(),
-            domain_loan_agreement.created_at,
+            domain_credit_facility_agreement.id,
+            domain_credit_facility_agreement.status.into(),
+            domain_credit_facility_agreement.created_at,
         )
     }
 }
 
 #[derive(InputObject)]
 pub struct CreditFacilityAgreementGenerateInput {
-    pub customer_id: UUID,
+    pub credit_facility_id: UUID,
 }
 
-crate::mutation_payload! { CreditFacilityAgreementGeneratePayload, loan_agreement: LoanAgreement }
+crate::mutation_payload! { CreditFacilityAgreementGeneratePayload, credit_facility_agreement: CreditFacilityAgreement }
 
 #[derive(InputObject)]
-pub struct LoanAgreementDownloadLinksGenerateInput {
-    pub loan_agreement_id: UUID,
+pub struct CreditFacilityAgreementDownloadLinksGenerateInput {
+    pub credit_facility_agreement_id: UUID,
 }
 
 #[derive(SimpleObject)]
-pub struct LoanAgreementDownloadLinksGeneratePayload {
-    pub loan_agreement_id: UUID,
+pub struct CreditFacilityAgreementDownloadLinksGeneratePayload {
+    pub credit_facility_agreement_id: UUID,
     pub link: String,
 }
 
 impl From<lana_app::document::GeneratedDocumentDownloadLink>
-    for LoanAgreementDownloadLinksGeneratePayload
+    for CreditFacilityAgreementDownloadLinksGeneratePayload
 {
     fn from(value: lana_app::document::GeneratedDocumentDownloadLink) -> Self {
         Self {
-            loan_agreement_id: UUID::from(value.document_id),
+            credit_facility_agreement_id: UUID::from(value.document_id),
             link: value.link,
         }
     }

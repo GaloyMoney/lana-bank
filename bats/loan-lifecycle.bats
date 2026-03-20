@@ -94,6 +94,17 @@ wait_for_outstanding_zero() {
   [[ "$outstanding" -eq 0 ]] || return 1
 }
 
+wait_for_credit_facility_agreement_completion() {
+  variables=$(
+    jq -n \
+      --arg creditFacilityAgreementId "$1" \
+    '{ id: $creditFacilityAgreementId }'
+  )
+  exec_admin_graphql 'find-credit-facility-agreement' "$variables"
+  status=$(graphql_output '.data.creditFacilityAgreement.status')
+  [[ "$status" == "COMPLETED" ]] || return 1
+}
+
 # ===== Tests =====
 
 @test "loan-lifecycle: setup customer with deposit" {
@@ -179,6 +190,68 @@ wait_for_outstanding_zero() {
   credit_facility_id="$proposal_id"
   retry 30 2 wait_for_lc_active "$credit_facility_id"
   cache_value 'lc_credit_facility_id' "$credit_facility_id"
+}
+
+@test "loan-lifecycle: generate credit facility agreement PDF" {
+  if [[ "${GOTENBERG:-false}" != "true" ]]; then
+    skip "Skipping PDF generation test - GOTENBERG is not enabled"
+  fi
+
+  credit_facility_id=$(read_value 'lc_credit_facility_id')
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ input: { creditFacilityId: $creditFacilityId } }'
+  )
+
+  exec_admin_graphql 'credit-facility-agreement-generate' "$variables"
+
+  agreement_id=$(graphql_output '.data.creditFacilityAgreementGenerate.creditFacilityAgreement.creditFacilityAgreementId')
+  [[ "$agreement_id" != "null" ]] || exit 1
+  [[ "$agreement_id" != "" ]] || exit 1
+
+  status=$(graphql_output '.data.creditFacilityAgreementGenerate.creditFacilityAgreement.status')
+  [[ "$status" == "PENDING" ]] || exit 1
+
+  retry 30 1 wait_for_credit_facility_agreement_completion "$agreement_id"
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityAgreementId "$agreement_id" \
+    '{ input: { creditFacilityAgreementId: $creditFacilityAgreementId } }'
+  )
+
+  exec_admin_graphql 'credit-facility-agreement-download-link-generate' "$variables"
+
+  download_link=$(graphql_output '.data.creditFacilityAgreementDownloadLinkGenerate.link')
+  returned_agreement_id=$(graphql_output '.data.creditFacilityAgreementDownloadLinkGenerate.creditFacilityAgreementId')
+
+  [[ "$download_link" != "null" ]] || exit 1
+  [[ "$download_link" != "" ]] || exit 1
+  [[ "$returned_agreement_id" == "$agreement_id" ]] || exit 1
+
+  temp_pdf="/tmp/credit_facility_agreement_${agreement_id}.pdf"
+  temp_txt="/tmp/credit_facility_agreement_${agreement_id}.txt"
+
+  if [[ "$download_link" =~ ^file:// ]]; then
+    file_path="${download_link#file://}"
+    cp "$file_path" "$temp_pdf" || exit 1
+  else
+    curl -s -o "$temp_pdf" "$download_link" || exit 1
+  fi
+
+  [[ -f "$temp_pdf" ]] || exit 1
+  file_size=$(stat -f%z "$temp_pdf" 2>/dev/null || stat -c%s "$temp_pdf" 2>/dev/null)
+  [[ "$file_size" -gt 0 ]] || exit 1
+
+  file_header=$(head -c 4 "$temp_pdf")
+  [[ "$file_header" == "%PDF" ]] || exit 1
+
+  pdftotext "$temp_pdf" "$temp_txt" || exit 1
+  cat "$temp_txt"
+
+  rm -f "$temp_pdf" "$temp_txt"
 }
 
 @test "loan-lifecycle: disburse full facility amount" {

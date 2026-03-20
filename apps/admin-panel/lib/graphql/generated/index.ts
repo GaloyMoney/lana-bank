@@ -540,14 +540,37 @@ export type CreditFacilityEventHistoryArgs = {
   first: Scalars['Int']['input'];
 };
 
+export type CreditFacilityAgreement = {
+  __typename?: 'CreditFacilityAgreement';
+  createdAt: Scalars['Timestamp']['output'];
+  creditFacilityAgreementId: Scalars['UUID']['output'];
+  status: CreditFacilityAgreementStatus;
+};
+
+export type CreditFacilityAgreementDownloadLinksGenerateInput = {
+  creditFacilityAgreementId: Scalars['UUID']['input'];
+};
+
+export type CreditFacilityAgreementDownloadLinksGeneratePayload = {
+  __typename?: 'CreditFacilityAgreementDownloadLinksGeneratePayload';
+  creditFacilityAgreementId: Scalars['UUID']['output'];
+  link: Scalars['String']['output'];
+};
+
 export type CreditFacilityAgreementGenerateInput = {
-  customerId: Scalars['UUID']['input'];
+  creditFacilityId: Scalars['UUID']['input'];
 };
 
 export type CreditFacilityAgreementGeneratePayload = {
   __typename?: 'CreditFacilityAgreementGeneratePayload';
-  loanAgreement: LoanAgreement;
+  creditFacilityAgreement: CreditFacilityAgreement;
 };
+
+export enum CreditFacilityAgreementStatus {
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  Pending = 'PENDING'
+}
 
 export type CreditFacilityApproved = {
   __typename?: 'CreditFacilityApproved';
@@ -2049,29 +2072,6 @@ export type Loan = {
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
 };
 
-export type LoanAgreement = {
-  __typename?: 'LoanAgreement';
-  createdAt: Scalars['Timestamp']['output'];
-  loanAgreementId: Scalars['UUID']['output'];
-  status: LoanAgreementStatus;
-};
-
-export type LoanAgreementDownloadLinksGenerateInput = {
-  loanAgreementId: Scalars['UUID']['input'];
-};
-
-export type LoanAgreementDownloadLinksGeneratePayload = {
-  __typename?: 'LoanAgreementDownloadLinksGeneratePayload';
-  link: Scalars['String']['output'];
-  loanAgreementId: Scalars['UUID']['output'];
-};
-
-export enum LoanAgreementStatus {
-  Completed = 'COMPLETED',
-  Failed = 'FAILED',
-  Pending = 'PENDING'
-}
-
 export type ManualConfig = {
   name: Scalars['String']['input'];
 };
@@ -2123,6 +2123,7 @@ export type Mutation = {
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
+  creditFacilityAgreementDownloadLinkGenerate: CreditFacilityAgreementDownloadLinksGeneratePayload;
   creditFacilityAgreementGenerate: CreditFacilityAgreementGeneratePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
@@ -2156,7 +2157,6 @@ export type Mutation = {
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   ledgerAccountCsvDownloadLinkGenerate: LedgerAccountCsvDownloadLinkGeneratePayload;
-  loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   priceProviderActivate: PriceProviderActivatePayload;
@@ -2239,6 +2239,11 @@ export type MutationCommitteeCreateArgs = {
 
 export type MutationCommitteeRemoveUserArgs = {
   input: CommitteeRemoveUserInput;
+};
+
+
+export type MutationCreditFacilityAgreementDownloadLinkGenerateArgs = {
+  input: CreditFacilityAgreementDownloadLinksGenerateInput;
 };
 
 
@@ -2404,11 +2409,6 @@ export type MutationLedgerAccountCsvCreateArgs = {
 
 export type MutationLedgerAccountCsvDownloadLinkGenerateArgs = {
   input: LedgerAccountCsvDownloadLinkGenerateInput;
-};
-
-
-export type MutationLoanAgreementDownloadLinkGenerateArgs = {
-  input: LoanAgreementDownloadLinksGenerateInput;
 };
 
 
@@ -2929,6 +2929,7 @@ export type Query = {
   creditConfig?: Maybe<CreditModuleConfig>;
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
+  creditFacilityAgreement?: Maybe<CreditFacilityAgreement>;
   creditFacilityByPublicId?: Maybe<CreditFacility>;
   creditFacilityProposal?: Maybe<CreditFacilityProposal>;
   creditFacilityProposals: CreditFacilityProposalConnection;
@@ -2963,7 +2964,6 @@ export type Query = {
   liquidation?: Maybe<Liquidation>;
   liquidationPaymentCalculate: LiquidationPayment;
   liquidations: LiquidationConnection;
-  loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
   pendingCreditFacilities: PendingCreditFacilityConnection;
   pendingCreditFacility?: Maybe<PendingCreditFacility>;
@@ -3045,6 +3045,11 @@ export type QueryCreditFacilitiesArgs = {
 
 
 export type QueryCreditFacilityArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryCreditFacilityAgreementArgs = {
   id: Scalars['UUID']['input'];
 };
 
@@ -3231,11 +3236,6 @@ export type QueryLiquidationsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
   sort?: InputMaybe<LiquidationsSort>;
-};
-
-
-export type QueryLoanAgreementArgs = {
-  id: Scalars['UUID']['input'];
 };
 
 
@@ -5858,21 +5858,21 @@ export type CreditFacilityAgreementGenerateMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityAgreementGenerateMutation = { __typename?: 'Mutation', creditFacilityAgreementGenerate: { __typename?: 'CreditFacilityAgreementGeneratePayload', loanAgreement: { __typename?: 'LoanAgreement', loanAgreementId: string, status: LoanAgreementStatus, createdAt: string } } };
+export type CreditFacilityAgreementGenerateMutation = { __typename?: 'Mutation', creditFacilityAgreementGenerate: { __typename?: 'CreditFacilityAgreementGeneratePayload', creditFacilityAgreement: { __typename?: 'CreditFacilityAgreement', creditFacilityAgreementId: string, status: CreditFacilityAgreementStatus, createdAt: string } } };
 
-export type LoanAgreementDownloadLinkGenerateMutationVariables = Exact<{
-  input: LoanAgreementDownloadLinksGenerateInput;
+export type CreditFacilityAgreementDownloadLinkGenerateMutationVariables = Exact<{
+  input: CreditFacilityAgreementDownloadLinksGenerateInput;
 }>;
 
 
-export type LoanAgreementDownloadLinkGenerateMutation = { __typename?: 'Mutation', loanAgreementDownloadLinkGenerate: { __typename?: 'LoanAgreementDownloadLinksGeneratePayload', loanAgreementId: string, link: string } };
+export type CreditFacilityAgreementDownloadLinkGenerateMutation = { __typename?: 'Mutation', creditFacilityAgreementDownloadLinkGenerate: { __typename?: 'CreditFacilityAgreementDownloadLinksGeneratePayload', creditFacilityAgreementId: string, link: string } };
 
-export type LoanAgreementQueryVariables = Exact<{
+export type CreditFacilityAgreementQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type LoanAgreementQuery = { __typename?: 'Query', loanAgreement?: { __typename?: 'LoanAgreement', loanAgreementId: string, status: LoanAgreementStatus, createdAt: string } | null };
+export type CreditFacilityAgreementQuery = { __typename?: 'Query', creditFacilityAgreement?: { __typename?: 'CreditFacilityAgreement', creditFacilityAgreementId: string, status: CreditFacilityAgreementStatus, createdAt: string } | null };
 
 export type SearchPublicIdTargetQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -14980,8 +14980,8 @@ export type RealtimePriceUpdatedSubscriptionResult = Apollo.SubscriptionResult<R
 export const CreditFacilityAgreementGenerateDocument = gql`
     mutation CreditFacilityAgreementGenerate($input: CreditFacilityAgreementGenerateInput!) {
   creditFacilityAgreementGenerate(input: $input) {
-    loanAgreement {
-      loanAgreementId
+    creditFacilityAgreement {
+      creditFacilityAgreementId
       status
       createdAt
     }
@@ -15014,44 +15014,44 @@ export function useCreditFacilityAgreementGenerateMutation(baseOptions?: Apollo.
 export type CreditFacilityAgreementGenerateMutationHookResult = ReturnType<typeof useCreditFacilityAgreementGenerateMutation>;
 export type CreditFacilityAgreementGenerateMutationResult = Apollo.MutationResult<CreditFacilityAgreementGenerateMutation>;
 export type CreditFacilityAgreementGenerateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityAgreementGenerateMutation, CreditFacilityAgreementGenerateMutationVariables>;
-export const LoanAgreementDownloadLinkGenerateDocument = gql`
-    mutation LoanAgreementDownloadLinkGenerate($input: LoanAgreementDownloadLinksGenerateInput!) {
-  loanAgreementDownloadLinkGenerate(input: $input) {
-    loanAgreementId
+export const CreditFacilityAgreementDownloadLinkGenerateDocument = gql`
+    mutation CreditFacilityAgreementDownloadLinkGenerate($input: CreditFacilityAgreementDownloadLinksGenerateInput!) {
+  creditFacilityAgreementDownloadLinkGenerate(input: $input) {
+    creditFacilityAgreementId
     link
   }
 }
     `;
-export type LoanAgreementDownloadLinkGenerateMutationFn = Apollo.MutationFunction<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>;
+export type CreditFacilityAgreementDownloadLinkGenerateMutationFn = Apollo.MutationFunction<CreditFacilityAgreementDownloadLinkGenerateMutation, CreditFacilityAgreementDownloadLinkGenerateMutationVariables>;
 
 /**
- * __useLoanAgreementDownloadLinkGenerateMutation__
+ * __useCreditFacilityAgreementDownloadLinkGenerateMutation__
  *
- * To run a mutation, you first call `useLoanAgreementDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLoanAgreementDownloadLinkGenerateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreditFacilityAgreementDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityAgreementDownloadLinkGenerateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [loanAgreementDownloadLinkGenerateMutation, { data, loading, error }] = useLoanAgreementDownloadLinkGenerateMutation({
+ * const [creditFacilityAgreementDownloadLinkGenerateMutation, { data, loading, error }] = useCreditFacilityAgreementDownloadLinkGenerateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useLoanAgreementDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>) {
+export function useCreditFacilityAgreementDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityAgreementDownloadLinkGenerateMutation, CreditFacilityAgreementDownloadLinkGenerateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>(LoanAgreementDownloadLinkGenerateDocument, options);
+        return Apollo.useMutation<CreditFacilityAgreementDownloadLinkGenerateMutation, CreditFacilityAgreementDownloadLinkGenerateMutationVariables>(CreditFacilityAgreementDownloadLinkGenerateDocument, options);
       }
-export type LoanAgreementDownloadLinkGenerateMutationHookResult = ReturnType<typeof useLoanAgreementDownloadLinkGenerateMutation>;
-export type LoanAgreementDownloadLinkGenerateMutationResult = Apollo.MutationResult<LoanAgreementDownloadLinkGenerateMutation>;
-export type LoanAgreementDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>;
-export const LoanAgreementDocument = gql`
-    query LoanAgreement($id: UUID!) {
-  loanAgreement(id: $id) {
-    loanAgreementId
+export type CreditFacilityAgreementDownloadLinkGenerateMutationHookResult = ReturnType<typeof useCreditFacilityAgreementDownloadLinkGenerateMutation>;
+export type CreditFacilityAgreementDownloadLinkGenerateMutationResult = Apollo.MutationResult<CreditFacilityAgreementDownloadLinkGenerateMutation>;
+export type CreditFacilityAgreementDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityAgreementDownloadLinkGenerateMutation, CreditFacilityAgreementDownloadLinkGenerateMutationVariables>;
+export const CreditFacilityAgreementDocument = gql`
+    query CreditFacilityAgreement($id: UUID!) {
+  creditFacilityAgreement(id: $id) {
+    creditFacilityAgreementId
     status
     createdAt
   }
@@ -15059,40 +15059,40 @@ export const LoanAgreementDocument = gql`
     `;
 
 /**
- * __useLoanAgreementQuery__
+ * __useCreditFacilityAgreementQuery__
  *
- * To run a query within a React component, call `useLoanAgreementQuery` and pass it any options that fit your needs.
- * When your component renders, `useLoanAgreementQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useCreditFacilityAgreementQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityAgreementQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useLoanAgreementQuery({
+ * const { data, loading, error } = useCreditFacilityAgreementQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useLoanAgreementQuery(baseOptions: Apollo.QueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables> & ({ variables: LoanAgreementQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useCreditFacilityAgreementQuery(baseOptions: Apollo.QueryHookOptions<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables> & ({ variables: CreditFacilityAgreementQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<LoanAgreementQuery, LoanAgreementQueryVariables>(LoanAgreementDocument, options);
+        return Apollo.useQuery<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>(CreditFacilityAgreementDocument, options);
       }
-export function useLoanAgreementLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables>) {
+export function useCreditFacilityAgreementLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<LoanAgreementQuery, LoanAgreementQueryVariables>(LoanAgreementDocument, options);
+          return Apollo.useLazyQuery<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>(CreditFacilityAgreementDocument, options);
         }
 // @ts-ignore
-export function useLoanAgreementSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables>): Apollo.UseSuspenseQueryResult<LoanAgreementQuery, LoanAgreementQueryVariables>;
-export function useLoanAgreementSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables>): Apollo.UseSuspenseQueryResult<LoanAgreementQuery | undefined, LoanAgreementQueryVariables>;
-export function useLoanAgreementSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables>) {
+export function useCreditFacilityAgreementSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>): Apollo.UseSuspenseQueryResult<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>;
+export function useCreditFacilityAgreementSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>): Apollo.UseSuspenseQueryResult<CreditFacilityAgreementQuery | undefined, CreditFacilityAgreementQueryVariables>;
+export function useCreditFacilityAgreementSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<LoanAgreementQuery, LoanAgreementQueryVariables>(LoanAgreementDocument, options);
+          return Apollo.useSuspenseQuery<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>(CreditFacilityAgreementDocument, options);
         }
-export type LoanAgreementQueryHookResult = ReturnType<typeof useLoanAgreementQuery>;
-export type LoanAgreementLazyQueryHookResult = ReturnType<typeof useLoanAgreementLazyQuery>;
-export type LoanAgreementSuspenseQueryHookResult = ReturnType<typeof useLoanAgreementSuspenseQuery>;
-export type LoanAgreementQueryResult = Apollo.QueryResult<LoanAgreementQuery, LoanAgreementQueryVariables>;
+export type CreditFacilityAgreementQueryHookResult = ReturnType<typeof useCreditFacilityAgreementQuery>;
+export type CreditFacilityAgreementLazyQueryHookResult = ReturnType<typeof useCreditFacilityAgreementLazyQuery>;
+export type CreditFacilityAgreementSuspenseQueryHookResult = ReturnType<typeof useCreditFacilityAgreementSuspenseQuery>;
+export type CreditFacilityAgreementQueryResult = Apollo.QueryResult<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>;
 export const SearchPublicIdTargetDocument = gql`
     query SearchPublicIdTarget($publicId: PublicId!) {
   publicIdTarget(id: $publicId) {

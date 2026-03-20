@@ -23,10 +23,10 @@ impl ContractTemplates {
         let mut handlebars = Handlebars::new();
         handlebars
             .register_template_string(
-                "loan_agreement",
-                include_str!("templates/loan_agreement.md.hbs"),
+                "credit_facility_agreement",
+                include_str!("templates/credit_facility_agreement.md.hbs"),
             )
-            .expect("Could not register 'loan_agreement' template");
+            .expect("Could not register 'credit_facility_agreement' template");
 
         Self { handlebars }
     }
@@ -50,11 +50,11 @@ impl ContractTemplates {
         Ok(rendered)
     }
 
-    /// Get the loan agreement template content
-    pub fn get_loan_agreement_template(
+    /// Get the credit facility agreement template content
+    pub fn get_credit_facility_agreement_template(
         &self,
         data: &impl Serialize,
     ) -> Result<String, ContractCreationError> {
-        self.render_template("loan_agreement", data)
+        self.render_template("credit_facility_agreement", data)
     }
 }

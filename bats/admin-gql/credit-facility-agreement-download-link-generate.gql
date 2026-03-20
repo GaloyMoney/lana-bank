@@ -1,0 +1,6 @@
+mutation CreditFacilityAgreementDownloadLinkGenerate($input: CreditFacilityAgreementDownloadLinksGenerateInput!) {
+  creditFacilityAgreementDownloadLinkGenerate(input: $input) {
+    creditFacilityAgreementId
+    link
+  }
+}
