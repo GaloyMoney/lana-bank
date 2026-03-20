@@ -6,6 +6,7 @@ use futures::StreamExt;
 use futures::stream::Stream;
 use obix::out::OutboxEventMarker;
 
+use lana_app::access::agent::{AgentsSortBy as DomainAgentsSortBy, agent_cursor::AgentsCursor};
 use lana_app::access::role::{RolesSortBy as DomainRolesSortBy, role_cursor::RolesCursor};
 use lana_app::access::user::{UsersSortBy as DomainUsersSortBy, user_cursor::UsersCursor};
 use lana_app::accounting::CoreAccountingEvent;
@@ -139,6 +140,31 @@ impl Query {
             after,
             first,
             |query| app.access().list_permission_sets(sub, query)
+        )
+    }
+
+    async fn agent(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Agent>> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Agent, AgentId, ctx, app.access().agents().find_by_id(id))
+    }
+
+    async fn agents(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+        #[graphql(default_with = "Some(AgentsSort::default())")] sort: Option<AgentsSort>,
+    ) -> async_graphql::Result<Connection<AgentsCursor, Agent, EmptyFields, EmptyFields>> {
+        let sort = sort.unwrap_or_default();
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        list_with_combo_cursor!(
+            AgentsCursor,
+            Agent,
+            DomainAgentsSortBy::from(sort),
+            ctx,
+            after,
+            first,
+            |query| app.access().agents().list_agents(query, sort.into())
         )
     }
 
@@ -1406,6 +1432,42 @@ impl Mutation {
             User,
             ctx,
             app.access().update_role_of_user(sub, user_id, role_id)
+        )
+    }
+
+    async fn agent_create(
+        &self,
+        ctx: &Context<'_>,
+        input: AgentCreateInput,
+    ) -> async_graphql::Result<AgentCreatePayload> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let result = app
+            .access()
+            .agents()
+            .create_agent(input.name, input.description)
+            .await?;
+        let agent = Agent::from(result.agent);
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        loader.feed_one(agent.entity.id, agent.clone()).await;
+        Ok(AgentCreatePayload {
+            agent,
+            client_id: result.client_id,
+            client_secret: result.client_secret,
+        })
+    }
+
+    async fn agent_deactivate(
+        &self,
+        ctx: &Context<'_>,
+        input: AgentDeactivateInput,
+    ) -> async_graphql::Result<AgentDeactivatePayload> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            AgentDeactivatePayload,
+            Agent,
+            AgentId,
+            ctx,
+            app.access().agents().deactivate_agent(input.agent_id)
         )
     }
 

@@ -15,6 +15,12 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 use uuid::Uuid;
 
+/// Result of creating an agent client in Keycloak.
+pub struct AgentClientResult {
+    pub client_id: String,
+    pub client_secret: String,
+}
+
 #[derive(Clone)]
 pub struct KeycloakClient {
     connection: KeycloakConnectionConfig,
@@ -183,6 +189,189 @@ impl KeycloakClient {
             )
             .await?;
         Ok(users)
+    }
+
+    /// Creates a confidential OAuth2 client for an agent with client_credentials grant.
+    ///
+    /// The client is configured with:
+    /// - Service account enabled (client_credentials flow)
+    /// - A custom `lanaId` attribute on the service account user
+    /// - A protocol mapper that includes `lanaId` in JWT claims
+    #[allow(deprecated)]
+    #[record_error_severity]
+    #[instrument(name = "keycloak.create_agent_client", skip(self))]
+    pub async fn create_agent_client(
+        &self,
+        agent_name: String,
+        lana_id: Uuid,
+    ) -> Result<AgentClientResult, KeycloakClientError> {
+        use std::collections::HashMap;
+
+        let client_id = format!("agent-{}", lana_id);
+        let client = self.get_client();
+
+        // Create a confidential client with service account enabled
+        let client_rep = keycloak::types::ClientRepresentation {
+            client_id: Some(client_id.clone()),
+            name: Some(format!("Agent: {}", agent_name)),
+            enabled: Some(true),
+            public_client: Some(false),
+            service_accounts_enabled: Some(true),
+            standard_flow_enabled: Some(false),
+            direct_access_grants_enabled: Some(false),
+            client_authenticator_type: Some("client-secret".to_string()),
+            protocol: Some("openid-connect".to_string()),
+            protocol_mappers: Some(vec![
+                // Add lanaId as a JWT claim via user attribute mapper
+                keycloak::types::ProtocolMapperRepresentation {
+                    name: Some("lanaId".to_string()),
+                    protocol: Some("openid-connect".to_string()),
+                    protocol_mapper: Some("oidc-usermodel-attribute-mapper".to_string()),
+                    consent_required: None,
+                    consent_text: None,
+                    config: Some({
+                        let mut config = HashMap::new();
+                        config.insert("user.attribute".to_string(), "lanaId".to_string());
+                        config.insert("claim.name".to_string(), "lanaId".to_string());
+                        config.insert("jsonType.label".to_string(), "String".to_string());
+                        config.insert("id.token.claim".to_string(), "true".to_string());
+                        config.insert("access.token.claim".to_string(), "true".to_string());
+                        config.insert("userinfo.token.claim".to_string(), "true".to_string());
+                        config
+                    }),
+                    id: None,
+                },
+                // Add lanaSubjectType claim so the server can distinguish agents from users
+                keycloak::types::ProtocolMapperRepresentation {
+                    name: Some("lanaSubjectType".to_string()),
+                    protocol: Some("openid-connect".to_string()),
+                    protocol_mapper: Some("oidc-hardcoded-claim-mapper".to_string()),
+                    consent_required: None,
+                    consent_text: None,
+                    config: Some({
+                        let mut config = HashMap::new();
+                        config.insert("claim.name".to_string(), "lanaSubjectType".to_string());
+                        config.insert("claim.value".to_string(), "agent".to_string());
+                        config.insert("jsonType.label".to_string(), "String".to_string());
+                        config.insert("id.token.claim".to_string(), "true".to_string());
+                        config.insert("access.token.claim".to_string(), "true".to_string());
+                        config.insert("userinfo.token.claim".to_string(), "true".to_string());
+                        config
+                    }),
+                    id: None,
+                },
+            ]),
+            ..Default::default()
+        };
+
+        client
+            .realm_clients_post(&self.connection.realm, client_rep)
+            .await?;
+
+        // Find the created client to get its internal ID
+        let clients = client
+            .realm_clients_get(
+                &self.connection.realm,
+                Some(client_id.clone()),
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
+            .await?;
+
+        let kc_client = clients.first().ok_or_else(|| {
+            KeycloakClientError::ParseError("Created client not found".to_string())
+        })?;
+
+        let internal_id = kc_client
+            .id
+            .as_ref()
+            .ok_or_else(|| KeycloakClientError::ParseError("Client ID not found".to_string()))?;
+
+        // Get the client secret
+        let credential = client
+            .realm_clients_with_client_uuid_client_secret_get(&self.connection.realm, internal_id)
+            .await?;
+
+        let client_secret = credential.value.ok_or_else(|| {
+            KeycloakClientError::ParseError("Client secret not found".to_string())
+        })?;
+
+        // Set lanaId attribute on the service account user
+        let service_account_user = client
+            .realm_clients_with_client_uuid_service_account_user_get(
+                &self.connection.realm,
+                internal_id,
+            )
+            .await?;
+
+        let sa_user_id = service_account_user.id.as_ref().ok_or_else(|| {
+            KeycloakClientError::ParseError("Service account user ID not found".to_string())
+        })?;
+
+        let mut attributes: HashMap<String, Vec<String>> =
+            service_account_user.attributes.clone().unwrap_or_default();
+        attributes.insert("lanaId".to_string(), vec![lana_id.to_string()]);
+        attributes.insert("lanaSubjectType".to_string(), vec!["agent".to_string()]);
+
+        let updated_user = keycloak::types::UserRepresentation {
+            attributes: Some(attributes),
+            ..Default::default()
+        };
+
+        client
+            .realm_users_with_user_id_put(&self.connection.realm, sa_user_id, updated_user)
+            .await?;
+
+        tracing::info!(%lana_id, %client_id, "Agent client created in Keycloak");
+
+        Ok(AgentClientResult {
+            client_id,
+            client_secret,
+        })
+    }
+
+    /// Disables an agent's Keycloak client (used when deactivating an agent).
+    #[record_error_severity]
+    #[instrument(name = "keycloak.disable_agent_client", skip(self))]
+    pub async fn disable_agent_client(&self, client_id: &str) -> Result<(), KeycloakClientError> {
+        let client = self.get_client();
+
+        let clients = client
+            .realm_clients_get(
+                &self.connection.realm,
+                Some(client_id.to_string()),
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
+            .await?;
+
+        let kc_client = clients.first().ok_or_else(|| {
+            KeycloakClientError::ParseError(format!("Client {} not found", client_id))
+        })?;
+
+        let internal_id = kc_client
+            .id
+            .as_ref()
+            .ok_or_else(|| KeycloakClientError::ParseError("Client ID not found".to_string()))?;
+
+        let updated_client = keycloak::types::ClientRepresentation {
+            enabled: Some(false),
+            ..Default::default()
+        };
+
+        client
+            .realm_clients_with_client_uuid_put(&self.connection.realm, internal_id, updated_client)
+            .await?;
+
+        tracing::info!(%client_id, "Agent client disabled in Keycloak");
+
+        Ok(())
     }
 
     #[record_error_severity]

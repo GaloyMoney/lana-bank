@@ -106,6 +106,9 @@ impl LanaApp {
             )
             .await?;
 
+        let agent_keycloak =
+            keycloak_client::KeycloakClient::new(config.user_onboarding.keycloak.clone());
+
         let superuser_email = config.access.superuser_email.clone();
         let access = Access::init(
             &pool,
@@ -114,6 +117,7 @@ impl LanaApp {
             seed::PREDEFINED_ROLES,
             &authz,
             &outbox,
+            agent_keycloak,
             clock.clone(),
         )
         .await?;

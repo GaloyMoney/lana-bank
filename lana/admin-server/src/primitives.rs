@@ -9,7 +9,7 @@ pub use lana_app::price::PriceProviderId;
 pub use lana_app::{
     accounting::{LedgerAccountId, TransactionTemplateId},
     primitives::{
-        ApprovalProcessId, ChartId, CollateralDirection, CollateralId, CommitteeId,
+        AgentId, ApprovalProcessId, ChartId, CollateralDirection, CollateralId, CommitteeId,
         CreditFacilityId, CreditFacilityProposalId, CreditFacilityProposalStatus, CustodianId,
         CustomerDocumentId, CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus,
         DocumentId, EntryId, FiscalYearId, LedgerTransactionId, LiquidationId, ManualTransactionId,
@@ -33,6 +33,12 @@ impl AdminAuthContext {
     pub fn new(sub: impl Into<UserId>) -> Self {
         Self {
             sub: Subject::User(sub.into()),
+        }
+    }
+
+    pub fn agent(sub: impl Into<AgentId>) -> Self {
+        Self {
+            sub: Subject::Agent(sub.into()),
         }
     }
 }
@@ -131,6 +137,7 @@ macro_rules! impl_to_global_id {
 }
 
 impl_to_global_id! {
+    AgentId,
     UserId,
     PermissionSetId,
     RoleId,

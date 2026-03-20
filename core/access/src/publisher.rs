@@ -1,7 +1,8 @@
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
-    CoreAccessEvent, PublicRole, PublicUser,
+    CoreAccessEvent, PublicAgent, PublicRole, PublicUser,
+    agent::{Agent, AgentEvent},
     role::{Role, RoleEvent},
     user::{User, UserEvent},
 };
@@ -67,6 +68,56 @@ where
                 }),
                 RoleEvent::PermissionSetAdded { .. } => None,
                 RoleEvent::PermissionSetRemoved { .. } => None,
+            })
+            .collect::<Vec<_>>();
+
+        self.outbox.publish_all_persisted(op, events).await?;
+
+        Ok(())
+    }
+}
+
+pub struct AgentPublisher<E>
+where
+    E: OutboxEventMarker<CoreAccessEvent>,
+{
+    outbox: Outbox<E>,
+}
+
+impl<E> Clone for AgentPublisher<E>
+where
+    E: OutboxEventMarker<CoreAccessEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            outbox: self.outbox.clone(),
+        }
+    }
+}
+
+impl<E> AgentPublisher<E>
+where
+    E: OutboxEventMarker<CoreAccessEvent>,
+{
+    pub fn new(outbox: &Outbox<E>) -> Self {
+        Self {
+            outbox: outbox.clone(),
+        }
+    }
+
+    pub async fn publish_agent_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        entity: &Agent,
+        new_events: es_entity::LastPersisted<'_, AgentEvent>,
+    ) -> Result<(), sqlx::Error> {
+        let events = new_events
+            .filter_map(|event| match &event.event {
+                AgentEvent::Initialized { .. } => Some(CoreAccessEvent::AgentCreated {
+                    entity: PublicAgent::from(entity),
+                }),
+                AgentEvent::Deactivated => None,
+                AgentEvent::Reactivated => None,
             })
             .collect::<Vec<_>>();
 

@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod agent;
 mod bootstrap;
 pub mod config;
 pub mod error;
@@ -30,6 +31,7 @@ pub mod event_schema {
     pub use crate::user::UserEvent;
 }
 
+pub use agent::*;
 use config::AccessConfig;
 pub use publisher::UserPublisher;
 pub use role::*;
@@ -44,6 +46,7 @@ where
 {
     authz: Authorization<Audit, AuthRoleToken>,
     users: Users<Audit, E>,
+    agents: Agents<E>,
     roles: RoleRepo<E>,
     permission_sets: PermissionSetRepo,
 }
@@ -65,9 +68,11 @@ where
         predefined_roles: &'static [(&'static str, &'static [&'static str])],
         authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
+        keycloak: keycloak_client::KeycloakClient,
         clock: ClockHandle,
     ) -> Result<Self, CoreAccessError> {
         let users = Users::init(pool, authz, outbox, clock.clone()).await?;
+        let agents = Agents::new(pool, outbox, keycloak, clock.clone());
         let publisher = UserPublisher::new(outbox);
         let role_repo = RoleRepo::new(pool, &publisher, clock.clone());
         let permission_set_repo = PermissionSetRepo::new(pool, clock.clone());
@@ -83,6 +88,7 @@ where
         let core_access = Self {
             authz: authz.clone(),
             users,
+            agents,
             roles: role_repo,
             permission_sets: permission_set_repo,
         };
@@ -92,6 +98,10 @@ where
 
     pub fn users(&self) -> &Users<Audit, E> {
         &self.users
+    }
+
+    pub fn agents(&self) -> &Agents<E> {
+        &self.agents
     }
 
     /// Creates a new user with an email and assigns the specified role.
@@ -448,6 +458,7 @@ where
         Self {
             authz: self.authz.clone(),
             users: self.users.clone(),
+            agents: self.agents.clone(),
             roles: self.roles.clone(),
             permission_sets: self.permission_sets.clone(),
         }

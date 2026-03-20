@@ -48,7 +48,10 @@ pub mod notification {
 }
 
 pub mod access {
-    pub use core_access::{Role, RoleId, UserId, config, error, permission_set, role, user};
+    pub use core_access::{
+        Agent, AgentCreateResult, AgentId, AgentStatus, Role, RoleId, UserId, agent, config, error,
+        permission_set, role, user,
+    };
     pub type Access = core_access::CoreAccess<crate::audit::Audit, lana_events::LanaEvent>;
 }
 

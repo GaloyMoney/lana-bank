@@ -96,6 +96,9 @@ impl LedgerTransaction {
                     None => Err("Initiator user not found".into()),
                 }
             }
+            Subject::Agent(_) => Ok(LedgerTransactionInitiator::System(System::from_actor(
+                &audit::SystemActor::new("agent"),
+            ))),
             Subject::System(actor) => Ok(LedgerTransactionInitiator::System(System::from_actor(
                 actor,
             ))),

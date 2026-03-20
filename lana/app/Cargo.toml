@@ -18,6 +18,7 @@ lana-ids = { workspace = true, features = ["graphql"] }
 contract-creation = { workspace = true }
 gotenberg = { workspace = true }
 encryption = { workspace = true }
+keycloak-client = { workspace = true }
 
 dashboard = { workspace = true }
 user-onboarding = { workspace = true }

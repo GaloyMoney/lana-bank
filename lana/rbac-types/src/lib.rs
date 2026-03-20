@@ -9,7 +9,7 @@ mod object;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-use core_access::UserId;
+use core_access::{AgentId, UserId};
 use core_customer::CustomerId;
 
 pub use action::*;
@@ -26,6 +26,7 @@ pub const ROLE_NAME_BANK_MANAGER: &str = "bank-manager";
 #[strum_discriminants(derive(strum::AsRefStr, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum Subject {
+    Agent(AgentId),
     Customer(CustomerId),
     User(UserId),
     System(audit::SystemActor),
@@ -52,6 +53,10 @@ impl std::str::FromStr for Subject {
 
         use SubjectDiscriminants::*;
         let res = match SubjectDiscriminants::from_str(parts[0])? {
+            Agent => {
+                let id: uuid::Uuid = parts[1].parse()?;
+                Subject::Agent(AgentId::from(id))
+            }
             Customer => {
                 let id: uuid::Uuid = parts[1].parse()?;
                 Subject::Customer(CustomerId::from(id))
@@ -86,6 +91,12 @@ impl ErrorSeverity for ParseSubjectError {
     }
 }
 
+impl From<AgentId> for Subject {
+    fn from(s: AgentId) -> Self {
+        Subject::Agent(s)
+    }
+}
+
 impl From<UserId> for Subject {
     fn from(s: UserId) -> Self {
         Subject::User(s)
@@ -101,6 +112,10 @@ impl From<CustomerId> for Subject {
 impl std::fmt::Display for Subject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Subject::Agent(id) => {
+                let uuid: uuid::Uuid = id.into();
+                write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), uuid)
+            }
             Subject::Customer(id) => {
                 let uuid: uuid::Uuid = id.into();
                 write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), uuid)
@@ -145,6 +160,17 @@ impl TryFrom<&Subject> for UserId {
         match value {
             Subject::User(id) => Ok(*id),
             _ => Err("Subject is not User"),
+        }
+    }
+}
+
+impl TryFrom<&Subject> for AgentId {
+    type Error = &'static str;
+
+    fn try_from(value: &Subject) -> Result<Self, Self::Error> {
+        match value {
+            Subject::Agent(id) => Ok(*id),
+            _ => Err("Subject is not Agent"),
         }
     }
 }

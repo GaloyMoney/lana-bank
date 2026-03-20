@@ -91,6 +91,8 @@ where
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdminJwtClaims {
     pub subject: String,
+    #[serde(rename = "subjectType")]
+    pub subject_type: Option<String>,
 }
 
 #[instrument(
@@ -152,7 +154,10 @@ pub async fn graphql_handler(
         }
     };
 
-    let auth_context = AdminAuthContext::new(id);
+    let auth_context = match jwt_claims.subject_type.as_deref() {
+        Some("agent") => AdminAuthContext::agent(id),
+        _ => AdminAuthContext::new(id),
+    };
     req = req.data(LanaLoader::new(&app, &auth_context.sub));
     req = req.data(auth_context);
 

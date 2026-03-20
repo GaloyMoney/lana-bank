@@ -4,6 +4,7 @@ use tracing_utils::ErrorSeverity;
 
 use crate::primitives::PermissionSetId;
 
+use super::agent::error::AgentError;
 use super::permission_set::error::{
     PermissionSetCreateError, PermissionSetFindError, PermissionSetModifyError,
     PermissionSetQueryError,
@@ -22,6 +23,8 @@ pub enum CoreAccessError {
     RoleError(#[from] super::role::RoleError),
     #[error("CoreAccessError - PermissionSetError: {0}")]
     PermissionSetError(#[from] super::permission_set::PermissionSetError),
+    #[error("CoreAccessError - AgentError: {0}")]
+    AgentError(#[from] AgentError),
     #[error("CoreAccessError - PermissionSetNotFound: {0}")]
     PermissionSetNotFound(PermissionSetId),
 }
@@ -82,6 +85,7 @@ impl ErrorSeverity for CoreAccessError {
             Self::UserError(e) => e.severity(),
             Self::RoleError(e) => e.severity(),
             Self::PermissionSetError(e) => e.severity(),
+            Self::AgentError(e) => e.severity(),
             Self::PermissionSetNotFound(_) => Level::WARN,
         }
     }

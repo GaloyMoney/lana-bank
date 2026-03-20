@@ -46,6 +46,13 @@ impl EventTimelineEntry {
                     Some(user) => Ok(Some(AuditSubject::User(user))),
                 }
             }
+            DomainSubject::Agent(id) => {
+                let agent = loader.load_one(*id).await?;
+                match agent {
+                    None => Err("Agent not found".into()),
+                    Some(agent) => Ok(Some(AuditSubject::Agent(agent))),
+                }
+            }
             DomainSubject::System(actor) => {
                 Ok(Some(AuditSubject::System(System::from_actor(actor))))
             }

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use chrono::NaiveDate;
 use domain_config::{DomainConfigError, DomainConfigId};
 use lana_app::{
-    access::{error::CoreAccessError, user::error::UserError},
+    access::{agent::error::AgentError, error::CoreAccessError, user::error::UserError},
     accounting::{
         Chart, FiscalYearId, LedgerAccountId, TransactionTemplateId, csv::AccountingCsvDocumentId,
         error::CoreAccountingError,
@@ -76,6 +76,21 @@ impl Loader<UserId> for LanaLoader {
             .access()
             .users()
             .find_all_authorized(&self.sub, keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<AgentId> for LanaLoader {
+    type Value = Agent;
+    type Error = Arc<AgentError>;
+
+    #[instrument(name = "loader.agents", skip(self), fields(count = keys.len()), err)]
+    async fn load(&self, keys: &[AgentId]) -> Result<HashMap<AgentId, Agent>, Self::Error> {
+        self.app
+            .access()
+            .agents()
+            .find_all(keys)
             .await
             .map_err(Arc::new)
     }

@@ -1,4 +1,4 @@
-pub use core_access::{PermissionSetId, RoleId, UserId};
+pub use core_access::{AgentId, PermissionSetId, RoleId, UserId};
 pub use core_accounting::{
     AccountInfo, AccountSpec, AccountingBaseConfig, BalanceRange, Chart, ChartId, FiscalYearId,
     LedgerTransactionId, ManualTransactionId,

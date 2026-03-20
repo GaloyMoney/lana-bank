@@ -66,6 +66,80 @@ enum Activity {
 	INACTIVE
 }
 
+type Agent {
+	agentId: UUID!
+	createdAt: Timestamp!
+	description: String!
+	id: ID!
+	keycloakClientId: String!
+	name: String!
+	status: AgentStatus!
+}
+
+type AgentConnection {
+	"""
+	A list of edges.
+	"""
+	edges: [AgentEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Agent!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+}
+
+input AgentCreateInput {
+	description: String!
+	name: String!
+}
+
+type AgentCreatePayload {
+	agent: Agent!
+	clientId: String!
+	clientSecret: String!
+}
+
+input AgentDeactivateInput {
+	agentId: UUID!
+}
+
+type AgentDeactivatePayload {
+	agent: Agent!
+}
+
+"""
+An edge in a connection.
+"""
+type AgentEdge {
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: Agent!
+}
+
+enum AgentSortBy {
+	CREATED_AT
+	ID
+	NAME
+}
+
+enum AgentStatus {
+	ACTIVE
+	INACTIVE
+}
+
+input AgentsSort {
+	by: AgentSortBy! = CREATED_AT
+	direction: SortDirection! = DESC
+}
+
 scalar AnnualRatePct
 
 type ApprovalProcess {
@@ -195,7 +269,7 @@ type AuditEntryEdge {
 
 scalar AuditEntryId
 
-union AuditSubject = User | System
+union AuditSubject = User | Agent | System
 
 scalar AuditSubjectId
 
@@ -2090,6 +2164,8 @@ type Me {
 
 type Mutation {
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
+	agentCreate(input: AgentCreateInput!): AgentCreatePayload!
+	agentDeactivate(input: AgentDeactivateInput!): AgentDeactivatePayload!
 	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
 	approvalProcessDeny(input: ApprovalProcessDenyInput!): ApprovalProcessDenyPayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
@@ -2607,6 +2683,8 @@ union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdraw
 
 type Query {
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
+	agent(id: UUID!): Agent
+	agents(after: String, first: Int!, sort: AgentsSort = {by: CREATED_AT, direction: DESC}): AgentConnection!
 	appConfig: String!
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(after: String, first: Int!): ApprovalProcessConnection!

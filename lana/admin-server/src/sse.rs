@@ -62,7 +62,10 @@ pub async fn graphql_sse_post(
             match uuid::Uuid::parse_str(&jwt_claims.subject) {
                 Ok(id) => {
                     tracing::Span::current().record("user.id", tracing::field::debug(&id));
-                    let auth_context = AdminAuthContext::new(id);
+                    let auth_context = match jwt_claims.subject_type.as_deref() {
+                        Some("agent") => AdminAuthContext::agent(id),
+                        _ => AdminAuthContext::new(id),
+                    };
                     Executor::execute_stream(
                         &*schema,
                         req.data(LanaLoader::new(&app, &auth_context.sub))

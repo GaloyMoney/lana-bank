@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::primitives::*;
 use lana_app::primitives::Subject as DomainSubject;
 
-use super::{access::User, loader::*};
+use super::{access::Agent, access::User, loader::*};
 
 #[derive(SimpleObject)]
 pub struct System {
@@ -22,6 +22,7 @@ impl System {
 #[derive(Union)]
 pub(crate) enum AuditSubject {
     User(User),
+    Agent(Agent),
     System(System),
 }
 
@@ -50,6 +51,13 @@ impl AuditEntry {
                 match user {
                     None => Err("User not found".into()),
                     Some(user) => Ok(AuditSubject::User(user)),
+                }
+            }
+            DomainSubject::Agent(id) => {
+                let agent = loader.load_one(*id).await?;
+                match agent {
+                    None => Err("Agent not found".into()),
+                    Some(agent) => Ok(AuditSubject::Agent(agent)),
                 }
             }
             DomainSubject::System(actor) => Ok(AuditSubject::System(System::from_actor(actor))),
