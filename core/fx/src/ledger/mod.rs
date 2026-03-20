@@ -28,6 +28,8 @@ impl FxLedger {
         clock: ClockHandle,
     ) -> Result<Self, FxLedgerError> {
         templates::FiatFxConversion::init(cala).await?;
+        templates::RealizedFxGainLoss::init(cala).await?;
+        templates::FxRoundingAdjustment::init(cala).await?;
 
         Ok(Self {
             cala: cala.clone(),
