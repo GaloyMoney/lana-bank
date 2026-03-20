@@ -8,7 +8,7 @@ runs:
       id: pnpm-cache
       shell: bash
       run: |
-        echo "STORE_PATH=$(nix develop -c pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+        echo "STORE_PATH=$(nix run .#pnpm-runner -- store path --silent)" >> "$GITHUB_OUTPUT"
 
     - name: Cache pnpm store
       uses: actions/cache/restore@v4
@@ -16,7 +16,7 @@ runs:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-pnpm-store- 
+          ${{ runner.os }}-pnpm-store-
 
-    - run: nix develop -c pnpm install
+    - run: nix run .#pnpm-runner -- install
       shell: bash
