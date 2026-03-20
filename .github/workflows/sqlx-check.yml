@@ -1,0 +1,55 @@
+name: "SQLx Check"
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "feature/**"
+
+jobs:
+  sqlx-check:
+    name: SQLx Prepare Check
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17.5
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: pg
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v16
+      - uses: cachix/cachix-action@v15
+        with:
+          name: galoymoney
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+
+      - name: Run migrations
+        run: nix develop -c make setup-db
+        env:
+          DATABASE_URL: "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable"
+
+      - name: Generate .sqlx
+        run: nix develop -c make sqlx-prepare
+        env:
+          DATABASE_URL: "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable"
+
+      - name: Check .sqlx is up to date
+        run: |
+          if [ -n "$(git status --porcelain .sqlx)" ]; then
+            echo "::error::.sqlx is out of date. Please run 'make sqlx-prepare' and commit the changes."
+            git status --porcelain .sqlx
+            git diff .sqlx
+            exit 1
+          fi
