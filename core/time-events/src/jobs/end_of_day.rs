@@ -124,11 +124,13 @@ impl JobRunner for EndOfDayProducerJobRunner {
                     )
                     .queue_id("eod-manager".to_string());
                     match self.pm_spawner.spawn_all_in_op(&mut op, vec![spec]).await {
-                        Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
+                        Ok(_) => {}
+                        Err(job::error::JobError::DuplicateId(_)) => {
+                            op = current_job.begin_op().await?;
+                        }
                         Err(e) => return Err(e.into()),
                     }
                     state.last_published_day = Some(day);
-                    // lint:allow(tainted-transaction-use)
                     current_job
                         .update_execution_state_in_op(&mut op, &state)
                         .await?;

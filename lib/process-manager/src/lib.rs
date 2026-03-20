@@ -60,12 +60,14 @@ where
     let mut op = current_job.begin_op().await?;
 
     match spawner.spawn_all_in_op(&mut op, specs).await {
-        Ok(_) | Err(JobError::DuplicateId(_)) => {}
+        Ok(_) => {}
+        Err(JobError::DuplicateId(_)) => {
+            op = current_job.begin_op().await?;
+        }
         Err(e) => return Err(e.into()),
     }
 
     let new_state = state_update_fn(start_sequence);
-    // lint:allow(tainted-transaction-use)
     current_job
         .update_execution_state_in_op(&mut op, &new_state)
         .await?;
