@@ -135,6 +135,7 @@ where
                 }
             };
 
+            // lint:allow(service-conditionals)
             match process.status() {
                 EodProcessStatus::Initialized => {
                     let obligation_job = JobId::new();
