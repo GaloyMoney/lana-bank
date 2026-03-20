@@ -4,6 +4,7 @@
 pub(crate) mod chart_of_accounts_integration;
 pub mod error;
 pub(crate) mod ledger;
+pub(crate) mod position;
 mod primitives;
 
 use std::sync::Arc;
