@@ -8,7 +8,7 @@ use thiserror::Error;
 // CurrencyCode — runtime currency identifier
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CurrencyCode(&'static str);
 
 #[cfg(feature = "json-schema")]
