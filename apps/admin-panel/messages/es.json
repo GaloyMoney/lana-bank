@@ -1117,15 +1117,15 @@
         },
         "buttons": {
           "loanTerms": "Términos del Préstamo",
-          "loanAgreement": "Contrato de Préstamo",
+          "creditFacilityAgreement": "Acuerdo de Línea de Crédito",
           "updateCollateral": "Actualizar Garantía",
           "approve": "Aprobar",
           "deny": "Rechazar",
           "complete": "Completar"
         },
-        "loanAgreement": {
-          "success": "Contrato de préstamo generado exitosamente",
-          "error": "Error al generar el contrato de préstamo"
+        "creditFacilityAgreement": {
+          "success": "Acuerdo de línea de crédito generado exitosamente",
+          "error": "Error al generar el acuerdo de línea de crédito"
         }
       },
       "completeCreditFacility": {
