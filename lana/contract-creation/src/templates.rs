@@ -50,7 +50,7 @@ impl ContractTemplates {
         Ok(rendered)
     }
 
-    /// Get the loan agreement template content
+    /// Get the credit facility agreement template content
     pub fn get_credit_facility_agreement_template(
         &self,
         data: &impl Serialize,

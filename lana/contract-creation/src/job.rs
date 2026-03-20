@@ -76,6 +76,7 @@ where
     }
 }
 
+// String value kept as "task.generate-loan-agreement" for backwards compatibility with queued jobs
 pub const GENERATE_CREDIT_FACILITY_AGREEMENT_JOB: JobType =
     JobType::new("task.generate-loan-agreement");
 
