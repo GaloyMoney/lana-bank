@@ -31,8 +31,7 @@ where
         + std::fmt::Debug,
 {
     pub service: DepositSync<Perms, E>,
-    pub deposit_activity_spawner:
-        core_time_events::deposit_activity_process::DepositActivityProcessSpawner,
+    pub deposit_activity_spawner: core_eod::deposit_activity_process::DepositActivityProcessSpawner,
 }
 
 pub struct DepositSync<Perms, E>

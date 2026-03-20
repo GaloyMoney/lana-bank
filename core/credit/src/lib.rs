@@ -90,9 +90,9 @@ where
 {
     pub service: CoreCredit<Perms, E>,
     pub obligation_status_spawner:
-        core_time_events::obligation_status_process::ObligationStatusProcessSpawner,
+        core_eod::obligation_status_process::ObligationStatusProcessSpawner,
     pub credit_facility_eod_spawner:
-        core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
+        core_eod::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
 }
 
 pub struct CoreCredit<Perms, E>

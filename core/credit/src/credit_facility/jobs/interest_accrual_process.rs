@@ -40,7 +40,7 @@ use tracing_macros::record_error_severity;
 use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use core_time_events::interest_accrual_process::INTEREST_ACCRUAL_PROCESS_JOB;
+use core_eod::interest_accrual_process::INTEREST_ACCRUAL_PROCESS_JOB;
 
 use super::accrue_interest_command::{AccrueInterestCommandConfig, AccrueInterestCommandSpawner};
 use super::complete_accrual_cycle_command::{

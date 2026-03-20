@@ -58,6 +58,7 @@ core-customer = { path = "core/customer" }
 core-deposit = { path = "core/deposit" }
 core-price = { path = "core/price" }
 core-report = { path = "core/report" }
+core-eod = { path = "core/eod" }
 core-time-events = { path = "core/time-events" }
 document-storage = { path = "core/document-storage" }
 governance = { path = "core/governance" }

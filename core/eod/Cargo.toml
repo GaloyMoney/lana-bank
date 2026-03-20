@@ -1,5 +1,5 @@
 [package]
-name = "core-time-events"
+name = "core-eod"
 license = "BUSL-1.1"
 edition = "2024"
 
@@ -9,24 +9,27 @@ fail-on-warnings = []
 json-schema = [
     "dep:schemars",
     "es-entity/json-schema",
+    "core-time-events/json-schema",
 ]
 
 [dependencies]
+core-time-events = { workspace = true }
+
 async-trait = { workspace = true }
-audit = { workspace = true }
-authz = { workspace = true }
-domain-config = { workspace = true }
+derive_builder = { workspace = true }
 chrono = { workspace = true }
 chrono-tz = { workspace = true, features = ["serde"] }
 serde = { workspace = true }
+sqlx = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-utils = { workspace = true }
 tracing-macros = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
+process-manager = { workspace = true }
 es-entity = { workspace = true }
 strum = { workspace = true }
-tokio = { workspace = true }
+uuid = { workspace = true }
 
 schemars = { workspace = true, optional = true }

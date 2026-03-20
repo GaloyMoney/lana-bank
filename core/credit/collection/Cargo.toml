@@ -19,6 +19,7 @@ money = { workspace = true }
 permission-sets-macro = { workspace = true }
 core-credit-terms = { path = "../terms" }
 core-time-events = { workspace = true }
+core-eod = { workspace = true }
 
 audit = { workspace = true }
 authz = { workspace = true }

@@ -60,7 +60,7 @@ where
 {
     pub service: CreditFacilities<Perms, E>,
     pub credit_facility_eod_spawner:
-        core_time_events::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
+        core_eod::credit_facility_eod_process::CreditFacilityEodProcessSpawner,
 }
 
 pub struct CreditFacilities<Perms, E>

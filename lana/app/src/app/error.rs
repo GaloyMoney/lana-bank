@@ -40,6 +40,12 @@ pub enum ApplicationError {
     PriceError(#[from] crate::price::error::PriceError),
     #[error("ApplicationError - TimeEventsError: {0}")]
     TimeEventsError(#[from] crate::time_events::error::TimeEventsError),
+    #[error("ApplicationError - CoreEodError: {0}")]
+    CoreEodError(#[from] crate::eod::error::CoreEodError),
+    #[error("ApplicationError - EodProcessError: {0}")]
+    EodProcessError(#[from] crate::eod::eod_process::error::EodProcessError),
+    #[error("ApplicationError - EodProcessInProgress: cannot advance while EOD process is running")]
+    EodProcessInProgress,
     #[error("ApplicationError - AccountingInitError: {0}")]
     AccountingInitError(#[from] crate::accounting_init::error::AccountingInitError),
     #[error("ApplicationError - GovernanceError: {0}")]
@@ -108,6 +114,9 @@ impl ErrorSeverity for ApplicationError {
             Self::ClosedOrFrozenAccount => Level::WARN,
             Self::CustomerClosePreconditionFailed(_) => Level::WARN,
             Self::TimeEventsError(e) => e.severity(),
+            Self::CoreEodError(e) => e.severity(),
+            Self::EodProcessError(_) => Level::ERROR,
+            Self::EodProcessInProgress => Level::WARN,
         }
     }
 }

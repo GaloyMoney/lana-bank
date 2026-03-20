@@ -28,8 +28,8 @@ use core_credit_collection::{
     CoreCreditCollectionAction, CoreCreditCollectionEvent, CoreCreditCollectionObject,
 };
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+use core_eod::accrue_interest_command::ACCRUE_INTEREST_COMMAND;
 use core_price::CorePriceEvent;
-use core_time_events::accrue_interest_command::ACCRUE_INTEREST_COMMAND;
 
 use crate::{
     AccrualOutcome, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId,

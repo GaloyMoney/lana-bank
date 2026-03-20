@@ -2,20 +2,20 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     eod_process::{EodProcess, EodProcessEvent},
-    event::CoreTimeEvent,
+    event::CoreEodEvent,
     public::PublicEodProcess,
 };
 
 pub struct EodPublisher<E>
 where
-    E: OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreEodEvent>,
 {
     outbox: Outbox<E>,
 }
 
 impl<E> Clone for EodPublisher<E>
 where
-    E: OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreEodEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -26,7 +26,7 @@ where
 
 impl<E> EodPublisher<E>
 where
-    E: OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreEodEvent>,
 {
     pub fn new(outbox: &Outbox<E>) -> Self {
         Self {
@@ -43,13 +43,13 @@ where
         use EodProcessEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { .. } => Some(CoreTimeEvent::EndOfDay {
+                Initialized { .. } => Some(CoreEodEvent::EodProcessStarted {
                     entity: PublicEodProcess::from(entity),
                 }),
-                Completed { .. } => Some(CoreTimeEvent::EodProcessCompleted {
+                Completed { .. } => Some(CoreEodEvent::EodProcessCompleted {
                     entity: PublicEodProcess::from(entity),
                 }),
-                Failed { .. } => Some(CoreTimeEvent::EodProcessFailed {
+                Failed { .. } => Some(CoreEodEvent::EodProcessFailed {
                     entity: PublicEodProcess::from(entity),
                 }),
                 _ => None,

@@ -16,6 +16,7 @@ json-schema = [
     "core-credit/json-schema",
     "core-credit-collection/json-schema",
     "core-deposit/json-schema",
+    "core-eod/json-schema",
     "core-report/json-schema",
     "core-price/json-schema",
     "core-time-events/json-schema",
@@ -31,6 +32,7 @@ core-credit = { workspace = true }
 core-credit-collateral = { workspace = true }
 core-credit-collection = { workspace = true }
 core-deposit = { workspace = true }
+core-eod = { workspace = true }
 core-report = { workspace = true }
 core-price = { workspace = true }
 core-time-events = { workspace = true }

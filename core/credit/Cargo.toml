@@ -28,6 +28,7 @@ core-price = { workspace = true }
 core-customer = { workspace = true }
 core-credit-collection = { path = "collection" }
 core-time-events = { workspace = true }
+core-eod = { workspace = true }
 core-credit-collateral = { path = "collateral" }
 core-credit-terms = { path = "terms" }
 core-custody = { workspace = true }

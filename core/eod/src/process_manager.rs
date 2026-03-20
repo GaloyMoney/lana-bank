@@ -13,7 +13,7 @@ use crate::{
     },
     deposit_activity_process::{DepositActivityProcessConfig, DepositActivityProcessSpawner},
     eod_process::{EodProcesses, NewEodProcess, error::EodProcessError},
-    event::CoreTimeEvent,
+    event::CoreEodEvent,
     obligation_status_process::{ObligationStatusProcessConfig, ObligationStatusProcessSpawner},
     primitives::*,
 };
@@ -30,7 +30,7 @@ pub struct EodProcessManagerConfig {
 
 pub struct EodProcessManagerJobInit<E>
 where
-    E: OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreEodEvent>,
 {
     jobs: Jobs,
     eod_processes: EodProcesses<E>,
@@ -41,7 +41,7 @@ where
 
 impl<E> EodProcessManagerJobInit<E>
 where
-    E: OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreEodEvent>,
 {
     pub fn new(
         jobs: &Jobs,
@@ -62,7 +62,7 @@ where
 
 impl<E> JobInitializer for EodProcessManagerJobInit<E>
 where
-    E: OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreEodEvent>,
 {
     type Config = EodProcessManagerConfig;
 
@@ -88,7 +88,7 @@ where
 
 struct EodProcessManagerJobRunner<E>
 where
-    E: OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreEodEvent>,
 {
     config: EodProcessManagerConfig,
     jobs: Jobs,
@@ -101,7 +101,7 @@ where
 #[async_trait]
 impl<E> JobRunner for EodProcessManagerJobRunner<E>
 where
-    E: OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreEodEvent>,
 {
     #[record_error_severity]
     #[instrument(

@@ -15,21 +15,21 @@ pub enum EodProcessStatus {
     Failed,
 }
 
-impl From<lana_app::time_events::EodProcessStatus> for EodProcessStatus {
-    fn from(value: lana_app::time_events::EodProcessStatus) -> Self {
+impl From<lana_app::eod::EodProcessStatus> for EodProcessStatus {
+    fn from(value: lana_app::eod::EodProcessStatus) -> Self {
         match value {
-            lana_app::time_events::EodProcessStatus::Initialized => Self::Initialized,
-            lana_app::time_events::EodProcessStatus::AwaitingObligationsAndDeposits => {
+            lana_app::eod::EodProcessStatus::Initialized => Self::Initialized,
+            lana_app::eod::EodProcessStatus::AwaitingObligationsAndDeposits => {
                 Self::AwaitingObligationsAndDeposits
             }
-            lana_app::time_events::EodProcessStatus::ObligationsAndDepositsComplete => {
+            lana_app::eod::EodProcessStatus::ObligationsAndDepositsComplete => {
                 Self::ObligationsAndDepositsComplete
             }
-            lana_app::time_events::EodProcessStatus::AwaitingCreditFacilityEod => {
+            lana_app::eod::EodProcessStatus::AwaitingCreditFacilityEod => {
                 Self::AwaitingCreditFacilityEod
             }
-            lana_app::time_events::EodProcessStatus::Completed => Self::Completed,
-            lana_app::time_events::EodProcessStatus::Failed => Self::Failed,
+            lana_app::eod::EodProcessStatus::Completed => Self::Completed,
+            lana_app::eod::EodProcessStatus::Failed => Self::Failed,
         }
     }
 }

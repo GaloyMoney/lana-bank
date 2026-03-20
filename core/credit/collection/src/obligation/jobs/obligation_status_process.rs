@@ -7,7 +7,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_time_events::obligation_status_process::{
+use core_eod::obligation_status_process::{
     OBLIGATION_STATUS_PROCESS_JOB, ObligationStatusProcessConfig,
 };
 use job::*;

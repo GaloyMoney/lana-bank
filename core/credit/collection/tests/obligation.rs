@@ -9,7 +9,7 @@ use core_credit_collection::{
     PaymentSourceAccountId,
 };
 use core_credit_terms::EffectiveDate;
-use core_time_events::{CoreTimeEvent, EodProcessId, EodProcessStatus, PublicEodProcess};
+use core_time_events::CoreTimeEvent;
 use es_entity::DbOp;
 use helpers::event::{DummyEvent, expect_event};
 use money::UsdCents;
@@ -28,11 +28,9 @@ async fn publish_end_of_day(
         .publish_persisted_in_op(
             &mut op,
             CoreTimeEvent::EndOfDay {
-                entity: PublicEodProcess {
-                    id: EodProcessId::new(),
-                    date: day,
-                    status: EodProcessStatus::Initialized,
-                },
+                day,
+                closing_time: chrono::Utc::now(),
+                timezone: chrono_tz::Tz::UTC,
             },
         )
         .await?;

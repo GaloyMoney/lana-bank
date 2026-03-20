@@ -10,10 +10,10 @@ use job::*;
 use obix::out::OutboxEventMarker;
 
 use core_custody::CoreCustodyEvent;
-use core_price::CorePriceEvent;
-use core_time_events::credit_facility_eod_process::{
+use core_eod::credit_facility_eod_process::{
     CREDIT_FACILITY_EOD_PROCESS_JOB, CreditFacilityEodProcessConfig,
 };
+use core_price::CorePriceEvent;
 
 use super::credit_facility_maturity::{
     CreditFacilityMaturityJobConfig, CreditFacilityMaturityJobSpawner,

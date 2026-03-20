@@ -1334,6 +1334,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-eod",
  "core-price",
  "core-time-events",
  "derive_builder",
@@ -1414,6 +1415,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "core-credit-terms",
+ "core-eod",
  "core-time-events",
  "derive_builder",
  "es-entity",
@@ -1578,6 +1580,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-eod"
+version = "0.0.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "chrono-tz",
+ "core-time-events",
+ "derive_builder",
+ "es-entity",
+ "job",
+ "obix",
+ "process-manager",
+ "schemars 1.2.1",
+ "serde",
+ "sqlx",
+ "strum 0.28.0",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
+ "uuid",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1661,22 +1687,18 @@ dependencies = [
  "authz",
  "chrono",
  "chrono-tz",
- "derive_builder",
  "domain-config",
  "es-entity",
  "job",
  "obix",
- "process-manager",
  "schemars 1.2.1",
  "serde",
- "sqlx",
  "strum 0.28.0",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "uuid",
 ]
 
 [[package]]
@@ -2025,7 +2047,7 @@ dependencies = [
  "chrono",
  "core-customer",
  "core-deposit",
- "core-time-events",
+ "core-eod",
  "es-entity",
  "governance",
  "job",
@@ -3622,6 +3644,7 @@ dependencies = [
  "authz",
  "cala-ledger",
  "chrono",
+ "chrono-tz",
  "cloud-storage",
  "contract-creation",
  "core-access",
@@ -3632,6 +3655,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-eod",
  "core-price",
  "core-report",
  "core-time-events",
@@ -3707,6 +3731,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-eod",
  "core-price",
  "core-report",
  "core-time-events",

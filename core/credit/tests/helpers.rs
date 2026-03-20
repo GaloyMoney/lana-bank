@@ -487,6 +487,7 @@ pub mod event {
     use core_custody::CoreCustodyEvent;
     use core_customer::CoreCustomerEvent;
     use core_deposit::CoreDepositEvent;
+    use core_eod::CoreEodEvent;
     use core_price::CorePriceEvent;
     use core_time_events::CoreTimeEvent;
     use governance::GovernanceEvent;
@@ -503,6 +504,7 @@ pub mod event {
         CoreCustomer(CoreCustomerEvent),
         CoreDeposit(CoreDepositEvent),
         CoreTimeEvent(CoreTimeEvent),
+        CoreEod(CoreEodEvent),
         Governance(GovernanceEvent),
         Price(CorePriceEvent),
         #[serde(other)]

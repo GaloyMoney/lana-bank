@@ -51,7 +51,7 @@ where
 {
     pub service: CoreCreditCollection<Perms, E>,
     pub obligation_status_spawner:
-        core_time_events::obligation_status_process::ObligationStatusProcessSpawner,
+        core_eod::obligation_status_process::ObligationStatusProcessSpawner,
 }
 
 pub struct CoreCreditCollection<Perms, E>

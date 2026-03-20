@@ -27,6 +27,7 @@ use crate::{
     deposit_sync::DepositSync,
     document::DocumentStorage,
     domain_config::ExposedDomainConfigs,
+    eod::CoreEod,
     governance::Governance,
     job::Jobs,
     kyc::CustomerKyc,
@@ -69,6 +70,7 @@ pub struct LanaApp {
     terms_templates: TermsTemplates,
     storage: Storage,
     time_events: TimeEvents,
+    core_eod: CoreEod,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
     _deposit_sync: DepositSync,
@@ -286,26 +288,26 @@ impl LanaApp {
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
             .await?;
 
-        // Wire EOD process manager
-        let eod_publisher = core_time_events::EodPublisher::new(&outbox);
-        let eod_processes =
-            core_time_events::EodProcesses::new(&pool, &eod_publisher, clock.clone());
-        let eod_pm_spawner = jobs.add_initializer(core_time_events::EodProcessManagerJobInit::new(
-            &jobs,
-            eod_processes.clone(),
-            obligation_status_spawner,
-            deposit_activity_spawner,
-            credit_facility_eod_spawner,
-        ));
-
         let time_events = TimeEvents::init(
             &authz,
             &exposed_domain_configs_readonly,
             &mut jobs,
-            &eod_pm_spawner,
+            &outbox,
             &clock,
             clock_controller,
-            &eod_processes,
+        )
+        .await?;
+
+        // Wire EOD orchestration — listens for CoreTimeEvent::EndOfDay via outbox
+        let core_eod = CoreEod::init(
+            &pool,
+            &mut jobs,
+            &outbox,
+            &outbox,
+            clock.clone(),
+            obligation_status_spawner,
+            deposit_activity_spawner,
+            credit_facility_eod_spawner,
         )
         .await?;
 
@@ -334,6 +336,7 @@ impl LanaApp {
             terms_templates,
             storage,
             time_events,
+            core_eod,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,
@@ -474,7 +477,17 @@ impl LanaApp {
         &self,
         sub: &Subject,
     ) -> Result<crate::time_events::TimeState, ApplicationError> {
-        Ok(self.time_events.state(sub).await?)
+        let core_state = self.time_events.state(sub).await?;
+        let eod_status = self.core_eod.latest_eod_status().await?;
+        Ok(crate::time_events::TimeState {
+            current_date: core_state.current_date,
+            current_time: core_state.current_time,
+            next_end_of_day_at: core_state.next_end_of_day_at,
+            timezone: core_state.timezone,
+            end_of_day_time: core_state.end_of_day_time,
+            can_advance_to_next_end_of_day: core_state.can_advance_to_next_end_of_day,
+            eod_status,
+        })
     }
 
     #[record_error_severity]
@@ -483,7 +496,24 @@ impl LanaApp {
         &self,
         sub: &Subject,
     ) -> Result<crate::time_events::TimeState, ApplicationError> {
-        Ok(self.time_events.advance_to_next_end_of_day(sub).await?)
+        // Reject advance if an EOD process is still running
+        if let Some(latest) = self.core_eod.find_latest_process().await?
+            && latest.status().is_in_progress()
+        {
+            return Err(ApplicationError::EodProcessInProgress);
+        }
+
+        let core_state = self.time_events.advance_to_next_end_of_day(sub).await?;
+        let eod_status = self.core_eod.latest_eod_status().await?;
+        Ok(crate::time_events::TimeState {
+            current_date: core_state.current_date,
+            current_time: core_state.current_time,
+            next_end_of_day_at: core_state.next_end_of_day_at,
+            timezone: core_state.timezone,
+            end_of_day_time: core_state.end_of_day_time,
+            can_advance_to_next_end_of_day: core_state.can_advance_to_next_end_of_day,
+            eod_status,
+        })
     }
 
     pub async fn get_visible_nav_items(

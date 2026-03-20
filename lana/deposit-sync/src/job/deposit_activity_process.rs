@@ -10,7 +10,7 @@ use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
     GovernanceAction, GovernanceObject,
 };
-use core_time_events::deposit_activity_process::{
+use core_eod::deposit_activity_process::{
     DEPOSIT_ACTIVITY_PROCESS_JOB, DepositActivityProcessConfig,
 };
 use governance::GovernanceEvent;

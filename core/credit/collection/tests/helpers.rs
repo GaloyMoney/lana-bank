@@ -203,6 +203,7 @@ pub mod event {
     use serde::{Deserialize, Serialize};
 
     use core_credit_collection::CoreCreditCollectionEvent;
+    use core_eod::CoreEodEvent;
     use core_time_events::CoreTimeEvent;
 
     #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
@@ -210,6 +211,7 @@ pub mod event {
     pub enum DummyEvent {
         CoreCreditCollection(CoreCreditCollectionEvent),
         CoreTimeEvent(CoreTimeEvent),
+        CoreEod(CoreEodEvent),
         #[serde(other)]
         Unknown,
     }

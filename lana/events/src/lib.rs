@@ -14,6 +14,7 @@ pub use core_credit_collection::CoreCreditCollectionEvent;
 pub use core_custody::CoreCustodyEvent;
 pub use core_customer::CoreCustomerEvent;
 pub use core_deposit::CoreDepositEvent;
+pub use core_eod::CoreEodEvent;
 pub use core_price::CorePriceEvent;
 pub use core_report::CoreReportEvent;
 pub use core_time_events::CoreTimeEvent;
@@ -36,4 +37,5 @@ pub enum LanaEvent {
     Report(CoreReportEvent),
     Price(CorePriceEvent),
     Time(CoreTimeEvent),
+    Eod(CoreEodEvent),
 }
