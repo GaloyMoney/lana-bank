@@ -38,27 +38,6 @@ type AccountingBaseConfigOutput {
 	revenueCode: String!
 }
 
-type AccountingCsvDocument {
-	accountingCsvDocumentId: UUID!
-	createdAt: Timestamp!
-	filename: String!
-	ledgerAccountId: UUID!
-	status: DocumentStatus!
-}
-
-type AccountingCsvDownloadLink {
-	csvId: UUID!
-	url: String!
-}
-
-input AccountingCsvDownloadLinkGenerateInput {
-	documentId: UUID!
-}
-
-type AccountingCsvDownloadLinkGeneratePayload {
-	link: AccountingCsvDownloadLink!
-}
-
 enum Activity {
 	ACTIVE
 	ESCHEATABLE
@@ -1871,7 +1850,28 @@ input LedgerAccountCsvCreateInput {
 }
 
 type LedgerAccountCsvCreatePayload {
-	accountingCsvDocument: AccountingCsvDocument!
+	ledgerAccountCsvDocument: LedgerAccountCsvDocument!
+}
+
+type LedgerAccountCsvDocument {
+	createdAt: Timestamp!
+	filename: String!
+	ledgerAccountCsvDocumentId: UUID!
+	ledgerAccountId: UUID!
+	status: DocumentStatus!
+}
+
+type LedgerAccountCsvDownloadLink {
+	csvId: UUID!
+	url: String!
+}
+
+input LedgerAccountCsvDownloadLinkGenerateInput {
+	documentId: UUID!
+}
+
+type LedgerAccountCsvDownloadLinkGeneratePayload {
+	link: LedgerAccountCsvDownloadLink!
 }
 
 type LedgerAccountCsvExportUploadedPayload {
@@ -2043,7 +2043,6 @@ type Me {
 }
 
 type Mutation {
-	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
 	approvalProcessDeny(input: ApprovalProcessDenyInput!): ApprovalProcessDenyPayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
@@ -2088,6 +2087,7 @@ type Mutation {
 	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
 	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
+	ledgerAccountCsvDownloadLinkGenerate(input: LedgerAccountCsvDownloadLinkGenerateInput!): LedgerAccountCsvDownloadLinkGeneratePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	priceProviderActivate(priceProviderId: UUID!): PriceProviderActivatePayload!
@@ -2529,8 +2529,7 @@ scalar PublicId
 union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
-	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
-	appConfig: Yaml!
+	appConfig: String!
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(after: String, first: Int!): ApprovalProcessConnection!
 	audit(action: String, after: String, authorized: Boolean, first: Int!, object: String, subject: AuditSubjectId): AuditEntryConnection!
@@ -2573,6 +2572,7 @@ type Query {
 	journalEntries(after: String, first: Int!): JournalEntryConnection!
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
+	ledgerAccountCsv(ledgerAccountId: UUID!): LedgerAccountCsvDocument
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(after: String, first: Int!, templateCode: String!): LedgerTransactionConnection!
 	liquidation(id: UUID!): Liquidation
@@ -3227,8 +3227,6 @@ enum WithdrawalsSortBy {
 	CREATED_AT
 	PUBLIC_ID
 }
-
-scalar Yaml
 
 """
 Directs the executor to include this field or fragment only when the `if` argument is true.

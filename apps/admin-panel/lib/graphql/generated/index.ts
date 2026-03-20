@@ -41,7 +41,6 @@ export type Scalars = {
   /** A multipart file upload */
   Upload: { input: any; output: any; }
   UsdCents: { input: UsdCents; output: UsdCents; }
-  Yaml: { input: any; output: any; }
 };
 
 export enum AccountCategory {
@@ -82,30 +81,6 @@ export type AccountingBaseConfigOutput = {
   expensesCode: Scalars['String']['output'];
   liabilitiesCode: Scalars['String']['output'];
   revenueCode: Scalars['String']['output'];
-};
-
-export type AccountingCsvDocument = {
-  __typename?: 'AccountingCsvDocument';
-  accountingCsvDocumentId: Scalars['UUID']['output'];
-  createdAt: Scalars['Timestamp']['output'];
-  filename: Scalars['String']['output'];
-  ledgerAccountId: Scalars['UUID']['output'];
-  status: DocumentStatus;
-};
-
-export type AccountingCsvDownloadLink = {
-  __typename?: 'AccountingCsvDownloadLink';
-  csvId: Scalars['UUID']['output'];
-  url: Scalars['String']['output'];
-};
-
-export type AccountingCsvDownloadLinkGenerateInput = {
-  documentId: Scalars['UUID']['input'];
-};
-
-export type AccountingCsvDownloadLinkGeneratePayload = {
-  __typename?: 'AccountingCsvDownloadLinkGeneratePayload';
-  link: AccountingCsvDownloadLink;
 };
 
 export enum Activity {
@@ -1941,7 +1916,31 @@ export type LedgerAccountCsvCreateInput = {
 
 export type LedgerAccountCsvCreatePayload = {
   __typename?: 'LedgerAccountCsvCreatePayload';
-  accountingCsvDocument: AccountingCsvDocument;
+  ledgerAccountCsvDocument: LedgerAccountCsvDocument;
+};
+
+export type LedgerAccountCsvDocument = {
+  __typename?: 'LedgerAccountCsvDocument';
+  createdAt: Scalars['Timestamp']['output'];
+  filename: Scalars['String']['output'];
+  ledgerAccountCsvDocumentId: Scalars['UUID']['output'];
+  ledgerAccountId: Scalars['UUID']['output'];
+  status: DocumentStatus;
+};
+
+export type LedgerAccountCsvDownloadLink = {
+  __typename?: 'LedgerAccountCsvDownloadLink';
+  csvId: Scalars['UUID']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type LedgerAccountCsvDownloadLinkGenerateInput = {
+  documentId: Scalars['UUID']['input'];
+};
+
+export type LedgerAccountCsvDownloadLinkGeneratePayload = {
+  __typename?: 'LedgerAccountCsvDownloadLinkGeneratePayload';
+  link: LedgerAccountCsvDownloadLink;
 };
 
 export type LedgerAccountCsvExportUploadedPayload = {
@@ -2113,7 +2112,6 @@ export type Me = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  accountingCsvDownloadLinkGenerate: AccountingCsvDownloadLinkGeneratePayload;
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
@@ -2158,6 +2156,7 @@ export type Mutation = {
   fiscalYearInit: FiscalYearInitPayload;
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
+  ledgerAccountCsvDownloadLinkGenerate: LedgerAccountCsvDownloadLinkGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   priceProviderActivate: PriceProviderActivatePayload;
@@ -2185,11 +2184,6 @@ export type Mutation = {
   withdrawalConfirm: WithdrawalConfirmPayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
   withdrawalRevert: WithdrawalRevertPayload;
-};
-
-
-export type MutationAccountingCsvDownloadLinkGenerateArgs = {
-  input: AccountingCsvDownloadLinkGenerateInput;
 };
 
 
@@ -2410,6 +2404,11 @@ export type MutationFiscalYearOpenNextArgs = {
 
 export type MutationLedgerAccountCsvCreateArgs = {
   input: LedgerAccountCsvCreateInput;
+};
+
+
+export type MutationLedgerAccountCsvDownloadLinkGenerateArgs = {
+  input: LedgerAccountCsvDownloadLinkGenerateInput;
 };
 
 
@@ -2916,8 +2915,7 @@ export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer
 
 export type Query = {
   __typename?: 'Query';
-  accountEntryCsv?: Maybe<AccountingCsvDocument>;
-  appConfig: Scalars['Yaml']['output'];
+  appConfig: Scalars['String']['output'];
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
@@ -2960,6 +2958,7 @@ export type Query = {
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
+  ledgerAccountCsv?: Maybe<LedgerAccountCsvDocument>;
   ledgerTransaction?: Maybe<LedgerTransaction>;
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   liquidation?: Maybe<Liquidation>;
@@ -2996,11 +2995,6 @@ export type Query = {
   withdrawal?: Maybe<Withdrawal>;
   withdrawalByPublicId?: Maybe<Withdrawal>;
   withdrawals: WithdrawalConnection;
-};
-
-
-export type QueryAccountEntryCsvArgs = {
-  ledgerAccountId: Scalars['UUID']['input'];
 };
 
 
@@ -3208,6 +3202,11 @@ export type QueryLedgerAccountArgs = {
 
 export type QueryLedgerAccountByCodeArgs = {
   code: Scalars['String']['input'];
+};
+
+
+export type QueryLedgerAccountCsvArgs = {
+  ledgerAccountId: Scalars['UUID']['input'];
 };
 
 
@@ -4999,26 +4998,26 @@ export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __ty
           | { __typename?: 'UsdAmount', usd: UsdCents }
         , ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null }, ledgerTransaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string, description?: string | null, effective: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type AccountEntryCsvQueryVariables = Exact<{
+export type LedgerAccountCsvQueryVariables = Exact<{
   ledgerAccountId: Scalars['UUID']['input'];
 }>;
 
 
-export type AccountEntryCsvQuery = { __typename?: 'Query', accountEntryCsv?: { __typename?: 'AccountingCsvDocument', accountingCsvDocumentId: string, status: DocumentStatus, createdAt: string } | null };
+export type LedgerAccountCsvQuery = { __typename?: 'Query', ledgerAccountCsv?: { __typename?: 'LedgerAccountCsvDocument', ledgerAccountCsvDocumentId: string, status: DocumentStatus, createdAt: string } | null };
 
 export type LedgerAccountCsvCreateMutationVariables = Exact<{
   input: LedgerAccountCsvCreateInput;
 }>;
 
 
-export type LedgerAccountCsvCreateMutation = { __typename?: 'Mutation', ledgerAccountCsvCreate: { __typename?: 'LedgerAccountCsvCreatePayload', accountingCsvDocument: { __typename?: 'AccountingCsvDocument', accountingCsvDocumentId: string, status: DocumentStatus, createdAt: string } } };
+export type LedgerAccountCsvCreateMutation = { __typename?: 'Mutation', ledgerAccountCsvCreate: { __typename?: 'LedgerAccountCsvCreatePayload', ledgerAccountCsvDocument: { __typename?: 'LedgerAccountCsvDocument', ledgerAccountCsvDocumentId: string, status: DocumentStatus, createdAt: string } } };
 
-export type AccountingCsvDownloadLinkGenerateMutationVariables = Exact<{
-  input: AccountingCsvDownloadLinkGenerateInput;
+export type LedgerAccountCsvDownloadLinkGenerateMutationVariables = Exact<{
+  input: LedgerAccountCsvDownloadLinkGenerateInput;
 }>;
 
 
-export type AccountingCsvDownloadLinkGenerateMutation = { __typename?: 'Mutation', accountingCsvDownloadLinkGenerate: { __typename?: 'AccountingCsvDownloadLinkGeneratePayload', link: { __typename?: 'AccountingCsvDownloadLink', url: string, csvId: string } } };
+export type LedgerAccountCsvDownloadLinkGenerateMutation = { __typename?: 'Mutation', ledgerAccountCsvDownloadLinkGenerate: { __typename?: 'LedgerAccountCsvDownloadLinkGeneratePayload', link: { __typename?: 'LedgerAccountCsvDownloadLink', url: string, csvId: string } } };
 
 export type LedgerAccountCsvExportUploadedSubscriptionVariables = Exact<{
   ledgerAccountId: Scalars['UUID']['input'];
@@ -5572,7 +5571,7 @@ export type SystemInfoTimeFieldsFragment = { __typename?: 'Time', currentDate: s
 export type GetBuildInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: any, buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
+export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: string, buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
 
 export type GetTimeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -11054,10 +11053,10 @@ export type JournalEntriesQueryHookResult = ReturnType<typeof useJournalEntriesQ
 export type JournalEntriesLazyQueryHookResult = ReturnType<typeof useJournalEntriesLazyQuery>;
 export type JournalEntriesSuspenseQueryHookResult = ReturnType<typeof useJournalEntriesSuspenseQuery>;
 export type JournalEntriesQueryResult = Apollo.QueryResult<JournalEntriesQuery, JournalEntriesQueryVariables>;
-export const AccountEntryCsvDocument = gql`
-    query AccountEntryCsv($ledgerAccountId: UUID!) {
-  accountEntryCsv(ledgerAccountId: $ledgerAccountId) {
-    accountingCsvDocumentId
+export const LedgerAccountCsvDocument = gql`
+    query LedgerAccountCsv($ledgerAccountId: UUID!) {
+  ledgerAccountCsv(ledgerAccountId: $ledgerAccountId) {
+    ledgerAccountCsvDocumentId
     status
     createdAt
   }
@@ -11065,45 +11064,45 @@ export const AccountEntryCsvDocument = gql`
     `;
 
 /**
- * __useAccountEntryCsvQuery__
+ * __useLedgerAccountCsvQuery__
  *
- * To run a query within a React component, call `useAccountEntryCsvQuery` and pass it any options that fit your needs.
- * When your component renders, `useAccountEntryCsvQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useLedgerAccountCsvQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLedgerAccountCsvQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useAccountEntryCsvQuery({
+ * const { data, loading, error } = useLedgerAccountCsvQuery({
  *   variables: {
  *      ledgerAccountId: // value for 'ledgerAccountId'
  *   },
  * });
  */
-export function useAccountEntryCsvQuery(baseOptions: Apollo.QueryHookOptions<AccountEntryCsvQuery, AccountEntryCsvQueryVariables> & ({ variables: AccountEntryCsvQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useLedgerAccountCsvQuery(baseOptions: Apollo.QueryHookOptions<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables> & ({ variables: LedgerAccountCsvQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>(AccountEntryCsvDocument, options);
+        return Apollo.useQuery<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>(LedgerAccountCsvDocument, options);
       }
-export function useAccountEntryCsvLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>) {
+export function useLedgerAccountCsvLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>(AccountEntryCsvDocument, options);
+          return Apollo.useLazyQuery<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>(LedgerAccountCsvDocument, options);
         }
 // @ts-ignore
-export function useAccountEntryCsvSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>): Apollo.UseSuspenseQueryResult<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>;
-export function useAccountEntryCsvSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>): Apollo.UseSuspenseQueryResult<AccountEntryCsvQuery | undefined, AccountEntryCsvQueryVariables>;
-export function useAccountEntryCsvSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>) {
+export function useLedgerAccountCsvSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>): Apollo.UseSuspenseQueryResult<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>;
+export function useLedgerAccountCsvSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>): Apollo.UseSuspenseQueryResult<LedgerAccountCsvQuery | undefined, LedgerAccountCsvQueryVariables>;
+export function useLedgerAccountCsvSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>(AccountEntryCsvDocument, options);
+          return Apollo.useSuspenseQuery<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>(LedgerAccountCsvDocument, options);
         }
-export type AccountEntryCsvQueryHookResult = ReturnType<typeof useAccountEntryCsvQuery>;
-export type AccountEntryCsvLazyQueryHookResult = ReturnType<typeof useAccountEntryCsvLazyQuery>;
-export type AccountEntryCsvSuspenseQueryHookResult = ReturnType<typeof useAccountEntryCsvSuspenseQuery>;
-export type AccountEntryCsvQueryResult = Apollo.QueryResult<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>;
+export type LedgerAccountCsvQueryHookResult = ReturnType<typeof useLedgerAccountCsvQuery>;
+export type LedgerAccountCsvLazyQueryHookResult = ReturnType<typeof useLedgerAccountCsvLazyQuery>;
+export type LedgerAccountCsvSuspenseQueryHookResult = ReturnType<typeof useLedgerAccountCsvSuspenseQuery>;
+export type LedgerAccountCsvQueryResult = Apollo.QueryResult<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>;
 export const LedgerAccountCsvCreateDocument = gql`
     mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
   ledgerAccountCsvCreate(input: $input) {
-    accountingCsvDocument {
-      accountingCsvDocumentId
+    ledgerAccountCsvDocument {
+      ledgerAccountCsvDocumentId
       status
       createdAt
     }
@@ -11136,9 +11135,9 @@ export function useLedgerAccountCsvCreateMutation(baseOptions?: Apollo.MutationH
 export type LedgerAccountCsvCreateMutationHookResult = ReturnType<typeof useLedgerAccountCsvCreateMutation>;
 export type LedgerAccountCsvCreateMutationResult = Apollo.MutationResult<LedgerAccountCsvCreateMutation>;
 export type LedgerAccountCsvCreateMutationOptions = Apollo.BaseMutationOptions<LedgerAccountCsvCreateMutation, LedgerAccountCsvCreateMutationVariables>;
-export const AccountingCsvDownloadLinkGenerateDocument = gql`
-    mutation AccountingCsvDownloadLinkGenerate($input: AccountingCsvDownloadLinkGenerateInput!) {
-  accountingCsvDownloadLinkGenerate(input: $input) {
+export const LedgerAccountCsvDownloadLinkGenerateDocument = gql`
+    mutation LedgerAccountCsvDownloadLinkGenerate($input: LedgerAccountCsvDownloadLinkGenerateInput!) {
+  ledgerAccountCsvDownloadLinkGenerate(input: $input) {
     link {
       url
       csvId
@@ -11146,32 +11145,32 @@ export const AccountingCsvDownloadLinkGenerateDocument = gql`
   }
 }
     `;
-export type AccountingCsvDownloadLinkGenerateMutationFn = Apollo.MutationFunction<AccountingCsvDownloadLinkGenerateMutation, AccountingCsvDownloadLinkGenerateMutationVariables>;
+export type LedgerAccountCsvDownloadLinkGenerateMutationFn = Apollo.MutationFunction<LedgerAccountCsvDownloadLinkGenerateMutation, LedgerAccountCsvDownloadLinkGenerateMutationVariables>;
 
 /**
- * __useAccountingCsvDownloadLinkGenerateMutation__
+ * __useLedgerAccountCsvDownloadLinkGenerateMutation__
  *
- * To run a mutation, you first call `useAccountingCsvDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAccountingCsvDownloadLinkGenerateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useLedgerAccountCsvDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLedgerAccountCsvDownloadLinkGenerateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [accountingCsvDownloadLinkGenerateMutation, { data, loading, error }] = useAccountingCsvDownloadLinkGenerateMutation({
+ * const [ledgerAccountCsvDownloadLinkGenerateMutation, { data, loading, error }] = useLedgerAccountCsvDownloadLinkGenerateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useAccountingCsvDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<AccountingCsvDownloadLinkGenerateMutation, AccountingCsvDownloadLinkGenerateMutationVariables>) {
+export function useLedgerAccountCsvDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<LedgerAccountCsvDownloadLinkGenerateMutation, LedgerAccountCsvDownloadLinkGenerateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<AccountingCsvDownloadLinkGenerateMutation, AccountingCsvDownloadLinkGenerateMutationVariables>(AccountingCsvDownloadLinkGenerateDocument, options);
+        return Apollo.useMutation<LedgerAccountCsvDownloadLinkGenerateMutation, LedgerAccountCsvDownloadLinkGenerateMutationVariables>(LedgerAccountCsvDownloadLinkGenerateDocument, options);
       }
-export type AccountingCsvDownloadLinkGenerateMutationHookResult = ReturnType<typeof useAccountingCsvDownloadLinkGenerateMutation>;
-export type AccountingCsvDownloadLinkGenerateMutationResult = Apollo.MutationResult<AccountingCsvDownloadLinkGenerateMutation>;
-export type AccountingCsvDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<AccountingCsvDownloadLinkGenerateMutation, AccountingCsvDownloadLinkGenerateMutationVariables>;
+export type LedgerAccountCsvDownloadLinkGenerateMutationHookResult = ReturnType<typeof useLedgerAccountCsvDownloadLinkGenerateMutation>;
+export type LedgerAccountCsvDownloadLinkGenerateMutationResult = Apollo.MutationResult<LedgerAccountCsvDownloadLinkGenerateMutation>;
+export type LedgerAccountCsvDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<LedgerAccountCsvDownloadLinkGenerateMutation, LedgerAccountCsvDownloadLinkGenerateMutationVariables>;
 export const LedgerAccountCsvExportUploadedDocument = gql`
     subscription LedgerAccountCsvExportUploaded($ledgerAccountId: UUID!) {
   ledgerAccountCsvExportUploaded(ledgerAccountId: $ledgerAccountId) {
