@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
@@ -13,7 +11,7 @@ use core_deposit::{
     GovernanceAction, GovernanceObject,
 };
 use core_time_events::deposit_activity_process::{
-    DEPOSIT_ACTIVITY_PROCESS_JOB_TYPE, DepositActivityProcessConfig,
+    DEPOSIT_ACTIVITY_PROCESS_JOB, DepositActivityProcessConfig,
 };
 use governance::GovernanceEvent;
 use job::*;
@@ -74,7 +72,7 @@ where
     type Config = DepositActivityProcessConfig;
 
     fn job_type(&self) -> JobType {
-        DEPOSIT_ACTIVITY_PROCESS_JOB_TYPE
+        DEPOSIT_ACTIVITY_PROCESS_JOB
     }
 
     fn init(
@@ -178,7 +176,10 @@ where
                 })
                 .collect();
 
-            process_manager::spawn_in_op(&mut op, &self.evaluate_spawner, specs).await?;
+            match self.evaluate_spawner.spawn_all_in_op(&mut op, specs).await {
+                Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
+                Err(e) => return Err(e.into()),
+            }
 
             state.last_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
@@ -230,7 +231,7 @@ where
                 .await?
             {
                 Some(t) => t,
-                None => return Ok(JobCompletion::RescheduleIn(Duration::ZERO)),
+                None => return Ok(JobCompletion::RescheduleNow),
             };
 
         let failed = process_manager::failed_count(&terminals);

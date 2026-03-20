@@ -15,7 +15,6 @@ use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
 };
-use core_time_events::CoreTimeEvent;
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
@@ -27,7 +26,6 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreTimeEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -42,7 +40,6 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreTimeEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -56,7 +53,6 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreTimeEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -78,7 +74,6 @@ where
         From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreTimeEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,

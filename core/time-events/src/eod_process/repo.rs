@@ -4,8 +4,8 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
+use crate::event::CoreTimeEvent;
 use crate::primitives::*;
-use crate::public::CoreEodEvent;
 use crate::publisher::EodPublisher;
 
 use super::entity::*;
@@ -26,7 +26,7 @@ use super::entity::*;
 )]
 pub(crate) struct EodProcessRepo<E>
 where
-    E: OutboxEventMarker<CoreEodEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     publisher: EodPublisher<E>,
     pool: PgPool,
@@ -35,7 +35,7 @@ where
 
 impl<E> Clone for EodProcessRepo<E>
 where
-    E: OutboxEventMarker<CoreEodEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -86,7 +86,7 @@ mod eod_process_status_sqlx {
 
 impl<E> EodProcessRepo<E>
 where
-    E: OutboxEventMarker<CoreEodEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     pub fn new(pool: &PgPool, publisher: &EodPublisher<E>, clock: ClockHandle) -> Self {
         Self {

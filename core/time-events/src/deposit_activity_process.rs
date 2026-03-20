@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use job::*;
 
-pub const DEPOSIT_ACTIVITY_PROCESS_JOB_TYPE: JobType =
-    JobType::new("task.eod.deposit-activity-process");
+pub const DEPOSIT_ACTIVITY_PROCESS_JOB: JobType =
+    JobType::new("process.eod.deposit-activity-process");
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

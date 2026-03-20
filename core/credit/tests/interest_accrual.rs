@@ -4,7 +4,7 @@ use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_credit::*;
-use core_time_events::CoreTimeEvent;
+use core_time_events::{CoreTimeEvent, EodProcessId, EodProcessStatus, PublicEodProcess};
 use document_storage::DocumentStorage;
 use es_entity::DbOp;
 use es_entity::clock::{ClockController, ClockHandle};
@@ -358,9 +358,11 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
                         .publish_persisted_in_op(
                             &mut op,
                             CoreTimeEvent::EndOfDay {
-                                day: current_day,
-                                closing_time: chrono::Utc::now(),
-                                timezone: chrono_tz::UTC,
+                                entity: PublicEodProcess {
+                                    id: EodProcessId::new(),
+                                    date: current_day,
+                                    status: EodProcessStatus::Initialized,
+                                },
                             },
                         )
                         .await

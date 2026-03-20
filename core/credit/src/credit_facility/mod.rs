@@ -153,10 +153,7 @@ where
         outbox: &Outbox<E>,
         clock: ClockHandle,
         collaterals: Arc<core_credit_collateral::Collaterals<Perms, E>>,
-    ) -> Result<CreditFacilitiesComponents<Perms, E>, CreditFacilityError>
-    where
-        E: OutboxEventMarker<core_time_events::CoreTimeEvent>,
-    {
+    ) -> Result<CreditFacilitiesComponents<Perms, E>, CreditFacilityError> {
         let repo = Arc::new(CreditFacilityRepo::new(pool, publisher, clock.clone()));
 
         outbox

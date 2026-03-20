@@ -14,7 +14,6 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_time_events::CoreTimeEvent;
 use es_entity::clock::ClockHandle;
 use obix::out::{Outbox, OutboxEventMarker};
 
@@ -98,7 +97,7 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,

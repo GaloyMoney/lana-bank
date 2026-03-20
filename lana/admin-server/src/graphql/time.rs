@@ -5,9 +5,12 @@ use crate::primitives::{Date, Timestamp};
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum EodProcessStatus {
     Initialized,
-    AwaitingPhase1,
-    Phase1Complete,
-    AwaitingPhase2,
+    #[graphql(name = "AWAITING_OBLIGATIONS_AND_DEPOSITS")]
+    AwaitingObligationsAndDeposits,
+    #[graphql(name = "OBLIGATIONS_AND_DEPOSITS_COMPLETE")]
+    ObligationsAndDepositsComplete,
+    #[graphql(name = "AWAITING_CREDIT_FACILITY_EOD")]
+    AwaitingCreditFacilityEod,
     Completed,
     Failed,
     Cancelled,
@@ -17,9 +20,15 @@ impl From<lana_app::time_events::EodProcessStatus> for EodProcessStatus {
     fn from(value: lana_app::time_events::EodProcessStatus) -> Self {
         match value {
             lana_app::time_events::EodProcessStatus::Initialized => Self::Initialized,
-            lana_app::time_events::EodProcessStatus::AwaitingPhase1 => Self::AwaitingPhase1,
-            lana_app::time_events::EodProcessStatus::Phase1Complete => Self::Phase1Complete,
-            lana_app::time_events::EodProcessStatus::AwaitingPhase2 => Self::AwaitingPhase2,
+            lana_app::time_events::EodProcessStatus::AwaitingObligationsAndDeposits => {
+                Self::AwaitingObligationsAndDeposits
+            }
+            lana_app::time_events::EodProcessStatus::ObligationsAndDepositsComplete => {
+                Self::ObligationsAndDepositsComplete
+            }
+            lana_app::time_events::EodProcessStatus::AwaitingCreditFacilityEod => {
+                Self::AwaitingCreditFacilityEod
+            }
             lana_app::time_events::EodProcessStatus::Completed => Self::Completed,
             lana_app::time_events::EodProcessStatus::Failed => Self::Failed,
             lana_app::time_events::EodProcessStatus::Cancelled => Self::Cancelled,

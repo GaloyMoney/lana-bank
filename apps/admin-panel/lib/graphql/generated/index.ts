@@ -1650,13 +1650,13 @@ export type DurationInput = {
 };
 
 export enum EodProcessStatus {
-  AwaitingPhase1 = 'AWAITING_PHASE1',
-  AwaitingPhase2 = 'AWAITING_PHASE2',
+  AwaitingCreditFacilityEod = 'AWAITING_CREDIT_FACILITY_EOD',
+  AwaitingObligationsAndDeposits = 'AWAITING_OBLIGATIONS_AND_DEPOSITS',
   Cancelled = 'CANCELLED',
   Completed = 'COMPLETED',
   Failed = 'FAILED',
   Initialized = 'INITIALIZED',
-  Phase1Complete = 'PHASE1_COMPLETE'
+  ObligationsAndDepositsComplete = 'OBLIGATIONS_AND_DEPOSITS_COMPLETE'
 }
 
 export type EventTimelineEntry = {

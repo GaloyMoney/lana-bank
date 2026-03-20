@@ -8,20 +8,20 @@ use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 use sqlx::PgPool;
 
-use crate::{primitives::*, public::CoreEodEvent, publisher::EodPublisher};
+use crate::{event::CoreTimeEvent, primitives::*, publisher::EodPublisher};
 use error::EodProcessError;
 use repo::EodProcessRepo;
 
 pub struct EodProcesses<E>
 where
-    E: OutboxEventMarker<CoreEodEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     repo: EodProcessRepo<E>,
 }
 
 impl<E> Clone for EodProcesses<E>
 where
-    E: OutboxEventMarker<CoreEodEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -32,7 +32,7 @@ where
 
 impl<E> EodProcesses<E>
 where
-    E: OutboxEventMarker<CoreEodEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     pub fn new(pool: &PgPool, publisher: &EodPublisher<E>, clock: ClockHandle) -> Self {
         Self {

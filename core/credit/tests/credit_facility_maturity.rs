@@ -2,7 +2,7 @@ mod helpers;
 
 use authz::dummy::DummySubject;
 use core_credit::*;
-use core_time_events::CoreTimeEvent;
+use core_time_events::{CoreTimeEvent, EodProcessId, EodProcessStatus, PublicEodProcess};
 use es_entity::DbOp;
 use helpers::event::{DummyEvent, expect_event};
 
@@ -17,9 +17,11 @@ async fn publish_end_of_day(
         .publish_persisted_in_op(
             &mut op,
             CoreTimeEvent::EndOfDay {
-                day,
-                closing_time: chrono::Utc::now(),
-                timezone: chrono_tz::UTC,
+                entity: PublicEodProcess {
+                    id: EodProcessId::new(),
+                    date: day,
+                    status: EodProcessStatus::Initialized,
+                },
             },
         )
         .await?;

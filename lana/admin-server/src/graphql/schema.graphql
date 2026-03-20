@@ -1522,16 +1522,6 @@ enum DocumentStatus {
 	NEW
 }
 
-enum EodProcessStatus {
-	INITIALIZED
-	AWAITING_PHASE1
-	PHASE1_COMPLETE
-	AWAITING_PHASE2
-	COMPLETED
-	FAILED
-	CANCELLED
-}
-
 type DomainConfig {
 	configType: ConfigType!
 	domainConfigId: UUID!
@@ -1587,6 +1577,16 @@ type Duration {
 input DurationInput {
 	period: Period!
 	units: Int!
+}
+
+enum EodProcessStatus {
+	AWAITING_CREDIT_FACILITY_EOD
+	AWAITING_OBLIGATIONS_AND_DEPOSITS
+	CANCELLED
+	COMPLETED
+	FAILED
+	INITIALIZED
+	OBLIGATIONS_AND_DEPOSITS_COMPLETE
 }
 
 type EventTimelineEntry {

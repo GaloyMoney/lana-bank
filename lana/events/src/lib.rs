@@ -16,7 +16,6 @@ pub use core_customer::CoreCustomerEvent;
 pub use core_deposit::CoreDepositEvent;
 pub use core_price::CorePriceEvent;
 pub use core_report::CoreReportEvent;
-pub use core_time_events::CoreEodEvent;
 pub use core_time_events::CoreTimeEvent;
 pub use governance::GovernanceEvent;
 pub use obix::out::OutboxEventMarker;
@@ -33,7 +32,6 @@ pub enum LanaEvent {
     CreditCollateral(CoreCreditCollateralEvent),
     CreditCollection(CoreCreditCollectionEvent),
     Deposit(CoreDepositEvent),
-    Eod(CoreEodEvent),
     Custody(CoreCustodyEvent),
     Report(CoreReportEvent),
     Price(CorePriceEvent),

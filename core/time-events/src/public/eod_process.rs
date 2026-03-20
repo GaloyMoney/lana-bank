@@ -1,11 +1,15 @@
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 use crate::{
     eod_process::EodProcess,
     primitives::{EodProcessId, EodProcessStatus},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct PublicEodProcess {
     pub id: EodProcessId,
     pub date: chrono::NaiveDate,

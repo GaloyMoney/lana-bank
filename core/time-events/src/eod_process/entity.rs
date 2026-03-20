@@ -14,11 +14,10 @@ pub enum JobTerminalState {
     Cancelled,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EodPhase {
-    Phase1,
-    Phase2,
+/// Outcome of a phase evaluation within the entity.
+pub enum PhaseOutcome {
+    AllSucceeded,
+    Failed { reason: String },
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -47,7 +46,6 @@ pub enum EodProcessEvent {
     },
     Completed {},
     Failed {
-        phase: EodPhase,
         reason: String,
     },
     CancellationRequested {},
@@ -84,11 +82,11 @@ impl EodProcess {
         }
 
         if has_phase2_started {
-            EodProcessStatus::AwaitingPhase2
+            EodProcessStatus::AwaitingCreditFacilityEod
         } else if phase1_obligation_done && phase1_deposit_done {
-            EodProcessStatus::Phase1Complete
+            EodProcessStatus::ObligationsAndDepositsComplete
         } else if has_phase1_started {
-            EodProcessStatus::AwaitingPhase1
+            EodProcessStatus::AwaitingObligationsAndDeposits
         } else {
             EodProcessStatus::Initialized
         }
@@ -149,9 +147,46 @@ impl EodProcess {
             .any(|e| matches!(e, EodProcessEvent::CancellationRequested { .. }))
     }
 
+    // --- Business-rule evaluation methods (tell, don't ask) ---
+
+    /// Evaluate whether the obligations-and-deposits phase succeeded or failed.
+    pub fn evaluate_obligations_and_deposits_outcome(&self) -> PhaseOutcome {
+        let obligation_ok = self.phase1_obligation_terminal() == Some(JobTerminalState::Completed);
+        let deposit_ok = self.phase1_deposit_terminal() == Some(JobTerminalState::Completed);
+
+        if obligation_ok && deposit_ok {
+            PhaseOutcome::AllSucceeded
+        } else {
+            PhaseOutcome::Failed {
+                reason: format!(
+                    "Obligations-and-deposits children failed: obligation={:?}, deposit={:?}",
+                    self.phase1_obligation_terminal(),
+                    self.phase1_deposit_terminal()
+                ),
+            }
+        }
+    }
+
+    /// Evaluate whether the credit-facility-eod phase succeeded or failed.
+    pub fn evaluate_credit_facility_eod_outcome(&self) -> PhaseOutcome {
+        let credit_facility_ok =
+            self.phase2_credit_facility_terminal() == Some(JobTerminalState::Completed);
+
+        if credit_facility_ok {
+            PhaseOutcome::AllSucceeded
+        } else {
+            PhaseOutcome::Failed {
+                reason: format!(
+                    "Credit-facility-eod child failed: {:?}",
+                    self.phase2_credit_facility_terminal()
+                ),
+            }
+        }
+    }
+
     // --- Command methods ---
 
-    pub fn start_phase1(
+    pub fn start_obligations_and_deposits(
         &mut self,
         obligation_job_id: job::JobId,
         deposit_job_id: job::JobId,
@@ -159,7 +194,7 @@ impl EodProcess {
         if self.status() != EodProcessStatus::Initialized {
             return Err(EodProcessError::InvalidStateTransition {
                 current: self.status(),
-                attempted: "start_phase1",
+                attempted: "start_obligations_and_deposits",
             });
         }
         idempotency_guard!(
@@ -177,7 +212,7 @@ impl EodProcess {
         &mut self,
         terminal_state: JobTerminalState,
     ) -> Result<Idempotent<()>, EodProcessError> {
-        if self.status() != EodProcessStatus::AwaitingPhase1 {
+        if self.status() != EodProcessStatus::AwaitingObligationsAndDeposits {
             return Err(EodProcessError::InvalidStateTransition {
                 current: self.status(),
                 attempted: "complete_phase1_obligation",
@@ -196,7 +231,7 @@ impl EodProcess {
         &mut self,
         terminal_state: JobTerminalState,
     ) -> Result<Idempotent<()>, EodProcessError> {
-        if self.status() != EodProcessStatus::AwaitingPhase1 {
+        if self.status() != EodProcessStatus::AwaitingObligationsAndDeposits {
             return Err(EodProcessError::InvalidStateTransition {
                 current: self.status(),
                 attempted: "complete_phase1_deposit",
@@ -211,14 +246,14 @@ impl EodProcess {
         Ok(Idempotent::Executed(()))
     }
 
-    pub fn start_phase2(
+    pub fn start_credit_facility_eod(
         &mut self,
         credit_facility_job_id: job::JobId,
     ) -> Result<Idempotent<()>, EodProcessError> {
-        if self.status() != EodProcessStatus::Phase1Complete {
+        if self.status() != EodProcessStatus::ObligationsAndDepositsComplete {
             return Err(EodProcessError::InvalidStateTransition {
                 current: self.status(),
-                attempted: "start_phase2",
+                attempted: "start_credit_facility_eod",
             });
         }
         idempotency_guard!(
@@ -235,7 +270,7 @@ impl EodProcess {
         &mut self,
         terminal_state: JobTerminalState,
     ) -> Result<Idempotent<()>, EodProcessError> {
-        if self.status() != EodProcessStatus::AwaitingPhase2 {
+        if self.status() != EodProcessStatus::AwaitingCreditFacilityEod {
             return Err(EodProcessError::InvalidStateTransition {
                 current: self.status(),
                 attempted: "complete_phase2_credit_facility",
@@ -252,7 +287,7 @@ impl EodProcess {
 
     pub fn mark_completed(&mut self) -> Result<Idempotent<()>, EodProcessError> {
         match self.status() {
-            EodProcessStatus::AwaitingPhase2 => {}
+            EodProcessStatus::AwaitingCreditFacilityEod => {}
             current => {
                 return Err(EodProcessError::InvalidStateTransition {
                     current,
@@ -281,15 +316,11 @@ impl EodProcess {
         Ok(Idempotent::Executed(()))
     }
 
-    pub fn mark_failed(
-        &mut self,
-        phase: EodPhase,
-        reason: String,
-    ) -> Result<Idempotent<()>, EodProcessError> {
+    pub fn mark_failed(&mut self, reason: String) -> Result<Idempotent<()>, EodProcessError> {
         match self.status() {
-            EodProcessStatus::AwaitingPhase1
-            | EodProcessStatus::Phase1Complete
-            | EodProcessStatus::AwaitingPhase2 => {}
+            EodProcessStatus::AwaitingObligationsAndDeposits
+            | EodProcessStatus::ObligationsAndDepositsComplete
+            | EodProcessStatus::AwaitingCreditFacilityEod => {}
             current => {
                 return Err(EodProcessError::InvalidStateTransition {
                     current,
@@ -303,7 +334,7 @@ impl EodProcess {
             already_applied: EodProcessEvent::Completed { .. },
             already_applied: EodProcessEvent::Cancelled { .. }
         );
-        self.events.push(EodProcessEvent::Failed { phase, reason });
+        self.events.push(EodProcessEvent::Failed { reason });
         Ok(Idempotent::Executed(()))
     }
 
@@ -414,30 +445,38 @@ mod tests {
     }
 
     #[test]
-    fn start_phase1_is_idempotent() {
+    fn start_obligations_and_deposits_is_idempotent() {
         let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
         let mut process =
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        assert!(process.start_phase1(job1, job2).unwrap().did_execute());
         assert!(
             process
-                .start_phase1(job1, job2)
+                .start_obligations_and_deposits(job1, job2)
+                .unwrap()
+                .did_execute()
+        );
+        assert!(
+            process
+                .start_obligations_and_deposits(job1, job2)
                 .unwrap()
                 .was_already_applied()
         );
-        assert_eq!(process.status(), EodProcessStatus::AwaitingPhase1);
+        assert_eq!(
+            process.status(),
+            EodProcessStatus::AwaitingObligationsAndDeposits
+        );
     }
 
     #[test]
-    fn start_phase1_rejects_wrong_state() {
+    fn start_obligations_and_deposits_rejects_wrong_state() {
         let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
         let mut process =
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        let _ = process.start_phase1(job1, job2).unwrap();
+        let _ = process.start_obligations_and_deposits(job1, job2).unwrap();
         let _ = process
             .complete_phase1_obligation(JobTerminalState::Completed)
             .unwrap();
@@ -445,17 +484,17 @@ mod tests {
             .complete_phase1_deposit(JobTerminalState::Completed)
             .unwrap();
         let job3 = job::JobId::from(uuid::Uuid::new_v4());
-        let _ = process.start_phase2(job3).unwrap();
+        let _ = process.start_credit_facility_eod(job3).unwrap();
         let _ = process
             .complete_phase2_credit_facility(JobTerminalState::Completed)
             .unwrap();
         let _ = process.mark_completed().unwrap();
-        // Completed state should reject start_phase1
-        assert!(process.start_phase1(job1, job2).is_err());
+        // Completed state should reject start_obligations_and_deposits
+        assert!(process.start_obligations_and_deposits(job1, job2).is_err());
     }
 
     #[test]
-    fn mark_completed_requires_awaiting_phase2() {
+    fn mark_completed_requires_awaiting_credit_facility_eod() {
         let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
         let mut process =
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
@@ -470,7 +509,7 @@ mod tests {
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        let _ = process.start_phase1(job1, job2).unwrap();
+        let _ = process.start_obligations_and_deposits(job1, job2).unwrap();
         let _ = process
             .complete_phase1_obligation(JobTerminalState::Completed)
             .unwrap();
@@ -478,22 +517,22 @@ mod tests {
             .complete_phase1_deposit(JobTerminalState::Completed)
             .unwrap();
         let job3 = job::JobId::from(uuid::Uuid::new_v4());
-        let _ = process.start_phase2(job3).unwrap();
-        // AwaitingPhase2 but Phase2CreditFacilityCompleted not yet recorded
+        let _ = process.start_credit_facility_eod(job3).unwrap();
+        // AwaitingCreditFacilityEod but Phase2CreditFacilityCompleted not yet recorded
         assert!(process.mark_completed().is_err());
     }
 
     #[test]
-    fn mark_failed_from_awaiting_phase1() {
+    fn mark_failed_from_awaiting_obligations_and_deposits() {
         let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
         let mut process =
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        let _ = process.start_phase1(job1, job2).unwrap();
+        let _ = process.start_obligations_and_deposits(job1, job2).unwrap();
         assert!(
             process
-                .mark_failed(EodPhase::Phase1, "test".to_string())
+                .mark_failed("test".to_string())
                 .unwrap()
                 .did_execute()
         );
@@ -501,26 +540,69 @@ mod tests {
     }
 
     #[test]
-    fn mark_failed_from_phase1_complete() {
+    fn mark_failed_from_obligations_and_deposits_complete() {
         let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
         let mut process =
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        let _ = process.start_phase1(job1, job2).unwrap();
+        let _ = process.start_obligations_and_deposits(job1, job2).unwrap();
         let _ = process
             .complete_phase1_obligation(JobTerminalState::Failed)
             .unwrap();
         let _ = process
             .complete_phase1_deposit(JobTerminalState::Completed)
             .unwrap();
-        assert_eq!(process.status(), EodProcessStatus::Phase1Complete);
+        assert_eq!(
+            process.status(),
+            EodProcessStatus::ObligationsAndDepositsComplete
+        );
         assert!(
             process
-                .mark_failed(EodPhase::Phase1, "obligation failed".to_string())
+                .mark_failed("obligation failed".to_string())
                 .unwrap()
                 .did_execute()
         );
         assert_eq!(process.status(), EodProcessStatus::Failed);
+    }
+
+    #[test]
+    fn evaluate_obligations_and_deposits_outcome_success() {
+        let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
+        let mut process =
+            EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
+        let job1 = job::JobId::from(uuid::Uuid::new_v4());
+        let job2 = job::JobId::from(uuid::Uuid::new_v4());
+        let _ = process.start_obligations_and_deposits(job1, job2).unwrap();
+        let _ = process
+            .complete_phase1_obligation(JobTerminalState::Completed)
+            .unwrap();
+        let _ = process
+            .complete_phase1_deposit(JobTerminalState::Completed)
+            .unwrap();
+        assert!(matches!(
+            process.evaluate_obligations_and_deposits_outcome(),
+            PhaseOutcome::AllSucceeded
+        ));
+    }
+
+    #[test]
+    fn evaluate_obligations_and_deposits_outcome_failure() {
+        let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
+        let mut process =
+            EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
+        let job1 = job::JobId::from(uuid::Uuid::new_v4());
+        let job2 = job::JobId::from(uuid::Uuid::new_v4());
+        let _ = process.start_obligations_and_deposits(job1, job2).unwrap();
+        let _ = process
+            .complete_phase1_obligation(JobTerminalState::Failed)
+            .unwrap();
+        let _ = process
+            .complete_phase1_deposit(JobTerminalState::Completed)
+            .unwrap();
+        assert!(matches!(
+            process.evaluate_obligations_and_deposits_outcome(),
+            PhaseOutcome::Failed { .. }
+        ));
     }
 }

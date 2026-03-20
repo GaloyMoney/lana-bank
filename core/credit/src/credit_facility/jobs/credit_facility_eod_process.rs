@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use std::time::Duration;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -13,7 +12,7 @@ use obix::out::OutboxEventMarker;
 use core_custody::CoreCustodyEvent;
 use core_price::CorePriceEvent;
 use core_time_events::credit_facility_eod_process::{
-    CREDIT_FACILITY_EOD_PROCESS_JOB_TYPE, CreditFacilityEodProcessConfig,
+    CREDIT_FACILITY_EOD_PROCESS_JOB, CreditFacilityEodProcessConfig,
 };
 
 use super::credit_facility_maturity::{
@@ -71,7 +70,7 @@ where
     type Config = CreditFacilityEodProcessConfig;
 
     fn job_type(&self) -> JobType {
-        CREDIT_FACILITY_EOD_PROCESS_JOB_TYPE
+        CREDIT_FACILITY_EOD_PROCESS_JOB
     }
 
     fn init(
@@ -187,12 +186,14 @@ where
                     })
                     .collect();
 
-                process_manager::spawn_in_op(
-                    &mut op,
-                    &self.interest_accrual_process_spawner,
-                    specs,
-                )
-                .await?;
+                match self
+                    .interest_accrual_process_spawner
+                    .spawn_all_in_op(&mut op, specs)
+                    .await
+                {
+                    Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
+                    Err(e) => return Err(e.into()),
+                }
 
                 state.accrual_cursor = rows.last().map(|(id, ts)| (*ts, *id));
                 current_job
@@ -238,7 +239,10 @@ where
                 })
                 .collect();
 
-            process_manager::spawn_in_op(&mut op, &self.maturity_spawner, specs).await?;
+            match self.maturity_spawner.spawn_all_in_op(&mut op, specs).await {
+                Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
+                Err(e) => return Err(e.into()),
+            }
 
             state.maturity_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
@@ -304,7 +308,7 @@ where
         .await?
         {
             Some(t) => t,
-            None => return Ok(JobCompletion::RescheduleIn(Duration::ZERO)),
+            None => return Ok(JobCompletion::RescheduleNow),
         };
 
         let failed = process_manager::failed_count(&terminals);

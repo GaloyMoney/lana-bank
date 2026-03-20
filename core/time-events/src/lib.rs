@@ -40,10 +40,10 @@ pub use closing_schedule::ClosingSchedule;
 pub use event::*;
 
 // --- Re-exports merged from core-eod ---
-pub use eod_process::{EodPhase, EodProcess, EodProcessEvent, EodProcesses, NewEodProcess};
+pub use eod_process::{EodProcess, EodProcessEvent, EodProcesses, NewEodProcess, PhaseOutcome};
 pub use primitives::*;
 pub use process_manager::{
-    EOD_PROCESS_MANAGER_JOB_TYPE, EodProcessManagerConfig, EodProcessManagerJobInit,
+    EOD_PROCESS_MANAGER_JOB, EodProcessManagerConfig, EodProcessManagerJobInit,
     EodProcessManagerJobSpawner,
 };
 pub use public::*;
@@ -63,7 +63,7 @@ pub struct TimeState {
 pub struct TimeEvents<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreEodEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     authz: Perms,
     clock: ClockHandle,
@@ -76,7 +76,7 @@ where
 impl<Perms, E> Clone for TimeEvents<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreEodEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -93,7 +93,7 @@ where
 impl<Perms, E> TimeEvents<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreEodEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
 {

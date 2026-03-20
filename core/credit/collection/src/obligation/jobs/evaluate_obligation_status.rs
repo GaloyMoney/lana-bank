@@ -4,7 +4,6 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_time_events::CoreTimeEvent;
 use job::*;
 use obix::out::OutboxEventMarker;
 
@@ -63,7 +62,7 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     type Config = EvaluateObligationStatusConfig<Perms, E>;
 
@@ -98,7 +97,7 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     #[instrument(
         name = "collection.obligation.evaluate_obligation_status",

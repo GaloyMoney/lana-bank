@@ -7,9 +7,8 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_time_events::CoreTimeEvent;
 use core_time_events::obligation_status_process::{
-    OBLIGATION_STATUS_PROCESS_JOB_TYPE, ObligationStatusProcessConfig,
+    OBLIGATION_STATUS_PROCESS_JOB, ObligationStatusProcessConfig,
 };
 use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -58,12 +57,12 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     type Config = ObligationStatusProcessConfig;
 
     fn job_type(&self) -> JobType {
-        OBLIGATION_STATUS_PROCESS_JOB_TYPE
+        OBLIGATION_STATUS_PROCESS_JOB
     }
 
     fn init(
@@ -122,7 +121,7 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     /// Step 1: Capture the outbox sequence, then query obligations needing
     /// status evaluation (paginated) and spawn a per-obligation status job for
@@ -184,7 +183,10 @@ where
                 })
                 .collect();
 
-            process_manager::spawn_in_op(&mut op, &self.evaluate_spawner, specs).await?;
+            match self.evaluate_spawner.spawn_all_in_op(&mut op, specs).await {
+                Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
+                Err(e) => return Err(e.into()),
+            }
 
             state.last_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
@@ -271,7 +273,7 @@ where
                 };
                 current_job.update_execution_state(&state).await?;
                 tracing::info!("Shutdown requested, rescheduling obligation status tracking");
-                Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO))
+                Ok(JobCompletion::RescheduleNow)
             }
         }
     }
@@ -283,7 +285,7 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     #[record_error_severity]
     #[instrument(

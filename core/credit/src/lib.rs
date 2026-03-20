@@ -28,7 +28,6 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::{CorePriceEvent, Price};
-use core_time_events::CoreTimeEvent;
 use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -203,10 +202,7 @@ where
         public_ids: &PublicIds,
         domain_configs: &ExposedDomainConfigsReadOnly,
         internal_domain_configs: &InternalDomainConfigs,
-    ) -> Result<CoreCreditComponents<Perms, E>, CoreCreditError>
-    where
-        E: OutboxEventMarker<CoreTimeEvent>,
-    {
+    ) -> Result<CoreCreditComponents<Perms, E>, CoreCreditError> {
         let clock = jobs.clock().clone();
 
         // Create Arc-wrapped versions of parameters once

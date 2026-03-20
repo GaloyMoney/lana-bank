@@ -4,7 +4,6 @@
 //! These are **complementary** to the job framework — each function takes
 //! `&mut CurrentJob` (or an `&mut DbOp`) and handles one recurring pattern:
 //!
-//! - [`spawn_in_op`] — idempotent spawn (swallows `DuplicateId`)
 //! - [`capture_and_spawn`] — capture outbox sequence + spawn + persist state
 //! - [`await_event`] — single-event outbox stream with shutdown handling
 //! - [`await_events`] — fan-in outbox stream over a pending set
@@ -21,21 +20,6 @@ use obix::{
     EventSequence,
     out::{Outbox, OutboxEventMarker},
 };
-
-/// Idempotent spawn wrapper that swallows `DuplicateId` errors.
-///
-/// Call inside a `begin_op` block to atomically spawn a child job.
-/// If the job was already spawned (duplicate id), this returns `Ok(())`.
-pub async fn spawn_in_op<C: Serialize + DeserializeOwned + Send + Sync>(
-    op: &mut es_entity::DbOp<'_>,
-    spawner: &JobSpawner<C>,
-    specs: Vec<JobSpec<C>>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    match spawner.spawn_all_in_op(op, specs).await {
-        Ok(_) | Err(JobError::DuplicateId(_)) => Ok(()),
-        Err(e) => Err(e.into()),
-    }
-}
 
 /// Query the highest known persistent outbox sequence from the database.
 ///
@@ -75,7 +59,10 @@ where
 {
     let mut op = current_job.begin_op().await?;
 
-    spawn_in_op(&mut op, spawner, specs).await?;
+    match spawner.spawn_all_in_op(&mut op, specs).await {
+        Ok(_) | Err(JobError::DuplicateId(_)) => {}
+        Err(e) => return Err(e.into()),
+    }
 
     let new_state = state_update_fn(start_sequence);
     current_job

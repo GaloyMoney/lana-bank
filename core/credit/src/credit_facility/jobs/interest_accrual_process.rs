@@ -40,7 +40,7 @@ use tracing_macros::record_error_severity;
 use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use core_time_events::interest_accrual_process::INTEREST_ACCRUAL_PROCESS_JOB_TYPE;
+use core_time_events::interest_accrual_process::INTEREST_ACCRUAL_PROCESS_JOB;
 
 use super::accrue_interest_command::{AccrueInterestCommandConfig, AccrueInterestCommandSpawner};
 use super::complete_accrual_cycle_command::{
@@ -107,7 +107,7 @@ where
     type Config = InterestAccrualProcessConfig;
 
     fn job_type(&self) -> JobType {
-        INTEREST_ACCRUAL_PROCESS_JOB_TYPE
+        INTEREST_ACCRUAL_PROCESS_JOB
     }
 
     fn init(

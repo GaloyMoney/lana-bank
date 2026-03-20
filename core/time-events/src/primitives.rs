@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 es_entity::entity_id! { EodProcessId }
 
 #[derive(
@@ -14,13 +17,20 @@ es_entity::entity_id! { EodProcessId }
     Serialize,
     Deserialize,
 )]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub enum EodProcessStatus {
     #[default]
     Initialized,
-    AwaitingPhase1,
-    Phase1Complete,
-    AwaitingPhase2,
+    #[strum(serialize = "AwaitingPhase1")]
+    #[serde(alias = "awaiting_phase1")]
+    AwaitingObligationsAndDeposits,
+    #[strum(serialize = "Phase1Complete")]
+    #[serde(alias = "phase1_complete")]
+    ObligationsAndDepositsComplete,
+    #[strum(serialize = "AwaitingPhase2")]
+    #[serde(alias = "awaiting_phase2")]
+    AwaitingCreditFacilityEod,
     Completed,
     Failed,
     Cancelled,
@@ -30,7 +40,10 @@ impl EodProcessStatus {
     pub fn is_in_progress(&self) -> bool {
         matches!(
             self,
-            Self::Initialized | Self::AwaitingPhase1 | Self::Phase1Complete | Self::AwaitingPhase2
+            Self::Initialized
+                | Self::AwaitingObligationsAndDeposits
+                | Self::ObligationsAndDepositsComplete
+                | Self::AwaitingCreditFacilityEod
         )
     }
 }
