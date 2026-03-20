@@ -85,13 +85,13 @@ impl SumsubClient {
             .await
     }
 
-    /// Get applicant details by external user ID
+    /// Get applicant details by external user ID.
     pub async fn get_applicant_details<T>(
         &self,
         external_user_id: T,
-    ) -> Result<ApplicantDetails<T>, SumsubError>
+    ) -> Result<wire::ApplicantDetails<T>, SumsubError>
     where
-        T: std::fmt::Display + serde::de::DeserializeOwned,
+        T: std::fmt::Display + Clone + serde::de::DeserializeOwned,
     {
         let method = "GET";
         let url = format!("/resources/applicants/-;externalUserId={external_user_id}/one");
@@ -101,6 +101,22 @@ impl SumsubClient {
         let response = self.client.get(full_url).headers(headers).send().await?;
 
         self.handle_api_response(response, "Failed to get applicant details")
+            .await
+    }
+
+    /// Get applicant document metadata/resources by Sumsub applicant ID.
+    pub async fn get_applicant_document_resources(
+        &self,
+        applicant_id: &str,
+    ) -> Result<serde_json::Value, SumsubError> {
+        let method = "GET";
+        let url = format!("/resources/applicants/{applicant_id}/metadata/resources");
+        let full_url = self.base_url.join(&url).expect("valid URL");
+
+        let headers = self.get_headers(method, &url, None)?;
+        let response = self.client.get(full_url).headers(headers).send().await?;
+
+        self.handle_api_response(response, "Failed to get applicant document resources")
             .await
     }
 
@@ -762,6 +778,24 @@ mod tests {
         assert_eq!(
             SumsubClient::approve_applicant_path("applicant-123"),
             "/resources/applicants/applicant-123/-/approve"
+        );
+    }
+
+    #[test]
+    fn applicant_lookup_path_matches_sumsub_external_id_api() {
+        let external_user_id = "party-123";
+        assert_eq!(
+            format!("/resources/applicants/-;externalUserId={external_user_id}/one"),
+            "/resources/applicants/-;externalUserId=party-123/one"
+        );
+    }
+
+    #[test]
+    fn applicant_document_resources_path_matches_sumsub_api() {
+        let applicant_id = "applicant-123";
+        assert_eq!(
+            format!("/resources/applicants/{applicant_id}/metadata/resources"),
+            "/resources/applicants/applicant-123/metadata/resources"
         );
     }
 }

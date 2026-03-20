@@ -7,7 +7,6 @@ edition = "2024"
 fail-on-warnings = []
 
 [dependencies]
-
 core-customer = { workspace = true }
 core-deposit = { workspace = true }
 governance = { workspace = true }
@@ -19,10 +18,13 @@ audit = { workspace = true }
 authz = { workspace = true }
 
 async-trait = { workspace = true }
+tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
 thiserror = { workspace = true }
 keycloak-client = { workspace = true }
 lana-events = { workspace = true }

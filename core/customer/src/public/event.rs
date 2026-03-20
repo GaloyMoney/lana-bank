@@ -15,6 +15,7 @@ pub enum CoreCustomerEvent {
     CustomerClosed { entity: PublicCustomer },
     PartyCreated { entity: PublicParty },
     PartyEmailUpdated { entity: PublicParty },
+    PartyPersonalInfoUpdated { entity: PublicParty },
     ProspectCreated { entity: PublicProspect },
     ProspectKycStarted { entity: PublicProspect },
     ProspectKycPending { entity: PublicProspect },

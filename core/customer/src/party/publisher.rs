@@ -46,6 +46,9 @@ where
                 EmailUpdated { .. } => Some(CoreCustomerEvent::PartyEmailUpdated {
                     entity: PublicParty::from(entity),
                 }),
+                PersonalInfoUpdated { .. } => Some(CoreCustomerEvent::PartyPersonalInfoUpdated {
+                    entity: PublicParty::from(entity),
+                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

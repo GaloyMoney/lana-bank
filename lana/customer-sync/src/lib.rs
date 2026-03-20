@@ -19,6 +19,7 @@ use core_deposit::{
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
+use sqlx::PgPool;
 use tracing_macros::record_error_severity;
 
 pub struct CustomerSync<Perms, E>
@@ -64,6 +65,7 @@ where
     #[record_error_severity]
     #[tracing::instrument(name = "customer_sync.init", skip_all)]
     pub async fn init(
+        pool: &PgPool,
         jobs: &mut ::job::Jobs,
         outbox: &Outbox<E>,
         deposit: &CoreDeposit<Perms, E>,
@@ -81,6 +83,18 @@ where
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_SYNC_CREATE_KEYCLOAK_USER),
                 SyncPartyKeycloakHandler::new(create_keycloak_user_spawner),
+            )
+            .await?;
+
+        let ingest_sumsub_applicant_spawner = jobs.add_initializer(
+            IngestSumsubApplicantJobInitializer::new(pool.clone(), sumsub_client.clone()),
+        );
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(CUSTOMER_SYNC_INGEST_SUMSUB_APPLICANT),
+                SyncPartySumsubHandler::new(ingest_sumsub_applicant_spawner),
             )
             .await?;
 
