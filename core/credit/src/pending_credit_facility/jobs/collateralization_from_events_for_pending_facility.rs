@@ -217,9 +217,7 @@ where
                 let did_execute = pending_facility
                     .update_collateralization(price, balances)
                     .did_execute();
-                if pending_facility.last_collateralization_state()
-                    != PendingCreditFacilityCollateralizationState::FullyCollateralized
-                {
+                if !pending_facility.is_fully_collateralized() {
                     all_fully_collateralized = false;
                 }
                 if did_execute {

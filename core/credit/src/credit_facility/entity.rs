@@ -690,6 +690,10 @@ impl CreditFacility {
         self.last_collateralization().state
     }
 
+    pub fn is_fully_collateralized(&self) -> bool {
+        self.last_collateralization_state() == CollateralizationState::FullyCollateralized
+    }
+
     pub fn last_collateralization_ratio(&self) -> CollateralizationRatio {
         self.events
             .iter_all()

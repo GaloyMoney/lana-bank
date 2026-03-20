@@ -255,9 +255,7 @@ where
                 let did_execute = facility
                     .update_collateralization(price, CVLPct::UPGRADE_BUFFER, balances)
                     .did_execute();
-                if facility.last_collateralization_state()
-                    != CollateralizationState::FullyCollateralized
-                {
+                if !facility.is_fully_collateralized() {
                     all_fully_collateralized = false;
                 }
                 if did_execute {

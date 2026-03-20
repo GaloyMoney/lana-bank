@@ -180,6 +180,11 @@ impl PendingCreditFacility {
         self.last_collateralization().state
     }
 
+    pub fn is_fully_collateralized(&self) -> bool {
+        self.last_collateralization_state()
+            == PendingCreditFacilityCollateralizationState::FullyCollateralized
+    }
+
     pub fn last_collateralization(&self) -> PendingFacilityCollateralization {
         self.events
             .iter_all()
