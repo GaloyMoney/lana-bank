@@ -1,0 +1,7 @@
+query FindCreditFacilityAgreement($id: UUID!) {
+  creditFacilityAgreement(id: $id) {
+    creditFacilityAgreementId
+    status
+    createdAt
+  }
+}

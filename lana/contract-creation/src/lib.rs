@@ -27,7 +27,8 @@ pub use primitives::{
 };
 
 pub mod primitives;
-const LOAN_AGREEMENT_DOCUMENT_TYPE: DocumentType = DocumentType::new("loan_agreement");
+const CREDIT_FACILITY_AGREEMENT_DOCUMENT_TYPE: DocumentType =
+    DocumentType::new("credit_facility_agreement");
 
 pub struct ContractCreation<Perms, E>
 where
@@ -35,7 +36,8 @@ where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     document_storage: DocumentStorage,
-    generate_loan_agreement_job_spawner: GenerateLoanAgreementJobSpawner<Perms, E>,
+    generate_credit_facility_agreement_job_spawner:
+        GenerateCreditFacilityAgreementJobSpawner<Perms, E>,
     authz: Perms,
 }
 
@@ -47,7 +49,9 @@ where
     fn clone(&self) -> Self {
         Self {
             document_storage: self.document_storage.clone(),
-            generate_loan_agreement_job_spawner: self.generate_loan_agreement_job_spawner.clone(),
+            generate_credit_facility_agreement_job_spawner: self
+                .generate_credit_facility_agreement_job_spawner
+                .clone(),
             authz: self.authz.clone(),
         }
     }
@@ -74,8 +78,8 @@ where
         let contract_templates = templates::ContractTemplates::new();
 
         // Initialize the job system for contract creation
-        let generate_loan_agreement_job_spawner =
-            jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
+        let generate_credit_facility_agreement_job_spawner =
+            jobs.add_initializer(GenerateCreditFacilityAgreementJobInitializer::new(
                 customers,
                 customer_kyc,
                 document_storage,
@@ -85,18 +89,21 @@ where
 
         Self {
             document_storage: document_storage.clone(),
-            generate_loan_agreement_job_spawner,
+            generate_credit_facility_agreement_job_spawner,
             authz: authz.clone(),
         }
     }
 
     #[record_error_severity]
-    #[instrument(name = "contract.initiate_loan_agreement_generation", skip(self))]
-    pub async fn initiate_loan_agreement_generation(
+    #[instrument(
+        name = "contract.initiate_credit_facility_agreement_generation",
+        skip(self)
+    )]
+    pub async fn initiate_credit_facility_agreement_generation(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
-    ) -> Result<LoanAgreement, ContractCreationError> {
+    ) -> Result<CreditFacilityAgreement, ContractCreationError> {
         let customer_id = customer_id.into();
 
         self.authz
@@ -107,7 +114,7 @@ where
             )
             .await?;
 
-        let filename = format!("loan_agreement_{customer_id}.pdf");
+        let filename = format!("credit_facility_agreement_{customer_id}.pdf");
 
         let mut db = self.document_storage.begin_op().await?;
         let document = self
@@ -117,15 +124,15 @@ where
                 filename,
                 "application/pdf",
                 ReferenceId::from(customer_id),
-                LOAN_AGREEMENT_DOCUMENT_TYPE,
+                CREDIT_FACILITY_AGREEMENT_DOCUMENT_TYPE,
             )
             .await?;
 
-        self.generate_loan_agreement_job_spawner
+        self.generate_credit_facility_agreement_job_spawner
             .spawn_in_op(
                 &mut db,
                 JobId::from(uuid::Uuid::from(document.id)),
-                GenerateLoanAgreementConfig::<Perms, E> {
+                GenerateCreditFacilityAgreementConfig::<Perms, E> {
                     customer_id,
                     phantom: PhantomData,
                 },
@@ -133,7 +140,7 @@ where
             .await?;
 
         db.commit().await?;
-        Ok(LoanAgreement::from(document))
+        Ok(CreditFacilityAgreement::from(document))
     }
 
     #[record_error_severity]
@@ -142,7 +149,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         contract_id: impl Into<ContractCreationId> + std::fmt::Debug,
-    ) -> Result<Option<LoanAgreement>, ContractCreationError> {
+    ) -> Result<Option<CreditFacilityAgreement>, ContractCreationError> {
         let contract_id = contract_id.into();
         let document_id = DocumentId::from(contract_id);
 
@@ -155,7 +162,7 @@ where
             .await?;
 
         match self.document_storage.find_by_id(document_id).await {
-            Ok(document) => Ok(Some(LoanAgreement::from(document))),
+            Ok(document) => Ok(Some(CreditFacilityAgreement::from(document))),
             Err(document_storage::error::DocumentStorageError::Find(e)) if e.was_not_found() => {
                 Ok(None)
             }
@@ -188,9 +195,9 @@ where
     }
 }
 
-impl From<Document> for LoanAgreement {
-    fn from(document: Document) -> LoanAgreement {
-        LoanAgreement {
+impl From<Document> for CreditFacilityAgreement {
+    fn from(document: Document) -> CreditFacilityAgreement {
+        CreditFacilityAgreement {
             id: document.id.into(),
             status: document.status.into(),
             created_at: document.created_at(),
@@ -198,21 +205,21 @@ impl From<Document> for LoanAgreement {
     }
 }
 
-impl From<DocumentStatus> for LoanAgreementStatus {
-    fn from(document_status: DocumentStatus) -> LoanAgreementStatus {
+impl From<DocumentStatus> for CreditFacilityAgreementStatus {
+    fn from(document_status: DocumentStatus) -> CreditFacilityAgreementStatus {
         match document_status {
-            DocumentStatus::Active => LoanAgreementStatus::Completed,
-            DocumentStatus::Archived => LoanAgreementStatus::Removed,
-            DocumentStatus::Deleted => LoanAgreementStatus::Removed,
-            DocumentStatus::Failed => LoanAgreementStatus::Failed,
-            DocumentStatus::New => LoanAgreementStatus::Pending,
+            DocumentStatus::Active => CreditFacilityAgreementStatus::Completed,
+            DocumentStatus::Archived => CreditFacilityAgreementStatus::Removed,
+            DocumentStatus::Deleted => CreditFacilityAgreementStatus::Removed,
+            DocumentStatus::Failed => CreditFacilityAgreementStatus::Failed,
+            DocumentStatus::New => CreditFacilityAgreementStatus::Pending,
         }
     }
 }
 
 /// Data structure for loan agreement template
 #[derive(serde::Serialize)]
-pub struct LoanAgreementData {
+pub struct CreditFacilityAgreementData {
     pub email: String,
     pub full_name: String,
     pub address: Option<String>,
@@ -222,7 +229,7 @@ pub struct LoanAgreementData {
     pub date: String,
 }
 
-impl LoanAgreementData {
+impl CreditFacilityAgreementData {
     pub fn new(
         email: String,
         telegram_handle: String,
@@ -246,7 +253,7 @@ impl LoanAgreementData {
 
 // Simple loan agreement types for now (not using the full entity system)
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum LoanAgreementStatus {
+pub enum CreditFacilityAgreementStatus {
     Pending,
     Completed,
     Failed,
@@ -254,9 +261,9 @@ pub enum LoanAgreementStatus {
 }
 
 #[derive(Clone, Debug)]
-pub struct LoanAgreement {
+pub struct CreditFacilityAgreement {
     pub id: Uuid,
-    pub status: LoanAgreementStatus,
+    pub status: CreditFacilityAgreementStatus,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -283,7 +290,7 @@ mod tests {
             "date": "2025-01-01"
         });
 
-        let result = contract_templates.render_template("loan_agreement", &data)?;
+        let result = contract_templates.render_template("credit_facility_agreement", &data)?;
         assert!(result.contains("Test User"));
         assert!(result.contains("test@example.com"));
 

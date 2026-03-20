@@ -11,14 +11,14 @@ teardown_file() {
   stop_server
 }
 
-wait_for_loan_agreement_completion() {
+wait_for_credit_facility_agreement_completion() {
   variables=$(
     jq -n \
-      --arg loanAgreementId "$1" \
-    '{ id: $loanAgreementId }'
+      --arg creditFacilityAgreementId "$1" \
+    '{ id: $creditFacilityAgreementId }'
   )
-  exec_admin_graphql 'find-loan-agreement' "$variables"
-  status=$(graphql_output '.data.loanAgreement.status')
+  exec_admin_graphql 'find-credit-facility-agreement' "$variables"
+  status=$(graphql_output '.data.creditFacilityAgreement.status')
   [[ "$status" == "COMPLETED" ]] || return 1
 }
 
@@ -143,32 +143,32 @@ wait_for_loan_agreement_completion() {
 
     exec_admin_graphql 'credit-facility-agreement-generate' "$variables"
 
-    loan_agreement_id=$(graphql_output '.data.creditFacilityAgreementGenerate.loanAgreement.loanAgreementId')
-    [[ "$loan_agreement_id" != "null" ]] || exit 1
-    [[ "$loan_agreement_id" != "" ]] || exit 1
+    agreement_id=$(graphql_output '.data.creditFacilityAgreementGenerate.creditFacilityAgreement.creditFacilityAgreementId')
+    [[ "$agreement_id" != "null" ]] || exit 1
+    [[ "$agreement_id" != "" ]] || exit 1
 
-    status=$(graphql_output '.data.creditFacilityAgreementGenerate.loanAgreement.status')
+    status=$(graphql_output '.data.creditFacilityAgreementGenerate.creditFacilityAgreement.status')
     [[ "$status" == "PENDING" ]] || exit 1
 
-    retry 30 1 wait_for_loan_agreement_completion $loan_agreement_id
+    retry 30 1 wait_for_credit_facility_agreement_completion $agreement_id
 
     variables=$(
       jq -n \
-        --arg loanAgreementId "$loan_agreement_id" \
-      '{ input: { loanAgreementId: $loanAgreementId } }'
+        --arg creditFacilityAgreementId "$agreement_id" \
+      '{ input: { creditFacilityAgreementId: $creditFacilityAgreementId } }'
     )
 
-    exec_admin_graphql 'loan-agreement-download-link-generate' "$variables"
+    exec_admin_graphql 'credit-facility-agreement-download-link-generate' "$variables"
 
-    download_link=$(graphql_output '.data.loanAgreementDownloadLinkGenerate.link')
-    returned_loan_agreement_id=$(graphql_output '.data.loanAgreementDownloadLinkGenerate.loanAgreementId')
+    download_link=$(graphql_output '.data.creditFacilityAgreementDownloadLinkGenerate.link')
+    returned_agreement_id=$(graphql_output '.data.creditFacilityAgreementDownloadLinkGenerate.creditFacilityAgreementId')
 
     [[ "$download_link" != "null" ]] || exit 1
     [[ "$download_link" != "" ]] || exit 1
-    [[ "$returned_loan_agreement_id" == "$loan_agreement_id" ]] || exit 1
+    [[ "$returned_agreement_id" == "$agreement_id" ]] || exit 1
 
-    temp_pdf="/tmp/loan_agreement_${loan_agreement_id}.pdf"
-    temp_txt="/tmp/loan_agreement_${loan_agreement_id}.txt"
+    temp_pdf="/tmp/credit_facility_agreement_${agreement_id}.pdf"
+    temp_txt="/tmp/credit_facility_agreement_${agreement_id}.txt"
 
     if [[ "$download_link" =~ ^file:// ]]; then
       file_path="${download_link#file://}"

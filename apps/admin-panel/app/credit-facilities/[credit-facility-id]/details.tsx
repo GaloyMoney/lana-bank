@@ -28,7 +28,7 @@ import {
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { CustomerLabel } from "@/app/customers/customer-label"
-import { useLoanAgreement } from "@/hooks/use-loan-agreement"
+import { useCreditFacilityAgreement } from "@/hooks/use-credit-facility-agreement"
 type CreditFacilityDetailsProps = {
   creditFacilityDetails: NonNullable<
     GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
@@ -46,10 +46,11 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
   const [openCompleteDialog, setOpenCompleteDialog] = React.useState(false)
 
-  const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()
+  const { generateCreditFacilityAgreementPdf, isGenerating } =
+    useCreditFacilityAgreement()
 
-  const handleGenerateLoanAgreement = () => {
-    generateLoanAgreementPdf(creditFacilityDetails.customer.customerId)
+  const handleGenerateCreditFacilityAgreement = () => {
+    generateCreditFacilityAgreementPdf(creditFacilityDetails.customer.customerId)
   }
 
   const details: DetailItemProps[] = [
@@ -138,12 +139,12 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       </Button>
       <Button
         variant="outline"
-        onClick={handleGenerateLoanAgreement}
+        onClick={handleGenerateCreditFacilityAgreement}
         loading={isGenerating}
-        data-testid="loan-agreement-button"
+        data-testid="credit-facility-agreement-button"
       >
         <Download className="h-4 w-4 mr-2" />
-        {t("buttons.loanAgreement")}
+        {t("buttons.creditFacilityAgreement")}
       </Button>
       {creditFacilityDetails.userCanUpdateCollateral && (creditFacilityDetails.wallet?.custodian.provider ?? "manual") === "manual" && (
         <Button

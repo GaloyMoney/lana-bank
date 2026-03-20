@@ -1,6 +1,0 @@
-mutation LoanAgreementDownloadLinkGenerate($input: LoanAgreementDownloadLinksGenerateInput!) {
-  loanAgreementDownloadLinkGenerate(input: $input) {
-    loanAgreementId
-    link
-  }
-} 

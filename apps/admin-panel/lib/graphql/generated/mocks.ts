@@ -56,7 +56,7 @@ const mockEnums = {
 };
 
 import { fakerEN as faker } from '@faker-js/faker';
-import { AccountInfo, AccountingBaseConfigInput, AccountingBaseConfigOutput, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, AutoApproval, BalanceSheet, BalanceSheetAccount, BitfinexCreateInput, BitgoConfig, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, BuildInfo, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsAddChildNodeInput, ChartOfAccountsAddChildNodePayload, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, ChartOfAccountsCsvImportWithBaseConfigInput, ChartOfAccountsCsvImportWithBaseConfigPayload, Collateral, CollateralBalance, CollateralRecordProceedsFromLiquidationInput, CollateralRecordProceedsFromLiquidationPayload, CollateralRecordSentToLiquidationInput, CollateralRecordSentToLiquidationPayload, CollateralUpdateInput, CollateralUpdatePayload, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeApproval, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteesSort, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityAgreementGenerateInput, CreditFacilityAgreementGeneratePayload, CreditFacilityApproved, CreditFacilityBalance, CreditFacilityCollateralSentOut, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityLedgerAccounts, CreditFacilityModuleConfigureInput, CreditFacilityModuleConfigurePayload, CreditFacilityPartialPaymentRecordInput, CreditFacilityPartialPaymentRecordPayload, CreditFacilityPartialPaymentWithDateRecordInput, CreditFacilityPaymentAllocation, CreditFacilityProposal, CreditFacilityProposalConnection, CreditFacilityProposalCreateInput, CreditFacilityProposalCreatePayload, CreditFacilityProposalCustomerApprovalConcludeInput, CreditFacilityProposalCustomerApprovalConcludePayload, CreditFacilityProposalEdge, CreditFacilityProposalsFilter, CreditFacilityProposalsSort, CreditFacilityRepaymentAmountReceived, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, Custodian, CustodianConfigInput, CustodianConfigUpdateInput, CustodianConfigUpdatePayload, CustodianConnection, CustodianCreateInput, CustodianCreatePayload, CustodianEdge, CustodiansSort, Customer, CustomerCloseInput, CustomerClosePayload, CustomerConnection, CustomerDocument, CustomerDocumentArchiveInput, CustomerDocumentArchivePayload, CustomerDocumentCreateInput, CustomerDocumentCreatePayload, CustomerDocumentDeleteInput, CustomerDocumentDeletePayload, CustomerDocumentDownloadLinksGenerateInput, CustomerDocumentDownloadLinksGeneratePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerFreezeInput, CustomerFreezePayload, CustomerTelegramHandleUpdateInput, CustomerTelegramHandleUpdatePayload, CustomerUnfreezeInput, CustomerUnfreezePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountCloseInput, DepositAccountClosePayload, DepositAccountConnection, DepositAccountCreateInput, DepositAccountCreatePayload, DepositAccountEdge, DepositAccountFreezeInput, DepositAccountFreezePayload, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositAccountLedgerAccounts, DepositAccountModuleConfigureInput, DepositAccountModuleConfigurePayload, DepositAccountUnfreezeInput, DepositAccountUnfreezePayload, DepositAccountsFilter, DepositAccountsSort, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositRecordInput, DepositRecordPayload, DepositRevertInput, DepositRevertPayload, DepositsFilter, DepositsSort, DisbursalEntry, DisbursalsFilter, DisbursalsSort, Disbursed, DomainConfig, DomainConfigConnection, DomainConfigEdge, DomainConfigUpdateInput, DomainConfigUpdatePayload, Duration, DurationInput, EventTimelineEntry, EventTimelineEntryConnection, EventTimelineEntryEdge, FacilityRemaining, FiniteCvlPct, FiscalMonthClosure, FiscalYear, FiscalYearCloseInput, FiscalYearCloseMonthInput, FiscalYearCloseMonthPayload, FiscalYearClosePayload, FiscalYearConnection, FiscalYearEdge, FiscalYearInitInput, FiscalYearInitPayload, FiscalYearOpenNextInput, FiscalYearOpenNextPayload, FiscalYearsSort, FreezeEntry, GovernanceNavigationItems, InfiniteCvlPct, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, KomainuConfig, LedgerAccount, LedgerAccountBalanceByCurrency, LedgerAccountBalanceRangeByCurrency, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountCsvDocument, LedgerAccountCsvDownloadLink, LedgerAccountCsvDownloadLinkGenerateInput, LedgerAccountCsvDownloadLinkGeneratePayload, LedgerAccountCsvExportUploadedPayload, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Liquidation, LiquidationCollateralSent, LiquidationConnection, LiquidationEdge, LiquidationPayment, LiquidationPaymentCalculateInput, LiquidationProceedsReceived, LiquidationsSort, Loan, LoanAgreement, LoanAgreementDownloadLinksGenerateInput, LoanAgreementDownloadLinksGeneratePayload, ManualConfig, ManualPriceConfigInput, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Me, Mutation, Outstanding, PageInfo, PaymentEntry, PaymentsUnapplied, PendingCreditFacilitiesFilter, PendingCreditFacilitiesSort, PendingCreditFacility, PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityConnection, PendingCreditFacilityEdge, PermissionSet, PermissionSetConnection, PermissionSetEdge, PersonalInfo, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, PriceProvider, PriceProviderActivatePayload, PriceProviderConfigInput, PriceProviderConfigUpdateInput, PriceProviderConfigUpdatePayload, PriceProviderConnection, PriceProviderDeactivatePayload, PriceProviderEdge, PriceProvidersSort, ProfitAndLossAccount, ProfitAndLossStatement, Prospect, ProspectCloseInput, ProspectClosePayload, ProspectConnection, ProspectConvertInput, ProspectConvertPayload, ProspectCreateInput, ProspectCreatePayload, ProspectEdge, ProspectKycLinkCreateInput, ProspectKycLinkCreatePayload, ProspectsFilter, ProspectsSort, Query, RealtimePrice, Report, ReportDefinition, ReportDefinitionOutput, ReportFile, ReportFileGenerateDownloadLinkInput, ReportFileGenerateDownloadLinkPayload, ReportRun, ReportRunConnection, ReportRunEdge, ReportRunTriggerInput, ReportRunTriggerPayload, ReportRunUpdatedPayload, ReportRunsSort, RequestedReport, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, RolesSort, SelfCustodyConfig, Subscription, System, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Time, TimeAdvanceToNextEndOfDayPayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnfreezeEntry, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserConnection, UserCreateInput, UserCreatePayload, UserEdge, UserUpdateRoleInput, UserUpdateRolePayload, UsersSort, VisibleNavigationItems, Wallet, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, WithdrawalRevertInput, WithdrawalRevertPayload, WithdrawalsFilter, WithdrawalsSort, AccountCategory, Activity, ApprovalProcessStatus, ApprovalProcessType, CollateralDirection, CollateralizationState, CommitteesSortBy, ConfigType, ConversionReason, CreditFacilitiesSortBy, CreditFacilityProposalStatus, CreditFacilityProposalsSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustodiansSortBy, CustomerStatus, CustomerType, CustomersSortBy, DebitOrCredit, DepositAccountStatus, DepositAccountsSortBy, DepositStatus, DepositsSortBy, DisbursalPolicy, DisbursalStatus, DisbursalsSortBy, DocumentStatus, FiscalYearsSortBy, InterestInterval, KycLevel, KycStatus, Layer, LiquidationsSortBy, LoanAgreementStatus, PendingCreditFacilitiesSortBy, PendingCreditFacilityCollateralizationState, PendingCreditFacilityStatus, Period, PriceProvidersSortBy, ProspectStage, ProspectsSortBy, ReportOutputFormat, ReportRunState, ReportRunType, ReportRunsSortBy, RolesSortBy, SelfCustodyNetwork, SortDirection, UsersSortBy, WalletNetwork, WithdrawalStatus, WithdrawalsSortBy } from './index';
+import { AccountInfo, AccountingBaseConfigInput, AccountingBaseConfigOutput, AccountingCsvDocument, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, AutoApproval, BalanceSheet, BalanceSheetAccount, BitfinexCreateInput, BitgoConfig, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, BuildInfo, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsAddChildNodeInput, ChartOfAccountsAddChildNodePayload, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, ChartOfAccountsCsvImportWithBaseConfigInput, ChartOfAccountsCsvImportWithBaseConfigPayload, Collateral, CollateralBalance, CollateralRecordProceedsFromLiquidationInput, CollateralRecordProceedsFromLiquidationPayload, CollateralRecordSentToLiquidationInput, CollateralRecordSentToLiquidationPayload, CollateralUpdateInput, CollateralUpdatePayload, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeApproval, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteesSort, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityAgreement, CreditFacilityAgreementDownloadLinksGenerateInput, CreditFacilityAgreementDownloadLinksGeneratePayload, CreditFacilityAgreementGenerateInput, CreditFacilityAgreementGeneratePayload, CreditFacilityApproved, CreditFacilityBalance, CreditFacilityCollateralSentOut, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityLedgerAccounts, CreditFacilityPartialPaymentRecordInput, CreditFacilityPartialPaymentRecordPayload, CreditFacilityPartialPaymentWithDateRecordInput, CreditFacilityPaymentAllocation, CreditFacilityProposal, CreditFacilityProposalConnection, CreditFacilityProposalCreateInput, CreditFacilityProposalCreatePayload, CreditFacilityProposalCustomerApprovalConcludeInput, CreditFacilityProposalCustomerApprovalConcludePayload, CreditFacilityProposalEdge, CreditFacilityProposalsFilter, CreditFacilityProposalsSort, CreditFacilityRepaymentAmountReceived, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Custodian, CustodianConfigInput, CustodianConfigUpdateInput, CustodianConfigUpdatePayload, CustodianConnection, CustodianCreateInput, CustodianCreatePayload, CustodianEdge, CustodiansSort, Customer, CustomerCloseInput, CustomerClosePayload, CustomerConnection, CustomerDocument, CustomerDocumentArchiveInput, CustomerDocumentArchivePayload, CustomerDocumentCreateInput, CustomerDocumentCreatePayload, CustomerDocumentDeleteInput, CustomerDocumentDeletePayload, CustomerDocumentDownloadLinksGenerateInput, CustomerDocumentDownloadLinksGeneratePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerFreezeInput, CustomerFreezePayload, CustomerTelegramHandleUpdateInput, CustomerTelegramHandleUpdatePayload, CustomerUnfreezeInput, CustomerUnfreezePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountCloseInput, DepositAccountClosePayload, DepositAccountConnection, DepositAccountCreateInput, DepositAccountCreatePayload, DepositAccountEdge, DepositAccountFreezeInput, DepositAccountFreezePayload, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositAccountLedgerAccounts, DepositAccountUnfreezeInput, DepositAccountUnfreezePayload, DepositAccountsFilter, DepositAccountsSort, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DepositRevertInput, DepositRevertPayload, DepositsFilter, DepositsSort, DisbursalEntry, DisbursalsFilter, DisbursalsSort, Disbursed, DomainConfig, DomainConfigConnection, DomainConfigEdge, DomainConfigUpdateInput, DomainConfigUpdatePayload, Duration, DurationInput, EventTimelineEntry, EventTimelineEntryConnection, EventTimelineEntryEdge, FacilityRemaining, FiniteCvlPct, FiscalMonthClosure, FiscalYear, FiscalYearCloseInput, FiscalYearCloseMonthInput, FiscalYearCloseMonthPayload, FiscalYearClosePayload, FiscalYearConnection, FiscalYearEdge, FiscalYearInitInput, FiscalYearInitPayload, FiscalYearOpenNextInput, FiscalYearOpenNextPayload, FiscalYearsSort, FreezeEntry, GovernanceNavigationItems, InfiniteCvlPct, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, KomainuConfig, LedgerAccount, LedgerAccountBalanceByCurrency, LedgerAccountBalanceRangeByCurrency, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountCsvExportUploadedPayload, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Liquidation, LiquidationCollateralSent, LiquidationConnection, LiquidationEdge, LiquidationPayment, LiquidationPaymentCalculateInput, LiquidationProceedsReceived, LiquidationsSort, Loan, ManualConfig, ManualPriceConfigInput, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Me, Mutation, Outstanding, PageInfo, PaymentEntry, PaymentsUnapplied, PendingCreditFacilitiesFilter, PendingCreditFacilitiesSort, PendingCreditFacility, PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityConnection, PendingCreditFacilityEdge, PermissionSet, PermissionSetConnection, PermissionSetEdge, PersonalInfo, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, PriceProvider, PriceProviderActivatePayload, PriceProviderConfigInput, PriceProviderConfigUpdateInput, PriceProviderConfigUpdatePayload, PriceProviderConnection, PriceProviderDeactivatePayload, PriceProviderEdge, PriceProvidersSort, ProfitAndLossAccount, ProfitAndLossStatement, Prospect, ProspectCloseInput, ProspectClosePayload, ProspectConnection, ProspectConvertInput, ProspectConvertPayload, ProspectCreateInput, ProspectCreatePayload, ProspectEdge, ProspectKycLinkCreateInput, ProspectKycLinkCreatePayload, ProspectsFilter, ProspectsSort, Query, RealtimePrice, Report, ReportDefinition, ReportDefinitionOutput, ReportFile, ReportFileGenerateDownloadLinkInput, ReportFileGenerateDownloadLinkPayload, ReportRun, ReportRunConnection, ReportRunEdge, ReportRunTriggerInput, ReportRunTriggerPayload, ReportRunUpdatedPayload, ReportRunsSort, RequestedReport, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, RolesSort, SelfCustodyConfig, Subscription, System, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Time, TimeAdvanceToNextEndOfDayPayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnfreezeEntry, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserConnection, UserCreateInput, UserCreatePayload, UserEdge, UserUpdateRoleInput, UserUpdateRolePayload, UsersSort, VisibleNavigationItems, Wallet, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, WithdrawalRevertInput, WithdrawalRevertPayload, WithdrawalsFilter, WithdrawalsSort, AccountCategory, Activity, ApprovalProcessStatus, ApprovalProcessType, CollateralDirection, CollateralizationState, CommitteesSortBy, ConfigType, ConversionReason, CreditFacilitiesSortBy, CreditFacilityAgreementStatus, CreditFacilityProposalStatus, CreditFacilityProposalsSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustodiansSortBy, CustomerStatus, CustomerType, CustomersSortBy, DebitOrCredit, DepositAccountStatus, DepositAccountsSortBy, DepositStatus, DepositsSortBy, DisbursalPolicy, DisbursalStatus, DisbursalsSortBy, DocumentStatus, FiscalYearsSortBy, InterestInterval, KycLevel, KycStatus, Layer, LiquidationsSortBy, PendingCreditFacilitiesSortBy, PendingCreditFacilityCollateralizationState, PendingCreditFacilityStatus, Period, PriceProvidersSortBy, ProspectStage, ProspectsSortBy, ReportOutputFormat, ReportRunState, ReportRunType, ReportRunsSortBy, RolesSortBy, SelfCustodyNetwork, SortDirection, UsersSortBy, WalletNetwork, WithdrawalStatus, WithdrawalsSortBy } from './index';
 
 faker.seed(0);
 
@@ -99,6 +99,46 @@ export const mockAccountingBaseConfigOutput = (overrides?: Partial<AccountingBas
         expensesCode: overrides && overrides.hasOwnProperty('expensesCode') ? overrides.expensesCode! : faker.lorem.word(),
         liabilitiesCode: overrides && overrides.hasOwnProperty('liabilitiesCode') ? overrides.liabilitiesCode! : faker.lorem.word(),
         revenueCode: overrides && overrides.hasOwnProperty('revenueCode') ? overrides.revenueCode! : faker.lorem.word(),
+    };
+};
+
+export const mockAccountingCsvDocument = (overrides?: Partial<AccountingCsvDocument>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountingCsvDocument' } & AccountingCsvDocument => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('AccountingCsvDocument');
+    return {
+        __typename: 'AccountingCsvDocument',
+        accountingCsvDocumentId: overrides && overrides.hasOwnProperty('accountingCsvDocumentId') ? overrides.accountingCsvDocumentId! : generateMockValue.uuid(),
+        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        filename: overrides && overrides.hasOwnProperty('filename') ? overrides.filename! : generateMockValue.filename(),
+        ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),
+        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : DocumentStatus.Active,
+    };
+};
+
+export const mockAccountingCsvDownloadLink = (overrides?: Partial<AccountingCsvDownloadLink>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountingCsvDownloadLink' } & AccountingCsvDownloadLink => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('AccountingCsvDownloadLink');
+    return {
+        __typename: 'AccountingCsvDownloadLink',
+        csvId: overrides && overrides.hasOwnProperty('csvId') ? overrides.csvId! : generateMockValue.uuid(),
+        url: overrides && overrides.hasOwnProperty('url') ? overrides.url! : generateMockValue.url(),
+    };
+};
+
+export const mockAccountingCsvDownloadLinkGenerateInput = (overrides?: Partial<AccountingCsvDownloadLinkGenerateInput>, _relationshipsToOmit: Set<string> = new Set()): AccountingCsvDownloadLinkGenerateInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('AccountingCsvDownloadLinkGenerateInput');
+    return {
+        documentId: overrides && overrides.hasOwnProperty('documentId') ? overrides.documentId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockAccountingCsvDownloadLinkGeneratePayload = (overrides?: Partial<AccountingCsvDownloadLinkGeneratePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountingCsvDownloadLinkGeneratePayload' } & AccountingCsvDownloadLinkGeneratePayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('AccountingCsvDownloadLinkGeneratePayload');
+    return {
+        __typename: 'AccountingCsvDownloadLinkGeneratePayload',
+        link: overrides && overrides.hasOwnProperty('link') ? overrides.link! : relationshipsToOmit.has('AccountingCsvDownloadLink') ? {} as AccountingCsvDownloadLink : mockAccountingCsvDownloadLink({}, relationshipsToOmit),
     };
 };
 
@@ -661,6 +701,35 @@ export const mockCreditFacility = (overrides?: Partial<CreditFacility>, _relatio
     };
 };
 
+export const mockCreditFacilityAgreement = (overrides?: Partial<CreditFacilityAgreement>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityAgreement' } & CreditFacilityAgreement => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditFacilityAgreement');
+    return {
+        __typename: 'CreditFacilityAgreement',
+        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        creditFacilityAgreementId: overrides && overrides.hasOwnProperty('creditFacilityAgreementId') ? overrides.creditFacilityAgreementId! : generateMockValue.uuid(),
+        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : CreditFacilityAgreementStatus.Completed,
+    };
+};
+
+export const mockCreditFacilityAgreementDownloadLinksGenerateInput = (overrides?: Partial<CreditFacilityAgreementDownloadLinksGenerateInput>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityAgreementDownloadLinksGenerateInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditFacilityAgreementDownloadLinksGenerateInput');
+    return {
+        creditFacilityAgreementId: overrides && overrides.hasOwnProperty('creditFacilityAgreementId') ? overrides.creditFacilityAgreementId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockCreditFacilityAgreementDownloadLinksGeneratePayload = (overrides?: Partial<CreditFacilityAgreementDownloadLinksGeneratePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityAgreementDownloadLinksGeneratePayload' } & CreditFacilityAgreementDownloadLinksGeneratePayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditFacilityAgreementDownloadLinksGeneratePayload');
+    return {
+        __typename: 'CreditFacilityAgreementDownloadLinksGeneratePayload',
+        creditFacilityAgreementId: overrides && overrides.hasOwnProperty('creditFacilityAgreementId') ? overrides.creditFacilityAgreementId! : generateMockValue.uuid(),
+        link: overrides && overrides.hasOwnProperty('link') ? overrides.link! : faker.lorem.word(),
+    };
+};
+
 export const mockCreditFacilityAgreementGenerateInput = (overrides?: Partial<CreditFacilityAgreementGenerateInput>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityAgreementGenerateInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityAgreementGenerateInput');
@@ -674,7 +743,7 @@ export const mockCreditFacilityAgreementGeneratePayload = (overrides?: Partial<C
     relationshipsToOmit.add('CreditFacilityAgreementGeneratePayload');
     return {
         __typename: 'CreditFacilityAgreementGeneratePayload',
-        loanAgreement: overrides && overrides.hasOwnProperty('loanAgreement') ? overrides.loanAgreement! : relationshipsToOmit.has('LoanAgreement') ? {} as LoanAgreement : mockLoanAgreement({}, relationshipsToOmit),
+        creditFacilityAgreement: overrides && overrides.hasOwnProperty('creditFacilityAgreement') ? overrides.creditFacilityAgreement! : relationshipsToOmit.has('CreditFacilityAgreement') ? {} as CreditFacilityAgreement : mockCreditFacilityAgreement({}, relationshipsToOmit),
     };
 };
 
@@ -919,73 +988,6 @@ export const mockCreditFacilityLedgerAccounts = (overrides?: Partial<CreditFacil
     };
 };
 
-export const mockCreditFacilityModuleConfigureInput = (overrides?: Partial<CreditFacilityModuleConfigureInput>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityModuleConfigureInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('CreditFacilityModuleConfigureInput');
-    return {
-        chartOfAccountCollateralInLiquidationParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralInLiquidationParentCode') ? overrides.chartOfAccountCollateralInLiquidationParentCode! : faker.lorem.word(),
-        chartOfAccountCollateralOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralOmnibusParentCode') ? overrides.chartOfAccountCollateralOmnibusParentCode! : faker.lorem.word(),
-        chartOfAccountCollateralParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralParentCode') ? overrides.chartOfAccountCollateralParentCode! : faker.lorem.word(),
-        chartOfAccountDisbursedDefaultedParentCode: overrides && overrides.hasOwnProperty('chartOfAccountDisbursedDefaultedParentCode') ? overrides.chartOfAccountDisbursedDefaultedParentCode! : faker.lorem.word(),
-        chartOfAccountFacilityOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityOmnibusParentCode') ? overrides.chartOfAccountFacilityOmnibusParentCode! : faker.lorem.word(),
-        chartOfAccountFacilityParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityParentCode') ? overrides.chartOfAccountFacilityParentCode! : faker.lorem.word(),
-        chartOfAccountFeeIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFeeIncomeParentCode') ? overrides.chartOfAccountFeeIncomeParentCode! : faker.lorem.word(),
-        chartOfAccountInterestAddedToObligationsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestAddedToObligationsOmnibusParentCode') ? overrides.chartOfAccountInterestAddedToObligationsOmnibusParentCode! : faker.lorem.word(),
-        chartOfAccountInterestDefaultedParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestDefaultedParentCode') ? overrides.chartOfAccountInterestDefaultedParentCode! : faker.lorem.word(),
-        chartOfAccountInterestIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestIncomeParentCode') ? overrides.chartOfAccountInterestIncomeParentCode! : faker.lorem.word(),
-        chartOfAccountLiquidatedCollateralParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLiquidatedCollateralParentCode') ? overrides.chartOfAccountLiquidatedCollateralParentCode! : faker.lorem.word(),
-        chartOfAccountLiquidationProceedsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLiquidationProceedsOmnibusParentCode') ? overrides.chartOfAccountLiquidationProceedsOmnibusParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermBankDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermBankDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermBankDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermBankInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermBankInterestReceivableParentCode') ? overrides.chartOfAccountLongTermBankInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode') ? overrides.chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode') ? overrides.chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode') ? overrides.chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermIndividualDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermIndividualDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermIndividualDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermIndividualInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermIndividualInterestReceivableParentCode') ? overrides.chartOfAccountLongTermIndividualInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode') ? overrides.chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode') ? overrides.chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountOverdueBankDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueBankDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueBankDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountOverdueIndividualDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueIndividualDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueIndividualDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountPaymentHoldingParentCode: overrides && overrides.hasOwnProperty('chartOfAccountPaymentHoldingParentCode') ? overrides.chartOfAccountPaymentHoldingParentCode! : faker.lorem.word(),
-        chartOfAccountPaymentsMadeOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountPaymentsMadeOmnibusParentCode') ? overrides.chartOfAccountPaymentsMadeOmnibusParentCode! : faker.lorem.word(),
-        chartOfAccountProceedsFromLiquidationParentCode: overrides && overrides.hasOwnProperty('chartOfAccountProceedsFromLiquidationParentCode') ? overrides.chartOfAccountProceedsFromLiquidationParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermBankDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermBankDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermBankDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermBankInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermBankInterestReceivableParentCode') ? overrides.chartOfAccountShortTermBankInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode') ? overrides.chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode') ? overrides.chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode') ? overrides.chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermIndividualDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermIndividualDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermIndividualDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermIndividualInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermIndividualInterestReceivableParentCode') ? overrides.chartOfAccountShortTermIndividualInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode') ? overrides.chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode') ? overrides.chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountUncoveredOutstandingParentCode: overrides && overrides.hasOwnProperty('chartOfAccountUncoveredOutstandingParentCode') ? overrides.chartOfAccountUncoveredOutstandingParentCode! : faker.lorem.word(),
-    };
-};
-
-export const mockCreditFacilityModuleConfigurePayload = (overrides?: Partial<CreditFacilityModuleConfigurePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityModuleConfigurePayload' } & CreditFacilityModuleConfigurePayload => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('CreditFacilityModuleConfigurePayload');
-    return {
-        __typename: 'CreditFacilityModuleConfigurePayload',
-        creditConfig: overrides && overrides.hasOwnProperty('creditConfig') ? overrides.creditConfig! : relationshipsToOmit.has('CreditModuleConfig') ? {} as CreditModuleConfig : mockCreditModuleConfig({}, relationshipsToOmit),
-    };
-};
-
 export const mockCreditFacilityPartialPaymentRecordInput = (overrides?: Partial<CreditFacilityPartialPaymentRecordInput>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityPartialPaymentRecordInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityPartialPaymentRecordInput');
@@ -1206,6 +1208,73 @@ export const mockCreditModuleConfig = (overrides?: Partial<CreditModuleConfig>, 
         chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode') ? overrides.chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode! : faker.lorem.word(),
         chartOfAccountUncoveredOutstandingParentCode: overrides && overrides.hasOwnProperty('chartOfAccountUncoveredOutstandingParentCode') ? overrides.chartOfAccountUncoveredOutstandingParentCode! : faker.lorem.word(),
         chartOfAccountsId: overrides && overrides.hasOwnProperty('chartOfAccountsId') ? overrides.chartOfAccountsId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockCreditModuleConfigureInput = (overrides?: Partial<CreditModuleConfigureInput>, _relationshipsToOmit: Set<string> = new Set()): CreditModuleConfigureInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditModuleConfigureInput');
+    return {
+        chartOfAccountCollateralInLiquidationParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralInLiquidationParentCode') ? overrides.chartOfAccountCollateralInLiquidationParentCode! : faker.lorem.word(),
+        chartOfAccountCollateralOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralOmnibusParentCode') ? overrides.chartOfAccountCollateralOmnibusParentCode! : faker.lorem.word(),
+        chartOfAccountCollateralParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralParentCode') ? overrides.chartOfAccountCollateralParentCode! : faker.lorem.word(),
+        chartOfAccountDisbursedDefaultedParentCode: overrides && overrides.hasOwnProperty('chartOfAccountDisbursedDefaultedParentCode') ? overrides.chartOfAccountDisbursedDefaultedParentCode! : faker.lorem.word(),
+        chartOfAccountFacilityOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityOmnibusParentCode') ? overrides.chartOfAccountFacilityOmnibusParentCode! : faker.lorem.word(),
+        chartOfAccountFacilityParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityParentCode') ? overrides.chartOfAccountFacilityParentCode! : faker.lorem.word(),
+        chartOfAccountFeeIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFeeIncomeParentCode') ? overrides.chartOfAccountFeeIncomeParentCode! : faker.lorem.word(),
+        chartOfAccountInterestAddedToObligationsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestAddedToObligationsOmnibusParentCode') ? overrides.chartOfAccountInterestAddedToObligationsOmnibusParentCode! : faker.lorem.word(),
+        chartOfAccountInterestDefaultedParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestDefaultedParentCode') ? overrides.chartOfAccountInterestDefaultedParentCode! : faker.lorem.word(),
+        chartOfAccountInterestIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestIncomeParentCode') ? overrides.chartOfAccountInterestIncomeParentCode! : faker.lorem.word(),
+        chartOfAccountLiquidatedCollateralParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLiquidatedCollateralParentCode') ? overrides.chartOfAccountLiquidatedCollateralParentCode! : faker.lorem.word(),
+        chartOfAccountLiquidationProceedsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLiquidationProceedsOmnibusParentCode') ? overrides.chartOfAccountLiquidationProceedsOmnibusParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermBankDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermBankDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermBankDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermBankInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermBankInterestReceivableParentCode') ? overrides.chartOfAccountLongTermBankInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode') ? overrides.chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode') ? overrides.chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode') ? overrides.chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermIndividualDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermIndividualDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermIndividualDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermIndividualInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermIndividualInterestReceivableParentCode') ? overrides.chartOfAccountLongTermIndividualInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode') ? overrides.chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode') ? overrides.chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountOverdueBankDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueBankDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueBankDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountOverdueIndividualDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueIndividualDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueIndividualDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountPaymentHoldingParentCode: overrides && overrides.hasOwnProperty('chartOfAccountPaymentHoldingParentCode') ? overrides.chartOfAccountPaymentHoldingParentCode! : faker.lorem.word(),
+        chartOfAccountPaymentsMadeOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountPaymentsMadeOmnibusParentCode') ? overrides.chartOfAccountPaymentsMadeOmnibusParentCode! : faker.lorem.word(),
+        chartOfAccountProceedsFromLiquidationParentCode: overrides && overrides.hasOwnProperty('chartOfAccountProceedsFromLiquidationParentCode') ? overrides.chartOfAccountProceedsFromLiquidationParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermBankDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermBankDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermBankDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermBankInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermBankInterestReceivableParentCode') ? overrides.chartOfAccountShortTermBankInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode') ? overrides.chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode') ? overrides.chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode') ? overrides.chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermIndividualDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermIndividualDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermIndividualDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermIndividualInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermIndividualInterestReceivableParentCode') ? overrides.chartOfAccountShortTermIndividualInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode') ? overrides.chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode') ? overrides.chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountUncoveredOutstandingParentCode: overrides && overrides.hasOwnProperty('chartOfAccountUncoveredOutstandingParentCode') ? overrides.chartOfAccountUncoveredOutstandingParentCode! : faker.lorem.word(),
+    };
+};
+
+export const mockCreditModuleConfigurePayload = (overrides?: Partial<CreditModuleConfigurePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditModuleConfigurePayload' } & CreditModuleConfigurePayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditModuleConfigurePayload');
+    return {
+        __typename: 'CreditModuleConfigurePayload',
+        creditConfig: overrides && overrides.hasOwnProperty('creditConfig') ? overrides.creditConfig! : relationshipsToOmit.has('CreditModuleConfig') ? {} as CreditModuleConfig : mockCreditModuleConfig({}, relationshipsToOmit),
     };
 };
 
@@ -1696,35 +1765,6 @@ export const mockDepositAccountLedgerAccounts = (overrides?: Partial<DepositAcco
     };
 };
 
-export const mockDepositAccountModuleConfigureInput = (overrides?: Partial<DepositAccountModuleConfigureInput>, _relationshipsToOmit: Set<string> = new Set()): DepositAccountModuleConfigureInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('DepositAccountModuleConfigureInput');
-    return {
-        chartOfAccountsBankDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsBankDepositAccountsParentCode') ? overrides.chartOfAccountsBankDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsFinancialInstitutionDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFinancialInstitutionDepositAccountsParentCode') ? overrides.chartOfAccountsFinancialInstitutionDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsFrozenBankDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenBankDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenBankDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsFrozenIndividualDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenIndividualDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenIndividualDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsGovernmentEntityDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsGovernmentEntityDepositAccountsParentCode') ? overrides.chartOfAccountsGovernmentEntityDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsIndividualDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsIndividualDepositAccountsParentCode') ? overrides.chartOfAccountsIndividualDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode') ? overrides.chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsOmnibusParentCode') ? overrides.chartOfAccountsOmnibusParentCode! : faker.lorem.word(),
-        chartOfAccountsPrivateCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsPrivateCompanyDepositAccountsParentCode') ? overrides.chartOfAccountsPrivateCompanyDepositAccountsParentCode! : faker.lorem.word(),
-    };
-};
-
-export const mockDepositAccountModuleConfigurePayload = (overrides?: Partial<DepositAccountModuleConfigurePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'DepositAccountModuleConfigurePayload' } & DepositAccountModuleConfigurePayload => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('DepositAccountModuleConfigurePayload');
-    return {
-        __typename: 'DepositAccountModuleConfigurePayload',
-        depositConfig: overrides && overrides.hasOwnProperty('depositConfig') ? overrides.depositConfig! : relationshipsToOmit.has('DepositModuleConfig') ? {} as DepositModuleConfig : mockDepositModuleConfig({}, relationshipsToOmit),
-    };
-};
-
 export const mockDepositAccountUnfreezeInput = (overrides?: Partial<DepositAccountUnfreezeInput>, _relationshipsToOmit: Set<string> = new Set()): DepositAccountUnfreezeInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DepositAccountUnfreezeInput');
@@ -1810,6 +1850,35 @@ export const mockDepositModuleConfig = (overrides?: Partial<DepositModuleConfig>
         chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode') ? overrides.chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode! : faker.lorem.word(),
         chartOfAccountsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsOmnibusParentCode') ? overrides.chartOfAccountsOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountsPrivateCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsPrivateCompanyDepositAccountsParentCode') ? overrides.chartOfAccountsPrivateCompanyDepositAccountsParentCode! : faker.lorem.word(),
+    };
+};
+
+export const mockDepositModuleConfigureInput = (overrides?: Partial<DepositModuleConfigureInput>, _relationshipsToOmit: Set<string> = new Set()): DepositModuleConfigureInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('DepositModuleConfigureInput');
+    return {
+        chartOfAccountsBankDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsBankDepositAccountsParentCode') ? overrides.chartOfAccountsBankDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsFinancialInstitutionDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFinancialInstitutionDepositAccountsParentCode') ? overrides.chartOfAccountsFinancialInstitutionDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsFrozenBankDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenBankDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenBankDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsFrozenIndividualDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenIndividualDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenIndividualDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode') ? overrides.chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsGovernmentEntityDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsGovernmentEntityDepositAccountsParentCode') ? overrides.chartOfAccountsGovernmentEntityDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsIndividualDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsIndividualDepositAccountsParentCode') ? overrides.chartOfAccountsIndividualDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode') ? overrides.chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsOmnibusParentCode') ? overrides.chartOfAccountsOmnibusParentCode! : faker.lorem.word(),
+        chartOfAccountsPrivateCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsPrivateCompanyDepositAccountsParentCode') ? overrides.chartOfAccountsPrivateCompanyDepositAccountsParentCode! : faker.lorem.word(),
+    };
+};
+
+export const mockDepositModuleConfigurePayload = (overrides?: Partial<DepositModuleConfigurePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'DepositModuleConfigurePayload' } & DepositModuleConfigurePayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('DepositModuleConfigurePayload');
+    return {
+        __typename: 'DepositModuleConfigurePayload',
+        depositConfig: overrides && overrides.hasOwnProperty('depositConfig') ? overrides.depositConfig! : relationshipsToOmit.has('DepositModuleConfig') ? {} as DepositModuleConfig : mockDepositModuleConfig({}, relationshipsToOmit),
     };
 };
 
@@ -2303,47 +2372,7 @@ export const mockLedgerAccountCsvCreatePayload = (overrides?: Partial<LedgerAcco
     relationshipsToOmit.add('LedgerAccountCsvCreatePayload');
     return {
         __typename: 'LedgerAccountCsvCreatePayload',
-        ledgerAccountCsvDocument: overrides && overrides.hasOwnProperty('ledgerAccountCsvDocument') ? overrides.ledgerAccountCsvDocument! : relationshipsToOmit.has('LedgerAccountCsvDocument') ? {} as LedgerAccountCsvDocument : mockLedgerAccountCsvDocument({}, relationshipsToOmit),
-    };
-};
-
-export const mockLedgerAccountCsvDocument = (overrides?: Partial<LedgerAccountCsvDocument>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LedgerAccountCsvDocument' } & LedgerAccountCsvDocument => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('LedgerAccountCsvDocument');
-    return {
-        __typename: 'LedgerAccountCsvDocument',
-        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
-        filename: overrides && overrides.hasOwnProperty('filename') ? overrides.filename! : generateMockValue.filename(),
-        ledgerAccountCsvDocumentId: overrides && overrides.hasOwnProperty('ledgerAccountCsvDocumentId') ? overrides.ledgerAccountCsvDocumentId! : generateMockValue.uuid(),
-        ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),
-        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : DocumentStatus.Active,
-    };
-};
-
-export const mockLedgerAccountCsvDownloadLink = (overrides?: Partial<LedgerAccountCsvDownloadLink>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LedgerAccountCsvDownloadLink' } & LedgerAccountCsvDownloadLink => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('LedgerAccountCsvDownloadLink');
-    return {
-        __typename: 'LedgerAccountCsvDownloadLink',
-        csvId: overrides && overrides.hasOwnProperty('csvId') ? overrides.csvId! : generateMockValue.uuid(),
-        url: overrides && overrides.hasOwnProperty('url') ? overrides.url! : generateMockValue.url(),
-    };
-};
-
-export const mockLedgerAccountCsvDownloadLinkGenerateInput = (overrides?: Partial<LedgerAccountCsvDownloadLinkGenerateInput>, _relationshipsToOmit: Set<string> = new Set()): LedgerAccountCsvDownloadLinkGenerateInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('LedgerAccountCsvDownloadLinkGenerateInput');
-    return {
-        documentId: overrides && overrides.hasOwnProperty('documentId') ? overrides.documentId! : generateMockValue.uuid(),
-    };
-};
-
-export const mockLedgerAccountCsvDownloadLinkGeneratePayload = (overrides?: Partial<LedgerAccountCsvDownloadLinkGeneratePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LedgerAccountCsvDownloadLinkGeneratePayload' } & LedgerAccountCsvDownloadLinkGeneratePayload => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('LedgerAccountCsvDownloadLinkGeneratePayload');
-    return {
-        __typename: 'LedgerAccountCsvDownloadLinkGeneratePayload',
-        link: overrides && overrides.hasOwnProperty('link') ? overrides.link! : relationshipsToOmit.has('LedgerAccountCsvDownloadLink') ? {} as LedgerAccountCsvDownloadLink : mockLedgerAccountCsvDownloadLink({}, relationshipsToOmit),
+        accountingCsvDocument: overrides && overrides.hasOwnProperty('accountingCsvDocument') ? overrides.accountingCsvDocument! : relationshipsToOmit.has('AccountingCsvDocument') ? {} as AccountingCsvDocument : mockAccountingCsvDocument({}, relationshipsToOmit),
     };
 };
 
@@ -2497,35 +2526,6 @@ export const mockLoan = (overrides?: Partial<Loan>, _relationshipsToOmit: Set<st
     };
 };
 
-export const mockLoanAgreement = (overrides?: Partial<LoanAgreement>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LoanAgreement' } & LoanAgreement => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('LoanAgreement');
-    return {
-        __typename: 'LoanAgreement',
-        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
-        loanAgreementId: overrides && overrides.hasOwnProperty('loanAgreementId') ? overrides.loanAgreementId! : generateMockValue.uuid(),
-        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : LoanAgreementStatus.Completed,
-    };
-};
-
-export const mockLoanAgreementDownloadLinksGenerateInput = (overrides?: Partial<LoanAgreementDownloadLinksGenerateInput>, _relationshipsToOmit: Set<string> = new Set()): LoanAgreementDownloadLinksGenerateInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('LoanAgreementDownloadLinksGenerateInput');
-    return {
-        loanAgreementId: overrides && overrides.hasOwnProperty('loanAgreementId') ? overrides.loanAgreementId! : generateMockValue.uuid(),
-    };
-};
-
-export const mockLoanAgreementDownloadLinksGeneratePayload = (overrides?: Partial<LoanAgreementDownloadLinksGeneratePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LoanAgreementDownloadLinksGeneratePayload' } & LoanAgreementDownloadLinksGeneratePayload => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('LoanAgreementDownloadLinksGeneratePayload');
-    return {
-        __typename: 'LoanAgreementDownloadLinksGeneratePayload',
-        link: overrides && overrides.hasOwnProperty('link') ? overrides.link! : faker.lorem.word(),
-        loanAgreementId: overrides && overrides.hasOwnProperty('loanAgreementId') ? overrides.loanAgreementId! : generateMockValue.uuid(),
-    };
-};
-
 export const mockManualConfig = (overrides?: Partial<ManualConfig>, _relationshipsToOmit: Set<string> = new Set()): ManualConfig => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ManualConfig');
@@ -2593,6 +2593,7 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
     relationshipsToOmit.add('Mutation');
     return {
         __typename: 'Mutation',
+        accountingCsvDownloadLinkGenerate: overrides && overrides.hasOwnProperty('accountingCsvDownloadLinkGenerate') ? overrides.accountingCsvDownloadLinkGenerate! : relationshipsToOmit.has('AccountingCsvDownloadLinkGeneratePayload') ? {} as AccountingCsvDownloadLinkGeneratePayload : mockAccountingCsvDownloadLinkGeneratePayload({}, relationshipsToOmit),
         approvalProcessApprove: overrides && overrides.hasOwnProperty('approvalProcessApprove') ? overrides.approvalProcessApprove! : relationshipsToOmit.has('ApprovalProcessApprovePayload') ? {} as ApprovalProcessApprovePayload : mockApprovalProcessApprovePayload({}, relationshipsToOmit),
         approvalProcessDeny: overrides && overrides.hasOwnProperty('approvalProcessDeny') ? overrides.approvalProcessDeny! : relationshipsToOmit.has('ApprovalProcessDenyPayload') ? {} as ApprovalProcessDenyPayload : mockApprovalProcessDenyPayload({}, relationshipsToOmit),
         chartOfAccountsAddChildNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddChildNode') ? overrides.chartOfAccountsAddChildNode! : relationshipsToOmit.has('ChartOfAccountsAddChildNodePayload') ? {} as ChartOfAccountsAddChildNodePayload : mockChartOfAccountsAddChildNodePayload({}, relationshipsToOmit),
@@ -2604,14 +2605,15 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         committeeAddUser: overrides && overrides.hasOwnProperty('committeeAddUser') ? overrides.committeeAddUser! : relationshipsToOmit.has('CommitteeAddUserPayload') ? {} as CommitteeAddUserPayload : mockCommitteeAddUserPayload({}, relationshipsToOmit),
         committeeCreate: overrides && overrides.hasOwnProperty('committeeCreate') ? overrides.committeeCreate! : relationshipsToOmit.has('CommitteeCreatePayload') ? {} as CommitteeCreatePayload : mockCommitteeCreatePayload({}, relationshipsToOmit),
         committeeRemoveUser: overrides && overrides.hasOwnProperty('committeeRemoveUser') ? overrides.committeeRemoveUser! : relationshipsToOmit.has('CommitteeRemoveUserPayload') ? {} as CommitteeRemoveUserPayload : mockCommitteeRemoveUserPayload({}, relationshipsToOmit),
+        creditFacilityAgreementDownloadLinkGenerate: overrides && overrides.hasOwnProperty('creditFacilityAgreementDownloadLinkGenerate') ? overrides.creditFacilityAgreementDownloadLinkGenerate! : relationshipsToOmit.has('CreditFacilityAgreementDownloadLinksGeneratePayload') ? {} as CreditFacilityAgreementDownloadLinksGeneratePayload : mockCreditFacilityAgreementDownloadLinksGeneratePayload({}, relationshipsToOmit),
         creditFacilityAgreementGenerate: overrides && overrides.hasOwnProperty('creditFacilityAgreementGenerate') ? overrides.creditFacilityAgreementGenerate! : relationshipsToOmit.has('CreditFacilityAgreementGeneratePayload') ? {} as CreditFacilityAgreementGeneratePayload : mockCreditFacilityAgreementGeneratePayload({}, relationshipsToOmit),
         creditFacilityComplete: overrides && overrides.hasOwnProperty('creditFacilityComplete') ? overrides.creditFacilityComplete! : relationshipsToOmit.has('CreditFacilityCompletePayload') ? {} as CreditFacilityCompletePayload : mockCreditFacilityCompletePayload({}, relationshipsToOmit),
         creditFacilityDisbursalInitiate: overrides && overrides.hasOwnProperty('creditFacilityDisbursalInitiate') ? overrides.creditFacilityDisbursalInitiate! : relationshipsToOmit.has('CreditFacilityDisbursalInitiatePayload') ? {} as CreditFacilityDisbursalInitiatePayload : mockCreditFacilityDisbursalInitiatePayload({}, relationshipsToOmit),
-        creditFacilityModuleConfigure: overrides && overrides.hasOwnProperty('creditFacilityModuleConfigure') ? overrides.creditFacilityModuleConfigure! : relationshipsToOmit.has('CreditFacilityModuleConfigurePayload') ? {} as CreditFacilityModuleConfigurePayload : mockCreditFacilityModuleConfigurePayload({}, relationshipsToOmit),
         creditFacilityPartialPaymentRecord: overrides && overrides.hasOwnProperty('creditFacilityPartialPaymentRecord') ? overrides.creditFacilityPartialPaymentRecord! : relationshipsToOmit.has('CreditFacilityPartialPaymentRecordPayload') ? {} as CreditFacilityPartialPaymentRecordPayload : mockCreditFacilityPartialPaymentRecordPayload({}, relationshipsToOmit),
         creditFacilityPartialPaymentWithDateRecord: overrides && overrides.hasOwnProperty('creditFacilityPartialPaymentWithDateRecord') ? overrides.creditFacilityPartialPaymentWithDateRecord! : relationshipsToOmit.has('CreditFacilityPartialPaymentRecordPayload') ? {} as CreditFacilityPartialPaymentRecordPayload : mockCreditFacilityPartialPaymentRecordPayload({}, relationshipsToOmit),
         creditFacilityProposalCreate: overrides && overrides.hasOwnProperty('creditFacilityProposalCreate') ? overrides.creditFacilityProposalCreate! : relationshipsToOmit.has('CreditFacilityProposalCreatePayload') ? {} as CreditFacilityProposalCreatePayload : mockCreditFacilityProposalCreatePayload({}, relationshipsToOmit),
         creditFacilityProposalCustomerApprovalConclude: overrides && overrides.hasOwnProperty('creditFacilityProposalCustomerApprovalConclude') ? overrides.creditFacilityProposalCustomerApprovalConclude! : relationshipsToOmit.has('CreditFacilityProposalCustomerApprovalConcludePayload') ? {} as CreditFacilityProposalCustomerApprovalConcludePayload : mockCreditFacilityProposalCustomerApprovalConcludePayload({}, relationshipsToOmit),
+        creditModuleConfigure: overrides && overrides.hasOwnProperty('creditModuleConfigure') ? overrides.creditModuleConfigure! : relationshipsToOmit.has('CreditModuleConfigurePayload') ? {} as CreditModuleConfigurePayload : mockCreditModuleConfigurePayload({}, relationshipsToOmit),
         custodianConfigUpdate: overrides && overrides.hasOwnProperty('custodianConfigUpdate') ? overrides.custodianConfigUpdate! : relationshipsToOmit.has('CustodianConfigUpdatePayload') ? {} as CustodianConfigUpdatePayload : mockCustodianConfigUpdatePayload({}, relationshipsToOmit),
         custodianCreate: overrides && overrides.hasOwnProperty('custodianCreate') ? overrides.custodianCreate! : relationshipsToOmit.has('CustodianCreatePayload') ? {} as CustodianCreatePayload : mockCustodianCreatePayload({}, relationshipsToOmit),
         customerClose: overrides && overrides.hasOwnProperty('customerClose') ? overrides.customerClose! : relationshipsToOmit.has('CustomerClosePayload') ? {} as CustomerClosePayload : mockCustomerClosePayload({}, relationshipsToOmit),
@@ -2626,8 +2628,8 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         depositAccountClose: overrides && overrides.hasOwnProperty('depositAccountClose') ? overrides.depositAccountClose! : relationshipsToOmit.has('DepositAccountClosePayload') ? {} as DepositAccountClosePayload : mockDepositAccountClosePayload({}, relationshipsToOmit),
         depositAccountCreate: overrides && overrides.hasOwnProperty('depositAccountCreate') ? overrides.depositAccountCreate! : relationshipsToOmit.has('DepositAccountCreatePayload') ? {} as DepositAccountCreatePayload : mockDepositAccountCreatePayload({}, relationshipsToOmit),
         depositAccountFreeze: overrides && overrides.hasOwnProperty('depositAccountFreeze') ? overrides.depositAccountFreeze! : relationshipsToOmit.has('DepositAccountFreezePayload') ? {} as DepositAccountFreezePayload : mockDepositAccountFreezePayload({}, relationshipsToOmit),
-        depositAccountModuleConfigure: overrides && overrides.hasOwnProperty('depositAccountModuleConfigure') ? overrides.depositAccountModuleConfigure! : relationshipsToOmit.has('DepositAccountModuleConfigurePayload') ? {} as DepositAccountModuleConfigurePayload : mockDepositAccountModuleConfigurePayload({}, relationshipsToOmit),
         depositAccountUnfreeze: overrides && overrides.hasOwnProperty('depositAccountUnfreeze') ? overrides.depositAccountUnfreeze! : relationshipsToOmit.has('DepositAccountUnfreezePayload') ? {} as DepositAccountUnfreezePayload : mockDepositAccountUnfreezePayload({}, relationshipsToOmit),
+        depositModuleConfigure: overrides && overrides.hasOwnProperty('depositModuleConfigure') ? overrides.depositModuleConfigure! : relationshipsToOmit.has('DepositModuleConfigurePayload') ? {} as DepositModuleConfigurePayload : mockDepositModuleConfigurePayload({}, relationshipsToOmit),
         depositRecord: overrides && overrides.hasOwnProperty('depositRecord') ? overrides.depositRecord! : relationshipsToOmit.has('DepositRecordPayload') ? {} as DepositRecordPayload : mockDepositRecordPayload({}, relationshipsToOmit),
         depositRevert: overrides && overrides.hasOwnProperty('depositRevert') ? overrides.depositRevert! : relationshipsToOmit.has('DepositRevertPayload') ? {} as DepositRevertPayload : mockDepositRevertPayload({}, relationshipsToOmit),
         domainConfigUpdate: overrides && overrides.hasOwnProperty('domainConfigUpdate') ? overrides.domainConfigUpdate! : relationshipsToOmit.has('DomainConfigUpdatePayload') ? {} as DomainConfigUpdatePayload : mockDomainConfigUpdatePayload({}, relationshipsToOmit),
@@ -2636,8 +2638,6 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         fiscalYearInit: overrides && overrides.hasOwnProperty('fiscalYearInit') ? overrides.fiscalYearInit! : relationshipsToOmit.has('FiscalYearInitPayload') ? {} as FiscalYearInitPayload : mockFiscalYearInitPayload({}, relationshipsToOmit),
         fiscalYearOpenNext: overrides && overrides.hasOwnProperty('fiscalYearOpenNext') ? overrides.fiscalYearOpenNext! : relationshipsToOmit.has('FiscalYearOpenNextPayload') ? {} as FiscalYearOpenNextPayload : mockFiscalYearOpenNextPayload({}, relationshipsToOmit),
         ledgerAccountCsvCreate: overrides && overrides.hasOwnProperty('ledgerAccountCsvCreate') ? overrides.ledgerAccountCsvCreate! : relationshipsToOmit.has('LedgerAccountCsvCreatePayload') ? {} as LedgerAccountCsvCreatePayload : mockLedgerAccountCsvCreatePayload({}, relationshipsToOmit),
-        ledgerAccountCsvDownloadLinkGenerate: overrides && overrides.hasOwnProperty('ledgerAccountCsvDownloadLinkGenerate') ? overrides.ledgerAccountCsvDownloadLinkGenerate! : relationshipsToOmit.has('LedgerAccountCsvDownloadLinkGeneratePayload') ? {} as LedgerAccountCsvDownloadLinkGeneratePayload : mockLedgerAccountCsvDownloadLinkGeneratePayload({}, relationshipsToOmit),
-        loanAgreementDownloadLinkGenerate: overrides && overrides.hasOwnProperty('loanAgreementDownloadLinkGenerate') ? overrides.loanAgreementDownloadLinkGenerate! : relationshipsToOmit.has('LoanAgreementDownloadLinksGeneratePayload') ? {} as LoanAgreementDownloadLinksGeneratePayload : mockLoanAgreementDownloadLinksGeneratePayload({}, relationshipsToOmit),
         manualTransactionExecute: overrides && overrides.hasOwnProperty('manualTransactionExecute') ? overrides.manualTransactionExecute! : relationshipsToOmit.has('ManualTransactionExecutePayload') ? {} as ManualTransactionExecutePayload : mockManualTransactionExecutePayload({}, relationshipsToOmit),
         policyAssignCommittee: overrides && overrides.hasOwnProperty('policyAssignCommittee') ? overrides.policyAssignCommittee! : relationshipsToOmit.has('PolicyAssignCommitteePayload') ? {} as PolicyAssignCommitteePayload : mockPolicyAssignCommitteePayload({}, relationshipsToOmit),
         priceProviderActivate: overrides && overrides.hasOwnProperty('priceProviderActivate') ? overrides.priceProviderActivate! : relationshipsToOmit.has('PriceProviderActivatePayload') ? {} as PriceProviderActivatePayload : mockPriceProviderActivatePayload({}, relationshipsToOmit),
@@ -3127,6 +3127,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
     relationshipsToOmit.add('Query');
     return {
         __typename: 'Query',
+        accountEntryCsv: overrides && overrides.hasOwnProperty('accountEntryCsv') ? overrides.accountEntryCsv! : relationshipsToOmit.has('AccountingCsvDocument') ? {} as AccountingCsvDocument : mockAccountingCsvDocument({}, relationshipsToOmit),
         appConfig: overrides && overrides.hasOwnProperty('appConfig') ? overrides.appConfig! : faker.lorem.word(),
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
         approvalProcesses: overrides && overrides.hasOwnProperty('approvalProcesses') ? overrides.approvalProcesses! : relationshipsToOmit.has('ApprovalProcessConnection') ? {} as ApprovalProcessConnection : mockApprovalProcessConnection({}, relationshipsToOmit),
@@ -3141,6 +3142,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         creditConfig: overrides && overrides.hasOwnProperty('creditConfig') ? overrides.creditConfig! : relationshipsToOmit.has('CreditModuleConfig') ? {} as CreditModuleConfig : mockCreditModuleConfig({}, relationshipsToOmit),
         creditFacilities: overrides && overrides.hasOwnProperty('creditFacilities') ? overrides.creditFacilities! : relationshipsToOmit.has('CreditFacilityConnection') ? {} as CreditFacilityConnection : mockCreditFacilityConnection({}, relationshipsToOmit),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
+        creditFacilityAgreement: overrides && overrides.hasOwnProperty('creditFacilityAgreement') ? overrides.creditFacilityAgreement! : relationshipsToOmit.has('CreditFacilityAgreement') ? {} as CreditFacilityAgreement : mockCreditFacilityAgreement({}, relationshipsToOmit),
         creditFacilityByPublicId: overrides && overrides.hasOwnProperty('creditFacilityByPublicId') ? overrides.creditFacilityByPublicId! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
         creditFacilityProposal: overrides && overrides.hasOwnProperty('creditFacilityProposal') ? overrides.creditFacilityProposal! : relationshipsToOmit.has('CreditFacilityProposal') ? {} as CreditFacilityProposal : mockCreditFacilityProposal({}, relationshipsToOmit),
         creditFacilityProposals: overrides && overrides.hasOwnProperty('creditFacilityProposals') ? overrides.creditFacilityProposals! : relationshipsToOmit.has('CreditFacilityProposalConnection') ? {} as CreditFacilityProposalConnection : mockCreditFacilityProposalConnection({}, relationshipsToOmit),
@@ -3169,13 +3171,11 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         journalEntries: overrides && overrides.hasOwnProperty('journalEntries') ? overrides.journalEntries! : relationshipsToOmit.has('JournalEntryConnection') ? {} as JournalEntryConnection : mockJournalEntryConnection({}, relationshipsToOmit),
         ledgerAccount: overrides && overrides.hasOwnProperty('ledgerAccount') ? overrides.ledgerAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         ledgerAccountByCode: overrides && overrides.hasOwnProperty('ledgerAccountByCode') ? overrides.ledgerAccountByCode! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
-        ledgerAccountCsv: overrides && overrides.hasOwnProperty('ledgerAccountCsv') ? overrides.ledgerAccountCsv! : relationshipsToOmit.has('LedgerAccountCsvDocument') ? {} as LedgerAccountCsvDocument : mockLedgerAccountCsvDocument({}, relationshipsToOmit),
         ledgerTransaction: overrides && overrides.hasOwnProperty('ledgerTransaction') ? overrides.ledgerTransaction! : relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit),
         ledgerTransactionsForTemplateCode: overrides && overrides.hasOwnProperty('ledgerTransactionsForTemplateCode') ? overrides.ledgerTransactionsForTemplateCode! : relationshipsToOmit.has('LedgerTransactionConnection') ? {} as LedgerTransactionConnection : mockLedgerTransactionConnection({}, relationshipsToOmit),
         liquidation: overrides && overrides.hasOwnProperty('liquidation') ? overrides.liquidation! : relationshipsToOmit.has('Liquidation') ? {} as Liquidation : mockLiquidation({}, relationshipsToOmit),
         liquidationPaymentCalculate: overrides && overrides.hasOwnProperty('liquidationPaymentCalculate') ? overrides.liquidationPaymentCalculate! : relationshipsToOmit.has('LiquidationPayment') ? {} as LiquidationPayment : mockLiquidationPayment({}, relationshipsToOmit),
         liquidations: overrides && overrides.hasOwnProperty('liquidations') ? overrides.liquidations! : relationshipsToOmit.has('LiquidationConnection') ? {} as LiquidationConnection : mockLiquidationConnection({}, relationshipsToOmit),
-        loanAgreement: overrides && overrides.hasOwnProperty('loanAgreement') ? overrides.loanAgreement! : relationshipsToOmit.has('LoanAgreement') ? {} as LoanAgreement : mockLoanAgreement({}, relationshipsToOmit),
         me: overrides && overrides.hasOwnProperty('me') ? overrides.me! : relationshipsToOmit.has('Me') ? {} as Me : mockMe({}, relationshipsToOmit),
         pendingCreditFacilities: overrides && overrides.hasOwnProperty('pendingCreditFacilities') ? overrides.pendingCreditFacilities! : relationshipsToOmit.has('PendingCreditFacilityConnection') ? {} as PendingCreditFacilityConnection : mockPendingCreditFacilityConnection({}, relationshipsToOmit),
         pendingCreditFacility: overrides && overrides.hasOwnProperty('pendingCreditFacility') ? overrides.pendingCreditFacility! : relationshipsToOmit.has('PendingCreditFacility') ? {} as PendingCreditFacility : mockPendingCreditFacility({}, relationshipsToOmit),

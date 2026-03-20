@@ -41,6 +41,7 @@ export type Scalars = {
   /** A multipart file upload */
   Upload: { input: any; output: any; }
   UsdCents: { input: UsdCents; output: UsdCents; }
+  Yaml: { input: any; output: any; }
 };
 
 export enum AccountCategory {
@@ -81,6 +82,30 @@ export type AccountingBaseConfigOutput = {
   expensesCode: Scalars['String']['output'];
   liabilitiesCode: Scalars['String']['output'];
   revenueCode: Scalars['String']['output'];
+};
+
+export type AccountingCsvDocument = {
+  __typename?: 'AccountingCsvDocument';
+  accountingCsvDocumentId: Scalars['UUID']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  filename: Scalars['String']['output'];
+  ledgerAccountId: Scalars['UUID']['output'];
+  status: DocumentStatus;
+};
+
+export type AccountingCsvDownloadLink = {
+  __typename?: 'AccountingCsvDownloadLink';
+  csvId: Scalars['UUID']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type AccountingCsvDownloadLinkGenerateInput = {
+  documentId: Scalars['UUID']['input'];
+};
+
+export type AccountingCsvDownloadLinkGeneratePayload = {
+  __typename?: 'AccountingCsvDownloadLinkGeneratePayload';
+  link: AccountingCsvDownloadLink;
 };
 
 export enum Activity {
@@ -540,14 +565,37 @@ export type CreditFacilityEventHistoryArgs = {
   first: Scalars['Int']['input'];
 };
 
+export type CreditFacilityAgreement = {
+  __typename?: 'CreditFacilityAgreement';
+  createdAt: Scalars['Timestamp']['output'];
+  creditFacilityAgreementId: Scalars['UUID']['output'];
+  status: CreditFacilityAgreementStatus;
+};
+
+export type CreditFacilityAgreementDownloadLinksGenerateInput = {
+  creditFacilityAgreementId: Scalars['UUID']['input'];
+};
+
+export type CreditFacilityAgreementDownloadLinksGeneratePayload = {
+  __typename?: 'CreditFacilityAgreementDownloadLinksGeneratePayload';
+  creditFacilityAgreementId: Scalars['UUID']['output'];
+  link: Scalars['String']['output'];
+};
+
 export type CreditFacilityAgreementGenerateInput = {
   customerId: Scalars['UUID']['input'];
 };
 
 export type CreditFacilityAgreementGeneratePayload = {
   __typename?: 'CreditFacilityAgreementGeneratePayload';
-  loanAgreement: LoanAgreement;
+  creditFacilityAgreement: CreditFacilityAgreement;
 };
+
+export enum CreditFacilityAgreementStatus {
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  Pending = 'PENDING'
+}
 
 export type CreditFacilityApproved = {
   __typename?: 'CreditFacilityApproved';
@@ -1893,31 +1941,7 @@ export type LedgerAccountCsvCreateInput = {
 
 export type LedgerAccountCsvCreatePayload = {
   __typename?: 'LedgerAccountCsvCreatePayload';
-  ledgerAccountCsvDocument: LedgerAccountCsvDocument;
-};
-
-export type LedgerAccountCsvDocument = {
-  __typename?: 'LedgerAccountCsvDocument';
-  createdAt: Scalars['Timestamp']['output'];
-  filename: Scalars['String']['output'];
-  ledgerAccountCsvDocumentId: Scalars['UUID']['output'];
-  ledgerAccountId: Scalars['UUID']['output'];
-  status: DocumentStatus;
-};
-
-export type LedgerAccountCsvDownloadLink = {
-  __typename?: 'LedgerAccountCsvDownloadLink';
-  csvId: Scalars['UUID']['output'];
-  url: Scalars['String']['output'];
-};
-
-export type LedgerAccountCsvDownloadLinkGenerateInput = {
-  documentId: Scalars['UUID']['input'];
-};
-
-export type LedgerAccountCsvDownloadLinkGeneratePayload = {
-  __typename?: 'LedgerAccountCsvDownloadLinkGeneratePayload';
-  link: LedgerAccountCsvDownloadLink;
+  accountingCsvDocument: AccountingCsvDocument;
 };
 
 export type LedgerAccountCsvExportUploadedPayload = {
@@ -2049,29 +2073,6 @@ export type Loan = {
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
 };
 
-export type LoanAgreement = {
-  __typename?: 'LoanAgreement';
-  createdAt: Scalars['Timestamp']['output'];
-  loanAgreementId: Scalars['UUID']['output'];
-  status: LoanAgreementStatus;
-};
-
-export type LoanAgreementDownloadLinksGenerateInput = {
-  loanAgreementId: Scalars['UUID']['input'];
-};
-
-export type LoanAgreementDownloadLinksGeneratePayload = {
-  __typename?: 'LoanAgreementDownloadLinksGeneratePayload';
-  link: Scalars['String']['output'];
-  loanAgreementId: Scalars['UUID']['output'];
-};
-
-export enum LoanAgreementStatus {
-  Completed = 'COMPLETED',
-  Failed = 'FAILED',
-  Pending = 'PENDING'
-}
-
 export type ManualConfig = {
   name: Scalars['String']['input'];
 };
@@ -2112,6 +2113,7 @@ export type Me = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  accountingCsvDownloadLinkGenerate: AccountingCsvDownloadLinkGeneratePayload;
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
@@ -2123,6 +2125,7 @@ export type Mutation = {
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
+  creditFacilityAgreementDownloadLinkGenerate: CreditFacilityAgreementDownloadLinksGeneratePayload;
   creditFacilityAgreementGenerate: CreditFacilityAgreementGeneratePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
@@ -2155,8 +2158,6 @@ export type Mutation = {
   fiscalYearInit: FiscalYearInitPayload;
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
-  ledgerAccountCsvDownloadLinkGenerate: LedgerAccountCsvDownloadLinkGeneratePayload;
-  loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   priceProviderActivate: PriceProviderActivatePayload;
@@ -2184,6 +2185,11 @@ export type Mutation = {
   withdrawalConfirm: WithdrawalConfirmPayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
   withdrawalRevert: WithdrawalRevertPayload;
+};
+
+
+export type MutationAccountingCsvDownloadLinkGenerateArgs = {
+  input: AccountingCsvDownloadLinkGenerateInput;
 };
 
 
@@ -2239,6 +2245,11 @@ export type MutationCommitteeCreateArgs = {
 
 export type MutationCommitteeRemoveUserArgs = {
   input: CommitteeRemoveUserInput;
+};
+
+
+export type MutationCreditFacilityAgreementDownloadLinkGenerateArgs = {
+  input: CreditFacilityAgreementDownloadLinksGenerateInput;
 };
 
 
@@ -2399,16 +2410,6 @@ export type MutationFiscalYearOpenNextArgs = {
 
 export type MutationLedgerAccountCsvCreateArgs = {
   input: LedgerAccountCsvCreateInput;
-};
-
-
-export type MutationLedgerAccountCsvDownloadLinkGenerateArgs = {
-  input: LedgerAccountCsvDownloadLinkGenerateInput;
-};
-
-
-export type MutationLoanAgreementDownloadLinkGenerateArgs = {
-  input: LoanAgreementDownloadLinksGenerateInput;
 };
 
 
@@ -2915,7 +2916,8 @@ export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer
 
 export type Query = {
   __typename?: 'Query';
-  appConfig: Scalars['String']['output'];
+  accountEntryCsv?: Maybe<AccountingCsvDocument>;
+  appConfig: Scalars['Yaml']['output'];
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
@@ -2929,6 +2931,7 @@ export type Query = {
   creditConfig?: Maybe<CreditModuleConfig>;
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
+  creditFacilityAgreement?: Maybe<CreditFacilityAgreement>;
   creditFacilityByPublicId?: Maybe<CreditFacility>;
   creditFacilityProposal?: Maybe<CreditFacilityProposal>;
   creditFacilityProposals: CreditFacilityProposalConnection;
@@ -2957,13 +2960,11 @@ export type Query = {
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
-  ledgerAccountCsv?: Maybe<LedgerAccountCsvDocument>;
   ledgerTransaction?: Maybe<LedgerTransaction>;
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   liquidation?: Maybe<Liquidation>;
   liquidationPaymentCalculate: LiquidationPayment;
   liquidations: LiquidationConnection;
-  loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
   pendingCreditFacilities: PendingCreditFacilityConnection;
   pendingCreditFacility?: Maybe<PendingCreditFacility>;
@@ -2995,6 +2996,11 @@ export type Query = {
   withdrawal?: Maybe<Withdrawal>;
   withdrawalByPublicId?: Maybe<Withdrawal>;
   withdrawals: WithdrawalConnection;
+};
+
+
+export type QueryAccountEntryCsvArgs = {
+  ledgerAccountId: Scalars['UUID']['input'];
 };
 
 
@@ -3045,6 +3051,11 @@ export type QueryCreditFacilitiesArgs = {
 
 
 export type QueryCreditFacilityArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryCreditFacilityAgreementArgs = {
   id: Scalars['UUID']['input'];
 };
 
@@ -3200,11 +3211,6 @@ export type QueryLedgerAccountByCodeArgs = {
 };
 
 
-export type QueryLedgerAccountCsvArgs = {
-  ledgerAccountId: Scalars['UUID']['input'];
-};
-
-
 export type QueryLedgerTransactionArgs = {
   id: Scalars['UUID']['input'];
 };
@@ -3231,11 +3237,6 @@ export type QueryLiquidationsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
   sort?: InputMaybe<LiquidationsSort>;
-};
-
-
-export type QueryLoanAgreementArgs = {
-  id: Scalars['UUID']['input'];
 };
 
 
@@ -4998,26 +4999,26 @@ export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __ty
           | { __typename?: 'UsdAmount', usd: UsdCents }
         , ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null }, ledgerTransaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string, description?: string | null, effective: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type LedgerAccountCsvQueryVariables = Exact<{
+export type AccountEntryCsvQueryVariables = Exact<{
   ledgerAccountId: Scalars['UUID']['input'];
 }>;
 
 
-export type LedgerAccountCsvQuery = { __typename?: 'Query', ledgerAccountCsv?: { __typename?: 'LedgerAccountCsvDocument', ledgerAccountCsvDocumentId: string, status: DocumentStatus, createdAt: string } | null };
+export type AccountEntryCsvQuery = { __typename?: 'Query', accountEntryCsv?: { __typename?: 'AccountingCsvDocument', accountingCsvDocumentId: string, status: DocumentStatus, createdAt: string } | null };
 
 export type LedgerAccountCsvCreateMutationVariables = Exact<{
   input: LedgerAccountCsvCreateInput;
 }>;
 
 
-export type LedgerAccountCsvCreateMutation = { __typename?: 'Mutation', ledgerAccountCsvCreate: { __typename?: 'LedgerAccountCsvCreatePayload', ledgerAccountCsvDocument: { __typename?: 'LedgerAccountCsvDocument', ledgerAccountCsvDocumentId: string, status: DocumentStatus, createdAt: string } } };
+export type LedgerAccountCsvCreateMutation = { __typename?: 'Mutation', ledgerAccountCsvCreate: { __typename?: 'LedgerAccountCsvCreatePayload', accountingCsvDocument: { __typename?: 'AccountingCsvDocument', accountingCsvDocumentId: string, status: DocumentStatus, createdAt: string } } };
 
-export type LedgerAccountCsvDownloadLinkGenerateMutationVariables = Exact<{
-  input: LedgerAccountCsvDownloadLinkGenerateInput;
+export type AccountingCsvDownloadLinkGenerateMutationVariables = Exact<{
+  input: AccountingCsvDownloadLinkGenerateInput;
 }>;
 
 
-export type LedgerAccountCsvDownloadLinkGenerateMutation = { __typename?: 'Mutation', ledgerAccountCsvDownloadLinkGenerate: { __typename?: 'LedgerAccountCsvDownloadLinkGeneratePayload', link: { __typename?: 'LedgerAccountCsvDownloadLink', url: string, csvId: string } } };
+export type AccountingCsvDownloadLinkGenerateMutation = { __typename?: 'Mutation', accountingCsvDownloadLinkGenerate: { __typename?: 'AccountingCsvDownloadLinkGeneratePayload', link: { __typename?: 'AccountingCsvDownloadLink', url: string, csvId: string } } };
 
 export type LedgerAccountCsvExportUploadedSubscriptionVariables = Exact<{
   ledgerAccountId: Scalars['UUID']['input'];
@@ -5571,7 +5572,7 @@ export type SystemInfoTimeFieldsFragment = { __typename?: 'Time', currentDate: s
 export type GetBuildInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: string, buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
+export type GetBuildInfoQuery = { __typename?: 'Query', appConfig: any, buildInfo: { __typename?: 'BuildInfo', version: string, buildProfile: string, buildTarget: string, enabledFeatures: Array<string> } };
 
 export type GetTimeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5858,21 +5859,21 @@ export type CreditFacilityAgreementGenerateMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityAgreementGenerateMutation = { __typename?: 'Mutation', creditFacilityAgreementGenerate: { __typename?: 'CreditFacilityAgreementGeneratePayload', loanAgreement: { __typename?: 'LoanAgreement', loanAgreementId: string, status: LoanAgreementStatus, createdAt: string } } };
+export type CreditFacilityAgreementGenerateMutation = { __typename?: 'Mutation', creditFacilityAgreementGenerate: { __typename?: 'CreditFacilityAgreementGeneratePayload', creditFacilityAgreement: { __typename?: 'CreditFacilityAgreement', creditFacilityAgreementId: string, status: CreditFacilityAgreementStatus, createdAt: string } } };
 
-export type LoanAgreementDownloadLinkGenerateMutationVariables = Exact<{
-  input: LoanAgreementDownloadLinksGenerateInput;
+export type CreditFacilityAgreementDownloadLinkGenerateMutationVariables = Exact<{
+  input: CreditFacilityAgreementDownloadLinksGenerateInput;
 }>;
 
 
-export type LoanAgreementDownloadLinkGenerateMutation = { __typename?: 'Mutation', loanAgreementDownloadLinkGenerate: { __typename?: 'LoanAgreementDownloadLinksGeneratePayload', loanAgreementId: string, link: string } };
+export type CreditFacilityAgreementDownloadLinkGenerateMutation = { __typename?: 'Mutation', creditFacilityAgreementDownloadLinkGenerate: { __typename?: 'CreditFacilityAgreementDownloadLinksGeneratePayload', creditFacilityAgreementId: string, link: string } };
 
-export type LoanAgreementQueryVariables = Exact<{
+export type CreditFacilityAgreementQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type LoanAgreementQuery = { __typename?: 'Query', loanAgreement?: { __typename?: 'LoanAgreement', loanAgreementId: string, status: LoanAgreementStatus, createdAt: string } | null };
+export type CreditFacilityAgreementQuery = { __typename?: 'Query', creditFacilityAgreement?: { __typename?: 'CreditFacilityAgreement', creditFacilityAgreementId: string, status: CreditFacilityAgreementStatus, createdAt: string } | null };
 
 export type SearchPublicIdTargetQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -11053,10 +11054,10 @@ export type JournalEntriesQueryHookResult = ReturnType<typeof useJournalEntriesQ
 export type JournalEntriesLazyQueryHookResult = ReturnType<typeof useJournalEntriesLazyQuery>;
 export type JournalEntriesSuspenseQueryHookResult = ReturnType<typeof useJournalEntriesSuspenseQuery>;
 export type JournalEntriesQueryResult = Apollo.QueryResult<JournalEntriesQuery, JournalEntriesQueryVariables>;
-export const LedgerAccountCsvDocument = gql`
-    query LedgerAccountCsv($ledgerAccountId: UUID!) {
-  ledgerAccountCsv(ledgerAccountId: $ledgerAccountId) {
-    ledgerAccountCsvDocumentId
+export const AccountEntryCsvDocument = gql`
+    query AccountEntryCsv($ledgerAccountId: UUID!) {
+  accountEntryCsv(ledgerAccountId: $ledgerAccountId) {
+    accountingCsvDocumentId
     status
     createdAt
   }
@@ -11064,45 +11065,45 @@ export const LedgerAccountCsvDocument = gql`
     `;
 
 /**
- * __useLedgerAccountCsvQuery__
+ * __useAccountEntryCsvQuery__
  *
- * To run a query within a React component, call `useLedgerAccountCsvQuery` and pass it any options that fit your needs.
- * When your component renders, `useLedgerAccountCsvQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useAccountEntryCsvQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAccountEntryCsvQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useLedgerAccountCsvQuery({
+ * const { data, loading, error } = useAccountEntryCsvQuery({
  *   variables: {
  *      ledgerAccountId: // value for 'ledgerAccountId'
  *   },
  * });
  */
-export function useLedgerAccountCsvQuery(baseOptions: Apollo.QueryHookOptions<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables> & ({ variables: LedgerAccountCsvQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useAccountEntryCsvQuery(baseOptions: Apollo.QueryHookOptions<AccountEntryCsvQuery, AccountEntryCsvQueryVariables> & ({ variables: AccountEntryCsvQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>(LedgerAccountCsvDocument, options);
+        return Apollo.useQuery<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>(AccountEntryCsvDocument, options);
       }
-export function useLedgerAccountCsvLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>) {
+export function useAccountEntryCsvLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>(LedgerAccountCsvDocument, options);
+          return Apollo.useLazyQuery<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>(AccountEntryCsvDocument, options);
         }
 // @ts-ignore
-export function useLedgerAccountCsvSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>): Apollo.UseSuspenseQueryResult<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>;
-export function useLedgerAccountCsvSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>): Apollo.UseSuspenseQueryResult<LedgerAccountCsvQuery | undefined, LedgerAccountCsvQueryVariables>;
-export function useLedgerAccountCsvSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>) {
+export function useAccountEntryCsvSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>): Apollo.UseSuspenseQueryResult<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>;
+export function useAccountEntryCsvSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>): Apollo.UseSuspenseQueryResult<AccountEntryCsvQuery | undefined, AccountEntryCsvQueryVariables>;
+export function useAccountEntryCsvSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>(LedgerAccountCsvDocument, options);
+          return Apollo.useSuspenseQuery<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>(AccountEntryCsvDocument, options);
         }
-export type LedgerAccountCsvQueryHookResult = ReturnType<typeof useLedgerAccountCsvQuery>;
-export type LedgerAccountCsvLazyQueryHookResult = ReturnType<typeof useLedgerAccountCsvLazyQuery>;
-export type LedgerAccountCsvSuspenseQueryHookResult = ReturnType<typeof useLedgerAccountCsvSuspenseQuery>;
-export type LedgerAccountCsvQueryResult = Apollo.QueryResult<LedgerAccountCsvQuery, LedgerAccountCsvQueryVariables>;
+export type AccountEntryCsvQueryHookResult = ReturnType<typeof useAccountEntryCsvQuery>;
+export type AccountEntryCsvLazyQueryHookResult = ReturnType<typeof useAccountEntryCsvLazyQuery>;
+export type AccountEntryCsvSuspenseQueryHookResult = ReturnType<typeof useAccountEntryCsvSuspenseQuery>;
+export type AccountEntryCsvQueryResult = Apollo.QueryResult<AccountEntryCsvQuery, AccountEntryCsvQueryVariables>;
 export const LedgerAccountCsvCreateDocument = gql`
     mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
   ledgerAccountCsvCreate(input: $input) {
-    ledgerAccountCsvDocument {
-      ledgerAccountCsvDocumentId
+    accountingCsvDocument {
+      accountingCsvDocumentId
       status
       createdAt
     }
@@ -11135,9 +11136,9 @@ export function useLedgerAccountCsvCreateMutation(baseOptions?: Apollo.MutationH
 export type LedgerAccountCsvCreateMutationHookResult = ReturnType<typeof useLedgerAccountCsvCreateMutation>;
 export type LedgerAccountCsvCreateMutationResult = Apollo.MutationResult<LedgerAccountCsvCreateMutation>;
 export type LedgerAccountCsvCreateMutationOptions = Apollo.BaseMutationOptions<LedgerAccountCsvCreateMutation, LedgerAccountCsvCreateMutationVariables>;
-export const LedgerAccountCsvDownloadLinkGenerateDocument = gql`
-    mutation LedgerAccountCsvDownloadLinkGenerate($input: LedgerAccountCsvDownloadLinkGenerateInput!) {
-  ledgerAccountCsvDownloadLinkGenerate(input: $input) {
+export const AccountingCsvDownloadLinkGenerateDocument = gql`
+    mutation AccountingCsvDownloadLinkGenerate($input: AccountingCsvDownloadLinkGenerateInput!) {
+  accountingCsvDownloadLinkGenerate(input: $input) {
     link {
       url
       csvId
@@ -11145,32 +11146,32 @@ export const LedgerAccountCsvDownloadLinkGenerateDocument = gql`
   }
 }
     `;
-export type LedgerAccountCsvDownloadLinkGenerateMutationFn = Apollo.MutationFunction<LedgerAccountCsvDownloadLinkGenerateMutation, LedgerAccountCsvDownloadLinkGenerateMutationVariables>;
+export type AccountingCsvDownloadLinkGenerateMutationFn = Apollo.MutationFunction<AccountingCsvDownloadLinkGenerateMutation, AccountingCsvDownloadLinkGenerateMutationVariables>;
 
 /**
- * __useLedgerAccountCsvDownloadLinkGenerateMutation__
+ * __useAccountingCsvDownloadLinkGenerateMutation__
  *
- * To run a mutation, you first call `useLedgerAccountCsvDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLedgerAccountCsvDownloadLinkGenerateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useAccountingCsvDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAccountingCsvDownloadLinkGenerateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [ledgerAccountCsvDownloadLinkGenerateMutation, { data, loading, error }] = useLedgerAccountCsvDownloadLinkGenerateMutation({
+ * const [accountingCsvDownloadLinkGenerateMutation, { data, loading, error }] = useAccountingCsvDownloadLinkGenerateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useLedgerAccountCsvDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<LedgerAccountCsvDownloadLinkGenerateMutation, LedgerAccountCsvDownloadLinkGenerateMutationVariables>) {
+export function useAccountingCsvDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<AccountingCsvDownloadLinkGenerateMutation, AccountingCsvDownloadLinkGenerateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LedgerAccountCsvDownloadLinkGenerateMutation, LedgerAccountCsvDownloadLinkGenerateMutationVariables>(LedgerAccountCsvDownloadLinkGenerateDocument, options);
+        return Apollo.useMutation<AccountingCsvDownloadLinkGenerateMutation, AccountingCsvDownloadLinkGenerateMutationVariables>(AccountingCsvDownloadLinkGenerateDocument, options);
       }
-export type LedgerAccountCsvDownloadLinkGenerateMutationHookResult = ReturnType<typeof useLedgerAccountCsvDownloadLinkGenerateMutation>;
-export type LedgerAccountCsvDownloadLinkGenerateMutationResult = Apollo.MutationResult<LedgerAccountCsvDownloadLinkGenerateMutation>;
-export type LedgerAccountCsvDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<LedgerAccountCsvDownloadLinkGenerateMutation, LedgerAccountCsvDownloadLinkGenerateMutationVariables>;
+export type AccountingCsvDownloadLinkGenerateMutationHookResult = ReturnType<typeof useAccountingCsvDownloadLinkGenerateMutation>;
+export type AccountingCsvDownloadLinkGenerateMutationResult = Apollo.MutationResult<AccountingCsvDownloadLinkGenerateMutation>;
+export type AccountingCsvDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<AccountingCsvDownloadLinkGenerateMutation, AccountingCsvDownloadLinkGenerateMutationVariables>;
 export const LedgerAccountCsvExportUploadedDocument = gql`
     subscription LedgerAccountCsvExportUploaded($ledgerAccountId: UUID!) {
   ledgerAccountCsvExportUploaded(ledgerAccountId: $ledgerAccountId) {
@@ -14980,8 +14981,8 @@ export type RealtimePriceUpdatedSubscriptionResult = Apollo.SubscriptionResult<R
 export const CreditFacilityAgreementGenerateDocument = gql`
     mutation CreditFacilityAgreementGenerate($input: CreditFacilityAgreementGenerateInput!) {
   creditFacilityAgreementGenerate(input: $input) {
-    loanAgreement {
-      loanAgreementId
+    creditFacilityAgreement {
+      creditFacilityAgreementId
       status
       createdAt
     }
@@ -15014,44 +15015,44 @@ export function useCreditFacilityAgreementGenerateMutation(baseOptions?: Apollo.
 export type CreditFacilityAgreementGenerateMutationHookResult = ReturnType<typeof useCreditFacilityAgreementGenerateMutation>;
 export type CreditFacilityAgreementGenerateMutationResult = Apollo.MutationResult<CreditFacilityAgreementGenerateMutation>;
 export type CreditFacilityAgreementGenerateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityAgreementGenerateMutation, CreditFacilityAgreementGenerateMutationVariables>;
-export const LoanAgreementDownloadLinkGenerateDocument = gql`
-    mutation LoanAgreementDownloadLinkGenerate($input: LoanAgreementDownloadLinksGenerateInput!) {
-  loanAgreementDownloadLinkGenerate(input: $input) {
-    loanAgreementId
+export const CreditFacilityAgreementDownloadLinkGenerateDocument = gql`
+    mutation CreditFacilityAgreementDownloadLinkGenerate($input: CreditFacilityAgreementDownloadLinksGenerateInput!) {
+  creditFacilityAgreementDownloadLinkGenerate(input: $input) {
+    creditFacilityAgreementId
     link
   }
 }
     `;
-export type LoanAgreementDownloadLinkGenerateMutationFn = Apollo.MutationFunction<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>;
+export type CreditFacilityAgreementDownloadLinkGenerateMutationFn = Apollo.MutationFunction<CreditFacilityAgreementDownloadLinkGenerateMutation, CreditFacilityAgreementDownloadLinkGenerateMutationVariables>;
 
 /**
- * __useLoanAgreementDownloadLinkGenerateMutation__
+ * __useCreditFacilityAgreementDownloadLinkGenerateMutation__
  *
- * To run a mutation, you first call `useLoanAgreementDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLoanAgreementDownloadLinkGenerateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreditFacilityAgreementDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityAgreementDownloadLinkGenerateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [loanAgreementDownloadLinkGenerateMutation, { data, loading, error }] = useLoanAgreementDownloadLinkGenerateMutation({
+ * const [creditFacilityAgreementDownloadLinkGenerateMutation, { data, loading, error }] = useCreditFacilityAgreementDownloadLinkGenerateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useLoanAgreementDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>) {
+export function useCreditFacilityAgreementDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityAgreementDownloadLinkGenerateMutation, CreditFacilityAgreementDownloadLinkGenerateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>(LoanAgreementDownloadLinkGenerateDocument, options);
+        return Apollo.useMutation<CreditFacilityAgreementDownloadLinkGenerateMutation, CreditFacilityAgreementDownloadLinkGenerateMutationVariables>(CreditFacilityAgreementDownloadLinkGenerateDocument, options);
       }
-export type LoanAgreementDownloadLinkGenerateMutationHookResult = ReturnType<typeof useLoanAgreementDownloadLinkGenerateMutation>;
-export type LoanAgreementDownloadLinkGenerateMutationResult = Apollo.MutationResult<LoanAgreementDownloadLinkGenerateMutation>;
-export type LoanAgreementDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>;
-export const LoanAgreementDocument = gql`
-    query LoanAgreement($id: UUID!) {
-  loanAgreement(id: $id) {
-    loanAgreementId
+export type CreditFacilityAgreementDownloadLinkGenerateMutationHookResult = ReturnType<typeof useCreditFacilityAgreementDownloadLinkGenerateMutation>;
+export type CreditFacilityAgreementDownloadLinkGenerateMutationResult = Apollo.MutationResult<CreditFacilityAgreementDownloadLinkGenerateMutation>;
+export type CreditFacilityAgreementDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityAgreementDownloadLinkGenerateMutation, CreditFacilityAgreementDownloadLinkGenerateMutationVariables>;
+export const CreditFacilityAgreementDocument = gql`
+    query CreditFacilityAgreement($id: UUID!) {
+  creditFacilityAgreement(id: $id) {
+    creditFacilityAgreementId
     status
     createdAt
   }
@@ -15059,40 +15060,40 @@ export const LoanAgreementDocument = gql`
     `;
 
 /**
- * __useLoanAgreementQuery__
+ * __useCreditFacilityAgreementQuery__
  *
- * To run a query within a React component, call `useLoanAgreementQuery` and pass it any options that fit your needs.
- * When your component renders, `useLoanAgreementQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useCreditFacilityAgreementQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityAgreementQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useLoanAgreementQuery({
+ * const { data, loading, error } = useCreditFacilityAgreementQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useLoanAgreementQuery(baseOptions: Apollo.QueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables> & ({ variables: LoanAgreementQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useCreditFacilityAgreementQuery(baseOptions: Apollo.QueryHookOptions<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables> & ({ variables: CreditFacilityAgreementQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<LoanAgreementQuery, LoanAgreementQueryVariables>(LoanAgreementDocument, options);
+        return Apollo.useQuery<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>(CreditFacilityAgreementDocument, options);
       }
-export function useLoanAgreementLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables>) {
+export function useCreditFacilityAgreementLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<LoanAgreementQuery, LoanAgreementQueryVariables>(LoanAgreementDocument, options);
+          return Apollo.useLazyQuery<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>(CreditFacilityAgreementDocument, options);
         }
 // @ts-ignore
-export function useLoanAgreementSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables>): Apollo.UseSuspenseQueryResult<LoanAgreementQuery, LoanAgreementQueryVariables>;
-export function useLoanAgreementSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables>): Apollo.UseSuspenseQueryResult<LoanAgreementQuery | undefined, LoanAgreementQueryVariables>;
-export function useLoanAgreementSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables>) {
+export function useCreditFacilityAgreementSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>): Apollo.UseSuspenseQueryResult<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>;
+export function useCreditFacilityAgreementSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>): Apollo.UseSuspenseQueryResult<CreditFacilityAgreementQuery | undefined, CreditFacilityAgreementQueryVariables>;
+export function useCreditFacilityAgreementSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<LoanAgreementQuery, LoanAgreementQueryVariables>(LoanAgreementDocument, options);
+          return Apollo.useSuspenseQuery<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>(CreditFacilityAgreementDocument, options);
         }
-export type LoanAgreementQueryHookResult = ReturnType<typeof useLoanAgreementQuery>;
-export type LoanAgreementLazyQueryHookResult = ReturnType<typeof useLoanAgreementLazyQuery>;
-export type LoanAgreementSuspenseQueryHookResult = ReturnType<typeof useLoanAgreementSuspenseQuery>;
-export type LoanAgreementQueryResult = Apollo.QueryResult<LoanAgreementQuery, LoanAgreementQueryVariables>;
+export type CreditFacilityAgreementQueryHookResult = ReturnType<typeof useCreditFacilityAgreementQuery>;
+export type CreditFacilityAgreementLazyQueryHookResult = ReturnType<typeof useCreditFacilityAgreementLazyQuery>;
+export type CreditFacilityAgreementSuspenseQueryHookResult = ReturnType<typeof useCreditFacilityAgreementSuspenseQuery>;
+export type CreditFacilityAgreementQueryResult = Apollo.QueryResult<CreditFacilityAgreementQuery, CreditFacilityAgreementQueryVariables>;
 export const SearchPublicIdTargetDocument = gql`
     query SearchPublicIdTarget($publicId: PublicId!) {
   publicIdTarget(id: $publicId) {

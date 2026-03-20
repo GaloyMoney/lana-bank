@@ -1263,14 +1263,14 @@ impl Query {
         Ok(res)
     }
 
-    async fn loan_agreement(
+    async fn credit_facility_agreement(
         &self,
         ctx: &Context<'_>,
         id: UUID,
-    ) -> async_graphql::Result<Option<LoanAgreement>> {
+    ) -> async_graphql::Result<Option<CreditFacilityAgreement>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let agreement = app.contract_creation().find_by_id(sub, id).await?;
-        Ok(agreement.map(LoanAgreement::from))
+        Ok(agreement.map(CreditFacilityAgreement::from))
     }
 
     async fn ledger_account_csv(
@@ -2691,27 +2691,31 @@ impl Mutation {
     ) -> async_graphql::Result<CreditFacilityAgreementGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        // Create async job for loan agreement generation
-        let loan_agreement = app
+        // Create async job for credit facility agreement generation
+        let credit_facility_agreement = app
             .contract_creation()
-            .initiate_loan_agreement_generation(sub, input.customer_id)
+            .initiate_credit_facility_agreement_generation(sub, input.customer_id)
             .await?;
 
-        let loan_agreement = LoanAgreement::from(loan_agreement);
-        Ok(CreditFacilityAgreementGeneratePayload::from(loan_agreement))
+        let credit_facility_agreement = CreditFacilityAgreement::from(credit_facility_agreement);
+        Ok(CreditFacilityAgreementGeneratePayload::from(
+            credit_facility_agreement,
+        ))
     }
 
-    async fn loan_agreement_download_link_generate(
+    async fn credit_facility_agreement_download_link_generate(
         &self,
         ctx: &Context<'_>,
-        input: LoanAgreementDownloadLinksGenerateInput,
-    ) -> async_graphql::Result<LoanAgreementDownloadLinksGeneratePayload> {
+        input: CreditFacilityAgreementDownloadLinksGenerateInput,
+    ) -> async_graphql::Result<CreditFacilityAgreementDownloadLinksGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let doc = app
             .contract_creation()
-            .generate_document_download_link(sub, input.loan_agreement_id)
+            .generate_document_download_link(sub, input.credit_facility_agreement_id)
             .await?;
-        Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
+        Ok(CreditFacilityAgreementDownloadLinksGeneratePayload::from(
+            doc,
+        ))
     }
 
     async fn report_run_trigger(

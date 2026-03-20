@@ -38,6 +38,27 @@ type AccountingBaseConfigOutput {
 	revenueCode: String!
 }
 
+type AccountingCsvDocument {
+	accountingCsvDocumentId: UUID!
+	createdAt: Timestamp!
+	filename: String!
+	ledgerAccountId: UUID!
+	status: DocumentStatus!
+}
+
+type AccountingCsvDownloadLink {
+	csvId: UUID!
+	url: String!
+}
+
+input AccountingCsvDownloadLinkGenerateInput {
+	documentId: UUID!
+}
+
+type AccountingCsvDownloadLinkGeneratePayload {
+	link: AccountingCsvDownloadLink!
+}
+
 enum Activity {
 	ACTIVE
 	ESCHEATABLE
@@ -480,12 +501,33 @@ type CreditFacility {
 	wallet: Wallet
 }
 
+type CreditFacilityAgreement {
+	createdAt: Timestamp!
+	creditFacilityAgreementId: UUID!
+	status: CreditFacilityAgreementStatus!
+}
+
+input CreditFacilityAgreementDownloadLinksGenerateInput {
+	creditFacilityAgreementId: UUID!
+}
+
+type CreditFacilityAgreementDownloadLinksGeneratePayload {
+	creditFacilityAgreementId: UUID!
+	link: String!
+}
+
 input CreditFacilityAgreementGenerateInput {
 	customerId: UUID!
 }
 
 type CreditFacilityAgreementGeneratePayload {
-	loanAgreement: LoanAgreement!
+	creditFacilityAgreement: CreditFacilityAgreement!
+}
+
+enum CreditFacilityAgreementStatus {
+	COMPLETED
+	FAILED
+	PENDING
 }
 
 type CreditFacilityApproved {
@@ -1829,28 +1871,7 @@ input LedgerAccountCsvCreateInput {
 }
 
 type LedgerAccountCsvCreatePayload {
-	ledgerAccountCsvDocument: LedgerAccountCsvDocument!
-}
-
-type LedgerAccountCsvDocument {
-	createdAt: Timestamp!
-	filename: String!
-	ledgerAccountCsvDocumentId: UUID!
-	ledgerAccountId: UUID!
-	status: DocumentStatus!
-}
-
-type LedgerAccountCsvDownloadLink {
-	csvId: UUID!
-	url: String!
-}
-
-input LedgerAccountCsvDownloadLinkGenerateInput {
-	documentId: UUID!
-}
-
-type LedgerAccountCsvDownloadLinkGeneratePayload {
-	link: LedgerAccountCsvDownloadLink!
+	accountingCsvDocument: AccountingCsvDocument!
 }
 
 type LedgerAccountCsvExportUploadedPayload {
@@ -1985,27 +2006,6 @@ enum LiquidationsSortBy {
 	SENT_TOTAL
 }
 
-type LoanAgreement {
-	createdAt: Timestamp!
-	loanAgreementId: UUID!
-	status: LoanAgreementStatus!
-}
-
-input LoanAgreementDownloadLinksGenerateInput {
-	loanAgreementId: UUID!
-}
-
-type LoanAgreementDownloadLinksGeneratePayload {
-	link: String!
-	loanAgreementId: UUID!
-}
-
-enum LoanAgreementStatus {
-	COMPLETED
-	FAILED
-	PENDING
-}
-
 input ManualConfig {
 	name: String!
 }
@@ -2043,6 +2043,7 @@ type Me {
 }
 
 type Mutation {
+	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
 	approvalProcessDeny(input: ApprovalProcessDenyInput!): ApprovalProcessDenyPayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
@@ -2054,6 +2055,7 @@ type Mutation {
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
+	creditFacilityAgreementDownloadLinkGenerate(input: CreditFacilityAgreementDownloadLinksGenerateInput!): CreditFacilityAgreementDownloadLinksGeneratePayload!
 	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
@@ -2086,8 +2088,6 @@ type Mutation {
 	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
 	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
-	ledgerAccountCsvDownloadLinkGenerate(input: LedgerAccountCsvDownloadLinkGenerateInput!): LedgerAccountCsvDownloadLinkGeneratePayload!
-	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	priceProviderActivate(priceProviderId: UUID!): PriceProviderActivatePayload!
@@ -2529,7 +2529,8 @@ scalar PublicId
 union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
-	appConfig: String!
+	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
+	appConfig: Yaml!
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(after: String, first: Int!): ApprovalProcessConnection!
 	audit(action: String, after: String, authorized: Boolean, first: Int!, object: String, subject: AuditSubjectId): AuditEntryConnection!
@@ -2543,6 +2544,7 @@ type Query {
 	creditConfig: CreditModuleConfig
 	creditFacilities(after: String, filter: CreditFacilitiesFilter, first: Int!, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): CreditFacilityConnection!
 	creditFacility(id: UUID!): CreditFacility
+	creditFacilityAgreement(id: UUID!): CreditFacilityAgreement
 	creditFacilityByPublicId(id: PublicId!): CreditFacility
 	creditFacilityProposal(id: UUID!): CreditFacilityProposal
 	creditFacilityProposals(after: String, filter: CreditFacilityProposalsFilter, first: Int!, sort: CreditFacilityProposalsSort = {by: CREATED_AT, direction: DESC}): CreditFacilityProposalConnection!
@@ -2571,13 +2573,11 @@ type Query {
 	journalEntries(after: String, first: Int!): JournalEntryConnection!
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
-	ledgerAccountCsv(ledgerAccountId: UUID!): LedgerAccountCsvDocument
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(after: String, first: Int!, templateCode: String!): LedgerTransactionConnection!
 	liquidation(id: UUID!): Liquidation
 	liquidationPaymentCalculate(input: LiquidationPaymentCalculateInput!): LiquidationPayment!
 	liquidations(after: String, first: Int!, sort: LiquidationsSort = {by: CREATED_AT, direction: DESC}): LiquidationConnection!
-	loanAgreement(id: UUID!): LoanAgreement
 	me: Me!
 	pendingCreditFacilities(after: String, filter: PendingCreditFacilitiesFilter, first: Int!, sort: PendingCreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): PendingCreditFacilityConnection!
 	pendingCreditFacility(id: UUID!): PendingCreditFacility
@@ -3227,6 +3227,8 @@ enum WithdrawalsSortBy {
 	CREATED_AT
 	PUBLIC_ID
 }
+
+scalar Yaml
 
 """
 Directs the executor to include this field or fragment only when the `if` argument is true.
