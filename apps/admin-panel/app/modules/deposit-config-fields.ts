@@ -1,12 +1,12 @@
 import {
   DepositModuleConfig,
-  DepositModuleConfigureInput,
+  DepositAccountModuleConfigureInput,
 } from "@/lib/graphql/generated"
 
 export type DepositAccountCategoryKey = "asset" | "liability"
 
 export type DepositConfigField = {
-  key: keyof DepositModuleConfigureInput
+  key: keyof DepositAccountModuleConfigureInput
   category: DepositAccountCategoryKey
   group: "omnibus" | "summary"
 }
@@ -95,20 +95,20 @@ export const DEPOSIT_FIELD_GROUPS: Array<{
 
 const buildFormData = (
   valueForField: (field: DepositConfigField) => string,
-): DepositModuleConfigureInput =>
+): DepositAccountModuleConfigureInput =>
   DEPOSIT_CONFIG_FIELDS.reduce(
     (acc, field) => {
       acc[field.key] = valueForField(field)
       return acc
     },
-    {} as DepositModuleConfigureInput,
+    {} as DepositAccountModuleConfigureInput,
   )
 
 export const DEPOSIT_EMPTY_FORM_DATA = buildFormData(() => "")
 
 export const buildDepositFormDataFromConfig = (
   depositModuleConfig?: DepositModuleConfig,
-): DepositModuleConfigureInput => {
+): DepositAccountModuleConfigureInput => {
   const updatedFormData = { ...DEPOSIT_EMPTY_FORM_DATA }
   if (!depositModuleConfig) return updatedFormData
 
@@ -123,8 +123,8 @@ export const buildDepositFormDataFromConfig = (
 }
 
 export const buildDepositChanges = (
-  baseline: DepositModuleConfigureInput,
-  current: DepositModuleConfigureInput,
+  baseline: DepositAccountModuleConfigureInput,
+  current: DepositAccountModuleConfigureInput,
 ): DepositChangeItem[] =>
   DEPOSIT_CONFIG_FIELDS.flatMap((field) => {
     const from = baseline[field.key] ?? ""

@@ -65,7 +65,7 @@ struct CreditConfigData {
     overdue_non_domiciled_company_disbursed_receivable_parent_code: String,
 }
 
-pub(in crate::accounting_init::seed) async fn credit_module_configure(
+pub(in crate::accounting_init::seed) async fn credit_facility_module_configure(
     credit: &Credit,
     chart: &Chart,
     config_path: PathBuf,

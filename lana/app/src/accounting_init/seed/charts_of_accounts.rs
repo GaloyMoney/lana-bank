@@ -92,7 +92,7 @@ async fn seed_chart_of_accounts(
         .await?;
 
     if let Some(config_path) = credit_config_path {
-        credit_module_configure(credit, &chart, config_path)
+        credit_facility_module_configure(credit, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
                 dbg!(&e); // TODO: handle the un-returned error differently
@@ -100,7 +100,7 @@ async fn seed_chart_of_accounts(
     }
 
     if let Some(config_path) = deposit_config_path {
-        deposit_module_configure(deposit, &chart, config_path)
+        deposit_account_module_configure(deposit, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
                 dbg!(&e); // TODO: handle the un-returned error differently

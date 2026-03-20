@@ -763,6 +763,65 @@ export type CreditFacilityLedgerAccounts = {
   uncoveredOutstandingAccountId: Scalars['UUID']['output'];
 };
 
+export type CreditFacilityModuleConfigureInput = {
+  chartOfAccountCollateralInLiquidationParentCode: Scalars['String']['input'];
+  chartOfAccountCollateralOmnibusParentCode: Scalars['String']['input'];
+  chartOfAccountCollateralParentCode: Scalars['String']['input'];
+  chartOfAccountDisbursedDefaultedParentCode: Scalars['String']['input'];
+  chartOfAccountFacilityOmnibusParentCode: Scalars['String']['input'];
+  chartOfAccountFacilityParentCode: Scalars['String']['input'];
+  chartOfAccountFeeIncomeParentCode: Scalars['String']['input'];
+  chartOfAccountInterestAddedToObligationsOmnibusParentCode: Scalars['String']['input'];
+  chartOfAccountInterestDefaultedParentCode: Scalars['String']['input'];
+  chartOfAccountInterestIncomeParentCode: Scalars['String']['input'];
+  chartOfAccountLiquidatedCollateralParentCode: Scalars['String']['input'];
+  chartOfAccountLiquidationProceedsOmnibusParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermBankDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermBankInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermIndividualDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermIndividualInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueBankDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueIndividualDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountPaymentHoldingParentCode: Scalars['String']['input'];
+  chartOfAccountPaymentsMadeOmnibusParentCode: Scalars['String']['input'];
+  chartOfAccountProceedsFromLiquidationParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermBankDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermBankInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermIndividualDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermIndividualInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountUncoveredOutstandingParentCode: Scalars['String']['input'];
+};
+
+export type CreditFacilityModuleConfigurePayload = {
+  __typename?: 'CreditFacilityModuleConfigurePayload';
+  creditConfig: CreditModuleConfig;
+};
+
 export type CreditFacilityPartialPaymentRecordInput = {
   amount: Scalars['UsdCents']['input'];
   creditFacilityId: Scalars['UUID']['input'];
@@ -971,65 +1030,6 @@ export type CreditModuleConfig = {
   chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountUncoveredOutstandingParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
-};
-
-export type CreditModuleConfigureInput = {
-  chartOfAccountCollateralInLiquidationParentCode: Scalars['String']['input'];
-  chartOfAccountCollateralOmnibusParentCode: Scalars['String']['input'];
-  chartOfAccountCollateralParentCode: Scalars['String']['input'];
-  chartOfAccountDisbursedDefaultedParentCode: Scalars['String']['input'];
-  chartOfAccountFacilityOmnibusParentCode: Scalars['String']['input'];
-  chartOfAccountFacilityParentCode: Scalars['String']['input'];
-  chartOfAccountFeeIncomeParentCode: Scalars['String']['input'];
-  chartOfAccountInterestAddedToObligationsOmnibusParentCode: Scalars['String']['input'];
-  chartOfAccountInterestDefaultedParentCode: Scalars['String']['input'];
-  chartOfAccountInterestIncomeParentCode: Scalars['String']['input'];
-  chartOfAccountLiquidatedCollateralParentCode: Scalars['String']['input'];
-  chartOfAccountLiquidationProceedsOmnibusParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermBankDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermBankInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermIndividualDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermIndividualInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountOverdueBankDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountOverdueIndividualDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountPaymentHoldingParentCode: Scalars['String']['input'];
-  chartOfAccountPaymentsMadeOmnibusParentCode: Scalars['String']['input'];
-  chartOfAccountProceedsFromLiquidationParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermBankDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermBankInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermIndividualDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermIndividualInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountUncoveredOutstandingParentCode: Scalars['String']['input'];
-};
-
-export type CreditModuleConfigurePayload = {
-  __typename?: 'CreditModuleConfigurePayload';
-  creditConfig: CreditModuleConfig;
 };
 
 export type Custodian = {
@@ -1418,6 +1418,27 @@ export type DepositAccountLedgerAccounts = {
   frozenDepositAccountId: Scalars['UUID']['output'];
 };
 
+export type DepositAccountModuleConfigureInput = {
+  chartOfAccountsBankDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsFinancialInstitutionDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsFrozenBankDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsFrozenIndividualDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsGovernmentEntityDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsIndividualDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsOmnibusParentCode: Scalars['String']['input'];
+  chartOfAccountsPrivateCompanyDepositAccountsParentCode: Scalars['String']['input'];
+};
+
+export type DepositAccountModuleConfigurePayload = {
+  __typename?: 'DepositAccountModuleConfigurePayload';
+  depositConfig: DepositModuleConfig;
+};
+
 export enum DepositAccountStatus {
   Active = 'ACTIVE',
   Closed = 'CLOSED',
@@ -1489,27 +1510,6 @@ export type DepositModuleConfig = {
   chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsOmnibusParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsPrivateCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
-};
-
-export type DepositModuleConfigureInput = {
-  chartOfAccountsBankDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsFinancialInstitutionDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsFrozenBankDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsFrozenIndividualDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsGovernmentEntityDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsIndividualDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsOmnibusParentCode: Scalars['String']['input'];
-  chartOfAccountsPrivateCompanyDepositAccountsParentCode: Scalars['String']['input'];
-};
-
-export type DepositModuleConfigurePayload = {
-  __typename?: 'DepositModuleConfigurePayload';
-  depositConfig: DepositModuleConfig;
 };
 
 export type DepositRecordInput = {
@@ -2128,11 +2128,11 @@ export type Mutation = {
   creditFacilityAgreementGenerate: CreditFacilityAgreementGeneratePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
+  creditFacilityModuleConfigure: CreditFacilityModuleConfigurePayload;
   creditFacilityPartialPaymentRecord: CreditFacilityPartialPaymentRecordPayload;
   creditFacilityPartialPaymentWithDateRecord: CreditFacilityPartialPaymentRecordPayload;
   creditFacilityProposalCreate: CreditFacilityProposalCreatePayload;
   creditFacilityProposalCustomerApprovalConclude: CreditFacilityProposalCustomerApprovalConcludePayload;
-  creditModuleConfigure: CreditModuleConfigurePayload;
   custodianConfigUpdate: CustodianConfigUpdatePayload;
   custodianCreate: CustodianCreatePayload;
   customerClose: CustomerClosePayload;
@@ -2147,8 +2147,8 @@ export type Mutation = {
   depositAccountClose: DepositAccountClosePayload;
   depositAccountCreate: DepositAccountCreatePayload;
   depositAccountFreeze: DepositAccountFreezePayload;
+  depositAccountModuleConfigure: DepositAccountModuleConfigurePayload;
   depositAccountUnfreeze: DepositAccountUnfreezePayload;
-  depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
   domainConfigUpdate: DomainConfigUpdatePayload;
@@ -2263,6 +2263,11 @@ export type MutationCreditFacilityDisbursalInitiateArgs = {
 };
 
 
+export type MutationCreditFacilityModuleConfigureArgs = {
+  input: CreditFacilityModuleConfigureInput;
+};
+
+
 export type MutationCreditFacilityPartialPaymentRecordArgs = {
   input: CreditFacilityPartialPaymentRecordInput;
 };
@@ -2280,11 +2285,6 @@ export type MutationCreditFacilityProposalCreateArgs = {
 
 export type MutationCreditFacilityProposalCustomerApprovalConcludeArgs = {
   input: CreditFacilityProposalCustomerApprovalConcludeInput;
-};
-
-
-export type MutationCreditModuleConfigureArgs = {
-  input: CreditModuleConfigureInput;
 };
 
 
@@ -2358,13 +2358,13 @@ export type MutationDepositAccountFreezeArgs = {
 };
 
 
-export type MutationDepositAccountUnfreezeArgs = {
-  input: DepositAccountUnfreezeInput;
+export type MutationDepositAccountModuleConfigureArgs = {
+  input: DepositAccountModuleConfigureInput;
 };
 
 
-export type MutationDepositModuleConfigureArgs = {
-  input: DepositModuleConfigureInput;
+export type MutationDepositAccountUnfreezeArgs = {
+  input: DepositAccountUnfreezeInput;
 };
 
 
@@ -5187,19 +5187,19 @@ export type LiquidationsQueryVariables = Exact<{
 
 export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: string, completed: boolean, collateral: { __typename?: 'Collateral', collateralId: string, creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: string, publicId: any } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type CreditModuleConfigureMutationVariables = Exact<{
-  input: CreditModuleConfigureInput;
+export type CreditFacilityModuleConfigureMutationVariables = Exact<{
+  input: CreditFacilityModuleConfigureInput;
 }>;
 
 
-export type CreditModuleConfigureMutation = { __typename?: 'Mutation', creditModuleConfigure: { __typename?: 'CreditModuleConfigurePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountPaymentsMadeOmnibusParentCode?: string | null, chartOfAccountInterestAddedToObligationsOmnibusParentCode?: string | null, chartOfAccountUncoveredOutstandingParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountLiquidatedCollateralParentCode?: string | null, chartOfAccountProceedsFromLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountDisbursedDefaultedParentCode?: string | null, chartOfAccountInterestDefaultedParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } } };
+export type CreditFacilityModuleConfigureMutation = { __typename?: 'Mutation', creditFacilityModuleConfigure: { __typename?: 'CreditFacilityModuleConfigurePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountPaymentsMadeOmnibusParentCode?: string | null, chartOfAccountInterestAddedToObligationsOmnibusParentCode?: string | null, chartOfAccountUncoveredOutstandingParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountLiquidatedCollateralParentCode?: string | null, chartOfAccountProceedsFromLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountDisbursedDefaultedParentCode?: string | null, chartOfAccountInterestDefaultedParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } } };
 
-export type DepositModuleConfigureMutationVariables = Exact<{
-  input: DepositModuleConfigureInput;
+export type DepositAccountModuleConfigureMutationVariables = Exact<{
+  input: DepositAccountModuleConfigureInput;
 }>;
 
 
-export type DepositModuleConfigureMutation = { __typename?: 'Mutation', depositModuleConfigure: { __typename?: 'DepositModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsBankDepositAccountsParentCode?: string | null, chartOfAccountsFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode?: string | null } } };
+export type DepositAccountModuleConfigureMutation = { __typename?: 'Mutation', depositAccountModuleConfigure: { __typename?: 'DepositAccountModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsBankDepositAccountsParentCode?: string | null, chartOfAccountsFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode?: string | null } } };
 
 export type DepositConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -11784,9 +11784,9 @@ export type LiquidationsQueryHookResult = ReturnType<typeof useLiquidationsQuery
 export type LiquidationsLazyQueryHookResult = ReturnType<typeof useLiquidationsLazyQuery>;
 export type LiquidationsSuspenseQueryHookResult = ReturnType<typeof useLiquidationsSuspenseQuery>;
 export type LiquidationsQueryResult = Apollo.QueryResult<LiquidationsQuery, LiquidationsQueryVariables>;
-export const CreditModuleConfigureDocument = gql`
-    mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
-  creditModuleConfigure(input: $input) {
+export const CreditFacilityModuleConfigureDocument = gql`
+    mutation CreditFacilityModuleConfigure($input: CreditFacilityModuleConfigureInput!) {
+  creditFacilityModuleConfigure(input: $input) {
     creditConfig {
       chartOfAccountsId
       chartOfAccountFacilityOmnibusParentCode
@@ -11844,35 +11844,35 @@ export const CreditModuleConfigureDocument = gql`
   }
 }
     `;
-export type CreditModuleConfigureMutationFn = Apollo.MutationFunction<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>;
+export type CreditFacilityModuleConfigureMutationFn = Apollo.MutationFunction<CreditFacilityModuleConfigureMutation, CreditFacilityModuleConfigureMutationVariables>;
 
 /**
- * __useCreditModuleConfigureMutation__
+ * __useCreditFacilityModuleConfigureMutation__
  *
- * To run a mutation, you first call `useCreditModuleConfigureMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreditModuleConfigureMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreditFacilityModuleConfigureMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityModuleConfigureMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [creditModuleConfigureMutation, { data, loading, error }] = useCreditModuleConfigureMutation({
+ * const [creditFacilityModuleConfigureMutation, { data, loading, error }] = useCreditFacilityModuleConfigureMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCreditModuleConfigureMutation(baseOptions?: Apollo.MutationHookOptions<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>) {
+export function useCreditFacilityModuleConfigureMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityModuleConfigureMutation, CreditFacilityModuleConfigureMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>(CreditModuleConfigureDocument, options);
+        return Apollo.useMutation<CreditFacilityModuleConfigureMutation, CreditFacilityModuleConfigureMutationVariables>(CreditFacilityModuleConfigureDocument, options);
       }
-export type CreditModuleConfigureMutationHookResult = ReturnType<typeof useCreditModuleConfigureMutation>;
-export type CreditModuleConfigureMutationResult = Apollo.MutationResult<CreditModuleConfigureMutation>;
-export type CreditModuleConfigureMutationOptions = Apollo.BaseMutationOptions<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>;
-export const DepositModuleConfigureDocument = gql`
-    mutation DepositModuleConfigure($input: DepositModuleConfigureInput!) {
-  depositModuleConfigure(input: $input) {
+export type CreditFacilityModuleConfigureMutationHookResult = ReturnType<typeof useCreditFacilityModuleConfigureMutation>;
+export type CreditFacilityModuleConfigureMutationResult = Apollo.MutationResult<CreditFacilityModuleConfigureMutation>;
+export type CreditFacilityModuleConfigureMutationOptions = Apollo.BaseMutationOptions<CreditFacilityModuleConfigureMutation, CreditFacilityModuleConfigureMutationVariables>;
+export const DepositAccountModuleConfigureDocument = gql`
+    mutation DepositAccountModuleConfigure($input: DepositAccountModuleConfigureInput!) {
+  depositAccountModuleConfigure(input: $input) {
     depositConfig {
       chartOfAccountsId
       chartOfAccountsOmnibusParentCode
@@ -11892,32 +11892,32 @@ export const DepositModuleConfigureDocument = gql`
   }
 }
     `;
-export type DepositModuleConfigureMutationFn = Apollo.MutationFunction<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>;
+export type DepositAccountModuleConfigureMutationFn = Apollo.MutationFunction<DepositAccountModuleConfigureMutation, DepositAccountModuleConfigureMutationVariables>;
 
 /**
- * __useDepositModuleConfigureMutation__
+ * __useDepositAccountModuleConfigureMutation__
  *
- * To run a mutation, you first call `useDepositModuleConfigureMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDepositModuleConfigureMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDepositAccountModuleConfigureMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDepositAccountModuleConfigureMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [depositModuleConfigureMutation, { data, loading, error }] = useDepositModuleConfigureMutation({
+ * const [depositAccountModuleConfigureMutation, { data, loading, error }] = useDepositAccountModuleConfigureMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useDepositModuleConfigureMutation(baseOptions?: Apollo.MutationHookOptions<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>) {
+export function useDepositAccountModuleConfigureMutation(baseOptions?: Apollo.MutationHookOptions<DepositAccountModuleConfigureMutation, DepositAccountModuleConfigureMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>(DepositModuleConfigureDocument, options);
+        return Apollo.useMutation<DepositAccountModuleConfigureMutation, DepositAccountModuleConfigureMutationVariables>(DepositAccountModuleConfigureDocument, options);
       }
-export type DepositModuleConfigureMutationHookResult = ReturnType<typeof useDepositModuleConfigureMutation>;
-export type DepositModuleConfigureMutationResult = Apollo.MutationResult<DepositModuleConfigureMutation>;
-export type DepositModuleConfigureMutationOptions = Apollo.BaseMutationOptions<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>;
+export type DepositAccountModuleConfigureMutationHookResult = ReturnType<typeof useDepositAccountModuleConfigureMutation>;
+export type DepositAccountModuleConfigureMutationResult = Apollo.MutationResult<DepositAccountModuleConfigureMutation>;
+export type DepositAccountModuleConfigureMutationOptions = Apollo.BaseMutationOptions<DepositAccountModuleConfigureMutation, DepositAccountModuleConfigureMutationVariables>;
 export const DepositConfigDocument = gql`
     query depositConfig {
   depositConfig {

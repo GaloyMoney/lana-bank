@@ -27,7 +27,7 @@ struct DepositConfigData {
     frozen_non_domiciled_company_deposit_accounts_parent_code: String,
 }
 
-pub(in crate::accounting_init::seed) async fn deposit_module_configure(
+pub(in crate::accounting_init::seed) async fn deposit_account_module_configure(
     deposit: &Deposits,
     chart: &Chart,
     config_path: PathBuf,

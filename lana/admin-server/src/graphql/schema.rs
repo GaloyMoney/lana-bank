@@ -1613,11 +1613,11 @@ impl Mutation {
         )))
     }
 
-    async fn deposit_module_configure(
+    async fn deposit_account_module_configure(
         &self,
         ctx: &Context<'_>,
-        input: DepositModuleConfigureInput,
-    ) -> async_graphql::Result<DepositModuleConfigurePayload> {
+        input: DepositAccountModuleConfigureInput,
+    ) -> async_graphql::Result<DepositAccountModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let loader = ctx.data_unchecked::<LanaDataLoader>();
@@ -1626,7 +1626,7 @@ impl Mutation {
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
-        let DepositModuleConfigureInput {
+        let DepositAccountModuleConfigureInput {
             chart_of_accounts_omnibus_parent_code,
             chart_of_accounts_individual_deposit_accounts_parent_code,
             chart_of_accounts_government_entity_deposit_accounts_parent_code,
@@ -1678,7 +1678,7 @@ impl Mutation {
             .chart_of_accounts_integrations()
             .set_config(sub, chart.as_ref(), config_values)
             .await?;
-        Ok(DepositModuleConfigurePayload::from(
+        Ok(DepositAccountModuleConfigurePayload::from(
             DepositModuleConfig::from(config),
         ))
     }
@@ -1901,11 +1901,11 @@ impl Mutation {
         )
     }
 
-    async fn credit_module_configure(
+    async fn credit_facility_module_configure(
         &self,
         ctx: &Context<'_>,
-        input: CreditModuleConfigureInput,
-    ) -> async_graphql::Result<CreditModuleConfigurePayload> {
+        input: CreditFacilityModuleConfigureInput,
+    ) -> async_graphql::Result<CreditFacilityModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let loader = ctx.data_unchecked::<LanaDataLoader>();
@@ -1914,7 +1914,7 @@ impl Mutation {
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
-        let CreditModuleConfigureInput {
+        let CreditFacilityModuleConfigureInput {
             chart_of_account_facility_omnibus_parent_code,
             chart_of_account_collateral_omnibus_parent_code,
             chart_of_account_liquidation_proceeds_omnibus_parent_code,
@@ -2116,7 +2116,7 @@ impl Mutation {
             .chart_of_accounts_integrations()
             .set_config(sub, chart.as_ref(), config_values)
             .await?;
-        Ok(CreditModuleConfigurePayload::from(
+        Ok(CreditFacilityModuleConfigurePayload::from(
             CreditModuleConfig::from(config),
         ))
     }

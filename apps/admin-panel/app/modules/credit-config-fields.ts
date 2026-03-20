@@ -1,6 +1,6 @@
 import {
   CreditModuleConfig,
-  CreditModuleConfigureInput,
+  CreditFacilityModuleConfigureInput,
 } from "@/lib/graphql/generated"
 
 export type CreditAccountCategoryKey =
@@ -13,7 +13,7 @@ export type CreditAccountCategoryKey =
   | "expenses"
 
 export type CreditConfigField = {
-  key: keyof CreditModuleConfigureInput
+  key: keyof CreditFacilityModuleConfigureInput
   category: CreditAccountCategoryKey
   group: "omnibus" | "summary"
 }
@@ -292,20 +292,20 @@ export const CREDIT_FIELD_GROUPS: Array<{
 
 const buildFormData = (
   valueForField: (field: CreditConfigField) => string,
-): CreditModuleConfigureInput =>
+): CreditFacilityModuleConfigureInput =>
   CREDIT_CONFIG_FIELDS.reduce(
     (acc, field) => {
       acc[field.key] = valueForField(field)
       return acc
     },
-    {} as CreditModuleConfigureInput,
+    {} as CreditFacilityModuleConfigureInput,
   )
 
 export const CREDIT_EMPTY_FORM_DATA = buildFormData(() => "")
 
 export const buildCreditFormDataFromConfig = (
   creditModuleConfig?: CreditModuleConfig,
-): CreditModuleConfigureInput => {
+): CreditFacilityModuleConfigureInput => {
   const updatedFormData = { ...CREDIT_EMPTY_FORM_DATA }
   if (!creditModuleConfig) return updatedFormData
 
@@ -320,8 +320,8 @@ export const buildCreditFormDataFromConfig = (
 }
 
 export const buildCreditChanges = (
-  baseline: CreditModuleConfigureInput,
-  current: CreditModuleConfigureInput,
+  baseline: CreditFacilityModuleConfigureInput,
+  current: CreditFacilityModuleConfigureInput,
 ): CreditChangeItem[] =>
   CREDIT_CONFIG_FIELDS.flatMap((field) => {
     const from = baseline[field.key] ?? ""
