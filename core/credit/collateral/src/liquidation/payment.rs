@@ -107,15 +107,16 @@ impl LiquidationPaymentAmounts {
     /// Returns `None` if `to_liquidate` is zero to avoid division by zero.
     pub fn effective_liquidation_price(&self) -> Option<PriceOfOneBTC> {
         if self.to_liquidate == Satoshis::ZERO {
-            None
-        } else {
-            let effective_price_cents = CalculationAmount::<Usd>::from_major(
-                self.to_receive.to_major() / self.to_liquidate.to_major(),
-            )
-            .round_with(RoundingStrategy::AwayFromZero);
-
-            Some(PriceOfOneBTC::new(effective_price_cents))
+            return None;
         }
+
+        let effective_price_cents = CalculationAmount::<Usd>::from_major(
+            self.to_receive.to_major() / self.to_liquidate.to_major(),
+        )
+        .try_round_with(RoundingStrategy::AwayFromZero)
+        .ok()?;
+
+        Some(PriceOfOneBTC::new(effective_price_cents))
     }
 
     /// Calculates the liquidation premium percentage.

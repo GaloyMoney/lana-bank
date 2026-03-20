@@ -3,7 +3,7 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
 
-use crate::{Currency, MinorUnits};
+use crate::{Currency, MinorUnits, error::ConversionError};
 
 /// High-precision monetary amount for intermediate financial calculations.
 ///
@@ -66,11 +66,22 @@ impl<C: Currency> CalculationAmount<C> {
 impl<C: Currency> CalculationAmount<C> {
     /// Round to the nearest minor unit using the given strategy.
     ///
+    /// # Panics
+    ///
+    /// Panics if the value is negative or exceeds `u64::MAX` minor units.
+    /// Negative values are valid as intermediates (via `Sub`, `Neg`) but cannot
+    /// be converted to `MinorUnits<C>` which is unsigned. Callers must ensure
+    /// the value is non-negative before rounding, e.g. via `.max(CalculationAmount::ZERO)`.
+    ///
     /// Common strategies:
     /// - `RoundingStrategy::AwayFromZero` — interest owed, fees, required collateral
     /// - `RoundingStrategy::ToZero` — collateral valuation (e.g., sats_to_cents)
     /// - `RoundingStrategy::MidpointAwayFromZero` — standard "round half up"
     pub fn round_with(self, strategy: RoundingStrategy) -> MinorUnits<C> {
+        debug_assert!(
+            !self.is_negative(),
+            "CalculationAmount::round_with called with negative value: {self}",
+        );
         let minor = self.value * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
         let rounded = minor.round_dp_with_strategy(0, strategy);
         MinorUnits::from(
@@ -78,6 +89,20 @@ impl<C: Currency> CalculationAmount<C> {
                 .to_u64()
                 .expect("CalculationAmount must be non-negative and within u64 range"),
         )
+    }
+
+    /// Fallible version of `round_with`. Returns `Err` if the value is negative
+    /// or exceeds `u64::MAX` minor units.
+    pub fn try_round_with(
+        self,
+        strategy: RoundingStrategy,
+    ) -> Result<MinorUnits<C>, ConversionError> {
+        let minor = self.value * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
+        let rounded = minor.round_dp_with_strategy(0, strategy);
+        rounded
+            .to_u64()
+            .map(MinorUnits::from)
+            .ok_or(ConversionError::Overflow)
     }
 
     /// Round to N decimal places in major units, staying as CalculationAmount.

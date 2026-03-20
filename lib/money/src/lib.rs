@@ -1,10 +1,10 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-mod calculation_amount;
 mod code;
 mod error;
 mod map;
+mod primitives;
 
 use std::{fmt, marker::PhantomData};
 
@@ -14,10 +14,10 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-pub use calculation_amount::CalculationAmount;
 pub use code::*;
 pub use error::ConversionError;
 pub use map::*;
+pub use primitives::CalculationAmount;
 pub use rust_decimal::RoundingStrategy;
 
 // ---------------------------------------------------------------------------

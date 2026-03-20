@@ -195,6 +195,7 @@ pub mod credit {
         PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityId,
         PendingCreditFacilityStatus, ProceedsFromLiquidationReceived, RepaymentStatus,
         RepaymentType, Sort, error,
+        rounding_policy::{AccrualPrecisionDp, AccrualRoundingStrategy},
     };
 
     pub use core_credit_collateral::{

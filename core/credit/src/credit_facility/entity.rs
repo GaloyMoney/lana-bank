@@ -1029,11 +1029,13 @@ mod test {
             .interest_accrual_cycle_in_progress_mut()
             .unwrap();
         while accrual.next_accrual_period().is_some() {
-            let _ = accrual.record_accrual(
-                UsdCents::ONE,
-                5,
-                rust_decimal::RoundingStrategy::AwayFromZero,
-            );
+            let _ = accrual
+                .record_accrual(
+                    UsdCents::ONE,
+                    5,
+                    rust_decimal::RoundingStrategy::AwayFromZero,
+                )
+                .unwrap();
         }
         let _ = accrual.record_accrual_cycle(accrual.accrual_cycle_data().unwrap());
     }
