@@ -17,16 +17,16 @@ import { ModuleConfigUpdateDialog } from "./module-config-update-dialog"
 import {
   DepositConfigDocument,
   DepositModuleConfig,
-  DepositModuleConfigureInput,
-  useDepositModuleConfigureMutation,
+  DepositAccountModuleConfigureInput,
+  useDepositAccountModuleConfigureMutation,
 } from "@/lib/graphql/generated"
 import {
   type AccountSetOptionBase,
 } from "@/app/components/account-set-combobox"
 
 gql`
-  mutation DepositModuleConfigure($input: DepositModuleConfigureInput!) {
-    depositModuleConfigure(input: $input) {
+  mutation DepositAccountModuleConfigure($input: DepositAccountModuleConfigureInput!) {
+    depositAccountModuleConfigure(input: $input) {
       depositConfig {
         chartOfAccountsId
         chartOfAccountsOmnibusParentCode
@@ -69,10 +69,10 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
   const t = useTranslations("Modules")
 
   const [updateDepositConfig, { loading, error, reset }] =
-    useDepositModuleConfigureMutation({
+    useDepositAccountModuleConfigureMutation({
       refetchQueries: [DepositConfigDocument],
     })
-  const handleSave = async (input: DepositModuleConfigureInput) => {
+  const handleSave = async (input: DepositAccountModuleConfigureInput) => {
     await updateDepositConfig({ variables: { input } })
     toast.success(t("deposit.updateSuccess"))
   }

@@ -99,7 +99,7 @@ impl From<DomainChartOfAccountsIntegrationConfig> for DepositModuleConfig {
 }
 
 #[derive(InputObject)]
-pub struct DepositModuleConfigureInput {
+pub struct DepositAccountModuleConfigureInput {
     pub chart_of_accounts_omnibus_parent_code: String,
     pub chart_of_accounts_individual_deposit_accounts_parent_code: String,
     pub chart_of_accounts_government_entity_deposit_accounts_parent_code: String,
@@ -114,4 +114,4 @@ pub struct DepositModuleConfigureInput {
     pub chart_of_accounts_frozen_financial_institution_deposit_accounts_parent_code: String,
     pub chart_of_accounts_frozen_non_domiciled_company_deposit_accounts_parent_code: String,
 }
-crate::mutation_payload! { DepositModuleConfigurePayload, deposit_config: DepositModuleConfig }
+crate::mutation_payload! { DepositAccountModuleConfigurePayload, deposit_config: DepositModuleConfig }

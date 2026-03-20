@@ -700,6 +700,64 @@ type CreditFacilityLedgerAccounts {
 	uncoveredOutstandingAccountId: UUID!
 }
 
+input CreditFacilityModuleConfigureInput {
+	chartOfAccountCollateralInLiquidationParentCode: String!
+	chartOfAccountCollateralOmnibusParentCode: String!
+	chartOfAccountCollateralParentCode: String!
+	chartOfAccountDisbursedDefaultedParentCode: String!
+	chartOfAccountFacilityOmnibusParentCode: String!
+	chartOfAccountFacilityParentCode: String!
+	chartOfAccountFeeIncomeParentCode: String!
+	chartOfAccountInterestAddedToObligationsOmnibusParentCode: String!
+	chartOfAccountInterestDefaultedParentCode: String!
+	chartOfAccountInterestIncomeParentCode: String!
+	chartOfAccountLiquidatedCollateralParentCode: String!
+	chartOfAccountLiquidationProceedsOmnibusParentCode: String!
+	chartOfAccountLongTermBankDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermBankInterestReceivableParentCode: String!
+	chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: String!
+	chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String!
+	chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: String!
+	chartOfAccountLongTermIndividualDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermIndividualInterestReceivableParentCode: String!
+	chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: String!
+	chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: String!
+	chartOfAccountOverdueBankDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueIndividualDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountPaymentHoldingParentCode: String!
+	chartOfAccountPaymentsMadeOmnibusParentCode: String!
+	chartOfAccountProceedsFromLiquidationParentCode: String!
+	chartOfAccountShortTermBankDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermBankInterestReceivableParentCode: String!
+	chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: String!
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String!
+	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: String!
+	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermIndividualInterestReceivableParentCode: String!
+	chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: String!
+	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String!
+	chartOfAccountUncoveredOutstandingParentCode: String!
+}
+
+type CreditFacilityModuleConfigurePayload {
+	creditConfig: CreditModuleConfig!
+}
+
 input CreditFacilityPartialPaymentRecordInput {
 	amount: UsdCents!
 	creditFacilityId: UUID!
@@ -897,64 +955,6 @@ type CreditModuleConfig {
 	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String
 	chartOfAccountUncoveredOutstandingParentCode: String
 	chartOfAccountsId: UUID
-}
-
-input CreditModuleConfigureInput {
-	chartOfAccountCollateralInLiquidationParentCode: String!
-	chartOfAccountCollateralOmnibusParentCode: String!
-	chartOfAccountCollateralParentCode: String!
-	chartOfAccountDisbursedDefaultedParentCode: String!
-	chartOfAccountFacilityOmnibusParentCode: String!
-	chartOfAccountFacilityParentCode: String!
-	chartOfAccountFeeIncomeParentCode: String!
-	chartOfAccountInterestAddedToObligationsOmnibusParentCode: String!
-	chartOfAccountInterestDefaultedParentCode: String!
-	chartOfAccountInterestIncomeParentCode: String!
-	chartOfAccountLiquidatedCollateralParentCode: String!
-	chartOfAccountLiquidationProceedsOmnibusParentCode: String!
-	chartOfAccountLongTermBankDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermBankInterestReceivableParentCode: String!
-	chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: String!
-	chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String!
-	chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: String!
-	chartOfAccountLongTermIndividualDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermIndividualInterestReceivableParentCode: String!
-	chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: String!
-	chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: String!
-	chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: String!
-	chartOfAccountOverdueBankDisbursedReceivableParentCode: String!
-	chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: String!
-	chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
-	chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: String!
-	chartOfAccountOverdueIndividualDisbursedReceivableParentCode: String!
-	chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: String!
-	chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: String!
-	chartOfAccountPaymentHoldingParentCode: String!
-	chartOfAccountPaymentsMadeOmnibusParentCode: String!
-	chartOfAccountProceedsFromLiquidationParentCode: String!
-	chartOfAccountShortTermBankDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermBankInterestReceivableParentCode: String!
-	chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: String!
-	chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String!
-	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: String!
-	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermIndividualInterestReceivableParentCode: String!
-	chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: String!
-	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String!
-	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String!
-	chartOfAccountUncoveredOutstandingParentCode: String!
-}
-
-type CreditModuleConfigurePayload {
-	creditConfig: CreditModuleConfig!
 }
 
 type Custodian {
@@ -1339,6 +1339,26 @@ type DepositAccountLedgerAccounts {
 	frozenDepositAccountId: UUID!
 }
 
+input DepositAccountModuleConfigureInput {
+	chartOfAccountsBankDepositAccountsParentCode: String!
+	chartOfAccountsFinancialInstitutionDepositAccountsParentCode: String!
+	chartOfAccountsFrozenBankDepositAccountsParentCode: String!
+	chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode: String!
+	chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: String!
+	chartOfAccountsFrozenIndividualDepositAccountsParentCode: String!
+	chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode: String!
+	chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode: String!
+	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String!
+	chartOfAccountsIndividualDepositAccountsParentCode: String!
+	chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: String!
+	chartOfAccountsOmnibusParentCode: String!
+	chartOfAccountsPrivateCompanyDepositAccountsParentCode: String!
+}
+
+type DepositAccountModuleConfigurePayload {
+	depositConfig: DepositModuleConfig!
+}
+
 enum DepositAccountStatus {
 	ACTIVE
 	CLOSED
@@ -1417,26 +1437,6 @@ type DepositModuleConfig {
 	chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: String
 	chartOfAccountsOmnibusParentCode: String
 	chartOfAccountsPrivateCompanyDepositAccountsParentCode: String
-}
-
-input DepositModuleConfigureInput {
-	chartOfAccountsBankDepositAccountsParentCode: String!
-	chartOfAccountsFinancialInstitutionDepositAccountsParentCode: String!
-	chartOfAccountsFrozenBankDepositAccountsParentCode: String!
-	chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode: String!
-	chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: String!
-	chartOfAccountsFrozenIndividualDepositAccountsParentCode: String!
-	chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode: String!
-	chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode: String!
-	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String!
-	chartOfAccountsIndividualDepositAccountsParentCode: String!
-	chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: String!
-	chartOfAccountsOmnibusParentCode: String!
-	chartOfAccountsPrivateCompanyDepositAccountsParentCode: String!
-}
-
-type DepositModuleConfigurePayload {
-	depositConfig: DepositModuleConfig!
 }
 
 input DepositRecordInput {
@@ -2058,11 +2058,11 @@ type Mutation {
 	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
+	creditFacilityModuleConfigure(input: CreditFacilityModuleConfigureInput!): CreditFacilityModuleConfigurePayload!
 	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
 	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload!
-	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	customerClose(input: CustomerCloseInput!): CustomerClosePayload!
@@ -2077,8 +2077,8 @@ type Mutation {
 	depositAccountClose(input: DepositAccountCloseInput!): DepositAccountClosePayload!
 	depositAccountCreate(input: DepositAccountCreateInput!): DepositAccountCreatePayload!
 	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
+	depositAccountModuleConfigure(input: DepositAccountModuleConfigureInput!): DepositAccountModuleConfigurePayload!
 	depositAccountUnfreeze(input: DepositAccountUnfreezeInput!): DepositAccountUnfreezePayload!
-	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!

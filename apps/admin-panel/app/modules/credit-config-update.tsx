@@ -17,16 +17,16 @@ import { ModuleConfigUpdateDialog } from "./module-config-update-dialog"
 import {
   CreditConfigDocument,
   CreditModuleConfig,
-  CreditModuleConfigureInput,
-  useCreditModuleConfigureMutation,
+  CreditFacilityModuleConfigureInput,
+  useCreditFacilityModuleConfigureMutation,
 } from "@/lib/graphql/generated"
 import {
   type AccountSetOptionBase,
 } from "@/app/components/account-set-combobox"
 
 gql`
-  mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
-    creditModuleConfigure(input: $input) {
+  mutation CreditFacilityModuleConfigure($input: CreditFacilityModuleConfigureInput!) {
+    creditFacilityModuleConfigure(input: $input) {
       creditConfig {
         chartOfAccountsId
         chartOfAccountFacilityOmnibusParentCode
@@ -108,10 +108,10 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
   const t = useTranslations("Modules")
 
   const [updateCreditConfig, { loading, error, reset }] =
-    useCreditModuleConfigureMutation({
+    useCreditFacilityModuleConfigureMutation({
       refetchQueries: [CreditConfigDocument],
     })
-  const handleSave = async (input: CreditModuleConfigureInput) => {
+  const handleSave = async (input: CreditFacilityModuleConfigureInput) => {
     await updateCreditConfig({ variables: { input } })
     toast.success(t("credit.updateSuccess"))
   }
