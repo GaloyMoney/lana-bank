@@ -238,27 +238,6 @@ impl EodProcess {
         }
         Ok(Idempotent::Executed(()))
     }
-
-    pub fn mark_failed(&mut self, reason: String) -> Result<Idempotent<()>, EodProcessError> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::Failed { .. },
-            already_applied: EodProcessEvent::Completed { .. }
-        );
-        match self.status() {
-            EodProcessStatus::AwaitingObligationsAndDeposits
-            | EodProcessStatus::ObligationsAndDepositsComplete
-            | EodProcessStatus::AwaitingCreditFacilityEod => {}
-            current => {
-                return Err(EodProcessError::InvalidStateTransition {
-                    current,
-                    attempted: "mark_failed",
-                });
-            }
-        }
-        self.events.push(EodProcessEvent::Failed { reason });
-        Ok(Idempotent::Executed(()))
-    }
 }
 
 impl TryFromEvents<EodProcessEvent> for EodProcess {
@@ -386,23 +365,6 @@ mod tests {
                 .complete_credit_facility_eod(JobTerminalState::Completed)
                 .is_err()
         );
-    }
-
-    #[test]
-    fn mark_failed_from_awaiting_obligations_and_deposits() {
-        let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
-        let mut process =
-            EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
-        let job1 = job::JobId::from(uuid::Uuid::new_v4());
-        let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        let _ = process.start_obligations_and_deposits(job1, job2).unwrap();
-        assert!(
-            process
-                .mark_failed("test".to_string())
-                .unwrap()
-                .did_execute()
-        );
-        assert_eq!(process.status(), EodProcessStatus::Failed);
     }
 
     #[test]

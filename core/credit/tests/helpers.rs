@@ -674,6 +674,20 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     )
     .await?;
 
+    // Wire up EOD orchestration so EndOfDay events trigger the full pipeline
+    let deposit_activity_spawner = jobs.add_initializer(noop_eod_job::NoopDepositActivityInit);
+    let _core_eod = core_eod::CoreEod::init(
+        &pool,
+        &mut jobs,
+        &outbox,
+        &outbox,
+        clock.clone(),
+        credit_init.obligation_status_spawner,
+        deposit_activity_spawner,
+        credit_init.credit_facility_eod_spawner,
+    )
+    .await?;
+
     seed_price(&outbox, &price).await?;
 
     Ok(TestContext {
@@ -825,4 +839,41 @@ pub async fn create_active_facility(
         customer_id: state.customer_id,
         amount: state.amount,
     })
+}
+
+/// Noop job initializers for EOD child processes that are not needed in
+/// these tests but must exist so the EodProcessManager can advance.
+mod noop_eod_job {
+    use async_trait::async_trait;
+    use job::*;
+
+    pub struct NoopDepositActivityInit;
+
+    impl JobInitializer for NoopDepositActivityInit {
+        type Config = core_eod::deposit_activity_process::DepositActivityProcessConfig;
+
+        fn job_type(&self) -> JobType {
+            core_eod::deposit_activity_process::DEPOSIT_ACTIVITY_PROCESS_JOB
+        }
+
+        fn init(
+            &self,
+            _job: &Job,
+            _spawner: JobSpawner<Self::Config>,
+        ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+            Ok(Box::new(NoopRunner))
+        }
+    }
+
+    struct NoopRunner;
+
+    #[async_trait]
+    impl JobRunner for NoopRunner {
+        async fn run(
+            &self,
+            _current_job: CurrentJob,
+        ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+            Ok(JobCompletion::Complete)
+        }
+    }
 }

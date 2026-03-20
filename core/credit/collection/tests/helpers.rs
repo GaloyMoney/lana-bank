@@ -133,6 +133,21 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     .await?;
     let collections = collection_init.service;
 
+    // Wire up EOD orchestration so EndOfDay events trigger the full pipeline
+    let deposit_activity_spawner = jobs.add_initializer(noop_eod_job::NoopDepositActivityInit);
+    let credit_facility_eod_spawner = jobs.add_initializer(noop_eod_job::NoopCreditFacilityEodInit);
+    let _core_eod = core_eod::CoreEod::init(
+        &pool,
+        &mut jobs,
+        &outbox,
+        &outbox,
+        clock.clone(),
+        collection_init.obligation_status_spawner,
+        deposit_activity_spawner,
+        credit_facility_eod_spawner,
+    )
+    .await?;
+
     Ok(TestContext {
         pool,
         clock,
@@ -217,4 +232,59 @@ pub mod event {
     }
 
     pub use obix::test_utils::expect_event;
+}
+
+/// Noop job initializers for EOD child processes that are not needed in
+/// these tests but must exist so the EodProcessManager can advance.
+mod noop_eod_job {
+    use async_trait::async_trait;
+    use job::*;
+
+    pub struct NoopDepositActivityInit;
+
+    impl JobInitializer for NoopDepositActivityInit {
+        type Config = core_eod::deposit_activity_process::DepositActivityProcessConfig;
+
+        fn job_type(&self) -> JobType {
+            core_eod::deposit_activity_process::DEPOSIT_ACTIVITY_PROCESS_JOB
+        }
+
+        fn init(
+            &self,
+            _job: &Job,
+            _spawner: JobSpawner<Self::Config>,
+        ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+            Ok(Box::new(NoopRunner))
+        }
+    }
+
+    pub struct NoopCreditFacilityEodInit;
+
+    impl JobInitializer for NoopCreditFacilityEodInit {
+        type Config = core_eod::credit_facility_eod_process::CreditFacilityEodProcessConfig;
+
+        fn job_type(&self) -> JobType {
+            core_eod::credit_facility_eod_process::CREDIT_FACILITY_EOD_PROCESS_JOB
+        }
+
+        fn init(
+            &self,
+            _job: &Job,
+            _spawner: JobSpawner<Self::Config>,
+        ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+            Ok(Box::new(NoopRunner))
+        }
+    }
+
+    struct NoopRunner;
+
+    #[async_trait]
+    impl JobRunner for NoopRunner {
+        async fn run(
+            &self,
+            _current_job: CurrentJob,
+        ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+            Ok(JobCompletion::Complete)
+        }
+    }
 }
