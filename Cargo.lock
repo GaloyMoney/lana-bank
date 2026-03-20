@@ -1347,6 +1347,7 @@ dependencies = [
  "money",
  "obix",
  "permission-sets-macro",
+ "process-manager",
  "public-id",
  "rand 0.10.0",
  "rust_decimal",
@@ -1421,6 +1422,7 @@ dependencies = [
  "money",
  "obix",
  "permission-sets-macro",
+ "process-manager",
  "rust_decimal",
  "schemars 1.2.1",
  "serde",
@@ -1665,6 +1667,7 @@ dependencies = [
  "es-entity",
  "job",
  "obix",
+ "process-manager",
  "schemars 1.2.1",
  "serde",
  "sqlx",
@@ -2030,6 +2033,7 @@ dependencies = [
  "job",
  "lana-events",
  "obix",
+ "process-manager",
  "serde",
  "sumsub",
  "thiserror 2.0.18",
@@ -4580,6 +4584,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fd00f0bb2e90d81d1044c2b32617f68fcb9fa3bb7640c23e9c748e53fb30934"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "process-manager"
+version = "0.0.0"
+dependencies = [
+ "es-entity",
+ "futures",
+ "job",
+ "obix",
+ "serde",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
