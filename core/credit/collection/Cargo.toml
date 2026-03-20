@@ -42,7 +42,6 @@ uuid = { workspace = true }
 derive_builder = { workspace = true }
 rust_decimal = { workspace = true }
 async-trait = { workspace = true }
-futures = { workspace = true }
 schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
