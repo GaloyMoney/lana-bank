@@ -1,7 +1,6 @@
 // @generated — do not edit.
 /* eslint-disable */
 export const entityKeyPolicies = {
-  AccountingCsvDocument: { keyFields: ["accountingCsvDocumentId"] },
   ApprovalProcess: { keyFields: ["approvalProcessId"] },
   AuditEntry: { keyFields: ["auditEntryId"] },
   ChartOfAccounts: { keyFields: ["chartOfAccountsId"] },
@@ -20,6 +19,7 @@ export const entityKeyPolicies = {
   FiscalYear: { keyFields: ["fiscalYearId"] },
   JournalEntry: { keyFields: ["journalEntryId"] },
   LedgerAccount: { keyFields: ["ledgerAccountId"] },
+  LedgerAccountCsvDocument: { keyFields: ["ledgerAccountCsvDocumentId"] },
   LedgerTransaction: { keyFields: ["ledgerTransactionId"] },
   Liquidation: { keyFields: ["liquidationId"] },
   LoanAgreement: { keyFields: ["loanAgreementId"] },
