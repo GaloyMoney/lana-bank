@@ -632,14 +632,14 @@ impl Loader<ProfitAndLossAccountKey> for LanaLoader {
 }
 
 impl Loader<AccountingCsvDocumentId> for LanaLoader {
-    type Value = AccountingCsvDocument;
+    type Value = LedgerAccountCsvDocument;
     type Error = Arc<CoreAccountingError>;
 
     #[instrument(name = "loader.accounting_csv_documents", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[AccountingCsvDocumentId],
-    ) -> Result<HashMap<AccountingCsvDocumentId, AccountingCsvDocument>, Self::Error> {
+    ) -> Result<HashMap<AccountingCsvDocumentId, LedgerAccountCsvDocument>, Self::Error> {
         self.app
             .accounting()
             .find_all_csv_documents_authorized(&self.sub, keys)

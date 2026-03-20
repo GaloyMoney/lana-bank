@@ -51,13 +51,3 @@ impl Json {
         self.0
     }
 }
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-#[serde(transparent)]
-pub struct Yaml(String);
-async_graphql::scalar!(Yaml);
-impl From<String> for Yaml {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}

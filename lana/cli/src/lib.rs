@@ -275,7 +275,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
                 config.admin_server,
                 admin_app,
                 BuildInfo::get(),
-                admin_server::graphql::AppConfig(app_config_yaml.into()),
+                admin_server::graphql::AppConfig(app_config_yaml),
                 async move {
                     let _ = admin_shutdown.recv().await;
                 },

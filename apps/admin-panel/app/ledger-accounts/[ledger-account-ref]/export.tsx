@@ -18,18 +18,18 @@ import { Loader2, FileDown, FileUp } from "lucide-react"
 import { formatDate } from "@lana/web/utils"
 
 import {
-  AccountEntryCsvDocument,
-  useAccountEntryCsvQuery,
+  LedgerAccountCsvDocument,
+  useLedgerAccountCsvQuery,
   useLedgerAccountCsvCreateMutation,
-  useAccountingCsvDownloadLinkGenerateMutation,
+  useLedgerAccountCsvDownloadLinkGenerateMutation,
   useLedgerAccountCsvExportUploadedSubscription,
   DocumentStatus,
 } from "@/lib/graphql/generated"
 
 gql`
-  query AccountEntryCsv($ledgerAccountId: UUID!) {
-    accountEntryCsv(ledgerAccountId: $ledgerAccountId) {
-      accountingCsvDocumentId
+  query LedgerAccountCsv($ledgerAccountId: UUID!) {
+    ledgerAccountCsv(ledgerAccountId: $ledgerAccountId) {
+      ledgerAccountCsvDocumentId
       status
       createdAt
     }
@@ -37,18 +37,18 @@ gql`
 
   mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
     ledgerAccountCsvCreate(input: $input) {
-      accountingCsvDocument {
-        accountingCsvDocumentId
+      ledgerAccountCsvDocument {
+        ledgerAccountCsvDocumentId
         status
         createdAt
       }
     }
   }
 
-  mutation AccountingCsvDownloadLinkGenerate(
-    $input: AccountingCsvDownloadLinkGenerateInput!
+  mutation LedgerAccountCsvDownloadLinkGenerate(
+    $input: LedgerAccountCsvDownloadLinkGenerateInput!
   ) {
-    accountingCsvDownloadLinkGenerate(input: $input) {
+    ledgerAccountCsvDownloadLinkGenerate(input: $input) {
       link {
         url
         csvId
@@ -77,7 +77,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
   const t = useTranslations("ChartOfAccountsLedgerAccount.exportCsv")
   const [isDownloading, setIsDownloading] = useState(false)
 
-  const { data, loading, error, refetch } = useAccountEntryCsvQuery({
+  const { data, loading, error, refetch } = useLedgerAccountCsvQuery({
     variables: { ledgerAccountId },
     skip: !isOpen,
     fetchPolicy: "network-only",
@@ -91,17 +91,17 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
 
   const [createCsv, { loading: createLoading }] = useLedgerAccountCsvCreateMutation({
     update: (cache, { data }) => {
-      const created = data?.ledgerAccountCsvCreate?.accountingCsvDocument
+      const created = data?.ledgerAccountCsvCreate?.ledgerAccountCsvDocument
       if (!created) return
 
       cache.writeQuery({
-        query: AccountEntryCsvDocument,
+        query: LedgerAccountCsvDocument,
         variables: { ledgerAccountId },
-        data: { accountEntryCsv: created },
+        data: { ledgerAccountCsv: created },
       })
     },
   })
-  const [generateDownloadLink] = useAccountingCsvDownloadLinkGenerateMutation()
+  const [generateDownloadLink] = useLedgerAccountCsvDownloadLinkGenerateMutation()
 
   useEffect(() => {
     if (!subscriptionData?.ledgerAccountCsvExportUploaded) {
@@ -130,7 +130,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
   }
 
   const handleDownload = async () => {
-    const currentCsv = data?.accountEntryCsv
+    const currentCsv = data?.ledgerAccountCsv
     if (!currentCsv) return
     if (currentCsv.status !== DocumentStatus.Active) {
       toast.error(t("errors.notReady"))
@@ -142,13 +142,13 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
       const result = await generateDownloadLink({
         variables: {
           input: {
-            documentId: currentCsv.accountingCsvDocumentId,
+            documentId: currentCsv.ledgerAccountCsvDocumentId,
           },
         },
       })
 
-      if (result.data?.accountingCsvDownloadLinkGenerate.link.url) {
-        const url = result.data.accountingCsvDownloadLinkGenerate.link.url
+      if (result.data?.ledgerAccountCsvDownloadLinkGenerate.link.url) {
+        const url = result.data.ledgerAccountCsvDownloadLinkGenerate.link.url
         window.open(url, "_blank")
       }
     } catch (err) {
@@ -163,7 +163,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
     onClose()
   }
 
-  const currentCsv = data?.accountEntryCsv ?? null
+  const currentCsv = data?.ledgerAccountCsv ?? null
   const isCurrentCompleted = currentCsv?.status === DocumentStatus.Active
 
   return (
