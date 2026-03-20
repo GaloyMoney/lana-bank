@@ -20,18 +20,6 @@ pub struct Amount {
 }
 
 impl Amount {
-    /// Construct from a typed `MinorUnits<C>`.
-    ///
-    /// Captures `C::CODE` and `C::MINOR_UNITS_PER_MAJOR` at compile time,
-    /// guaranteeing consistency.
-    pub fn from_minor_units<C: Currency>(value: MinorUnits<C>) -> Self {
-        Self {
-            currency: C::CODE,
-            minor_units: value.into_inner(),
-            minor_units_per_major: C::MINOR_UNITS_PER_MAJOR,
-        }
-    }
-
     /// Downcast back to typed `MinorUnits<C>`.
     ///
     /// Returns `Some` only if `C::CODE` matches the stored currency.
@@ -72,7 +60,11 @@ impl Amount {
 /// Ergonomic construction: `Amount::from(UsdCents::from(100u64))`
 impl<C: Currency> From<MinorUnits<C>> for Amount {
     fn from(value: MinorUnits<C>) -> Self {
-        Self::from_minor_units(value)
+        Self {
+            currency: C::CODE,
+            minor_units: value.into_inner(),
+            minor_units_per_major: C::MINOR_UNITS_PER_MAJOR,
+        }
     }
 }
 
