@@ -134,14 +134,26 @@ where
             clock.clone(),
         ));
 
+        let update_pending_collateralization_spawner = jobs.add_initializer(
+            jobs::update_pending_collateralization::UpdatePendingCollateralizationJobInitializer::<
+                Perms,
+                E,
+            >::new(
+                repo_arc.clone(),
+                collaterals.clone(),
+                price.clone(),
+                ledger.clone(),
+            ),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(jobs::collateralization_from_events_for_pending_facility::PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB),
                 jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsHandler::new(
+                    update_pending_collateralization_spawner,
                     repo_arc.clone(),
                     collaterals.clone(),
-                    price.clone(),
                     ledger.clone(),
                 ),
             )

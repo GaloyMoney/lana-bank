@@ -144,6 +144,16 @@ where
     {
         let repo = Arc::new(CreditFacilityRepo::new(pool, publisher, clock.clone()));
 
+        let update_collateralization_spawner = jobs.add_initializer(
+            jobs::update_collateralization::UpdateCollateralizationJobInitializer::<Perms, E>::new(
+                repo.clone(),
+                collaterals.clone(),
+                price.clone(),
+                ledger.clone(),
+                authz.clone(),
+            ),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
@@ -154,9 +164,9 @@ where
                     Perms,
                     E,
                 >::new(
+                    update_collateralization_spawner,
                     repo.clone(),
                     collaterals.clone(),
-                    price.clone(),
                     ledger.clone(),
                     authz.clone(),
                 ),
