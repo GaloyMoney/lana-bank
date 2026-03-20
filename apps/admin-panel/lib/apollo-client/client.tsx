@@ -107,10 +107,17 @@ export const makeClient = ({
     httpLink,
   )
 
+  const mergedTypePolicies: Record<string, Record<string, unknown>> = {}
+  for (const [type, policy] of Object.entries(entityKeyPolicies)) {
+    mergedTypePolicies[type] = { ...policy }
+  }
+  for (const [type, policy] of Object.entries(entityPaginationPolicies)) {
+    mergedTypePolicies[type] = { ...mergedTypePolicies[type], ...policy }
+  }
+
   const cache = new InMemoryCache({
     typePolicies: {
-      ...entityKeyPolicies,
-      ...entityPaginationPolicies,
+      ...mergedTypePolicies,
       Query: { fields: queryPaginationPolicies },
     },
   })
