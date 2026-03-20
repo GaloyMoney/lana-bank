@@ -13,7 +13,7 @@ use crate::{
         CreditFacilityEodProcessConfig, CreditFacilityEodProcessSpawner,
     },
     deposit_activity_process::{DepositActivityProcessConfig, DepositActivityProcessSpawner},
-    eod_process::{EodProcesses, NewEodProcess, error::EodProcessError},
+    eod_process::{EodProcesses, NewEodProcess},
     event::CoreTimeEvent,
     obligation_status_process::{ObligationStatusProcessConfig, ObligationStatusProcessSpawner},
     primitives::*,
@@ -87,6 +87,29 @@ where
     }
 }
 
+/// Internal state for the EOD process manager, persisted via job execution
+/// state. The PM dispatches on its own state rather than querying the entity's
+/// status, following the same pattern as other process managers in the codebase.
+#[derive(Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+enum EodProcessManagerState {
+    /// Create the EodProcess entity if it does not already exist.
+    #[default]
+    Initializing,
+    /// Spawn obligation-status and deposit-activity child jobs and record
+    /// them on the entity.
+    SpawningObligationsAndDeposits,
+    /// Wait for the obligation and deposit child jobs to complete.
+    AwaitingObligationsAndDeposits {
+        obligation_job: JobId,
+        deposit_job: JobId,
+    },
+    /// Wait for the credit-facility EOD child job to complete.
+    AwaitingCreditFacilityEod { credit_facility_job: JobId },
+    /// Terminal: the process has finished (completed or failed).
+    Done,
+}
+
 struct EodProcessManagerJobRunner<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
@@ -114,166 +137,162 @@ where
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        loop {
-            let process = match self
-                .eod_processes
-                .maybe_find_by_id(self.config.process_id)
-                .await?
-            {
-                Some(p) => p,
-                None => {
-                    let new_process = NewEodProcess::builder()
-                        .id(self.config.process_id)
-                        .date(self.config.date)
-                        .build()?;
-                    let mut op = current_job.begin_op().await?;
-                    self.eod_processes
-                        .create_in_op(&mut op, new_process)
-                        .await?;
-                    op.commit().await?;
-                    continue;
-                }
-            };
+        let state = current_job
+            .execution_state::<EodProcessManagerState>()?
+            .unwrap_or_default();
 
-            // lint:allow(service-conditionals)
-            match process.status() {
-                EodProcessStatus::Initialized => {
-                    let obligation_job = JobId::new();
-                    let deposit_job = JobId::new();
-
-                    let mut op = current_job.begin_op().await?;
-
-                    self.obligation_status_process_spawner
-                        .spawn_in_op(
-                            &mut op,
-                            obligation_job,
-                            ObligationStatusProcessConfig {
-                                date: self.config.date,
-                            },
-                        )
-                        .await?;
-
-                    self.deposit_activity_process_spawner
-                        .spawn_in_op(
-                            &mut op,
-                            deposit_job,
-                            DepositActivityProcessConfig {
-                                date: self.config.date,
-                                closing_time: self.config.closing_time,
-                            },
-                        )
-                        .await?;
-
-                    let mut process = self
-                        .eod_processes
-                        .find_by_id_in_op(&mut op, self.config.process_id)
-                        .await?;
-                    let _ = process.start_obligations_and_deposits(obligation_job, deposit_job)?;
-                    self.eod_processes
-                        .update_in_op(&mut op, &mut process)
-                        .await?;
-
-                    op.commit().await?;
-                    continue;
-                }
-
-                EodProcessStatus::AwaitingObligationsAndDeposits => {
-                    let (obligation_job, deposit_job) = process
-                        .obligations_and_deposits_job_ids()
-                        .ok_or(EodProcessError::MissingJobIds {
-                            field: "obligation_job_id/deposit_job_id",
-                            status: "AwaitingObligationsAndDeposits",
-                        })?;
-
-                    let job_ids = [obligation_job, deposit_job];
-                    let terminals = match process_manager::await_job_completions(
-                        &mut current_job,
-                        &self.jobs,
-                        &job_ids,
+        match state {
+            EodProcessManagerState::Initializing => {
+                let new_process = NewEodProcess::builder()
+                    .id(self.config.process_id)
+                    .date(self.config.date)
+                    .build()?;
+                let mut op = current_job.begin_op().await?;
+                self.eod_processes
+                    .create_in_op(&mut op, new_process)
+                    .await?;
+                current_job
+                    .update_execution_state_in_op(
+                        &mut op,
+                        &EodProcessManagerState::SpawningObligationsAndDeposits,
                     )
-                    .await?
-                    {
-                        Some(t) => t,
-                        None => return Ok(JobCompletion::RescheduleNow),
-                    };
-
-                    let credit_facility_job = JobId::new();
-                    let mut op = current_job.begin_op().await?;
-                    let mut process = self
-                        .eod_processes
-                        .find_by_id_in_op(&mut op, self.config.process_id)
-                        .await?;
-
-                    let advanced = process.complete_obligations_and_deposits(
-                        terminals[0].state().into(),
-                        terminals[1].state().into(),
-                        credit_facility_job,
-                    )?;
-
-                    if let Idempotent::Executed(true) = advanced {
-                        self.credit_facility_eod_process_spawner
-                            .spawn_in_op(
-                                &mut op,
-                                credit_facility_job,
-                                CreditFacilityEodProcessConfig {
-                                    date: self.config.date,
-                                },
-                            )
-                            .await?;
-                    }
-
-                    self.eod_processes
-                        .update_in_op(&mut op, &mut process)
-                        .await?;
-                    op.commit().await?;
-                    continue;
-                }
-
-                EodProcessStatus::AwaitingCreditFacilityEod => {
-                    let credit_facility_job =
-                        process
-                            .credit_facility_job_id()
-                            .ok_or(EodProcessError::MissingJobIds {
-                                field: "credit_facility_job_id",
-                                status: "AwaitingCreditFacilityEod",
-                            })?;
-
-                    let job_ids = [credit_facility_job];
-                    let terminals = match process_manager::await_job_completions(
-                        &mut current_job,
-                        &self.jobs,
-                        &job_ids,
-                    )
-                    .await?
-                    {
-                        Some(t) => t,
-                        None => return Ok(JobCompletion::RescheduleNow),
-                    };
-
-                    let mut op = current_job.begin_op().await?;
-                    let mut process = self
-                        .eod_processes
-                        .find_by_id_in_op(&mut op, self.config.process_id)
-                        .await?;
-
-                    let _ = process.complete_credit_facility_eod(terminals[0].state().into())?;
-
-                    self.eod_processes
-                        .update_in_op(&mut op, &mut process)
-                        .await?;
-                    return Ok(JobCompletion::CompleteWithOp(op));
-                }
-
-                EodProcessStatus::Completed
-                | EodProcessStatus::Failed
-                | EodProcessStatus::Cancelled => return Ok(JobCompletion::Complete),
-
-                EodProcessStatus::ObligationsAndDepositsComplete => {
-                    return Err(
-                        "Unexpected ObligationsAndDepositsComplete state in process manager".into(),
-                    );
-                }
+                    .await?;
+                Ok(JobCompletion::RescheduleNowWithOp(op))
             }
+
+            EodProcessManagerState::SpawningObligationsAndDeposits => {
+                let obligation_job = JobId::new();
+                let deposit_job = JobId::new();
+
+                let mut op = current_job.begin_op().await?;
+
+                self.obligation_status_process_spawner
+                    .spawn_in_op(
+                        &mut op,
+                        obligation_job,
+                        ObligationStatusProcessConfig {
+                            date: self.config.date,
+                        },
+                    )
+                    .await?;
+
+                self.deposit_activity_process_spawner
+                    .spawn_in_op(
+                        &mut op,
+                        deposit_job,
+                        DepositActivityProcessConfig {
+                            date: self.config.date,
+                            closing_time: self.config.closing_time,
+                        },
+                    )
+                    .await?;
+
+                let mut process = self
+                    .eod_processes
+                    .find_by_id_in_op(&mut op, self.config.process_id)
+                    .await?;
+                let _ = process.start_obligations_and_deposits(obligation_job, deposit_job)?;
+                self.eod_processes
+                    .update_in_op(&mut op, &mut process)
+                    .await?;
+
+                current_job
+                    .update_execution_state_in_op(
+                        &mut op,
+                        &EodProcessManagerState::AwaitingObligationsAndDeposits {
+                            obligation_job,
+                            deposit_job,
+                        },
+                    )
+                    .await?;
+                Ok(JobCompletion::RescheduleNowWithOp(op))
+            }
+
+            EodProcessManagerState::AwaitingObligationsAndDeposits {
+                obligation_job,
+                deposit_job,
+            } => {
+                let job_ids = [obligation_job, deposit_job];
+                let terminals = match process_manager::await_job_completions(
+                    &mut current_job,
+                    &self.jobs,
+                    &job_ids,
+                )
+                .await?
+                {
+                    Some(t) => t,
+                    None => return Ok(JobCompletion::RescheduleNow),
+                };
+
+                let credit_facility_job = JobId::new();
+                let mut op = current_job.begin_op().await?;
+                let mut process = self
+                    .eod_processes
+                    .find_by_id_in_op(&mut op, self.config.process_id)
+                    .await?;
+
+                let advanced = process.complete_obligations_and_deposits(
+                    terminals[0].state().into(),
+                    terminals[1].state().into(),
+                    credit_facility_job,
+                )?;
+
+                let next_state = if let Idempotent::Executed(true) = advanced {
+                    self.credit_facility_eod_process_spawner
+                        .spawn_in_op(
+                            &mut op,
+                            credit_facility_job,
+                            CreditFacilityEodProcessConfig {
+                                date: self.config.date,
+                            },
+                        )
+                        .await?;
+                    EodProcessManagerState::AwaitingCreditFacilityEod {
+                        credit_facility_job,
+                    }
+                } else {
+                    EodProcessManagerState::Done
+                };
+
+                self.eod_processes
+                    .update_in_op(&mut op, &mut process)
+                    .await?;
+                current_job
+                    .update_execution_state_in_op(&mut op, &next_state)
+                    .await?;
+                Ok(JobCompletion::RescheduleNowWithOp(op))
+            }
+
+            EodProcessManagerState::AwaitingCreditFacilityEod {
+                credit_facility_job,
+            } => {
+                let job_ids = [credit_facility_job];
+                let terminals = match process_manager::await_job_completions(
+                    &mut current_job,
+                    &self.jobs,
+                    &job_ids,
+                )
+                .await?
+                {
+                    Some(t) => t,
+                    None => return Ok(JobCompletion::RescheduleNow),
+                };
+
+                let mut op = current_job.begin_op().await?;
+                let mut process = self
+                    .eod_processes
+                    .find_by_id_in_op(&mut op, self.config.process_id)
+                    .await?;
+
+                let _ = process.complete_credit_facility_eod(terminals[0].state().into())?;
+
+                self.eod_processes
+                    .update_in_op(&mut op, &mut process)
+                    .await?;
+                Ok(JobCompletion::CompleteWithOp(op))
+            }
+
+            EodProcessManagerState::Done => Ok(JobCompletion::Complete),
         }
     }
 }
