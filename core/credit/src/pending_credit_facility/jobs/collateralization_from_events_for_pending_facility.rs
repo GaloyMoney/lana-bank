@@ -37,7 +37,7 @@ use super::update_pending_collateralization::UpdatePendingCollateralizationConfi
 pub const PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("outbox.pending-credit-facility-collateralization-from-events");
 
-const PAGE_SIZE: usize = 100;
+const PAGE_SIZE: usize = 10;
 
 pub struct PendingCreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
