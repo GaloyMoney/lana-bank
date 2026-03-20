@@ -172,16 +172,8 @@ impl PendingCreditFacility {
     }
 
     pub fn normalized_collateralization_ratio(&self) -> CollateralizationRatio {
-        match (
-            self.last_collateralization_ratio(),
-            self.terms.margin_call_cvl,
-        ) {
-            (CollateralizationRatio::Infinite, _) => CollateralizationRatio::Infinite,
-            (_, CVLPct::Infinite) => CollateralizationRatio::default(),
-            (CollateralizationRatio::Finite(ratio), CVLPct::Finite(margin_call)) => {
-                CollateralizationRatio::Finite(ratio / margin_call)
-            }
-        }
+        self.terms
+            .normalize_collateralization_ratio(self.last_collateralization_ratio())
     }
 
     pub fn last_collateralization_state(&self) -> PendingCreditFacilityCollateralizationState {

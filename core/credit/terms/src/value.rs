@@ -275,6 +275,19 @@ impl TermValues {
         price.cents_to_sats_round_up(collateral_value)
     }
 
+    pub fn normalize_collateralization_ratio(
+        &self,
+        ratio: CollateralizationRatio,
+    ) -> CollateralizationRatio {
+        match (ratio, self.margin_call_cvl) {
+            (CollateralizationRatio::Infinite, _) => CollateralizationRatio::Infinite,
+            (_, CVLPct::Infinite) => CollateralizationRatio::default(),
+            (CollateralizationRatio::Finite(r), CVLPct::Finite(m)) => {
+                CollateralizationRatio::Finite(r / m)
+            }
+        }
+    }
+
     pub fn collateralization(&self, cvl: CVLPct) -> CollateralizationState {
         let margin_call_cvl = self.margin_call_cvl;
         let liquidation_cvl = self.liquidation_cvl;
