@@ -100,6 +100,14 @@
       "description": "Can update exposed configuration values",
       "label": "Exposed Config Writer"
     },
+    "fx_viewer": {
+      "description": "Can view FX chart of accounts integration configuration",
+      "label": "Fx Viewer"
+    },
+    "fx_writer": {
+      "description": "Can update FX chart of accounts integration configuration",
+      "label": "Fx Writer"
+    },
     "governance_viewer": {
       "description": "Can view governance committees, policies, and approval processes",
       "label": "Governance Viewer"
@@ -137,6 +145,7 @@
     "CREDIT_FACILITY_ACCRUE_INTEREST": "Credit Facility Accrue Interest",
     "CREDIT_FACILITY_POST_ACCRUED_INTEREST": "Credit Facility Post Accrued Interest",
     "DENY_WITHDRAW": "Deny Withdraw",
+    "FIAT_FX_CONVERSION_VIA_TRADING": "Fiat Fx Conversion Via Trading",
     "FREEZE_ACCOUNT": "Freeze Account",
     "INITIAL_DISBURSAL": "Initial Disbursal",
     "INITIATE_CREDIT_FACILITY_DISBURSAL": "Initiate Credit Facility Disbursal",
@@ -164,6 +173,7 @@
     "Confirm a withdraw": "Confirm a withdraw",
     "Create credit facility": "Create credit facility",
     "Deny a withdraw": "Deny a withdraw",
+    "Fiat FX conversion via trading account": "Fiat FX conversion via trading account",
     "Freeze a deposit account": "Freeze a deposit account",
     "Initial disbursal": "Initial disbursal",
     "Initiate a withdraw": "Initiate a withdraw",

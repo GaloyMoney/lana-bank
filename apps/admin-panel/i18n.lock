@@ -2152,6 +2152,10 @@ checksums:
     Permissions/exposed_config_viewer/label: 1e7fa415f3f0c0d28c98d3483082a47f
     Permissions/exposed_config_writer/description: d6ba621e02e5d15b8db61a840536b866
     Permissions/exposed_config_writer/label: 74330c81e4df63525f7a2f066bfec1ac
+    Permissions/fx_viewer/description: 48dc1a5524bb95ca8af2a0a1d54748fa
+    Permissions/fx_viewer/label: 2096c15370c7f8056c9321e5c74fe73a
+    Permissions/fx_writer/description: b05701757f0a4d949a5448e732fc6ebd
+    Permissions/fx_writer/label: cf23485a32ec8fbcaf5e19b7148d3d64
     Permissions/governance_viewer/description: 84a7ff7991222611fe8a7d55bd61aacc
     Permissions/governance_viewer/label: bfcc6123d91209cf8ca012200b6cd556
     Permissions/governance_writer/description: 56c0335d078338288795e0cd66062197
@@ -2175,6 +2179,7 @@ checksums:
     TemplateCodes/CREDIT_FACILITY_ACCRUE_INTEREST: d158f772d160a14fd2291f5e32f73e0e
     TemplateCodes/CREDIT_FACILITY_POST_ACCRUED_INTEREST: c5d78cb952cdce1d3663c5c9f2578bcf
     TemplateCodes/DENY_WITHDRAW: a50d1ebc2397df8a635cf6c1fa84b89b
+    TemplateCodes/FIAT_FX_CONVERSION_VIA_TRADING: 5afadfe2c03e493443b338f91924b1d9
     TemplateCodes/FREEZE_ACCOUNT: 21fbbd763d20c0e6833e6a314fd2431b
     TemplateCodes/INITIAL_DISBURSAL: e4c7c6c24553c24286e69380da6e16aa
     TemplateCodes/INITIATE_CREDIT_FACILITY_DISBURSAL: 2712512bf354da679d57a3ddd3ba6ced
@@ -2200,6 +2205,7 @@ checksums:
     TransactionDescriptions/Confirm%20a%20withdraw: adb4c6e28624bed4fe3cfcb839d6705e
     TransactionDescriptions/Create%20credit%20facility: 10ad40e54707c46e08b17090630a8c4d
     TransactionDescriptions/Deny%20a%20withdraw: bfee76c64a428b2e791ef597eabf5e8e
+    TransactionDescriptions/Fiat%20FX%20conversion%20via%20trading%20account: 7233bb47d05fb4ef5f9f7be3483442e5
     TransactionDescriptions/Freeze%20a%20deposit%20account: 9fcd878b20db56fa3baa1566e5012ce2
     TransactionDescriptions/Initial%20disbursal: 21a0fb8d032b0ed75491497035592329
     TransactionDescriptions/Initiate%20a%20withdraw: 1bc1e3a099f6339b024dbdcd1ee37322
