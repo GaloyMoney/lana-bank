@@ -20,16 +20,16 @@ pub use config::NotificationConfig;
 use email::job::EMAIL_LISTENER_JOB;
 pub use email::{NotificationFromEmail, NotificationFromName};
 
-pub struct Notification<AuthzType>
+pub struct Notification<Perms>
 where
-    AuthzType: authz::PermissionCheck,
+    Perms: authz::PermissionCheck,
 {
-    _authz: std::marker::PhantomData<AuthzType>,
+    _authz: std::marker::PhantomData<Perms>,
 }
 
-impl<AuthzType> Clone for Notification<AuthzType>
+impl<Perms> Clone for Notification<Perms>
 where
-    AuthzType: authz::PermissionCheck,
+    Perms: authz::PermissionCheck,
 {
     fn clone(&self) -> Self {
         Self {
@@ -38,24 +38,24 @@ where
     }
 }
 
-impl<AuthzType> Notification<AuthzType>
+impl<Perms> Notification<Perms>
 where
-    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+    Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_credit_collection::CoreCreditCollectionAction>
         + From<core_credit_collateral::CoreCreditCollateralAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>
         + From<core_credit_collateral::CoreCreditCollateralObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
     #[record_error_severity]
@@ -64,12 +64,12 @@ where
         config: NotificationConfig,
         jobs: &mut Jobs,
         outbox: &obix::Outbox<LanaEvent>,
-        users: &Users<AuthzType::Audit, LanaEvent>,
-        credit: &CoreCredit<AuthzType, LanaEvent>,
-        customers: &Customers<AuthzType, LanaEvent>,
+        users: &Users<Perms::Audit, LanaEvent>,
+        credit: &CoreCredit<Perms, LanaEvent>,
+        customers: &Customers<Perms, LanaEvent>,
         domain_configs: &ExposedDomainConfigsReadOnly,
     ) -> Result<Self, NotificationError> {
-        let handler = email::init::<AuthzType>(
+        let handler = email::init::<Perms>(
             jobs,
             domain_configs,
             config.email.clone(),
