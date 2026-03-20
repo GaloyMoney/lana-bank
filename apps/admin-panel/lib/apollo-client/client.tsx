@@ -235,8 +235,8 @@ export const makeClient = ({
       TransactionTemplate: {
         keyFields: ["transactionTemplateId"],
       },
-      AccountingCsvDocument: {
-        keyFields: ["accountingCsvDocumentId"],
+      LedgerAccountCsvDocument: {
+        keyFields: ["ledgerAccountCsvDocumentId"],
       },
       Report: {
         keyFields: ["reportId"],

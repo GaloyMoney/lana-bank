@@ -55,7 +55,7 @@ impl Query {
         Ok(app.time_state(sub).await?.into())
     }
 
-    async fn app_config(&self, ctx: &Context<'_>) -> super::primitives::Yaml {
+    async fn app_config(&self, ctx: &Context<'_>) -> String {
         ctx.data_unchecked::<super::AppConfig>().0.clone()
     }
 
@@ -1273,11 +1273,11 @@ impl Query {
         Ok(agreement.map(LoanAgreement::from))
     }
 
-    async fn account_entry_csv(
+    async fn ledger_account_csv(
         &self,
         ctx: &Context<'_>,
         ledger_account_id: UUID,
-    ) -> async_graphql::Result<Option<AccountingCsvDocument>> {
+    ) -> async_graphql::Result<Option<LedgerAccountCsvDocument>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let latest = app
@@ -1285,7 +1285,7 @@ impl Query {
             .csvs()
             .get_latest_for_ledger_account_id(sub, ledger_account_id)
             .await?
-            .map(AccountingCsvDocument::from);
+            .map(LedgerAccountCsvDocument::from);
 
         Ok(latest)
     }
@@ -2663,15 +2663,15 @@ impl Mutation {
             .create_ledger_account_csv(sub, input.ledger_account_id)
             .await?;
 
-        let csv_document = AccountingCsvDocument::from(csv);
+        let csv_document = LedgerAccountCsvDocument::from(csv);
         Ok(LedgerAccountCsvCreatePayload::from(csv_document))
     }
 
-    pub async fn accounting_csv_download_link_generate(
+    pub async fn ledger_account_csv_download_link_generate(
         &self,
         ctx: &Context<'_>,
-        input: AccountingCsvDownloadLinkGenerateInput,
-    ) -> async_graphql::Result<AccountingCsvDownloadLinkGeneratePayload> {
+        input: LedgerAccountCsvDownloadLinkGenerateInput,
+    ) -> async_graphql::Result<LedgerAccountCsvDownloadLinkGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let result = app
             .accounting()
@@ -2679,9 +2679,9 @@ impl Mutation {
             .generate_download_link(sub, input.document_id.into())
             .await?;
 
-        let link = AccountingCsvDownloadLink::from(result);
+        let link = LedgerAccountCsvDownloadLink::from(result);
 
-        Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
+        Ok(LedgerAccountCsvDownloadLinkGeneratePayload::from(link))
     }
 
     pub async fn credit_facility_agreement_generate(

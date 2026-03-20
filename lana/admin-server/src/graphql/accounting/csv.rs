@@ -8,8 +8,8 @@ use std::sync::Arc;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct AccountingCsvDocument {
-    accounting_csv_document_id: UUID,
+pub struct LedgerAccountCsvDocument {
+    ledger_account_csv_document_id: UUID,
     ledger_account_id: UUID,
     status: DocumentStatus,
     created_at: Timestamp,
@@ -18,10 +18,10 @@ pub struct AccountingCsvDocument {
     pub entity: Arc<DomainDocument>,
 }
 
-impl From<DomainDocument> for AccountingCsvDocument {
+impl From<DomainDocument> for LedgerAccountCsvDocument {
     fn from(document: DomainDocument) -> Self {
         Self {
-            accounting_csv_document_id: UUID::from(document.id),
+            ledger_account_csv_document_id: UUID::from(document.id),
             ledger_account_id: UUID::from(document.reference_id),
             status: document.status,
             created_at: document.created_at().into(),
@@ -31,19 +31,19 @@ impl From<DomainDocument> for AccountingCsvDocument {
 }
 
 #[ComplexObject]
-impl AccountingCsvDocument {
+impl LedgerAccountCsvDocument {
     async fn filename(&self) -> &str {
         &self.entity.filename
     }
 }
 
 #[derive(SimpleObject)]
-pub struct AccountingCsvDownloadLink {
+pub struct LedgerAccountCsvDownloadLink {
     pub url: String,
     pub csv_id: UUID,
 }
 
-impl From<GeneratedDocumentDownloadLink> for AccountingCsvDownloadLink {
+impl From<GeneratedDocumentDownloadLink> for LedgerAccountCsvDownloadLink {
     fn from(result: GeneratedDocumentDownloadLink) -> Self {
         Self {
             url: result.link,
@@ -61,10 +61,10 @@ pub struct LedgerAccountCsvExportUploadedPayload {
 pub struct LedgerAccountCsvCreateInput {
     pub ledger_account_id: UUID,
 }
-crate::mutation_payload! { LedgerAccountCsvCreatePayload, accounting_csv_document: AccountingCsvDocument }
+crate::mutation_payload! { LedgerAccountCsvCreatePayload, ledger_account_csv_document: LedgerAccountCsvDocument }
 
 #[derive(InputObject)]
-pub struct AccountingCsvDownloadLinkGenerateInput {
+pub struct LedgerAccountCsvDownloadLinkGenerateInput {
     pub document_id: UUID,
 }
-crate::mutation_payload! { AccountingCsvDownloadLinkGeneratePayload, link: AccountingCsvDownloadLink }
+crate::mutation_payload! { LedgerAccountCsvDownloadLinkGeneratePayload, link: LedgerAccountCsvDownloadLink }

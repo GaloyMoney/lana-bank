@@ -1,9 +1,0 @@
-query AccountEntryCsv($ledgerAccountId: UUID!) {
-  accountEntryCsv(ledgerAccountId: $ledgerAccountId) {
-    accountingCsvDocumentId
-    ledgerAccountId
-    status
-    createdAt
-    filename
-  }
-}

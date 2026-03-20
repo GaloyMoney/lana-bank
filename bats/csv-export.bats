@@ -22,8 +22,8 @@ wait_for_csv_export_completion() {
       --arg ledgerAccountId "$ledger_account_id" \
     '{ ledgerAccountId: $ledgerAccountId }'
   )
-  exec_admin_graphql 'account-entry-csv' "$variables"
-  status=$(graphql_output '.data.accountEntryCsv.status')
+  exec_admin_graphql 'ledger-account-csv' "$variables"
+  status=$(graphql_output '.data.ledgerAccountCsv.status')
   [[ "$status" == "ACTIVE" ]] || return 1
 }
 
@@ -55,7 +55,7 @@ wait_for_csv_export_completion() {
   )
 
   exec_admin_graphql 'ledger-account-csv-create' "$variables"
-  document_id=$(graphql_output '.data.ledgerAccountCsvCreate.accountingCsvDocument.accountingCsvDocumentId')
+  document_id=$(graphql_output '.data.ledgerAccountCsvCreate.ledgerAccountCsvDocument.ledgerAccountCsvDocumentId')
   [[ "$document_id" != "null" ]] || exit 1
 
   # Wait for the async CSV generation job to complete
@@ -71,8 +71,8 @@ wait_for_csv_export_completion() {
       }'
   )
 
-  exec_admin_graphql 'accounting-csv-download-link-generate' "$variables"
-  download_url=$(graphql_output '.data.accountingCsvDownloadLinkGenerate')
+  exec_admin_graphql 'ledger-account-csv-download-link-generate' "$variables"
+  download_url=$(graphql_output '.data.ledgerAccountCsvDownloadLinkGenerate')
 
   [[ "$download_url" != "null" ]] || exit 1
 }

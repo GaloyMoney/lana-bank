@@ -1,0 +1,10 @@
+mutation LedgerAccountCsvDownloadLinkGenerate(
+  $input: LedgerAccountCsvDownloadLinkGenerateInput!
+) {
+  ledgerAccountCsvDownloadLinkGenerate(input: $input) {
+    link {
+      url
+      csvId
+    }
+  }
+}
