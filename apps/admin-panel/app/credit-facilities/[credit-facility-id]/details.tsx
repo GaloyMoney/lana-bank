@@ -50,7 +50,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     useCreditFacilityAgreement()
 
   const handleGenerateCreditFacilityAgreement = () => {
-    generateCreditFacilityAgreementPdf(creditFacilityDetails.customer.customerId)
+    generateCreditFacilityAgreementPdf(creditFacilityDetails.creditFacilityId)
   }
 
   const details: DetailItemProps[] = [

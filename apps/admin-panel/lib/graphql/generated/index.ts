@@ -583,7 +583,7 @@ export type CreditFacilityAgreementDownloadLinksGeneratePayload = {
 };
 
 export type CreditFacilityAgreementGenerateInput = {
-  customerId: Scalars['UUID']['input'];
+  creditFacilityId: Scalars['UUID']['input'];
 };
 
 export type CreditFacilityAgreementGeneratePayload = {

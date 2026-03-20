@@ -517,7 +517,7 @@ type CreditFacilityAgreementDownloadLinksGeneratePayload {
 }
 
 input CreditFacilityAgreementGenerateInput {
-	customerId: UUID!
+	creditFacilityId: UUID!
 }
 
 type CreditFacilityAgreementGeneratePayload {

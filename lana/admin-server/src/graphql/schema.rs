@@ -2691,10 +2691,18 @@ impl Mutation {
     ) -> async_graphql::Result<CreditFacilityAgreementGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
+        let credit_facility = app
+            .credit()
+            .facilities()
+            .find_by_id(sub, input.credit_facility_id)
+            .await?
+            .ok_or_else(|| Error::new("credit facility not found"))?;
+        let customer_id = credit_facility.customer_id;
+
         // Create async job for credit facility agreement generation
         let credit_facility_agreement = app
             .contract_creation()
-            .initiate_credit_facility_agreement_generation(sub, input.customer_id)
+            .initiate_credit_facility_agreement_generation(sub, customer_id)
             .await?;
 
         let credit_facility_agreement = CreditFacilityAgreement::from(credit_facility_agreement);

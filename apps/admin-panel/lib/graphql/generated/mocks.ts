@@ -734,7 +734,7 @@ export const mockCreditFacilityAgreementGenerateInput = (overrides?: Partial<Cre
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityAgreementGenerateInput');
     return {
-        customerId: overrides && overrides.hasOwnProperty('customerId') ? overrides.customerId! : generateMockValue.uuid(),
+        creditFacilityId: overrides && overrides.hasOwnProperty('creditFacilityId') ? overrides.creditFacilityId! : generateMockValue.uuid(),
     };
 };
 

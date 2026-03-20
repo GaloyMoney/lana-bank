@@ -129,13 +129,13 @@ export const useCreditFacilityAgreement = () => {
   )
 
   const generateCreditFacilityAgreementPdf = useCallback(
-    async (customerId: string) => {
+    async (creditFacilityId: string) => {
       setIsGenerating(true)
       try {
         const generateResult = await generateAgreement({
           variables: {
             input: {
-              customerId,
+              creditFacilityId,
             },
           },
         })
