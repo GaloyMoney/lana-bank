@@ -60,6 +60,14 @@ where
         Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
+    pub async fn maybe_find_by_id_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        id: EodProcessId,
+    ) -> Result<Option<EodProcess>, EodProcessError> {
+        Ok(self.repo.maybe_find_by_id_in_op(op, id).await?)
+    }
+
     pub async fn find_by_id_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
