@@ -1649,6 +1649,18 @@ export type DurationInput = {
   units: Scalars['Int']['input'];
 };
 
+export type EndOfDayEvent = {
+  __typename?: 'EndOfDayEvent';
+  /** The UTC timestamp at which the end-of-day closing occurred. */
+  completedAt: Scalars['Timestamp']['output'];
+  /** The new current business date after the transition. */
+  currentDate: Scalars['Date']['output'];
+  /** The business date that was closed by this end-of-day transition. */
+  previousDate: Scalars['Date']['output'];
+  /** The updated clock state after the transition. */
+  time: Time;
+};
+
 export type EventTimelineEntry = {
   __typename?: 'EventTimelineEntry';
   auditEntryId?: Maybe<Scalars['AuditEntryId']['output']>;
@@ -3600,11 +3612,13 @@ export type Subscription = {
   creditFacilityProposalUpdated: CreditFacilityProposal;
   creditFacilityUpdated: CreditFacility;
   disbursalUpdated: CreditFacilityDisbursal;
+  endOfDayCompleted: EndOfDayEvent;
   ledgerAccountCsvExportUploaded: LedgerAccountCsvExportUploadedPayload;
   pendingCreditFacilityUpdated: PendingCreditFacility;
   prospectUpdated: Prospect;
   realtimePriceUpdated: RealtimePrice;
   reportRunUpdated: ReportRunUpdatedPayload;
+  timeUpdated: Time;
   withdrawalUpdated: Withdrawal;
 };
 

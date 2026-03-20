@@ -31,6 +31,34 @@ impl From<lana_app::time_events::TimeState> for Time {
     }
 }
 
+#[derive(SimpleObject, Clone)]
+pub struct EndOfDayEvent {
+    /// The business date that was closed by this end-of-day transition.
+    previous_date: Date,
+    /// The new current business date after the transition.
+    current_date: Date,
+    /// The UTC timestamp at which the end-of-day closing occurred.
+    completed_at: Timestamp,
+    /// The updated clock state after the transition.
+    time: Time,
+}
+
+impl EndOfDayEvent {
+    pub fn new(
+        previous_date: Date,
+        current_date: Date,
+        completed_at: Timestamp,
+        time: Time,
+    ) -> Self {
+        Self {
+            previous_date,
+            current_date,
+            completed_at,
+            time,
+        }
+    }
+}
+
 crate::mutation_payload! {
     TimeAdvanceToNextEndOfDayPayload,
     time: Time

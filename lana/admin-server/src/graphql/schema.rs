@@ -14,6 +14,7 @@ use lana_app::customer::{CoreCustomerEvent, prospect_cursor::ProspectsCursor};
 use lana_app::deposit::CoreDepositEvent;
 use lana_app::price::CorePriceEvent;
 use lana_app::report::CoreReportEvent;
+use lana_app::time_events::CoreTimeEvent;
 use lana_app::{
     accounting_init::constants::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
@@ -3020,6 +3021,62 @@ impl Subscription {
                     Some(ReportRunUpdatedPayload {
                         report_run_id: UUID::from(entity.id),
                     })
+                }
+            }
+        });
+
+        Ok(filtered_stream)
+    }
+
+    async fn time_updated(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<impl Stream<Item = Time>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let app = app.clone();
+        let sub = sub.clone();
+        let outbox_stream = app.outbox().listen_persisted(None);
+        let filtered_stream = outbox_stream.filter_map(move |event| {
+            let app = app.clone();
+            let sub = sub.clone();
+            async move {
+                let _: &CoreTimeEvent = event.payload.as_ref()?.as_event()?;
+                app.time_state(&sub).await.ok().map(Time::from)
+            }
+        });
+
+        Ok(filtered_stream)
+    }
+
+    async fn end_of_day_completed(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<impl Stream<Item = EndOfDayEvent>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let app = app.clone();
+        let sub = sub.clone();
+        let outbox_stream = app.outbox().listen_persisted(None);
+        let filtered_stream = outbox_stream.filter_map(move |event| {
+            let app = app.clone();
+            let sub = sub.clone();
+            async move {
+                let time_event: &CoreTimeEvent = event.payload.as_ref()?.as_event()?;
+                match time_event {
+                    CoreTimeEvent::EndOfDay {
+                        day, closing_time, ..
+                    } => {
+                        let time_state = app.time_state(&sub).await.ok()?;
+                        let current_date = time_state.current_date.into();
+                        let time = Time::from(time_state);
+                        Some(EndOfDayEvent::new(
+                            (*day).into(),
+                            current_date,
+                            (*closing_time).into(),
+                            time,
+                        ))
+                    }
                 }
             }
         });

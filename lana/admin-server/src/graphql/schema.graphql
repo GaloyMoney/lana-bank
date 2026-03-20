@@ -1579,6 +1579,25 @@ input DurationInput {
 	units: Int!
 }
 
+type EndOfDayEvent {
+	"""
+	The UTC timestamp at which the end-of-day closing occurred.
+	"""
+	completedAt: Timestamp!
+	"""
+	The new current business date after the transition.
+	"""
+	currentDate: Date!
+	"""
+	The business date that was closed by this end-of-day transition.
+	"""
+	previousDate: Date!
+	"""
+	The updated clock state after the transition.
+	"""
+	time: Time!
+}
+
 type EventTimelineEntry {
 	auditEntryId: AuditEntryId
 	eventType: String!
@@ -2840,11 +2859,13 @@ type Subscription {
 	creditFacilityProposalUpdated(creditFacilityProposalId: UUID!): CreditFacilityProposal!
 	creditFacilityUpdated(creditFacilityId: UUID!): CreditFacility!
 	disbursalUpdated(disbursalId: UUID!): CreditFacilityDisbursal!
+	endOfDayCompleted: EndOfDayEvent!
 	ledgerAccountCsvExportUploaded(ledgerAccountId: UUID!): LedgerAccountCsvExportUploadedPayload!
 	pendingCreditFacilityUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacility!
 	prospectUpdated(prospectId: UUID!): Prospect!
 	realtimePriceUpdated: RealtimePrice!
 	reportRunUpdated: ReportRunUpdatedPayload!
+	timeUpdated: Time!
 	withdrawalUpdated(withdrawalId: UUID!): Withdrawal!
 }
 
