@@ -8,14 +8,14 @@ use crate::{
     withdrawal::{Withdrawal, WithdrawalStatus},
 };
 
-use money::Amount;
+use money::UntypedAmount;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct PublicWithdrawal {
     pub id: WithdrawalId,
     pub deposit_account_id: DepositAccountId,
-    pub amount: Amount,
+    pub amount: UntypedAmount,
     pub status: WithdrawalStatus,
 }
 

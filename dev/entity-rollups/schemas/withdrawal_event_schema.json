@@ -1,7 +1,6 @@
 {
   "$defs": {
     "Amount": {
-      "description": "A type-erased currency amount with compile-time safe construction.\n\nAll fields are private — the only way to create an `Amount` is from a typed\n`MinorUnits<C>`, which captures `CurrencyCode` and `MINOR_UNITS_PER_MAJOR`\nfrom the `Currency` trait at compile time. This guarantees the currency\nmetadata is always consistent with the stored value.\n\nTo recover the typed `MinorUnits<C>`, use [`to_minor_units`](Self::to_minor_units).",
       "properties": {
         "currency": {
           "$ref": "#/$defs/string"
@@ -58,6 +57,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "ledger_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
@@ -81,6 +84,7 @@
         "id",
         "ledger_tx_id",
         "deposit_account_id",
+        "ledger_account_id",
         "amount",
         "reference",
         "approval_process_id",

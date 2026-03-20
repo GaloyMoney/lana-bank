@@ -226,7 +226,7 @@ impl MinorUnits<Untyped> {
     }
 
     pub fn to_typed<C: StaticCurrency>(&self) -> Option<MinorUnits<C>> {
-        (self.meta.code == C::CODE).then(|| MinorUnits {
+        (self.meta.code == C::CODE).then_some(MinorUnits {
             value: self.value,
             meta: (),
             _phantom: PhantomData,

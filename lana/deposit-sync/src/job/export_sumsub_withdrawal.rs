@@ -5,8 +5,8 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_deposit::{
-    Amount, CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
-    GovernanceAction, GovernanceObject, WithdrawalId,
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
+    GovernanceAction, GovernanceObject, UntypedAmount, WithdrawalId,
 };
 use governance::GovernanceEvent;
 use job::*;
@@ -24,7 +24,7 @@ pub const EXPORT_SUMSUB_WITHDRAWAL_COMMAND: JobType =
 pub struct ExportSumsubWithdrawalConfig {
     pub deposit_account_id: DepositAccountId,
     pub withdrawal_id: WithdrawalId,
-    pub amount: Amount,
+    pub amount: UntypedAmount,
 }
 
 pub struct ExportSumsubWithdrawalJobInitializer<Perms, E>

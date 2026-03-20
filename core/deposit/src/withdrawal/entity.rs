@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use money::Amount;
+use money::UntypedAmount;
 
 use crate::primitives::{
     ApprovalProcessId, CalaAccountId, CalaTransactionId, DepositAccountId, PublicId, WithdrawalId,
@@ -47,7 +47,7 @@ pub enum WithdrawalEvent {
         ledger_tx_id: CalaTransactionId,
         deposit_account_id: DepositAccountId,
         ledger_account_id: CalaAccountId,
-        amount: Amount,
+        amount: UntypedAmount,
         reference: String,
         approval_process_id: ApprovalProcessId,
         status: WithdrawalStatus,
@@ -83,7 +83,7 @@ pub struct Withdrawal {
     pub deposit_account_id: DepositAccountId,
     pub ledger_account_id: CalaAccountId,
     pub reference: String,
-    pub amount: Amount,
+    pub amount: UntypedAmount,
     pub approval_process_id: ApprovalProcessId,
     pub public_id: PublicId,
     #[builder(setter(strip_option), default)]
@@ -97,7 +97,7 @@ pub struct WithdrawalReversalData {
     pub entity_id: WithdrawalId,
     pub ledger_tx_id: CalaTransactionId,
     pub credit_account_id: CalaAccountId,
-    pub amount: Amount,
+    pub amount: UntypedAmount,
     pub correlation_id: String,
     pub external_id: String,
 }
@@ -317,7 +317,7 @@ pub struct NewWithdrawal {
     #[builder(setter(into))]
     pub(super) ledger_account_id: CalaAccountId,
     #[builder(setter(into))]
-    pub(super) amount: Amount,
+    pub(super) amount: UntypedAmount,
     #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
@@ -380,7 +380,7 @@ mod test {
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
             .ledger_account_id(CalaAccountId::new())
-            .amount(Amount::from(UsdCents::ZERO))
+            .amount(UsdCents::ZERO)
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))
@@ -415,7 +415,7 @@ mod test {
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
             .ledger_account_id(CalaAccountId::new())
-            .amount(Amount::from(UsdCents::ONE))
+            .amount(UsdCents::ONE)
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))
@@ -429,7 +429,7 @@ mod test {
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
             .ledger_account_id(CalaAccountId::new())
-            .amount(Amount::from(UsdCents::ONE))
+            .amount(UsdCents::ONE)
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))
@@ -458,7 +458,7 @@ mod test {
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
             .ledger_account_id(CalaAccountId::new())
-            .amount(Amount::from(UsdCents::ONE))
+            .amount(UsdCents::ONE)
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))
@@ -488,7 +488,7 @@ mod test {
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
             .ledger_account_id(CalaAccountId::new())
-            .amount(Amount::from(UsdCents::ONE))
+            .amount(UsdCents::ONE)
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))

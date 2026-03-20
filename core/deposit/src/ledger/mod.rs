@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use audit::SystemSubject;
 use chrono::{DateTime, Utc};
+use money::{Currency, MinorUnits, UntypedAmount};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -27,7 +28,7 @@ use crate::{
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
     history::DepositAccountHistoryEntry,
     primitives::{
-        Amount, CalaAccountId, CalaAccountSetId, CurrencyCode, DEPOSIT_ACCOUNT_ENTITY_TYPE,
+        CalaAccountId, CalaAccountSetId, CurrencyCode, DEPOSIT_ACCOUNT_ENTITY_TYPE,
         DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountType, DepositId, WithdrawalId,
     },
 };
@@ -377,11 +378,11 @@ impl DepositLedger {
         skip_all,
         fields(entity_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
     )]
-    pub async fn record_deposit_in_op(
+    pub async fn record_deposit_in_op<C: Currency>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: DepositId,
-        amount: Amount,
+        amount: MinorUnits<C>,
         credit_account_id: impl Into<AccountId>,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
@@ -415,11 +416,11 @@ impl DepositLedger {
         skip_all,
         fields(entity_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
     )]
-    pub async fn initiate_withdrawal_in_op(
+    pub async fn initiate_withdrawal_in_op<C: Currency>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
-        amount: Amount,
+        amount: MinorUnits<C>,
         credit_account_id: impl Into<AccountId>,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
@@ -455,12 +456,12 @@ impl DepositLedger {
         skip_all,
         fields(entity_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
     )]
-    pub async fn deny_withdrawal_in_op(
+    pub async fn deny_withdrawal_in_op<C: Currency>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
         tx_id: impl Into<TransactionId>,
-        amount: Amount,
+        amount: MinorUnits<C>,
         credit_account_id: impl Into<AccountId>,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
@@ -667,13 +668,13 @@ impl DepositLedger {
         skip_all,
         fields(entity_id = tracing::field::Empty, tx_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
     )]
-    pub async fn confirm_withdrawal_in_op(
+    pub async fn confirm_withdrawal_in_op<C: Currency>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
         tx_id: impl Into<TransactionId>,
         correlation_id: String,
-        amount: Amount,
+        amount: MinorUnits<C>,
         credit_account_id: impl Into<AccountId>,
         external_id: String,
         initiated_by: &impl SystemSubject,
@@ -712,12 +713,12 @@ impl DepositLedger {
         skip_all,
         fields(entity_id = tracing::field::Empty, tx_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
     )]
-    pub async fn cancel_withdrawal_in_op(
+    pub async fn cancel_withdrawal_in_op<C: Currency>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
         tx_id: impl Into<TransactionId>,
-        amount: Amount,
+        amount: MinorUnits<C>,
         credit_account_id: impl Into<AccountId>,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
@@ -761,14 +762,14 @@ impl DepositLedger {
             .await
         {
             Ok(balances) => Ok(DepositAccountBalance {
-                settled: Amount::try_from_major(currency, balances.settled())?,
-                pending: Amount::try_from_major(currency, balances.pending())?,
+                settled: UntypedAmount::try_from_major(currency, balances.settled())?,
+                pending: UntypedAmount::try_from_major(currency, balances.pending())?,
             }),
             Err(cala_ledger::balance::error::BalanceError::NotFound(..)) => {
                 let zero = rust_decimal::Decimal::ZERO;
                 Ok(DepositAccountBalance {
-                    settled: Amount::try_from_major(currency, zero)?,
-                    pending: Amount::try_from_major(currency, zero)?,
+                    settled: UntypedAmount::try_from_major(currency, zero)?,
+                    pending: UntypedAmount::try_from_major(currency, zero)?,
                 })
             }
             Err(e) => Err(e.into()),

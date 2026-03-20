@@ -29,6 +29,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerO
 use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
+use money::{Currency, MinorUnits};
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use public_id::PublicIds;
 
@@ -375,14 +376,13 @@ where
 
     #[record_error_severity]
     #[instrument(name = "deposit.record_deposit", skip(self))]
-    pub async fn record_deposit(
+    pub async fn record_deposit<C: Currency>(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-        amount: impl Into<Amount> + std::fmt::Debug,
+        amount: MinorUnits<C>,
         reference: Option<String>,
     ) -> Result<Deposit, CoreDepositError> {
-        let amount = amount.into();
         let deposit_account_id = deposit_account_id.into();
         self.authz
             .enforce_permission(
@@ -406,7 +406,7 @@ where
             .ledger_transaction_id(deposit_id)
             .deposit_account_id(deposit_account_id)
             .ledger_account_id(ledger_account_id)
-            .amount(amount)
+            .amount(amount.to_untyped())
             .public_id(public_id.id)
             .reference(reference)
             .build()?;
@@ -420,14 +420,13 @@ where
 
     #[record_error_severity]
     #[instrument(name = "deposit.initiate_withdrawal", skip(self))]
-    pub async fn initiate_withdrawal(
+    pub async fn initiate_withdrawal<C: Currency>(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-        amount: impl Into<Amount> + std::fmt::Debug,
+        amount: MinorUnits<C>,
         reference: Option<String>,
     ) -> Result<Withdrawal, CoreDepositError> {
-        let amount = amount.into();
         let deposit_account_id = deposit_account_id.into();
         self.authz
             .enforce_permission(
@@ -450,7 +449,7 @@ where
             .id(withdrawal_id)
             .deposit_account_id(deposit_account_id)
             .ledger_account_id(ledger_account_id)
-            .amount(amount)
+            .amount(amount.to_untyped())
             .approval_process_id(withdrawal_id)
             .public_id(public_id.id)
             .reference(reference)

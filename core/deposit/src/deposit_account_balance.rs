@@ -1,12 +1,12 @@
-use money::Amount;
+use money::UntypedAmount;
 
 use crate::primitives::RestrictedCurrencyMap;
 
 /// Balance for a single currency within a deposit account.
 #[derive(Debug, Clone, Copy)]
 pub struct DepositAccountBalance {
-    pub settled: Amount,
-    pub pending: Amount,
+    pub settled: UntypedAmount,
+    pub pending: UntypedAmount,
 }
 
 impl DepositAccountBalance {

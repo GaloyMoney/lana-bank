@@ -40,7 +40,7 @@ impl From<DomainDeposit> for Deposit {
             account_id: UUID::from(deposit.deposit_account_id),
             amount: deposit
                 .amount
-                .to_minor_units::<Usd>()
+                .to_typed::<Usd>()
                 .expect("deposit amount is USD"),
             created_at: deposit.created_at().into(),
 

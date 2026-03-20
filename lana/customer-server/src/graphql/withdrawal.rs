@@ -27,7 +27,7 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
             withdrawal_id: UUID::from(withdraw.id),
             amount: withdraw
                 .amount
-                .to_minor_units::<Usd>()
+                .to_typed::<Usd>()
                 .expect("withdrawal amount is USD"),
             status: withdraw.status(),
             entity: Arc::new(withdraw),

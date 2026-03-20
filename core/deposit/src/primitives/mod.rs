@@ -42,7 +42,8 @@ es_entity::entity_id! {
 }
 
 pub use money::{
-    Amount, CurrencyCode, CurrencyMapError, CurrencySet, RestrictedCurrencyMap, Satoshis, UsdCents,
+    CurrencyCode, CurrencyMapError, CurrencySet, RestrictedCurrencyMap, Satoshis, UntypedAmount,
+    UsdCents,
 };
 
 #[derive(
