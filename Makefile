@@ -97,16 +97,12 @@ sdl-js:
 generate-translation-labels:
 	SQLX_OFFLINE=true cargo run --bin write_translation_labels
 
-generate-entity-keys:
-	SQLX_OFFLINE=true cargo run -p codegen --bin write_entity_keys > apps/admin-panel/lib/apollo-client/generated-key-fields.ts
-
-sdl: sdl-rust sdl-js generate-translation-labels generate-entity-keys
+sdl: sdl-rust sdl-js generate-translation-labels
 
 # Frontend Apps
-check-code-apps: sdl-js generate-entity-keys check-code-apps-admin-panel check-code-apps-customer-portal
+check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-portal
 	git diff --exit-code apps/admin-panel/lib/graphql/generated/
 	git diff --exit-code apps/customer-portal/lib/graphql/generated/
-	git diff --exit-code apps/admin-panel/lib/apollo-client/generated-key-fields.ts
 
 start-admin:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm dev

@@ -4,20 +4,23 @@ import {
   Resolvers,
   ApolloClient,
   InMemoryCache,
-  TypePolicies,
   split,
   ApolloLink,
   Observable,
   FetchResult,
   Operation,
 } from "@apollo/client"
-import { relayStylePagination, getMainDefinition } from "@apollo/client/utilities"
+import { getMainDefinition } from "@apollo/client/utilities"
 import { setContext } from "@apollo/client/link/context"
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs"
 import { createClient } from "graphql-sse"
 import { print } from "graphql"
 
-import { entityKeyFields } from "./generated-key-fields"
+import { entityKeyPolicies } from "@/lib/graphql/generated/entity-keys"
+import {
+  entityPaginationPolicies,
+  queryPaginationPolicies,
+} from "@/lib/graphql/generated/pagination"
 
 import { getToken } from "@/app/auth/keycloak"
 
@@ -104,180 +107,13 @@ export const makeClient = ({
     httpLink,
   )
 
-  // Build keyFields from generated @entityKey directives
-  const generatedKeyFields: TypePolicies = Object.fromEntries(
-    Object.entries(entityKeyFields).map(([typeName, kf]) => [
-      typeName,
-      { keyFields: [...kf] },
-    ]),
-  )
-
-  // Hand-maintained field policies (pagination, etc.)
-  const fieldPolicies: TypePolicies = {
-    AccountSetAndSubAccounts: {
-      fields: {
-        subAccounts: relayStylePagination(),
-      },
+  const cache = new InMemoryCache({
+    typePolicies: {
+      ...entityKeyPolicies,
+      ...entityPaginationPolicies,
+      Query: { fields: queryPaginationPolicies },
     },
-    LedgerAccount: {
-      fields: {
-        history: relayStylePagination(),
-      },
-    },
-    DepositAccount: {
-      fields: {
-        history: relayStylePagination(),
-        eventHistory: relayStylePagination(),
-      },
-    },
-    User: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    Customer: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    Prospect: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    CreditFacility: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    CreditFacilityProposal: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    CreditFacilityDisbursal: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    Committee: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    Policy: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    TermsTemplate: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    Liquidation: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    Deposit: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    Withdrawal: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    Role: {
-      fields: {
-        eventHistory: relayStylePagination(),
-      },
-    },
-    Query: {
-      fields: {
-        users: {
-          ...relayStylePagination(),
-          keyArgs: ["sort"],
-        },
-        roles: {
-          ...relayStylePagination(),
-          keyArgs: ["sort"],
-        },
-        customers: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
-        prospects: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
-        creditFacilities: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
-        creditFacilityProposals: {
-          ...relayStylePagination(),
-          keyArgs: ["sort", "filter"],
-        },
-        pendingCreditFacilities: {
-          ...relayStylePagination(),
-          keyArgs: ["sort", "filter"],
-        },
-        disbursals: {
-          ...relayStylePagination(),
-          keyArgs: ["sort", "filter"],
-        },
-        liquidations: {
-          ...relayStylePagination(),
-          keyArgs: ["sort"],
-        },
-        deposits: {
-          ...relayStylePagination(),
-          keyArgs: ["sort", "filter"],
-        },
-        withdrawals: {
-          ...relayStylePagination(),
-          keyArgs: ["sort", "filter"],
-        },
-        depositAccounts: {
-          ...relayStylePagination(),
-          keyArgs: ["sort", "filter"],
-        },
-        custodians: {
-          ...relayStylePagination(),
-          keyArgs: ["sort"],
-        },
-        priceProviders: {
-          ...relayStylePagination(),
-          keyArgs: ["sort"],
-        },
-        committees: {
-          ...relayStylePagination(),
-          keyArgs: ["sort"],
-        },
-        policies: relayStylePagination(),
-        fiscalYears: {
-          ...relayStylePagination(),
-          keyArgs: ["sort"],
-        },
-        audit: {
-          ...relayStylePagination(),
-          keyArgs: ["subject", "authorized", "object", "action"],
-        },
-        journalEntries: relayStylePagination(),
-        transactionTemplates: relayStylePagination(),
-        ledgerTransactionsForTemplateCode: {
-          ...relayStylePagination(),
-          keyArgs: ["templateCode"],
-        },
-        reportRuns: {
-          ...relayStylePagination(),
-          keyArgs: ["sort"],
-        },
-      },
-    },
-  }
-
-  // Merge generated keyFields with hand-written field policies
-  const typePolicies: TypePolicies = { ...generatedKeyFields }
-  for (const [typeName, policy] of Object.entries(fieldPolicies)) {
-    typePolicies[typeName] = { ...typePolicies[typeName], ...policy }
-  }
-
-  const cache = new InMemoryCache({ typePolicies })
+  })
 
   const resolvers: Resolvers = {
     CreditFacility: {
