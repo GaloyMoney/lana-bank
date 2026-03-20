@@ -188,7 +188,7 @@ where
         }
     }
 
-    async fn spawn_credit_facility_eod(
+    async fn spawn_credit_facility_eod_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         process: &mut EodProcess,
@@ -298,9 +298,10 @@ where
         let _ = process.complete_phase1_obligation(obligation_terminal)?;
         let _ = process.complete_phase1_deposit(deposit_terminal)?;
 
+        // lint:allow(service-conditionals)
         match process.evaluate_obligations_and_deposits_outcome() {
             PhaseOutcome::AllSucceeded => {
-                self.spawn_credit_facility_eod(&mut op, &mut process)
+                self.spawn_credit_facility_eod_in_op(&mut op, &mut process)
                     .await?;
             }
             PhaseOutcome::Failed { reason } => {
@@ -330,9 +331,10 @@ where
             .find_by_id_in_op(&mut op, self.config.process_id)
             .await?;
 
+        // lint:allow(service-conditionals)
         match process.evaluate_obligations_and_deposits_outcome() {
             PhaseOutcome::AllSucceeded => {
-                self.spawn_credit_facility_eod(&mut op, &mut process)
+                self.spawn_credit_facility_eod_in_op(&mut op, &mut process)
                     .await?;
             }
             PhaseOutcome::Failed { reason } => {
@@ -377,6 +379,7 @@ where
 
         let _ = process.complete_phase2_credit_facility(credit_facility_terminal)?;
 
+        // lint:allow(service-conditionals)
         match process.evaluate_credit_facility_eod_outcome() {
             PhaseOutcome::AllSucceeded => {
                 let _ = process.mark_completed()?;

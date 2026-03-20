@@ -65,6 +65,7 @@ where
     }
 
     let new_state = state_update_fn(start_sequence);
+    // lint:allow(tainted-transaction-use)
     current_job
         .update_execution_state_in_op(&mut op, &new_state)
         .await?;

@@ -182,6 +182,7 @@ where
             }
 
             state.last_cursor = rows.last().map(|(id, ts)| (*ts, *id));
+            // lint:allow(tainted-transaction-use)
             current_job
                 .update_execution_state_in_op(
                     &mut op,
@@ -200,6 +201,7 @@ where
             pending_jobs: state.pending_jobs,
         };
         let mut op = current_job.begin_op().await?;
+        // lint:allow(tainted-transaction-use)
         current_job
             .update_execution_state_in_op(&mut op, &new_state)
             .await?;

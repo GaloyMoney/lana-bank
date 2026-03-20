@@ -196,6 +196,7 @@ where
                 }
 
                 state.accrual_cursor = rows.last().map(|(id, ts)| (*ts, *id));
+                // lint:allow(tainted-transaction-use)
                 current_job
                     .update_execution_state_in_op(
                         &mut op,
@@ -210,6 +211,7 @@ where
         loop {
             let mut op = current_job.begin_op().await?;
 
+            // lint:allow(tainted-transaction-use)
             let rows = self
                 .credit_facility_repo
                 .list_ids_ready_for_maturity_in_op(
@@ -245,6 +247,7 @@ where
             }
 
             state.maturity_cursor = rows.last().map(|(id, ts)| (*ts, *id));
+            // lint:allow(tainted-transaction-use)
             current_job
                 .update_execution_state_in_op(
                     &mut op,
@@ -267,6 +270,7 @@ where
             pending_maturity_jobs: state.pending_maturity_jobs,
         };
         let mut op = current_job.begin_op().await?;
+        // lint:allow(tainted-transaction-use)
         current_job
             .update_execution_state_in_op(&mut op, &new_state)
             .await?;

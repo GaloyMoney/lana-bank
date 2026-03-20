@@ -128,6 +128,7 @@ impl JobRunner for EndOfDayProducerJobRunner {
                         Err(e) => return Err(e.into()),
                     }
                     state.last_published_day = Some(day);
+                    // lint:allow(tainted-transaction-use)
                     current_job
                         .update_execution_state_in_op(&mut op, &state)
                         .await?;
