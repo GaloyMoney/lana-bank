@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE core_credit_facilities SET normalized_collateralization_ratio = $2, collateralization_state = $3, status = $4, public_id = $5 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Numeric",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ad0a10131b1bf09935124a5191b1cb889ee198c7b2cf8e5726489785b45266d7"
+}

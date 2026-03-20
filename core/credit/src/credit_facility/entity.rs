@@ -704,6 +704,19 @@ impl CreditFacility {
             .unwrap_or_default()
     }
 
+    pub fn normalized_collateralization_ratio(&self) -> CollateralizationRatio {
+        match (
+            self.last_collateralization_ratio(),
+            self.terms.margin_call_cvl,
+        ) {
+            (CollateralizationRatio::Infinite, _) => CollateralizationRatio::Infinite,
+            (_, CVLPct::Infinite) => CollateralizationRatio::default(),
+            (CollateralizationRatio::Finite(ratio), CVLPct::Finite(margin_call)) => {
+                CollateralizationRatio::Finite(ratio / margin_call)
+            }
+        }
+    }
+
     pub(crate) fn update_collateralization(
         &mut self,
         price: PriceOfOneBTC,

@@ -372,7 +372,9 @@ impl From<CreditFacilitiesSortBy> for DomainCreditFacilitiesSortBy {
     fn from(by: CreditFacilitiesSortBy) -> Self {
         match by {
             CreditFacilitiesSortBy::CreatedAt => DomainCreditFacilitiesSortBy::CreatedAt,
-            CreditFacilitiesSortBy::Cvl => DomainCreditFacilitiesSortBy::CollateralizationRatio,
+            CreditFacilitiesSortBy::Cvl => {
+                DomainCreditFacilitiesSortBy::NormalizedCollateralizationRatio
+            }
         }
     }
 }
