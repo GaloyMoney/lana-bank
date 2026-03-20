@@ -359,11 +359,8 @@ impl TryFromEvents<EodProcessEvent> for EodProcess {
     ) -> Result<Self, EntityHydrationError> {
         let mut builder = EodProcessBuilder::default();
         for event in events.iter_all() {
-            match event {
-                EodProcessEvent::Initialized { id, date, .. } => {
-                    builder = builder.id(*id).date(*date);
-                }
-                _ => {}
+            if let EodProcessEvent::Initialized { id, date, .. } = event {
+                builder = builder.id(*id).date(*date);
             }
         }
         builder.events(events).build()
@@ -440,19 +437,19 @@ mod tests {
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        process.start_phase1(job1, job2).unwrap();
-        process
+        let _ = process.start_phase1(job1, job2).unwrap();
+        let _ = process
             .complete_phase1_obligation(JobTerminalState::Completed)
             .unwrap();
-        process
+        let _ = process
             .complete_phase1_deposit(JobTerminalState::Completed)
             .unwrap();
         let job3 = job::JobId::from(uuid::Uuid::new_v4());
-        process.start_phase2(job3).unwrap();
-        process
+        let _ = process.start_phase2(job3).unwrap();
+        let _ = process
             .complete_phase2_credit_facility(JobTerminalState::Completed)
             .unwrap();
-        process.mark_completed().unwrap();
+        let _ = process.mark_completed().unwrap();
         // Completed state should reject start_phase1
         assert!(process.start_phase1(job1, job2).is_err());
     }
@@ -473,15 +470,15 @@ mod tests {
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        process.start_phase1(job1, job2).unwrap();
-        process
+        let _ = process.start_phase1(job1, job2).unwrap();
+        let _ = process
             .complete_phase1_obligation(JobTerminalState::Completed)
             .unwrap();
-        process
+        let _ = process
             .complete_phase1_deposit(JobTerminalState::Completed)
             .unwrap();
         let job3 = job::JobId::from(uuid::Uuid::new_v4());
-        process.start_phase2(job3).unwrap();
+        let _ = process.start_phase2(job3).unwrap();
         // AwaitingPhase2 but Phase2CreditFacilityCompleted not yet recorded
         assert!(process.mark_completed().is_err());
     }
@@ -493,7 +490,7 @@ mod tests {
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        process.start_phase1(job1, job2).unwrap();
+        let _ = process.start_phase1(job1, job2).unwrap();
         assert!(
             process
                 .mark_failed(EodPhase::Phase1, "test".to_string())
@@ -510,11 +507,11 @@ mod tests {
             EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
         let job1 = job::JobId::from(uuid::Uuid::new_v4());
         let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        process.start_phase1(job1, job2).unwrap();
-        process
+        let _ = process.start_phase1(job1, job2).unwrap();
+        let _ = process
             .complete_phase1_obligation(JobTerminalState::Failed)
             .unwrap();
-        process
+        let _ = process
             .complete_phase1_deposit(JobTerminalState::Completed)
             .unwrap();
         assert_eq!(process.status(), EodProcessStatus::Phase1Complete);

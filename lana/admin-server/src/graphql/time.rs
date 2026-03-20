@@ -13,16 +13,16 @@ pub enum EodProcessStatus {
     Cancelled,
 }
 
-impl From<core_time_events::EodProcessStatus> for EodProcessStatus {
-    fn from(value: core_time_events::EodProcessStatus) -> Self {
+impl From<lana_app::time_events::EodProcessStatus> for EodProcessStatus {
+    fn from(value: lana_app::time_events::EodProcessStatus) -> Self {
         match value {
-            core_time_events::EodProcessStatus::Initialized => Self::Initialized,
-            core_time_events::EodProcessStatus::AwaitingPhase1 => Self::AwaitingPhase1,
-            core_time_events::EodProcessStatus::Phase1Complete => Self::Phase1Complete,
-            core_time_events::EodProcessStatus::AwaitingPhase2 => Self::AwaitingPhase2,
-            core_time_events::EodProcessStatus::Completed => Self::Completed,
-            core_time_events::EodProcessStatus::Failed => Self::Failed,
-            core_time_events::EodProcessStatus::Cancelled => Self::Cancelled,
+            lana_app::time_events::EodProcessStatus::Initialized => Self::Initialized,
+            lana_app::time_events::EodProcessStatus::AwaitingPhase1 => Self::AwaitingPhase1,
+            lana_app::time_events::EodProcessStatus::Phase1Complete => Self::Phase1Complete,
+            lana_app::time_events::EodProcessStatus::AwaitingPhase2 => Self::AwaitingPhase2,
+            lana_app::time_events::EodProcessStatus::Completed => Self::Completed,
+            lana_app::time_events::EodProcessStatus::Failed => Self::Failed,
+            lana_app::time_events::EodProcessStatus::Cancelled => Self::Cancelled,
         }
     }
 }

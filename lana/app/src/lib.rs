@@ -256,6 +256,7 @@ pub mod time_events {
     pub type TimeEvents =
         core_time_events::TimeEvents<crate::authorization::Authorization, lana_events::LanaEvent>;
     pub type TimeState = core_time_events::TimeState;
+    pub use core_time_events::EodProcessStatus;
     pub use core_time_events::error;
 }
 

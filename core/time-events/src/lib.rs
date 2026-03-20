@@ -60,7 +60,6 @@ pub struct TimeState {
     pub eod_status: Option<EodProcessStatus>,
 }
 
-#[derive(Clone)]
 pub struct TimeEvents<Perms, E>
 where
     Perms: PermissionCheck,
@@ -72,6 +71,23 @@ where
     manual_advance_guard: Arc<Mutex<()>>,
     domain_configs: ExposedDomainConfigsReadOnly,
     eod_processes: EodProcesses<E>,
+}
+
+impl<Perms, E> Clone for TimeEvents<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreEodEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            clock: self.clock.clone(),
+            clock_controller: self.clock_controller.clone(),
+            manual_advance_guard: self.manual_advance_guard.clone(),
+            domain_configs: self.domain_configs.clone(),
+            eod_processes: self.eod_processes.clone(),
+        }
+    }
 }
 
 impl<Perms, E> TimeEvents<Perms, E>
@@ -152,10 +168,10 @@ where
         let _manual_advance_guard = self.manual_advance_guard.lock().await;
 
         // Reject advance if an EOD process is still running
-        if let Some(latest) = self.eod_processes.find_latest().await? {
-            if latest.status().is_in_progress() {
-                return Err(TimeEventsError::EodProcessInProgress);
-            }
+        if let Some(latest) = self.eod_processes.find_latest().await?
+            && latest.status().is_in_progress()
+        {
+            return Err(TimeEventsError::EodProcessInProgress);
         }
 
         let before = self.state_inner().await?;

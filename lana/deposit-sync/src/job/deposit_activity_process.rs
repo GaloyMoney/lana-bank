@@ -107,16 +107,21 @@ where
     evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 enum DepositActivityState {
-    #[default]
     SpawningActivityJobs(SpawningActivityJobsState),
     AwaitingActivityCompletion {
         // Vec (not HashSet) because await_completion needs ordered job IDs,
         // unlike the other PMs which use HashSet for O(1) event-stream lookups.
         pending_jobs: Vec<(DepositAccountId, JobId)>,
     },
+}
+
+impl Default for DepositActivityState {
+    fn default() -> Self {
+        Self::SpawningActivityJobs(SpawningActivityJobsState::default())
+    }
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -262,7 +267,7 @@ where
     )]
     async fn run(
         &self,
-        mut current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let state = current_job
             .execution_state::<DepositActivityState>()?

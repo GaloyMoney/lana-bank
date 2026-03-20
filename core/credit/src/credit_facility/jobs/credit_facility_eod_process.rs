@@ -103,15 +103,20 @@ where
     maturity_spawner: CreditFacilityMaturityJobSpawner,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 enum CreditFacilityEodState {
-    #[default]
     SpawningAccrualAndMaturityJobs(SpawningAccrualAndMaturityJobsState),
     AwaitingAccrualsAndMaturities {
         pending_accrual_jobs: Vec<JobId>,
         pending_maturity_jobs: Vec<JobId>,
     },
+}
+
+impl Default for CreditFacilityEodState {
+    fn default() -> Self {
+        Self::SpawningAccrualAndMaturityJobs(SpawningAccrualAndMaturityJobsState::default())
+    }
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -332,7 +337,7 @@ where
     )]
     async fn run(
         &self,
-        mut current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let state = current_job
             .execution_state::<CreditFacilityEodState>()?

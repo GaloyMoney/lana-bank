@@ -91,15 +91,20 @@ where
     evaluate_spawner: EvaluateObligationStatusSpawner<Perms, E>,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 enum ObligationStatusState {
-    #[default]
     SpawningStatusJobs(SpawningStatusJobsState),
     AwaitingStatusUpdates {
         pending: HashSet<ObligationId>,
         start_sequence: i64,
     },
+}
+
+impl Default for ObligationStatusState {
+    fn default() -> Self {
+        Self::SpawningStatusJobs(SpawningStatusJobsState::default())
+    }
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -132,7 +137,9 @@ where
         let start_sequence = match state.start_sequence {
             Some(seq) => seq,
             None => {
-                let seq = self.outbox.current_sequence().await?;
+                let seq =
+                    u64::from(process_manager::current_outbox_sequence(current_job.pool()).await?)
+                        as i64;
                 state.start_sequence = Some(seq);
                 current_job
                     .update_execution_state(&ObligationStatusState::SpawningStatusJobs(
@@ -229,7 +236,7 @@ where
         &self,
         mut current_job: CurrentJob,
         mut pending: HashSet<ObligationId>,
-        mut start_sequence: i64,
+        start_sequence: i64,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         if pending.is_empty() {
             tracing::info!("No obligations to track, completing immediately");
@@ -286,7 +293,7 @@ where
     )]
     async fn run(
         &self,
-        mut current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let state = current_job
             .execution_state::<ObligationStatusState>()?

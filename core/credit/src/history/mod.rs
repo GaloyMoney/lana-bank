@@ -120,6 +120,7 @@ impl CreditFacilityHistory {
             FacilityMatured { .. } => {}
             PartialLiquidationInitiated { .. } => {}
             DisbursalApprovalConcluded { .. } => {}
+            InterestAccrued { .. } => {}
         }
     }
 

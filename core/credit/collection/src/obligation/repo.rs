@@ -105,7 +105,7 @@ where
             after_id as Option<ObligationId>,
             limit,
         )
-        .fetch_all(&mut **op)
+        .fetch_all(op.as_executor())
         .await?;
         Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }

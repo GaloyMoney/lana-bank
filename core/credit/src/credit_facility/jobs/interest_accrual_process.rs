@@ -167,9 +167,10 @@ where
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let seq = process_manager::current_outbox_sequence(current_job.pool()).await?;
         process_manager::capture_and_spawn(
             &mut current_job,
-            &self.outbox,
+            seq,
             &self.accrue_spawner,
             vec![
                 JobSpec::new(
@@ -181,7 +182,7 @@ where
                 .queue_id(self.config.credit_facility_id.to_string()),
             ],
             |seq| InterestAccrualProcessState::AwaitingAccrual {
-                start_sequence: seq,
+                start_sequence: u64::from(seq) as i64,
             },
         )
         .await
@@ -231,9 +232,10 @@ where
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let seq = process_manager::current_outbox_sequence(current_job.pool()).await?;
         process_manager::capture_and_spawn(
             &mut current_job,
-            &self.outbox,
+            seq,
             &self.complete_spawner,
             vec![
                 JobSpec::new(
@@ -245,7 +247,7 @@ where
                 .queue_id(self.config.credit_facility_id.to_string()),
             ],
             |seq| InterestAccrualProcessState::AwaitingCycleCompletion {
-                start_sequence: seq,
+                start_sequence: u64::from(seq) as i64,
             },
         )
         .await
@@ -307,7 +309,7 @@ where
     )]
     async fn run(
         &self,
-        mut current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let state = current_job
             .execution_state::<InterestAccrualProcessState>()?

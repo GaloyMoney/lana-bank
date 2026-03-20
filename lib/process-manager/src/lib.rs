@@ -37,28 +37,42 @@ pub async fn spawn_in_op<C: Serialize + DeserializeOwned + Send + Sync>(
     }
 }
 
-/// Capture the current outbox sequence, spawn a child job inside an op,
+/// Query the highest known persistent outbox sequence from the database.
+///
+/// This is useful for recording the current outbox position before spawning
+/// child jobs, so we can later listen from that position and not miss events.
+pub async fn current_outbox_sequence(
+    pool: &sqlx::PgPool,
+) -> Result<EventSequence, Box<dyn std::error::Error>> {
+    let max_seq: i64 =
+        sqlx::query_scalar("SELECT COALESCE(MAX(sequence), 0) FROM cala_persistent_outbox_events")
+            .fetch_one(pool)
+            .await?;
+    Ok(EventSequence::from(max_seq as u64))
+}
+
+/// Capture the current outbox sequence, spawn child jobs inside an op,
 /// persist a state update, and return `RescheduleNowWithOp`.
 ///
 /// Used by event-driven PMs that need to atomically record the sequence
 /// number they will listen from alongside the spawn.
 ///
+/// Call [`current_outbox_sequence`] beforehand to obtain the sequence,
+/// then pass it here.
+///
 /// `state_update_fn` receives the outbox sequence number and should return
 /// the new execution state to persist.
-pub async fn capture_and_spawn<C, E, T, S>(
+pub async fn capture_and_spawn<C, S>(
     current_job: &mut CurrentJob,
-    outbox: &Outbox<E>,
+    start_sequence: EventSequence,
     spawner: &JobSpawner<C>,
     specs: Vec<JobSpec<C>>,
     state_update_fn: impl FnOnce(EventSequence) -> S,
 ) -> Result<JobCompletion, Box<dyn std::error::Error>>
 where
     C: Serialize + DeserializeOwned + Send + Sync,
-    E: OutboxEventMarker<T>,
-    T: Send + Sync,
     S: Serialize + Send + Sync,
 {
-    let start_sequence = outbox.current_sequence().await?;
     let mut op = current_job.begin_op().await?;
 
     spawn_in_op(&mut op, spawner, specs).await?;
@@ -142,10 +156,10 @@ where
                     .and_then(|p| p.as_event())
                     .and_then(&filter_fn);
 
-                if let Some(key) = matched_key {
-                    if pending.remove(&key) {
-                        *start_sequence = event.sequence;
-                    }
+                if let Some(key) = matched_key
+                    && pending.remove(&key)
+                {
+                    *start_sequence = event.sequence;
                 }
                 if pending.is_empty() {
                     return Ok(Some(()));
@@ -169,14 +183,14 @@ pub async fn await_job_completions(
     current_job: &mut CurrentJob,
     jobs: &Jobs,
     job_ids: &[JobId],
-) -> Result<Option<Vec<job::JobTerminalState>>, Box<dyn std::error::Error>> {
+) -> Result<Option<Vec<job::JobCompletionResult>>, Box<dyn std::error::Error>> {
     if job_ids.is_empty() {
         return Ok(Some(Vec::new()));
     }
 
     let futures: Vec<_> = job_ids
         .iter()
-        .map(|job_id| jobs.await_completion(*job_id))
+        .map(|job_id| jobs.await_completion(*job_id, None))
         .collect();
 
     let results = tokio::select! {
@@ -195,16 +209,16 @@ pub async fn await_job_completions(
 
 /// Check whether all terminal states are `Completed`.
 /// Convenience for callers that just want a pass/fail summary.
-pub fn all_completed(terminals: &[job::JobTerminalState]) -> bool {
-    terminals
+pub fn all_completed(results: &[job::JobCompletionResult]) -> bool {
+    results
         .iter()
-        .all(|t| *t == job::JobTerminalState::Completed)
+        .all(|r| r.state() == job::JobTerminalState::Completed)
 }
 
 /// Count how many terminal states are not `Completed`.
-pub fn failed_count(terminals: &[job::JobTerminalState]) -> usize {
-    terminals
+pub fn failed_count(results: &[job::JobCompletionResult]) -> usize {
+    results
         .iter()
-        .filter(|t| **t != job::JobTerminalState::Completed)
+        .filter(|r| r.state() != job::JobTerminalState::Completed)
         .count()
 }

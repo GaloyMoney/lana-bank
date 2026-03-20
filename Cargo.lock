@@ -4595,6 +4595,7 @@ dependencies = [
  "job",
  "obix",
  "serde",
+ "sqlx",
  "tokio",
  "tracing",
 ]

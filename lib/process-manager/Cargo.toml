@@ -9,6 +9,7 @@ futures.workspace = true
 job.workspace = true
 obix.workspace = true
 serde.workspace = true
+sqlx.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 

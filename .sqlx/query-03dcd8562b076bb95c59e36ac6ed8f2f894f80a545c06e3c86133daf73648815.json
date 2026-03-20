@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_eod_processes (id, date, status, created_at) VALUES ($1, $2, $3, COALESCE($4, NOW()))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": ["Uuid", "Date", "Varchar", "Timestamptz"]
+    },
+    "nullable": []
+  },
+  "hash": "03dcd8562b076bb95c59e36ac6ed8f2f894f80a545c06e3c86133daf73648815"
+}
