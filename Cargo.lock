@@ -1417,7 +1417,6 @@ dependencies = [
  "core-time-events",
  "derive_builder",
  "es-entity",
- "futures",
  "job",
  "money",
  "obix",
@@ -2028,7 +2027,6 @@ dependencies = [
  "core-deposit",
  "core-time-events",
  "es-entity",
- "futures",
  "governance",
  "job",
  "lana-events",
@@ -4590,14 +4588,12 @@ dependencies = [
 name = "process-manager"
 version = "0.0.0"
 dependencies = [
- "es-entity",
  "futures",
  "job",
  "obix",
  "serde",
  "sqlx",
  "tokio",
- "tracing",
 ]
 
 [[package]]
