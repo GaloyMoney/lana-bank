@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use es_entity::clock::{ClockController, ClockHandle};
-use es_entity::prelude::chrono::{self, Utc};
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
@@ -29,9 +28,6 @@ pub async fn interest_under_payment_scenario(
         tracing::Level::INFO,
         "Starting interest under payment scenario"
     );
-
-    let target_time = Utc::now() - chrono::Duration::days(60);
-    clock_ctrl.reset_to(target_time);
 
     let (customer_id, _) = helpers::create_customer(&sub, app, "5-interest-under-payment").await?;
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
