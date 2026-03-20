@@ -184,6 +184,85 @@ impl EodProcess {
         }
     }
 
+    // --- Combined evaluate-and-transition commands ---
+
+    /// Evaluate phase 1 outcome and transition: advance to phase 2 or fail.
+    /// Returns `true` if advanced (caller must spawn the credit facility job).
+    pub fn try_advance_to_phase2(
+        &mut self,
+        credit_facility_job_id: job::JobId,
+    ) -> Result<Idempotent<bool>, EodProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            already_applied: EodProcessEvent::Phase2Started { .. },
+            already_applied: EodProcessEvent::Failed { .. }
+        );
+        if self.status() != EodProcessStatus::ObligationsAndDepositsComplete {
+            return Err(EodProcessError::InvalidStateTransition {
+                current: self.status(),
+                attempted: "try_advance_to_phase2",
+            });
+        }
+        let obligation_ok = self.phase1_obligation_terminal() == Some(JobTerminalState::Completed);
+        let deposit_ok = self.phase1_deposit_terminal() == Some(JobTerminalState::Completed);
+
+        if obligation_ok && deposit_ok {
+            self.events.push(EodProcessEvent::Phase2Started {
+                credit_facility_job_id,
+            });
+            Ok(Idempotent::Executed(true))
+        } else {
+            let reason = format!(
+                "Obligations-and-deposits children failed: obligation={:?}, deposit={:?}",
+                self.phase1_obligation_terminal(),
+                self.phase1_deposit_terminal()
+            );
+            self.events.push(EodProcessEvent::Failed { reason });
+            Ok(Idempotent::Executed(false))
+        }
+    }
+
+    /// Evaluate phase 2 outcome and finalize: complete or fail.
+    /// Returns `true` if completed successfully.
+    pub fn try_complete(&mut self) -> Result<Idempotent<bool>, EodProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            already_applied: EodProcessEvent::Completed { .. },
+            already_applied: EodProcessEvent::Failed { .. },
+            already_applied: EodProcessEvent::Cancelled { .. }
+        );
+        if self.status() != EodProcessStatus::AwaitingCreditFacilityEod {
+            return Err(EodProcessError::InvalidStateTransition {
+                current: self.status(),
+                attempted: "try_complete",
+            });
+        }
+        let phase2_done = self
+            .events
+            .iter_all()
+            .any(|e| matches!(e, EodProcessEvent::Phase2CreditFacilityCompleted { .. }));
+        if !phase2_done {
+            return Err(EodProcessError::InvalidStateTransition {
+                current: self.status(),
+                attempted: "try_complete",
+            });
+        }
+        let credit_facility_ok =
+            self.phase2_credit_facility_terminal() == Some(JobTerminalState::Completed);
+
+        if credit_facility_ok {
+            self.events.push(EodProcessEvent::Completed {});
+            Ok(Idempotent::Executed(true))
+        } else {
+            let reason = format!(
+                "Credit-facility-eod child failed: {:?}",
+                self.phase2_credit_facility_terminal()
+            );
+            self.events.push(EodProcessEvent::Failed { reason });
+            Ok(Idempotent::Executed(false))
+        }
+    }
+
     // --- Command methods ---
 
     pub fn start_obligations_and_deposits(

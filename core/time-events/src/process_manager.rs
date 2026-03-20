@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
+use es_entity::Idempotent;
 use obix::out::OutboxEventMarker;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
@@ -13,8 +14,7 @@ use crate::{
     },
     deposit_activity_process::{DepositActivityProcessConfig, DepositActivityProcessSpawner},
     eod_process::{
-        EodProcess, EodProcesses, JobTerminalState, NewEodProcess, PhaseOutcome,
-        error::EodProcessError,
+        EodProcess, EodProcesses, JobTerminalState, NewEodProcess, error::EodProcessError,
     },
     event::CoreTimeEvent,
     obligation_status_process::{ObligationStatusProcessConfig, ObligationStatusProcessSpawner},
@@ -191,16 +191,14 @@ where
     async fn spawn_credit_facility_eod_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
-        process: &mut EodProcess,
+        credit_facility_job_id: JobId,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let credit_facility_job = JobId::new();
-
         self.credit_facility_eod_process_spawner
             .spawn_all_in_op(
                 op,
                 vec![
                     JobSpec::new(
-                        credit_facility_job,
+                        credit_facility_job_id,
                         CreditFacilityEodProcessConfig {
                             date: self.config.date,
                         },
@@ -209,8 +207,6 @@ where
                 ],
             )
             .await?;
-
-        let _ = process.start_credit_facility_eod(credit_facility_job)?;
         Ok(())
     }
 
@@ -298,20 +294,11 @@ where
         let _ = process.complete_phase1_obligation(obligation_terminal)?;
         let _ = process.complete_phase1_deposit(deposit_terminal)?;
 
-        // lint:allow(service-conditionals)
-        match process.evaluate_obligations_and_deposits_outcome() {
-            PhaseOutcome::AllSucceeded => {
-                self.spawn_credit_facility_eod_in_op(&mut op, &mut process)
-                    .await?;
-            }
-            PhaseOutcome::Failed { reason } => {
-                tracing::error!(
-                    ?obligation_terminal,
-                    ?deposit_terminal,
-                    "EOD obligations/deposits failed — manual intervention required"
-                );
-                let _ = process.mark_failed(reason)?;
-            }
+        let credit_facility_job = JobId::new();
+        let advanced = process.try_advance_to_phase2(credit_facility_job)?;
+        if let Idempotent::Executed(true) = advanced {
+            self.spawn_credit_facility_eod_in_op(&mut op, credit_facility_job)
+                .await?;
         }
 
         self.eod_processes
@@ -331,18 +318,11 @@ where
             .find_by_id_in_op(&mut op, self.config.process_id)
             .await?;
 
-        // lint:allow(service-conditionals)
-        match process.evaluate_obligations_and_deposits_outcome() {
-            PhaseOutcome::AllSucceeded => {
-                self.spawn_credit_facility_eod_in_op(&mut op, &mut process)
-                    .await?;
-            }
-            PhaseOutcome::Failed { reason } => {
-                tracing::error!(
-                    "EOD handle_obligations_and_deposits_complete: failed — marking failed"
-                );
-                let _ = process.mark_failed(reason)?;
-            }
+        let credit_facility_job = JobId::new();
+        let advanced = process.try_advance_to_phase2(credit_facility_job)?;
+        if let Idempotent::Executed(true) = advanced {
+            self.spawn_credit_facility_eod_in_op(&mut op, credit_facility_job)
+                .await?;
         }
 
         self.eod_processes
@@ -378,20 +358,7 @@ where
             .await?;
 
         let _ = process.complete_phase2_credit_facility(credit_facility_terminal)?;
-
-        // lint:allow(service-conditionals)
-        match process.evaluate_credit_facility_eod_outcome() {
-            PhaseOutcome::AllSucceeded => {
-                let _ = process.mark_completed()?;
-            }
-            PhaseOutcome::Failed { reason } => {
-                tracing::error!(
-                    ?credit_facility_terminal,
-                    "EOD credit-facility-eod failed — manual intervention required"
-                );
-                let _ = process.mark_failed(reason)?;
-            }
-        }
+        let _ = process.try_complete()?;
 
         self.eod_processes
             .update_in_op(&mut op, &mut process)
