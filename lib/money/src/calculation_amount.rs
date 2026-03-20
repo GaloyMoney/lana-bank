@@ -70,13 +70,18 @@ impl<C: Currency> CalculationAmount<C> {
     /// - `RoundingStrategy::AwayFromZero` — interest owed, fees, required collateral
     /// - `RoundingStrategy::ToZero` — collateral valuation (e.g., sats_to_cents)
     /// - `RoundingStrategy::MidpointAwayFromZero` — standard "round half up"
+    /// - Negative values are clamped to zero because `MinorUnits` are unsigned.
     pub fn round_with(self, strategy: RoundingStrategy) -> MinorUnits<C> {
         let minor = self.value * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
         let rounded = minor.round_dp_with_strategy(0, strategy);
+        if rounded < Decimal::ZERO {
+            // MinorUnits are unsigned; treat negative rounding results as zero.
+            return MinorUnits::ZERO;
+        }
         MinorUnits::from(
             rounded
                 .to_u64()
-                .expect("CalculationAmount must be non-negative and within u64 range"),
+                .expect("CalculationAmount must be within u64 range"),
         )
     }
 
@@ -437,6 +442,13 @@ mod tests {
             0
         );
         assert_eq!(calc.round_with(RoundingStrategy::ToZero).into_inner(), 0);
+    }
+
+    #[test]
+    fn round_negative_returns_zero() {
+        let calc = CalcUsd::from_major(dec!(-1.234));
+        let rounded = calc.round_with(RoundingStrategy::AwayFromZero);
+        assert_eq!(rounded.into_inner(), 0);
     }
 
     #[test]

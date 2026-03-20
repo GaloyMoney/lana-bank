@@ -313,7 +313,7 @@ where
             .maybe_value()
             .ok_or(CreditFacilityError::AccrualRoundingStrategyNotConfigured)?;
         let accrual_rounding_strategy =
-            crate::rounding_policy::parse_rounding_strategy(&accrual_rounding_strategy_str);
+            crate::rounding_policy::parse_rounding_strategy(&accrual_rounding_strategy_str)?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
 
