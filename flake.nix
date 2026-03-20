@@ -100,7 +100,8 @@
           || pkgs.lib.hasInfix "/dagster/generate_es_reports/reports.yml" path
           || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path
-          || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path;
+          || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path
+          || pkgs.lib.hasInfix "/apps/admin-panel/lib/apollo-client/generated-key-fields.ts" path;
       };
 
       frontendSrc = pkgs.lib.cleanSourceWith {
@@ -359,6 +360,14 @@
             // {
               pname = "write_translation_labels";
               cargoExtraArgs = "-p codegen --bin write_translation_labels";
+            }
+          );
+
+          write_entity_keys = craneLib.buildPackage (
+            individualCrateArgs
+            // {
+              pname = "write_entity_keys";
+              cargoExtraArgs = "-p codegen --bin write_entity_keys";
             }
           );
 
@@ -851,6 +860,38 @@
             installPhase = ''
               mkdir -p $out
               echo "Translation labels check passed" > $out/result.txt
+            '';
+          };
+
+          check-entity-keys = pkgs.stdenv.mkDerivation {
+            name = "check-entity-keys";
+            src = rustSource;
+
+            nativeBuildInputs = with pkgs; [
+              diffutils
+            ];
+
+            buildInputs = [
+              self.packages.${system}.write_entity_keys
+            ];
+
+            buildPhase = ''
+              echo "Generating entity keys..."
+              ${self.packages.${system}.write_entity_keys}/bin/write_entity_keys > entity-keys-generated.ts
+
+              echo "Comparing generated entity keys..."
+              if ! diff -u apps/admin-panel/lib/apollo-client/generated-key-fields.ts entity-keys-generated.ts; then
+                echo "ERROR: Generated entity key fields are out of date!"
+                echo "Run 'make generate-entity-keys' to update"
+                exit 1
+              fi
+
+              echo "Entity keys are up to date ✓"
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "Entity keys check passed" > $out/result.txt
             '';
           };
 
