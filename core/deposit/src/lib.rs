@@ -268,7 +268,7 @@ where
             account_ids
                 .insert(
                     *currency,
-                    LedgerAccountPair::new(account_id.into(), CalaAccountId::new()),
+                    LedgerAccountPair::new(CalaAccountId::new(), CalaAccountId::new()),
                 )
                 .expect("currency in allowed set");
         }
@@ -391,9 +391,11 @@ where
                 CoreDepositAction::DEPOSIT_CREATE,
             )
             .await?;
-        self.check_account_active(deposit_account_id).await?;
         let deposit_id = DepositId::new();
         let mut op = self.deposits.begin_op().await?;
+        let ledger_account_id = self
+            .find_active_ledger_account_id_in_op(&mut op, deposit_account_id, amount.currency())
+            .await?;
         let public_id = self
             .public_ids
             .create_in_op(&mut op, DEPOSIT_REF_TARGET, deposit_id)
@@ -403,13 +405,14 @@ where
             .id(deposit_id)
             .ledger_transaction_id(deposit_id)
             .deposit_account_id(deposit_account_id)
+            .ledger_account_id(ledger_account_id)
             .amount(amount)
             .public_id(public_id.id)
             .reference(reference)
             .build()?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
         self.ledger
-            .record_deposit_in_op(&mut op, deposit_id, amount, deposit_account_id, sub)
+            .record_deposit_in_op(&mut op, deposit_id, amount, ledger_account_id, sub)
             .await?;
         op.commit().await?;
         Ok(deposit)
@@ -433,9 +436,11 @@ where
                 CoreDepositAction::WITHDRAWAL_INITIATE,
             )
             .await?;
-        self.check_account_active(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
         let mut op = self.withdrawals.begin_op().await?;
+        let ledger_account_id = self
+            .find_active_ledger_account_id_in_op(&mut op, deposit_account_id, amount.currency())
+            .await?;
         let public_id = self
             .public_ids
             .create_in_op(&mut op, WITHDRAWAL_REF_TARGET, withdrawal_id)
@@ -444,6 +449,7 @@ where
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
             .deposit_account_id(deposit_account_id)
+            .ledger_account_id(ledger_account_id)
             .amount(amount)
             .approval_process_id(withdrawal_id)
             .public_id(public_id.id)
@@ -464,7 +470,7 @@ where
             .await?;
 
         self.ledger
-            .initiate_withdrawal_in_op(&mut op, withdrawal_id, amount, deposit_account_id, sub)
+            .initiate_withdrawal_in_op(&mut op, withdrawal_id, amount, ledger_account_id, sub)
             .await?;
 
         op.commit().await?;
@@ -572,7 +578,7 @@ where
                 tx_id,
                 withdrawal.id.to_string(),
                 withdrawal.amount,
-                withdrawal.deposit_account_id,
+                withdrawal.ledger_account_id,
                 format!("lana:withdraw:{}:confirm", withdrawal.id),
                 sub,
             )
@@ -615,7 +621,7 @@ where
                 id,
                 tx_id,
                 withdrawal.amount,
-                withdrawal.deposit_account_id,
+                withdrawal.ledger_account_id,
                 sub,
             )
             .await?;
@@ -1293,10 +1299,35 @@ where
         deposit_account_id: DepositAccountId,
     ) -> Result<(), CoreDepositError> {
         let account = self.deposit_accounts.find_by_id(deposit_account_id).await?;
+        self.ensure_account_active(&account)
+    }
+
+    fn ensure_account_active(&self, account: &DepositAccount) -> Result<(), CoreDepositError> {
         match account.status {
             DepositAccountStatus::Frozen => Err(CoreDepositError::DepositAccountFrozen),
             DepositAccountStatus::Closed => Err(CoreDepositError::DepositAccountClosed),
             DepositAccountStatus::Active => Ok(()),
+        }
+    }
+
+    async fn find_active_ledger_account_id_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        deposit_account_id: DepositAccountId,
+        currency: CurrencyCode,
+    ) -> Result<CalaAccountId, CoreDepositError> {
+        let account = self
+            .deposit_accounts
+            .find_by_id_in_op(op, deposit_account_id)
+            .await?;
+        self.ensure_account_active(&account)?;
+        match account.account_ids.get(&currency) {
+            Ok(Some(pair)) => Ok(pair.active),
+            Ok(None) => Err(DepositAccountError::MissingLedgerAccountForCurrency(
+                account.id, currency,
+            )
+            .into()),
+            Err(_) => Err(DepositAccountError::CurrencyNotAllowed(account.id, currency).into()),
         }
     }
 }

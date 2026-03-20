@@ -8,7 +8,7 @@ use es_entity::*;
 use money::Amount;
 
 use crate::primitives::{
-    ApprovalProcessId, CalaTransactionId, DepositAccountId, PublicId, WithdrawalId,
+    ApprovalProcessId, CalaAccountId, CalaTransactionId, DepositAccountId, PublicId, WithdrawalId,
 };
 
 use super::error::WithdrawalError;
@@ -46,6 +46,7 @@ pub enum WithdrawalEvent {
         id: WithdrawalId,
         ledger_tx_id: CalaTransactionId,
         deposit_account_id: DepositAccountId,
+        ledger_account_id: CalaAccountId,
         amount: Amount,
         reference: String,
         approval_process_id: ApprovalProcessId,
@@ -80,6 +81,7 @@ pub enum WithdrawalEvent {
 pub struct Withdrawal {
     pub id: WithdrawalId,
     pub deposit_account_id: DepositAccountId,
+    pub ledger_account_id: CalaAccountId,
     pub reference: String,
     pub amount: Amount,
     pub approval_process_id: ApprovalProcessId,
@@ -94,7 +96,7 @@ pub struct Withdrawal {
 pub struct WithdrawalReversalData {
     pub entity_id: WithdrawalId,
     pub ledger_tx_id: CalaTransactionId,
-    pub credit_account_id: DepositAccountId,
+    pub credit_account_id: CalaAccountId,
     pub amount: Amount,
     pub correlation_id: String,
     pub external_id: String,
@@ -157,7 +159,7 @@ impl Withdrawal {
             entity_id: self.id,
             ledger_tx_id,
             amount: self.amount,
-            credit_account_id: self.deposit_account_id,
+            credit_account_id: self.ledger_account_id,
             correlation_id: self.id.to_string(),
             external_id: format!("lana:withdraw:{}:reverted", self.id),
         }))
@@ -280,6 +282,7 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
                     id,
                     reference,
                     deposit_account_id,
+                    ledger_account_id,
                     amount,
                     approval_process_id,
                     public_id,
@@ -288,6 +291,7 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
                     builder = builder
                         .id(*id)
                         .deposit_account_id(*deposit_account_id)
+                        .ledger_account_id(*ledger_account_id)
                         .amount(*amount)
                         .reference(reference.clone())
                         .approval_process_id(*approval_process_id)
@@ -310,6 +314,8 @@ pub struct NewWithdrawal {
     pub(super) id: WithdrawalId,
     #[builder(setter(into))]
     pub(super) deposit_account_id: DepositAccountId,
+    #[builder(setter(into))]
+    pub(super) ledger_account_id: CalaAccountId,
     #[builder(setter(into))]
     pub(super) amount: Amount,
     #[builder(setter(into))]
@@ -353,6 +359,7 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
                 id: self.id,
                 ledger_tx_id: self.id.into(),
                 deposit_account_id: self.deposit_account_id,
+                ledger_account_id: self.ledger_account_id,
                 amount: self.amount,
                 approval_process_id: self.approval_process_id,
                 status: WithdrawalStatus::PendingApproval,
@@ -372,6 +379,7 @@ mod test {
         let withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
+            .ledger_account_id(CalaAccountId::new())
             .amount(Amount::from(UsdCents::ZERO))
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
@@ -389,6 +397,7 @@ mod test {
         let withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
+            .ledger_account_id(CalaAccountId::new())
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
             .public_id(PublicId::new("test-public-id"))
@@ -405,6 +414,7 @@ mod test {
         let withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
+            .ledger_account_id(CalaAccountId::new())
             .amount(Amount::from(UsdCents::ONE))
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
@@ -418,6 +428,7 @@ mod test {
         let new_withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
+            .ledger_account_id(CalaAccountId::new())
             .amount(Amount::from(UsdCents::ONE))
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
@@ -446,6 +457,7 @@ mod test {
         let new_withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
+            .ledger_account_id(CalaAccountId::new())
             .amount(Amount::from(UsdCents::ONE))
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
@@ -475,6 +487,7 @@ mod test {
         let new_withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
+            .ledger_account_id(CalaAccountId::new())
             .amount(Amount::from(UsdCents::ONE))
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
