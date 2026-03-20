@@ -22,6 +22,7 @@ money = { workspace = true, features = ["sqlx"] }
 permission-sets-macro = { workspace = true }
 governance = { workspace = true }
 core-customer = { workspace = true }
+core-price = { workspace = true }
 chart-primitives = { workspace = true }
 domain-config = { workspace = true }
 public-id = { workspace = true }

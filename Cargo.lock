@@ -1548,6 +1548,7 @@ dependencies = [
  "core-accounting",
  "core-chart-primitives",
  "core-customer",
+ "core-price",
  "derive_builder",
  "document-storage",
  "domain-config",

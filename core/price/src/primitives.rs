@@ -1,9 +1,11 @@
+use chrono::{DateTime, Utc};
+use rust_decimal::Decimal;
 use rust_decimal::RoundingStrategy;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
-use money::{Satoshis, UsdCents};
+use money::{Amount as MoneyAmount, CurrencyCode, Satoshis, UsdCents};
 
 es_entity::entity_id! {
     PriceProviderId
@@ -40,6 +42,40 @@ impl PriceOfOneBTC {
 impl fmt::Display for PriceOfOneBTC {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:.2}", self.0.to_usd())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub struct ExchangeRateMetadata {
+    pub base_currency: CurrencyCode,
+    pub quote_currency: CurrencyCode,
+    pub rate_type: ExchangeRateType,
+    pub reference_rate: Decimal,
+    pub exchange_rate_timestamp: DateTime<Utc>,
+    pub base_currency_value: MoneyAmount,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ExchangeRateType {
+    Spot,
+    Close,
+}
+
+impl ExchangeRateType {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Spot => "SPOT",
+            Self::Close => "CLOSE",
+        }
+    }
+}
+
+impl fmt::Display for ExchangeRateType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
     }
 }
 

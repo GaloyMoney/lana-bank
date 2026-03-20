@@ -2,6 +2,9 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use money::CurrencyCode;
+
+use crate::ExchangeRateType;
 use crate::provider::error::{
     PriceProviderCreateError, PriceProviderError, PriceProviderFindError, PriceProviderModifyError,
     PriceProviderQueryError,
@@ -19,8 +22,22 @@ pub enum PriceError {
     ConversionError(#[from] money::ConversionError),
     #[error("PriceError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("PriceError - Quote amount currency mismatch: expected {expected}, got {actual}")]
+    QuoteAmountCurrencyMismatch {
+        expected: CurrencyCode,
+        actual: CurrencyCode,
+    },
     #[error("PriceError - Price not yet available")]
     PriceUnavailable,
+    #[error("PriceError - Unsupported exchange rate type: {rate_type}")]
+    UnsupportedExchangeRateType { rate_type: ExchangeRateType },
+    #[error(
+        "PriceError - Unsupported exchange rate pair: base {base_currency}, quote {quote_currency}"
+    )]
+    UnsupportedExchangeRatePair {
+        base_currency: CurrencyCode,
+        quote_currency: CurrencyCode,
+    },
     #[error("PriceError - PriceProviderError: {0}")]
     PriceProvider(#[from] PriceProviderError),
     #[error("PriceError - Sqlx: {0}")]
@@ -59,8 +76,11 @@ impl ErrorSeverity for PriceError {
             Self::BfxClientError(e) => e.severity(),
             Self::ConversionError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
+            Self::QuoteAmountCurrencyMismatch { .. } => Level::WARN,
             Self::PriceUnavailable => Level::WARN,
+            Self::UnsupportedExchangeRateType { .. } => Level::WARN,
             Self::PriceProvider(e) => e.severity(),
+            Self::UnsupportedExchangeRatePair { .. } => Level::WARN,
             Self::Sqlx(_) => Level::ERROR,
         }
     }

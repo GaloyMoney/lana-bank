@@ -26,7 +26,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
-use core_price::Price;
+use core_price::{ExchangeRateType, Price};
 use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -416,8 +416,25 @@ where
             .reference(reference)
             .build()?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
+        // TODO: Consider building with `Deposit`
+        let exchange_rate_metadata = self
+            .price
+            .exchange_rate_metadata(
+                ExchangeRateType::Spot,
+                amount.currency(),
+                amount.currency(),
+                amount,
+            )
+            .await?;
         self.ledger
-            .record_deposit_in_op(&mut op, deposit_id, amount, ledger_account_id, sub)
+            .record_deposit_in_op(
+                &mut op,
+                deposit_id,
+                amount,
+                exchange_rate_metadata,
+                ledger_account_id,
+                sub,
+            )
             .await?;
         op.commit().await?;
         Ok(deposit)

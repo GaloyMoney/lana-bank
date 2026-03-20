@@ -6,6 +6,7 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use chart_primitives::EntityRef;
+use core_price::ExchangeRateMetadata;
 use es_entity::clock::ClockHandle;
 
 mod deposit_accounts;
@@ -382,6 +383,7 @@ impl DepositLedger {
         op: &mut es_entity::DbOp<'_>,
         entity_id: DepositId,
         amount: Amount,
+        exchange_rate_metadata: ExchangeRateMetadata,
         credit_account_id: impl Into<AccountId>,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
@@ -398,6 +400,7 @@ impl DepositLedger {
             journal_id: self.journal_id,
             currency: amount.currency().iso().parse()?,
             amount: amount.to_major(),
+            exchange_rate_metadata,
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id,
             initiated_by,

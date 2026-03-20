@@ -6,6 +6,8 @@ pub mod jobs;
 mod primitives;
 pub mod provider;
 
+use chrono::Utc;
+use rust_decimal::Decimal;
 use std::collections::HashMap;
 
 use futures::StreamExt;
@@ -21,6 +23,7 @@ use authz::PermissionCheck;
 use es_entity::clock::ClockHandle;
 
 use error::PriceError;
+use money::{Amount as MoneyAmount, Btc, CurrencyCode, Usd};
 
 pub use event::*;
 pub use primitives::*;
@@ -57,6 +60,79 @@ impl Price {
                 return res;
             }
             let _ = rec.changed().await;
+        }
+    }
+
+    pub async fn exchange_rate_metadata(
+        &self,
+        rate_type: ExchangeRateType,
+        base_currency: CurrencyCode,
+        quote_currency: CurrencyCode,
+        quote_amount: MoneyAmount,
+    ) -> Result<ExchangeRateMetadata, PriceError> {
+        if quote_amount.currency() != quote_currency {
+            return Err(PriceError::QuoteAmountCurrencyMismatch {
+                expected: quote_currency,
+                actual: quote_amount.currency(),
+            });
+        }
+
+        if base_currency == quote_currency {
+            return Ok(ExchangeRateMetadata {
+                base_currency,
+                quote_currency,
+                rate_type,
+                reference_rate: Decimal::ONE,
+                exchange_rate_timestamp: Utc::now(),
+                base_currency_value: quote_amount,
+            });
+        }
+
+        if rate_type != ExchangeRateType::Spot {
+            return Err(PriceError::UnsupportedExchangeRateType { rate_type });
+        }
+
+        let exchange_rate = self.usd_cents_per_btc().await;
+        let reference_rate = exchange_rate.into_inner().to_usd();
+        let exchange_rate_timestamp = Utc::now();
+
+        match (base_currency, quote_currency) {
+            (CurrencyCode::BTC, CurrencyCode::USD) => {
+                let quote_amount = quote_amount
+                    .to_minor_units::<Usd>()
+                    .expect("validated quote currency should downcast to USD");
+                let base_currency_value =
+                    MoneyAmount::from(exchange_rate.cents_to_sats_round_up(quote_amount));
+
+                Ok(ExchangeRateMetadata {
+                    base_currency,
+                    quote_currency,
+                    rate_type,
+                    reference_rate,
+                    exchange_rate_timestamp,
+                    base_currency_value,
+                })
+            }
+            (CurrencyCode::USD, CurrencyCode::BTC) => {
+                let quote_amount = quote_amount
+                    .to_minor_units::<Btc>()
+                    .expect("validated quote currency should downcast to BTC");
+                let base_currency_value =
+                    MoneyAmount::from(exchange_rate.sats_to_cents_round_down(quote_amount));
+
+                Ok(ExchangeRateMetadata {
+                    base_currency,
+                    quote_currency,
+                    rate_type,
+                    reference_rate,
+                    exchange_rate_timestamp,
+                    base_currency_value,
+                })
+            }
+            _ => Err(PriceError::UnsupportedExchangeRatePair {
+                base_currency,
+                quote_currency,
+            }),
         }
     }
 
