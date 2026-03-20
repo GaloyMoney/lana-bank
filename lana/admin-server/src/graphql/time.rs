@@ -13,7 +13,6 @@ pub enum EodProcessStatus {
     AwaitingCreditFacilityEod,
     Completed,
     Failed,
-    Cancelled,
 }
 
 impl From<lana_app::time_events::EodProcessStatus> for EodProcessStatus {
@@ -31,7 +30,6 @@ impl From<lana_app::time_events::EodProcessStatus> for EodProcessStatus {
             }
             lana_app::time_events::EodProcessStatus::Completed => Self::Completed,
             lana_app::time_events::EodProcessStatus::Failed => Self::Failed,
-            lana_app::time_events::EodProcessStatus::Cancelled => Self::Cancelled,
         }
     }
 }

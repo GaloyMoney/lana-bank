@@ -137,7 +137,7 @@ where
         };
 
         // The entity tells the PM what to do — the PM never inspects status.
-        let action = process.next_action();
+        let action = process.next_action()?;
         match action {
             EodAction::StartObligationsAndDeposits => {
                 let obligation_job = JobId::new();

@@ -77,8 +77,6 @@ pub enum EodProcessEvent {
     Failed {
         reason: String,
     },
-    CancellationRequested {},
-    Cancelled {},
 }
 
 #[derive(EsEntity, Builder)]
@@ -93,30 +91,30 @@ impl EodProcess {
     /// Returns the next action the process manager should take.
     /// The entity encapsulates all state checks — the PM never inspects
     /// status directly.
-    pub fn next_action(&self) -> EodAction {
+    pub fn next_action(&self) -> Result<EodAction, EodProcessError> {
         match self.status() {
-            EodProcessStatus::Initialized => EodAction::StartObligationsAndDeposits,
+            EodProcessStatus::Initialized => Ok(EodAction::StartObligationsAndDeposits),
             EodProcessStatus::AwaitingObligationsAndDeposits => {
                 let (obligation_job_id, deposit_job_id) = self
                     .obligations_and_deposits_job_ids()
-                    .expect("job IDs must be present in AwaitingObligationsAndDeposits state");
-                EodAction::AwaitObligationsAndDeposits {
+                    .ok_or(EodProcessError::MissingJobIds)?;
+                Ok(EodAction::AwaitObligationsAndDeposits {
                     obligation_job_id,
                     deposit_job_id,
-                }
+                })
             }
-            EodProcessStatus::ObligationsAndDepositsComplete => EodAction::StartCreditFacilityEod,
+            EodProcessStatus::ObligationsAndDepositsComplete => {
+                Ok(EodAction::StartCreditFacilityEod)
+            }
             EodProcessStatus::AwaitingCreditFacilityEod => {
                 let credit_facility_job_id = self
                     .credit_facility_job_id()
-                    .expect("job ID must be present in AwaitingCreditFacilityEod state");
-                EodAction::AwaitCreditFacilityEod {
+                    .ok_or(EodProcessError::MissingJobIds)?;
+                Ok(EodAction::AwaitCreditFacilityEod {
                     credit_facility_job_id,
-                }
+                })
             }
-            EodProcessStatus::Completed
-            | EodProcessStatus::Failed
-            | EodProcessStatus::Cancelled => EodAction::Complete,
+            EodProcessStatus::Completed | EodProcessStatus::Failed => Ok(EodAction::Complete),
         }
     }
 
@@ -130,7 +128,6 @@ impl EodProcess {
         for event in self.events.iter_all().rev() {
             match event {
                 EodProcessEvent::Completed { .. } => return EodProcessStatus::Completed,
-                EodProcessEvent::Cancelled { .. } => return EodProcessStatus::Cancelled,
                 EodProcessEvent::Failed { .. } => return EodProcessStatus::Failed,
                 EodProcessEvent::CreditFacilityEodStarted { .. } => {
                     has_credit_facility_eod_started = true
@@ -140,7 +137,8 @@ impl EodProcess {
                 EodProcessEvent::ObligationsAndDepositsStarted { .. } => {
                     has_obligations_and_deposits_started = true
                 }
-                _ => {}
+                EodProcessEvent::Initialized { .. }
+                | EodProcessEvent::CreditFacilityEodCompleted { .. } => {}
             }
         }
 
@@ -175,12 +173,6 @@ impl EodProcess {
             } => Some(*credit_facility_job_id),
             _ => None,
         })
-    }
-
-    pub fn cancellation_requested(&self) -> bool {
-        self.events
-            .iter_all()
-            .any(|e| matches!(e, EodProcessEvent::CancellationRequested { .. }))
     }
 
     // --- Command methods ---
@@ -278,8 +270,7 @@ impl EodProcess {
         idempotency_guard!(
             self.events.iter_all(),
             already_applied: EodProcessEvent::Completed { .. },
-            already_applied: EodProcessEvent::Failed { .. },
-            already_applied: EodProcessEvent::Cancelled { .. }
+            already_applied: EodProcessEvent::Failed { .. }
         );
         if self.status() != EodProcessStatus::AwaitingCreditFacilityEod {
             return Err(EodProcessError::InvalidStateTransition {
@@ -302,8 +293,7 @@ impl EodProcess {
         idempotency_guard!(
             self.events.iter_all(),
             already_applied: EodProcessEvent::Failed { .. },
-            already_applied: EodProcessEvent::Completed { .. },
-            already_applied: EodProcessEvent::Cancelled { .. }
+            already_applied: EodProcessEvent::Completed { .. }
         );
         match self.status() {
             EodProcessStatus::AwaitingObligationsAndDeposits
@@ -317,51 +307,6 @@ impl EodProcess {
             }
         }
         self.events.push(EodProcessEvent::Failed { reason });
-        Ok(Idempotent::Executed(()))
-    }
-
-    pub fn request_cancellation(&mut self) -> Result<Idempotent<()>, EodProcessError> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::CancellationRequested { .. },
-            already_applied: EodProcessEvent::Cancelled { .. },
-            already_applied: EodProcessEvent::Completed { .. },
-            already_applied: EodProcessEvent::Failed { .. }
-        );
-        match self.status() {
-            EodProcessStatus::Completed
-            | EodProcessStatus::Failed
-            | EodProcessStatus::Cancelled => {
-                return Err(EodProcessError::InvalidStateTransition {
-                    current: self.status(),
-                    attempted: "request_cancellation",
-                });
-            }
-            _ => {}
-        }
-        self.events.push(EodProcessEvent::CancellationRequested {});
-        Ok(Idempotent::Executed(()))
-    }
-
-    pub fn mark_cancelled(&mut self) -> Result<Idempotent<()>, EodProcessError> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::Cancelled { .. },
-            already_applied: EodProcessEvent::Completed { .. },
-            already_applied: EodProcessEvent::Failed { .. }
-        );
-        match self.status() {
-            EodProcessStatus::Completed
-            | EodProcessStatus::Failed
-            | EodProcessStatus::Cancelled => {
-                return Err(EodProcessError::InvalidStateTransition {
-                    current: self.status(),
-                    attempted: "mark_cancelled",
-                });
-            }
-            _ => {}
-        }
-        self.events.push(EodProcessEvent::Cancelled {});
         Ok(Idempotent::Executed(()))
     }
 }
@@ -648,13 +593,13 @@ mod tests {
         let cf_job = job::JobId::from(uuid::Uuid::new_v4());
 
         assert!(matches!(
-            process.next_action(),
+            process.next_action().unwrap(),
             EodAction::StartObligationsAndDeposits
         ));
 
         let _ = process.start_obligations_and_deposits(job1, job2).unwrap();
         assert!(matches!(
-            process.next_action(),
+            process.next_action().unwrap(),
             EodAction::AwaitObligationsAndDeposits { .. }
         ));
 
@@ -665,19 +610,22 @@ mod tests {
             )
             .unwrap();
         assert!(matches!(
-            process.next_action(),
+            process.next_action().unwrap(),
             EodAction::StartCreditFacilityEod
         ));
 
         let _ = process.start_credit_facility_eod(cf_job).unwrap();
         assert!(matches!(
-            process.next_action(),
+            process.next_action().unwrap(),
             EodAction::AwaitCreditFacilityEod { .. }
         ));
 
         let _ = process
             .complete_credit_facility_eod(JobTerminalState::Completed)
             .unwrap();
-        assert!(matches!(process.next_action(), EodAction::Complete));
+        assert!(matches!(
+            process.next_action().unwrap(),
+            EodAction::Complete
+        ));
     }
 }

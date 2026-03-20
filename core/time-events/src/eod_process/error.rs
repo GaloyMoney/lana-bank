@@ -21,4 +21,6 @@ pub enum EodProcessError {
         current: EodProcessStatus,
         attempted: &'static str,
     },
+    #[error("EodProcessError - MissingJobIds: expected job IDs not found in event stream")]
+    MissingJobIds,
 }

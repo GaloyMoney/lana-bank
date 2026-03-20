@@ -27,7 +27,6 @@ pub enum EodProcessStatus {
     AwaitingCreditFacilityEod,
     Completed,
     Failed,
-    Cancelled,
 }
 
 impl EodProcessStatus {

@@ -207,7 +207,6 @@ function formatEodStatus(status: EodProcessStatus): string {
     [EodProcessStatus.AwaitingCreditFacilityEod]: "Awaiting Credit Facility EOD",
     [EodProcessStatus.Completed]: "Completed",
     [EodProcessStatus.Failed]: "Failed",
-    [EodProcessStatus.Cancelled]: "Cancelled",
   }
   return labels[status]
 }
