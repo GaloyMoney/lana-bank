@@ -313,7 +313,7 @@ async fn facility_completed_event_on_completion() -> anyhow::Result<()> {
         .record_payment(
             &DummySubject,
             state.facility_id,
-            PaymentSourceAccountId::new(state.deposit_account_id.into()),
+            PaymentSourceAccountId::new(state.deposit_ledger_account_id),
             payment_amount,
         )
         .await?;

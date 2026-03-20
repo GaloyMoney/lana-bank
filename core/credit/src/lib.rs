@@ -581,7 +581,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
-        deposit_account_id: impl Into<CalaAccountId> + std::fmt::Debug + Copy,
+        disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug + Copy,
         amount: UsdCents,
         terms: TermValues,
         custodian_id: impl Into<CustodianId> + std::fmt::Debug + Copy,
@@ -608,7 +608,7 @@ where
             .customer_id(customer.id)
             .customer_type(customer.customer_type)
             .custodian_id(custodian_id.into())
-            .disbursal_credit_account_id(deposit_account_id)
+            .disbursal_credit_account_id(disbursal_credit_account_id)
             .terms(terms)
             .amount(amount)
             .build()

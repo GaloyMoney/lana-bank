@@ -75,6 +75,28 @@ pub struct LanaApp {
 }
 
 impl LanaApp {
+    fn usd_active_deposit_ledger_account_id(
+        deposit_account: &crate::deposit::DepositAccount,
+    ) -> Result<crate::accounting::CalaAccountId, ApplicationError> {
+        let id = deposit_account.id;
+        let currency = money::CurrencyCode::USD;
+
+        let pair = deposit_account
+            .account_ids
+            .get(&currency)
+            .map_err(|_| {
+                ApplicationError::DepositError(
+                    core_deposit::DepositAccountError::CurrencyNotAllowed(id, currency).into(),
+                )
+            })?
+            .ok_or(ApplicationError::DepositError(
+                core_deposit::DepositAccountError::MissingLedgerAccountForCurrency(id, currency)
+                    .into(),
+            ))?;
+
+        Ok(pair.active)
+    }
+
     #[es_entity::es_event_context]
     #[record_error_severity]
     #[instrument(name = "lana_app.init", skip_all)]
@@ -507,13 +529,15 @@ impl LanaApp {
         if deposit_account.is_closed() || deposit_account.is_frozen() {
             return Err(ApplicationError::CanNotCreateProposalForClosedOrFrozenAccount);
         }
+        let disbursal_credit_account_id =
+            Self::usd_active_deposit_ledger_account_id(&deposit_account)?;
 
         let ret = self
             .credit()
             .create_facility_proposal(
                 sub,
                 customer_id,
-                deposit_account.id,
+                disbursal_credit_account_id,
                 amount,
                 terms,
                 custodian_id,
@@ -544,7 +568,9 @@ impl LanaApp {
             return Err(ApplicationError::CanNotCreateProposalForClosedOrFrozenAccount);
         }
 
-        let payment_source_account_id = PaymentSourceAccountId::new(deposit_account.id.into());
+        let payment_source_account_id = PaymentSourceAccountId::new(
+            Self::usd_active_deposit_ledger_account_id(&deposit_account)?,
+        );
         let ret = self
             .credit()
             .record_payment(sub, credit_facility_id, payment_source_account_id, amount)
@@ -575,7 +601,9 @@ impl LanaApp {
             return Err(ApplicationError::CanNotCreateProposalForClosedOrFrozenAccount);
         }
 
-        let payment_source_account_id = PaymentSourceAccountId::new(deposit_account.id.into());
+        let payment_source_account_id = PaymentSourceAccountId::new(
+            Self::usd_active_deposit_ledger_account_id(&deposit_account)?,
+        );
         let ret = self
             .credit()
             .record_payment_with_date(

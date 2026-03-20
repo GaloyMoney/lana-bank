@@ -20,6 +20,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
 
     let facility_id = state.facility_id;
     let deposit_account_id = state.deposit_account_id;
+    let deposit_ledger_account_id = state.deposit_ledger_account_id;
 
     // Attempt overpayment and verify error
     let payment_amount = UsdCents::from(100);
@@ -31,7 +32,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         .record_payment(
             &DummySubject,
             facility_id,
-            PaymentSourceAccountId::new(deposit_account_id.into()),
+            PaymentSourceAccountId::new(deposit_ledger_account_id),
             payment_amount,
         )
         .await;
@@ -46,7 +47,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         .record_payment(
             &DummySubject,
             facility_id,
-            PaymentSourceAccountId::new(deposit_account_id.into()),
+            PaymentSourceAccountId::new(deposit_ledger_account_id),
             facility_amount,
         )
         .await;
