@@ -668,6 +668,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         &customers,
         &domain_configs,
         &internal_domain_configs,
+        std::sync::Arc::new(price.clone()),
     )
     .await?;
 

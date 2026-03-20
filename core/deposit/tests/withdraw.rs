@@ -1,5 +1,7 @@
 mod helpers;
 
+use std::sync::Arc;
+
 use rust_decimal_macros::dec;
 use uuid::Uuid;
 
@@ -8,6 +10,7 @@ use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_customer::{CustomerType, Customers};
 use core_deposit::*;
+use core_price::Price;
 use document_storage::DocumentStorage;
 use es_entity::clock::ClockHandle;
 
@@ -60,6 +63,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         &exposed_domain_configs,
         clock.clone(),
     );
+    let price = Arc::new(Price::new(&outbox));
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -73,6 +77,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         &customers,
         &exposed_domain_configs,
         &internal_domain_configs,
+        price,
     )
     .await?;
 

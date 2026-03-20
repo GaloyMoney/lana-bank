@@ -26,6 +26,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
+use core_price::Price;
 use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -91,6 +92,7 @@ where
     outbox: Outbox<E>,
     public_ids: PublicIds,
     customers: Customers<Perms, E>,
+    price: Arc<Price>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
     domain_configs: ExposedDomainConfigsReadOnly,
 }
@@ -115,6 +117,7 @@ where
             outbox: self.outbox.clone(),
             public_ids: self.public_ids.clone(),
             customers: self.customers.clone(),
+            price: self.price.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             domain_configs: self.domain_configs.clone(),
         }
@@ -146,6 +149,7 @@ where
         customers: &Customers<Perms, E>,
         domain_configs: &ExposedDomainConfigsReadOnly,
         internal_domain_configs: &InternalDomainConfigs,
+        price: Arc<Price>,
     ) -> Result<Self, CoreDepositError> {
         let clock = jobs.clock().clone();
 
@@ -195,6 +199,7 @@ where
             ledger: ledger_arc,
             public_ids: public_ids.clone(),
             customers: customers.clone(),
+            price,
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc.clone(),
             domain_configs: domain_configs.clone(),
         };

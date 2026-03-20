@@ -1,5 +1,7 @@
 mod helpers;
 
+use std::sync::Arc;
+
 use rand::RngExt;
 use std::collections::HashMap;
 
@@ -9,6 +11,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::{AccountCode, CalaAccountSetId, CoreAccounting};
 use core_customer::Customers;
 use core_deposit::*;
+use core_price::Price;
 use document_storage::DocumentStorage;
 use es_entity::clock::ClockHandle;
 use helpers::{
@@ -111,6 +114,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &exposed_domain_configs,
         clock.clone(),
     );
+    let price = Arc::new(Price::new(&outbox));
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -124,6 +128,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &customers,
         &exposed_domain_configs,
         &internal_domain_configs,
+        price,
     )
     .await?;
 

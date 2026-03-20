@@ -1,6 +1,8 @@
 mod config;
 mod error;
 
+use std::sync::Arc;
+
 use core_credit::PaymentSourceAccountId;
 use es_entity::clock::{ClockController, ClockHandle};
 use sqlx::PgPool;
@@ -229,6 +231,7 @@ impl LanaApp {
             &customers,
             &exposed_domain_configs_readonly,
             &internal_domain_configs,
+            Arc::new(core_price.price().clone()),
         )
         .await?;
         let customer_kyc = CustomerKyc::init(

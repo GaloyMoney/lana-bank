@@ -1,5 +1,7 @@
 mod helpers;
 
+use std::sync::Arc;
+
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use rust_decimal_macros::dec;
 use uuid::Uuid;
@@ -9,6 +11,7 @@ use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_customer::{CustomerType, Customers};
 use core_deposit::*;
+use core_price::Price;
 use document_storage::DocumentStorage;
 use es_entity::clock::{ClockController, ClockHandle};
 use helpers::{action, event, object};
@@ -81,6 +84,7 @@ async fn setup_at(start: DateTime<Utc>) -> anyhow::Result<(TestSetup, ClockContr
         &exposed_domain_configs_readonly,
         clock.clone(),
     );
+    let price = Arc::new(Price::new(&outbox));
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -94,6 +98,7 @@ async fn setup_at(start: DateTime<Utc>) -> anyhow::Result<(TestSetup, ClockContr
         &customers,
         &exposed_domain_configs_readonly,
         &internal_domain_configs,
+        price,
     )
     .await?;
 

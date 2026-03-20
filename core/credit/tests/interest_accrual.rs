@@ -163,6 +163,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
         &customers,
         &domain_configs,
         &internal_domain_configs,
+        std::sync::Arc::new(price.clone()),
     )
     .await?;
 
