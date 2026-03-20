@@ -191,16 +191,16 @@ impl EodProcess {
         obligation_job_id: job::JobId,
         deposit_job_id: job::JobId,
     ) -> Result<Idempotent<()>, EodProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            already_applied: EodProcessEvent::Phase1Started { .. }
+        );
         if self.status() != EodProcessStatus::Initialized {
             return Err(EodProcessError::InvalidStateTransition {
                 current: self.status(),
                 attempted: "start_obligations_and_deposits",
             });
         }
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::Phase1Started { .. }
-        );
         self.events.push(EodProcessEvent::Phase1Started {
             obligation_job_id,
             deposit_job_id,
@@ -212,16 +212,16 @@ impl EodProcess {
         &mut self,
         terminal_state: JobTerminalState,
     ) -> Result<Idempotent<()>, EodProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            already_applied: EodProcessEvent::Phase1ObligationCompleted { .. }
+        );
         if self.status() != EodProcessStatus::AwaitingObligationsAndDeposits {
             return Err(EodProcessError::InvalidStateTransition {
                 current: self.status(),
                 attempted: "complete_phase1_obligation",
             });
         }
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::Phase1ObligationCompleted { .. }
-        );
         self.events
             .push(EodProcessEvent::Phase1ObligationCompleted { terminal_state });
         Ok(Idempotent::Executed(()))
@@ -231,16 +231,16 @@ impl EodProcess {
         &mut self,
         terminal_state: JobTerminalState,
     ) -> Result<Idempotent<()>, EodProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            already_applied: EodProcessEvent::Phase1DepositCompleted { .. }
+        );
         if self.status() != EodProcessStatus::AwaitingObligationsAndDeposits {
             return Err(EodProcessError::InvalidStateTransition {
                 current: self.status(),
                 attempted: "complete_phase1_deposit",
             });
         }
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::Phase1DepositCompleted { .. }
-        );
         self.events
             .push(EodProcessEvent::Phase1DepositCompleted { terminal_state });
         Ok(Idempotent::Executed(()))
@@ -250,16 +250,16 @@ impl EodProcess {
         &mut self,
         credit_facility_job_id: job::JobId,
     ) -> Result<Idempotent<()>, EodProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            already_applied: EodProcessEvent::Phase2Started { .. }
+        );
         if self.status() != EodProcessStatus::ObligationsAndDepositsComplete {
             return Err(EodProcessError::InvalidStateTransition {
                 current: self.status(),
                 attempted: "start_credit_facility_eod",
             });
         }
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::Phase2Started { .. }
-        );
         self.events.push(EodProcessEvent::Phase2Started {
             credit_facility_job_id,
         });
@@ -270,16 +270,16 @@ impl EodProcess {
         &mut self,
         terminal_state: JobTerminalState,
     ) -> Result<Idempotent<()>, EodProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            already_applied: EodProcessEvent::Phase2CreditFacilityCompleted { .. }
+        );
         if self.status() != EodProcessStatus::AwaitingCreditFacilityEod {
             return Err(EodProcessError::InvalidStateTransition {
                 current: self.status(),
                 attempted: "complete_phase2_credit_facility",
             });
         }
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::Phase2CreditFacilityCompleted { .. }
-        );
         self.events
             .push(EodProcessEvent::Phase2CreditFacilityCompleted { terminal_state });
         Ok(Idempotent::Executed(()))
@@ -489,8 +489,14 @@ mod tests {
             .complete_phase2_credit_facility(JobTerminalState::Completed)
             .unwrap();
         let _ = process.mark_completed().unwrap();
-        // Completed state should reject start_obligations_and_deposits
-        assert!(process.start_obligations_and_deposits(job1, job2).is_err());
+        // In Completed state, start_obligations_and_deposits returns AlreadyApplied
+        // because Phase1Started event exists in history (idempotency guard)
+        assert!(
+            process
+                .start_obligations_and_deposits(job1, job2)
+                .unwrap()
+                .was_already_applied()
+        );
     }
 
     #[test]

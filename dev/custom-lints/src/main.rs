@@ -124,6 +124,25 @@ fn collect_rust_files(workspace_root: &Path, dirs: &[&str]) -> Vec<PathBuf> {
         .collect()
 }
 
+/// Check if a violation is suppressed by a `// lint:allow(<rule>)` comment
+/// on the flagged line or up to 3 lines above it.
+fn is_suppressed(violation: &Violation, source_lines: &[&str]) -> bool {
+    let line = match violation.line {
+        Some(l) => l,
+        None => return false,
+    };
+    let allow_marker = format!("lint:allow({})", violation.rule);
+    for offset in 0..=3 {
+        if line > offset {
+            let idx = line - 1 - offset; // 1-indexed → 0-indexed
+            if idx < source_lines.len() && source_lines[idx].contains(&allow_marker) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 fn check_file(
     rules: &[Box<dyn LintRule>],
     file_path: &Path,
@@ -146,9 +165,11 @@ fn check_file(
     };
 
     let relative_path = file_path.strip_prefix(workspace_root).unwrap_or(file_path);
+    let source_lines: Vec<&str> = content.lines().collect();
 
     rules
         .iter()
         .flat_map(|rule| rule.check_file(&parsed, relative_path))
+        .filter(|v| !is_suppressed(v, &source_lines))
         .collect()
 }
