@@ -19,10 +19,6 @@ path = "src/bin/write_customer_sdl.rs"
 name = "write_translation_labels"
 path = "src/bin/write_translation_labels.rs"
 
-[[bin]]
-name = "write_entity_keys"
-path = "src/bin/write_entity_keys.rs"
-
 [dependencies]
 admin-server = { workspace = true }
 customer-server = { workspace = true }

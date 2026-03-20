@@ -29,6 +29,12 @@ generates:
         SignedSatoshis: "types#SignedSatoshis"
         AuditSubjectId: string
         AccountCode: string
+  ./lib/graphql/generated/entity-keys.ts:
+    plugins:
+      - ./lib/codegen-plugins/entity-key-fields.js
+  ./lib/graphql/generated/pagination.ts:
+    plugins:
+      - ./lib/codegen-plugins/relay-pagination.js
   ./lib/graphql/generated/mocks.ts:
     plugins:
       - add:
