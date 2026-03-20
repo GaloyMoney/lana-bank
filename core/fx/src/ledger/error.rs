@@ -16,6 +16,8 @@ pub enum FxLedgerError {
     CalaTxTemplate(#[from] cala_ledger::tx_template::error::TxTemplateError),
     #[error("FxLedgerError - CalaTransactionError: {0}")]
     CalaTransaction(#[from] cala_ledger::transaction::error::TransactionError),
+    #[error("FxLedgerError - FxPositionError: {0}")]
+    FxPositionError(#[from] crate::position::error::FxPositionError),
     #[error("FxLedgerError - BtcNotAllowed")]
     BtcNotAllowed,
 }
@@ -29,6 +31,7 @@ impl ErrorSeverity for FxLedgerError {
             Self::AccountSetError(_) => Level::ERROR,
             Self::CalaTxTemplate(_) => Level::ERROR,
             Self::CalaTransaction(_) => Level::ERROR,
+            Self::FxPositionError(e) => e.severity(),
             Self::BtcNotAllowed => Level::WARN,
         }
     }
