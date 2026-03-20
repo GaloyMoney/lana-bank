@@ -22,14 +22,8 @@ es_entity::entity_id! { EodProcessId }
 pub enum EodProcessStatus {
     #[default]
     Initialized,
-    #[strum(serialize = "AwaitingPhase1")]
-    #[serde(alias = "awaiting_phase1")]
     AwaitingObligationsAndDeposits,
-    #[strum(serialize = "Phase1Complete")]
-    #[serde(alias = "phase1_complete")]
     ObligationsAndDepositsComplete,
-    #[strum(serialize = "AwaitingPhase2")]
-    #[serde(alias = "awaiting_phase2")]
     AwaitingCreditFacilityEod,
     Completed,
     Failed,

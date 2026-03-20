@@ -40,7 +40,7 @@ pub use closing_schedule::ClosingSchedule;
 pub use event::*;
 
 // --- Re-exports merged from core-eod ---
-pub use eod_process::{EodProcess, EodProcessEvent, EodProcesses, NewEodProcess, PhaseOutcome};
+pub use eod_process::{EodProcess, EodProcessEvent, EodProcesses, NewEodProcess};
 pub use primitives::*;
 pub use process_manager::{
     EOD_PROCESS_MANAGER_JOB, EodProcessManagerConfig, EodProcessManagerJobInit,
