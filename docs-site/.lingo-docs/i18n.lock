@@ -2131,7 +2131,7 @@ checksums:
     admin/queries/balanceSheetConfig: f3c29c870ff4278432626c5cca981302
     admin/queries/profitAndLossStatementConfig: a44b4d1f2fc0b9e87d2192ca4f12dd83
     admin/queries/publicIdTarget: dc3a012cd58e2a5e5376be4b05c6968e
-    admin/queries/loanAgreement: dee4f86277c9d006f5f3bcf75606c0ed
+    admin/queries/creditFacilityAgreement: f01df73509d45b6e48073788c096b81a
     admin/queries/accountEntryCsv: dc22293576c3d7d3f87e8348df4f053d
     admin/queries/reportRuns: 52d69f6f4bd16fcb0da183cbab2f87ae
     admin/queries/reportRun: b154680d0c68ff9a26e98c22607c7543
@@ -2158,7 +2158,7 @@ checksums:
     admin/mutations/customerUnfreeze: 49aaddae490eaff46796612785e47fe0
     admin/mutations/customerClose: b28c9ede0effd084a8d01546ccd0e708
     admin/mutations/domainConfigUpdate: 7c8152f40fc4a56c954717b3c5132f65
-    admin/mutations/depositAccountModuleConfigure: 6e2c449d7b0aa1e574102564afdad739
+    admin/mutations/depositModuleConfigure: e2ef274ff3e8f4a46e91aaf6a1c1cf84
     admin/mutations/manualTransactionExecute: dd512f872d793ac164f2840fe67c4762
     admin/mutations/depositRecord: c7cbbc8442b73abd5b36b92090dd9f6a
     admin/mutations/withdrawalInitiate: bbd87241d56e1a37ab521fe3b04fb15e
@@ -2173,7 +2173,7 @@ checksums:
     admin/mutations/termsTemplateCreate: 96dcea28e27133cbaa34edbaea29d690
     admin/mutations/termsTemplateUpdate: 4a91a37a1cd68c1149b51ca339648323
     admin/mutations/timeAdvanceToNextEndOfDay: f159ecf95454ffb5f2ccaee9f30706b3
-    admin/mutations/creditFacilityModuleConfigure: 58e966ec02411a6b23f2e5e92f6271f5
+    admin/mutations/creditModuleConfigure: 0f1003228062146ba87f5ce235fc0393
     admin/mutations/creditFacilityProposalCreate: 94244b82937c32483f0df94a1136298a
     admin/mutations/creditFacilityProposalCustomerApprovalConclude: a7e2c7acbedaafae5c0e0263ff914842
     admin/mutations/creditFacilityCollateralUpdate: f2986e4512d059ea311a4f4166bca088
@@ -2211,8 +2211,8 @@ checksums:
     admin/mutations/fiscalYearConfigure: 1eae9cd08eac4459ac237177ef612acc
     admin/mutations/ledgerAccountCsvCreate: 2fd6f8522f8f83883c9a35527003ce69
     admin/mutations/accountingCsvDownloadLinkGenerate: 4e68e7557d935a0a45c0915076c60bab
-    admin/mutations/creditFacilityAgreementGenerate: 25a028f0c5be4f3198a65aa2f6b747bd
-    admin/mutations/loanAgreementDownloadLinkGenerate: 64d0dd483f0205628a474617293b5380
+    admin/mutations/creditFacilityAgreementGenerate: 2ddf92e7bdaa7132cea39576a60681d9
+    admin/mutations/creditFacilityAgreementDownloadLinkGenerate: f503a3b5728866a5340731d54c3cc8f1
     admin/mutations/reportRunTrigger: 97afe20c8b83164bf0cfe31cfc861d59
     admin/mutations/reportFileGenerateDownloadLink: e6e9cf0f0e623552a9e0942e9b012ce8
     admin/mutations/chartOfAccountsCsvImportWithBaseConfig: cbffaa11bdc6f7f8ce29cf1982ec4474
