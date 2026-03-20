@@ -7,7 +7,7 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use governance::GovernanceEvent;
-use job::{error::JobError, *};
+use job::*;
 use obix::out::OutboxEventMarker;
 
 use core_custody::CoreCustodyEvent;
@@ -182,14 +182,12 @@ where
                     })
                     .collect();
 
-                match self
-                    .interest_accrual_process_spawner
-                    .spawn_all_in_op(&mut op, specs)
-                    .await
-                {
-                    Ok(_) | Err(JobError::DuplicateId(_)) => {}
-                    Err(e) => return Err(e.into()),
-                }
+                process_manager::spawn_in_op(
+                    &mut op,
+                    &self.interest_accrual_process_spawner,
+                    specs,
+                )
+                .await?;
 
                 state.accrual_cursor = rows.last().map(|(id, ts)| (*ts, *id));
                 current_job
@@ -235,10 +233,7 @@ where
                 })
                 .collect();
 
-            match self.maturity_spawner.spawn_all_in_op(&mut op, specs).await {
-                Ok(_) | Err(JobError::DuplicateId(_)) => {}
-                Err(e) => return Err(e.into()),
-            }
+            process_manager::spawn_in_op(&mut op, &self.maturity_spawner, specs).await?;
 
             state.maturity_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
@@ -275,7 +270,7 @@ where
     /// completes even when a facility has remaining accrual periods.
     async fn await_accrual_and_maturity_completions(
         &self,
-        current_job: CurrentJob,
+        mut current_job: CurrentJob,
         pending_accrual_jobs: Vec<JobId>,
         pending_maturity_jobs: Vec<JobId>,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
@@ -290,31 +285,28 @@ where
             "Awaiting credit facility EOD job completions"
         );
 
-        let futures: Vec<_> = pending_accrual_jobs
+        let all_job_ids: Vec<_> = pending_accrual_jobs
             .iter()
             .chain(pending_maturity_jobs.iter())
-            .map(|job_id| self.jobs.await_completion(*job_id))
+            .copied()
             .collect();
 
-        let results = tokio::select! {
-            results = futures::future::join_all(futures) => results,
-            _ = current_job.shutdown_requested() => {
-                return Ok(JobCompletion::RescheduleIn(Duration::ZERO));
-            }
+        let terminals = match process_manager::await_job_completions(
+            &mut current_job,
+            &self.jobs,
+            &all_job_ids,
+        )
+        .await?
+        {
+            Some(t) => t,
+            None => return Ok(JobCompletion::RescheduleIn(Duration::ZERO)),
         };
 
-        let mut failed_count = 0usize;
-        for result in &results {
-            let terminal = result.as_ref().map_err(|e| e.to_string())?;
-            if *terminal != job::JobTerminalState::Completed {
-                failed_count += 1;
-            }
-        }
-
-        if failed_count > 0 {
+        let failed = process_manager::failed_count(&terminals);
+        if failed > 0 {
             return Err(format!(
-                "{failed_count} of {} credit facility EOD child jobs did not complete successfully",
-                results.len()
+                "{failed} of {} credit facility EOD child jobs did not complete successfully",
+                terminals.len()
             )
             .into());
         }

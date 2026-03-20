@@ -16,7 +16,7 @@ use core_time_events::deposit_activity_process::{
     DEPOSIT_ACTIVITY_PROCESS_JOB_TYPE, DepositActivityProcessConfig,
 };
 use governance::GovernanceEvent;
-use job::{error::JobError, *};
+use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use super::evaluate_deposit_account_activity::{
@@ -173,10 +173,7 @@ where
                 })
                 .collect();
 
-            match self.evaluate_spawner.spawn_all_in_op(&mut op, specs).await {
-                Ok(_) | Err(JobError::DuplicateId(_)) => {}
-                Err(e) => return Err(e.into()),
-            }
+            process_manager::spawn_in_op(&mut op, &self.evaluate_spawner, specs).await?;
 
             state.last_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
@@ -209,7 +206,7 @@ where
     /// be replaced with outbox event streaming like the other two children.
     async fn await_activity_completion(
         &self,
-        current_job: CurrentJob,
+        mut current_job: CurrentJob,
         pending_jobs: Vec<(DepositAccountId, JobId)>,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         if pending_jobs.is_empty() {
@@ -222,30 +219,20 @@ where
             "Awaiting deposit activity job completions"
         );
 
-        let futures: Vec<_> = pending_jobs
-            .iter()
-            .map(|(_, job_id)| self.jobs.await_completion(*job_id))
-            .collect();
+        let job_ids: Vec<_> = pending_jobs.iter().map(|(_, id)| *id).collect();
+        let terminals =
+            match process_manager::await_job_completions(&mut current_job, &self.jobs, &job_ids)
+                .await?
+            {
+                Some(t) => t,
+                None => return Ok(JobCompletion::RescheduleIn(Duration::ZERO)),
+            };
 
-        let results = tokio::select! {
-            results = futures::future::join_all(futures) => results,
-            _ = current_job.shutdown_requested() => {
-                return Ok(JobCompletion::RescheduleIn(Duration::ZERO));
-            }
-        };
-
-        let mut failed_count = 0usize;
-        for result in &results {
-            let terminal = result.as_ref().map_err(|e| e.to_string())?;
-            if *terminal != job::JobTerminalState::Completed {
-                failed_count += 1;
-            }
-        }
-
-        if failed_count > 0 {
+        let failed = process_manager::failed_count(&terminals);
+        if failed > 0 {
             return Err(format!(
-                "{failed_count} of {} deposit activity child jobs did not complete successfully",
-                results.len()
+                "{failed} of {} deposit activity child jobs did not complete successfully",
+                terminals.len()
             )
             .into());
         }

@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
 use async_trait::async_trait;
-use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -12,7 +11,7 @@ use core_time_events::CoreTimeEvent;
 use core_time_events::obligation_status_process::{
     OBLIGATION_STATUS_PROCESS_JOB_TYPE, ObligationStatusProcessConfig,
 };
-use job::{error::JobError, *};
+use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use super::evaluate_obligation_status::{
@@ -178,10 +177,7 @@ where
                 })
                 .collect();
 
-            match self.evaluate_spawner.spawn_all_in_op(&mut op, specs).await {
-                Ok(_) | Err(JobError::DuplicateId(_)) => {}
-                Err(e) => return Err(e.into()),
-            }
+            process_manager::spawn_in_op(&mut op, &self.evaluate_spawner, specs).await?;
 
             state.last_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
@@ -246,39 +242,29 @@ where
             "Streaming outbox events for obligation status completion"
         );
 
-        let mut stream = self.outbox.listen_persisted(Some(start_sequence));
+        let mut seq = obix::EventSequence::from(start_sequence as u64);
+        let result = process_manager::await_events(
+            &mut current_job,
+            &self.outbox,
+            &mut pending,
+            &mut seq,
+            Self::extract_obligation_completion,
+        )
+        .await?;
 
-        loop {
-            tokio::select! {
-                Some(event) = stream.next() => {
-                    let matched_id = event.payload.as_ref()
-                        .and_then(|p| p.as_event::<CoreCreditCollectionEvent>())
-                        .and_then(Self::extract_obligation_completion);
-
-                    if let Some(obligation_id) = matched_id {
-                        if pending.remove(&obligation_id) {
-                            start_sequence = event.sequence;
-                            let state = ObligationStatusState::AwaitingStatusUpdates {
-                                pending: pending.clone(),
-                                start_sequence,
-                            };
-                            current_job.update_execution_state(&state).await?;
-                        }
-                    }
-                    if pending.is_empty() {
-                        tracing::info!("All obligation status updates completed");
-                        return Ok(JobCompletion::Complete);
-                    }
-                }
-                _ = current_job.shutdown_requested() => {
-                    let state = ObligationStatusState::AwaitingStatusUpdates {
-                        pending,
-                        start_sequence,
-                    };
-                    current_job.update_execution_state(&state).await?;
-                    tracing::info!("Shutdown requested, rescheduling obligation status tracking");
-                    return Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO));
-                }
+        match result {
+            Some(()) => {
+                tracing::info!("All obligation status updates completed");
+                Ok(JobCompletion::Complete)
+            }
+            None => {
+                let state = ObligationStatusState::AwaitingStatusUpdates {
+                    pending,
+                    start_sequence,
+                };
+                current_job.update_execution_state(&state).await?;
+                tracing::info!("Shutdown requested, rescheduling obligation status tracking");
+                Ok(JobCompletion::RescheduleIn(std::time::Duration::ZERO))
             }
         }
     }

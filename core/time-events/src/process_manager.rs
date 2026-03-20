@@ -192,25 +192,20 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         let credit_facility_job = JobId::new();
 
-        match self
-            .credit_facility_spawner
-            .spawn_all_in_op(
-                op,
-                vec![
-                    JobSpec::new(
-                        credit_facility_job,
-                        CreditFacilityEodProcessConfig {
-                            date: self.config.date,
-                        },
-                    )
-                    .queue_id("eod-credit-facility".to_string()),
-                ],
-            )
-            .await
-        {
-            Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
-            Err(e) => return Err(e.into()),
-        }
+        process_manager::spawn_in_op(
+            op,
+            &self.credit_facility_spawner,
+            vec![
+                JobSpec::new(
+                    credit_facility_job,
+                    CreditFacilityEodProcessConfig {
+                        date: self.config.date,
+                    },
+                )
+                .queue_id("eod-credit-facility".to_string()),
+            ],
+        )
+        .await?;
 
         process.start_phase2(credit_facility_job)?;
         Ok(())
@@ -225,46 +220,36 @@ where
 
         let mut op = current_job.begin_op().await?;
 
-        match self
-            .obligation_spawner
-            .spawn_all_in_op(
-                &mut op,
-                vec![
-                    JobSpec::new(
-                        obligation_job,
-                        ObligationStatusProcessConfig {
-                            date: self.config.date,
-                        },
-                    )
-                    .queue_id("eod-obligation-status".to_string()),
-                ],
-            )
-            .await
-        {
-            Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
-            Err(e) => return Err(e.into()),
-        }
+        process_manager::spawn_in_op(
+            &mut op,
+            &self.obligation_spawner,
+            vec![
+                JobSpec::new(
+                    obligation_job,
+                    ObligationStatusProcessConfig {
+                        date: self.config.date,
+                    },
+                )
+                .queue_id("eod-obligation-status".to_string()),
+            ],
+        )
+        .await?;
 
-        match self
-            .deposit_spawner
-            .spawn_all_in_op(
-                &mut op,
-                vec![
-                    JobSpec::new(
-                        deposit_job,
-                        DepositActivityProcessConfig {
-                            date: self.config.date,
-                            closing_time: self.config.closing_time,
-                        },
-                    )
-                    .queue_id("eod-deposit-activity".to_string()),
-                ],
-            )
-            .await
-        {
-            Ok(_) | Err(job::error::JobError::DuplicateId(_)) => {}
-            Err(e) => return Err(e.into()),
-        }
+        process_manager::spawn_in_op(
+            &mut op,
+            &self.deposit_spawner,
+            vec![
+                JobSpec::new(
+                    deposit_job,
+                    DepositActivityProcessConfig {
+                        date: self.config.date,
+                        closing_time: self.config.closing_time,
+                    },
+                )
+                .queue_id("eod-deposit-activity".to_string()),
+            ],
+        )
+        .await?;
 
         let mut process = self
             .eod_processes
@@ -280,7 +265,7 @@ where
 
     async fn handle_awaiting_phase1(
         &self,
-        current_job: CurrentJob,
+        mut current_job: CurrentJob,
         process: &EodProcess,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let obligation_job = process
@@ -308,19 +293,16 @@ where
             return Ok(JobCompletion::RescheduleNowWithOp(op));
         }
 
-        let (obligation_result, deposit_result) = tokio::select! {
-            results = async {
-                tokio::join!(
-                    self.jobs.await_completion(obligation_job),
-                    self.jobs.await_completion(deposit_job),
-                )
-            } => results,
-            _ = current_job.shutdown_requested() => {
-                return Ok(JobCompletion::RescheduleIn(Duration::ZERO));
-            }
-        };
-        let obligation_terminal = Self::to_entity_terminal(obligation_result?);
-        let deposit_terminal = Self::to_entity_terminal(deposit_result?);
+        let job_ids = [obligation_job, deposit_job];
+        let terminals =
+            match process_manager::await_job_completions(&mut current_job, &self.jobs, &job_ids)
+                .await?
+            {
+                Some(t) => t,
+                None => return Ok(JobCompletion::RescheduleIn(Duration::ZERO)),
+            };
+        let obligation_terminal = Self::to_entity_terminal(terminals[0]);
+        let deposit_terminal = Self::to_entity_terminal(terminals[1]);
 
         let mut op = current_job.begin_op().await?;
         let mut process = self
@@ -398,7 +380,7 @@ where
 
     async fn handle_awaiting_phase2(
         &self,
-        current_job: CurrentJob,
+        mut current_job: CurrentJob,
         process: &EodProcess,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let credit_facility_job = process
@@ -422,14 +404,15 @@ where
             return Ok(JobCompletion::RescheduleNowWithOp(op));
         }
 
-        let credit_facility_terminal = tokio::select! {
-            result = self.jobs.await_completion(credit_facility_job) => {
-                Self::to_entity_terminal(result?)
-            }
-            _ = current_job.shutdown_requested() => {
-                return Ok(JobCompletion::RescheduleIn(Duration::ZERO));
-            }
-        };
+        let job_ids = [credit_facility_job];
+        let terminals =
+            match process_manager::await_job_completions(&mut current_job, &self.jobs, &job_ids)
+                .await?
+            {
+                Some(t) => t,
+                None => return Ok(JobCompletion::RescheduleIn(Duration::ZERO)),
+            };
+        let credit_facility_terminal = Self::to_entity_terminal(terminals[0]);
 
         let mut op = current_job.begin_op().await?;
         let mut process = self
