@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use es_entity::clock::{ClockController, ClockHandle};
-use es_entity::prelude::chrono::{self, Utc};
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditCollectionEvent, CoreCreditEvent, LanaEvent, ObligationType};
@@ -29,13 +28,6 @@ pub async fn principal_under_payment_scenario(
         tracing::Level::INFO,
         "Starting principal under payment scenario"
     );
-
-    let target_time = Utc::now() - chrono::Duration::days(240);
-    let current_time = clock.now();
-    if target_time > current_time {
-        let advance_by = (target_time - current_time).to_std()?;
-        clock_ctrl.advance(advance_by).await;
-    }
 
     let (customer_id, _) = helpers::create_customer(&sub, app, "6-principal-under-payment").await?;
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
