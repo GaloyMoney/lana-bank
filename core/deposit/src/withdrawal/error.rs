@@ -2,6 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use crate::account::error::DepositAccountError;
 use crate::primitives::WithdrawalId;
 
 use super::repo::{
@@ -20,6 +21,8 @@ pub enum WithdrawalError {
     Find(#[from] WithdrawalFindError),
     #[error("WithdrawalError - Query: {0}")]
     Query(#[from] WithdrawalQueryError),
+    #[error("WithdrawalError - DepositAccountError: {0}")]
+    DepositAccountError(#[from] DepositAccountError),
     #[error("WithdrawalError - DepositLedgerError: {0}")]
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("WithdrawalError - AlreadyConfirmed: {0}")]
@@ -42,6 +45,7 @@ impl ErrorSeverity for WithdrawalError {
             Self::Modify(_) => Level::ERROR,
             Self::Find(_) => Level::ERROR,
             Self::Query(_) => Level::ERROR,
+            Self::DepositAccountError(_) => Level::ERROR,
             Self::DepositLedgerError(_) => Level::ERROR,
             Self::AlreadyConfirmed(_) => Level::WARN,
             Self::AlreadyCancelled(_) => Level::WARN,

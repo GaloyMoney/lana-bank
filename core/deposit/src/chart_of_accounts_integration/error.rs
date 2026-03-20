@@ -16,6 +16,15 @@ pub enum ChartOfAccountsIntegrationError {
     ChartLookupError(#[from] chart_primitives::ChartLookupError),
     #[error("ChartOfAccountsIntegrationError - AccountingBaseConfigNotFound")]
     AccountingBaseConfigNotFound,
+    #[error(
+        "ChartOfAccountsIntegrationError - MissingAccountSetSpec: account_type={account_type:?}, currency={currency}"
+    )]
+    MissingAccountSetSpec {
+        account_type: crate::DepositAccountType,
+        currency: money::CurrencyCode,
+    },
+    #[error("ChartOfAccountsIntegrationError - MissingOmnibusAccountSetSpec: currency={currency}")]
+    MissingOmnibusAccountSetSpec { currency: money::CurrencyCode },
     #[error("ChartOfAccountsIntegrationError - DomainConfigError: {0}")]
     DomainConfigError(#[from] domain_config::error::DomainConfigError),
     #[error("ChartOfAccountsIntegrationError - Sqlx: {0}")]
@@ -31,6 +40,8 @@ impl ErrorSeverity for ChartOfAccountsIntegrationError {
             Self::DepositLedgerError(e) => e.severity(),
             Self::ChartLookupError(e) => e.severity(),
             Self::AccountingBaseConfigNotFound => Level::ERROR,
+            Self::MissingAccountSetSpec { .. } => Level::ERROR,
+            Self::MissingOmnibusAccountSetSpec { .. } => Level::ERROR,
             Self::DomainConfigError(e) => e.severity(),
             Self::Sqlx(_) => Level::ERROR,
         }

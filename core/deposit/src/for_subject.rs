@@ -101,8 +101,11 @@ where
             CoreDepositAction::DEPOSIT_ACCOUNT_READ_BALANCE,
         )
         .await?;
-
-        let balance = self.ledger.balance(account_id).await?;
+        let deposit_account = self.accounts.find_by_id(account_id).await?;
+        let balance = self
+            .ledger
+            .balance(account_id, deposit_account.currency)
+            .await?;
         Ok(balance)
     }
 

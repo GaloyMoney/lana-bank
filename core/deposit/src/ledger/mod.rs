@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use audit::SystemSubject;
 use chrono::{DateTime, Utc};
+use money::CurrencyMap;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -22,13 +23,13 @@ use cala_ledger::{
 };
 
 use crate::{
-    DepositAccount, DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds,
-    WithdrawalReversalData,
+    DepositAccount, DepositAccountBalance, DepositReversalData, DepositSummaryAccountSetSpec,
+    LedgerOmnibusAccountIds, WithdrawalReversalData,
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
     history::DepositAccountHistoryEntry,
     primitives::{
-        CalaAccountId, CalaAccountSetId, DEPOSIT_ACCOUNT_ENTITY_TYPE, DEPOSIT_ACCOUNT_SET_CATALOG,
-        DepositAccountType, DepositId, UsdCents, WithdrawalId,
+        CalaAccountId, CalaAccountSetId, CurrencyCode, DEPOSIT_ACCOUNT_ENTITY_TYPE,
+        DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountType, DepositId, UsdCents, WithdrawalId,
     },
 };
 
@@ -44,14 +45,38 @@ pub struct InternalAccountSetDetails {
     normal_balance_type: DebitOrCredit,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct DepositAccountSets {
-    individual: InternalAccountSetDetails,
-    government_entity: InternalAccountSetDetails,
-    private_company: InternalAccountSetDetails,
-    bank: InternalAccountSetDetails,
-    financial_institution: InternalAccountSetDetails,
-    non_domiciled_company: InternalAccountSetDetails,
+    individual: CurrencyMap<InternalAccountSetDetails>,
+    government_entity: CurrencyMap<InternalAccountSetDetails>,
+    private_company: CurrencyMap<InternalAccountSetDetails>,
+    bank: CurrencyMap<InternalAccountSetDetails>,
+    financial_institution: CurrencyMap<InternalAccountSetDetails>,
+    non_domiciled_company: CurrencyMap<InternalAccountSetDetails>,
+}
+
+impl DepositAccountSets {
+    fn for_type(
+        &self,
+        deposit_account_type: DepositAccountType,
+    ) -> &CurrencyMap<InternalAccountSetDetails> {
+        match deposit_account_type {
+            DepositAccountType::Individual => &self.individual,
+            DepositAccountType::GovernmentEntity => &self.government_entity,
+            DepositAccountType::PrivateCompany => &self.private_company,
+            DepositAccountType::Bank => &self.bank,
+            DepositAccountType::FinancialInstitution => &self.financial_institution,
+            DepositAccountType::NonDomiciledCompany => &self.non_domiciled_company,
+        }
+    }
+
+    fn find(
+        &self,
+        deposit_account_type: DepositAccountType,
+        currency: CurrencyCode,
+    ) -> Option<InternalAccountSetDetails> {
+        self.for_type(deposit_account_type).get(&currency).copied()
+    }
 }
 
 #[derive(Clone)]
@@ -61,8 +86,8 @@ pub struct DepositLedger {
     journal_id: JournalId,
     deposit_account_sets: DepositAccountSets,
     frozen_deposit_account_sets: DepositAccountSets,
-    deposit_omnibus_account_ids: LedgerOmnibusAccountIds,
-    usd: Currency,
+    deposit_omnibus_account_ids: CurrencyMap<LedgerOmnibusAccountIds>,
+    accounting_currency: CurrencyCode,
     deposit_control_id: VelocityControlId,
 }
 
@@ -84,7 +109,7 @@ impl DepositLedger {
         templates::FreezeAccount::init(cala).await?;
         templates::UnfreezeAccount::init(cala).await?;
 
-        let catalog = DEPOSIT_ACCOUNT_SET_CATALOG;
+        let catalog = &DEPOSIT_ACCOUNT_SET_CATALOG;
         let deposit = catalog.deposit();
         let frozen = catalog.frozen();
 
@@ -135,16 +160,21 @@ impl DepositLedger {
                 format!("{journal_id}:{}", spec.account_ref),
                 spec.name.to_string(),
                 spec.normal_balance_type,
+                spec.currency,
             )
             .await?;
             omnibus_ids.insert(spec.account_set_ref, ids);
         }
 
-        let deposit_omnibus_account_ids = omnibus_ids[catalog.omnibus().account_set_ref].clone();
-
-        let overdraft_prevention_id = velocity::OverdraftPrevention::init(cala).await?;
+        let deposit_omnibus_account_ids: CurrencyMap<_> = catalog
+            .omnibus()
+            .iter()
+            .map(|(currency, spec)| (*currency, omnibus_ids[spec.account_set_ref].clone()))
+            .collect();
 
         let deposit_control_id = Self::create_deposit_control(cala).await?;
+        let overdraft_prevention_id = velocity::OverdraftPrevention::init(cala).await?;
+        let currency_guard_id = velocity::CurrencyGuard::init(cala).await?;
 
         match cala
             .velocities()
@@ -155,29 +185,86 @@ impl DepositLedger {
             | Err(cala_ledger::velocity::error::VelocityError::LimitAlreadyAddedToControl) => {}
             Err(e) => return Err(e.into()),
         }
+        match cala
+            .velocities()
+            .add_limit_to_control(deposit_control_id, currency_guard_id)
+            .await
+        {
+            Ok(_)
+            | Err(cala_ledger::velocity::error::VelocityError::LimitAlreadyAddedToControl) => {}
+            Err(e) => return Err(e.into()),
+        }
+        for spec in catalog.deposit_specs() {
+            Self::attach_single_currency_control_to_account_set(
+                cala,
+                deposit_control_id,
+                deposit_ids[spec.external_ref].id,
+            )
+            .await?;
+        }
+        for spec in catalog.frozen_specs() {
+            Self::attach_single_currency_control_to_account_set(
+                cala,
+                deposit_control_id,
+                frozen_ids[spec.external_ref].id,
+            )
+            .await?;
+        }
+        for spec in catalog.omnibus_specs() {
+            Self::attach_single_currency_control_to_account_set(
+                cala,
+                deposit_control_id,
+                omnibus_ids[spec.account_set_ref].account_set_id,
+            )
+            .await?;
+        }
         Ok(Self {
             clock,
             cala: cala.clone(),
             journal_id,
             deposit_account_sets: DepositAccountSets {
-                individual: deposit_ids[deposit.individual.external_ref],
-                government_entity: deposit_ids[deposit.government_entity.external_ref],
-                private_company: deposit_ids[deposit.private_company.external_ref],
-                bank: deposit_ids[deposit.bank.external_ref],
-                financial_institution: deposit_ids[deposit.financial_institution.external_ref],
-                non_domiciled_company: deposit_ids[deposit.non_domiciled_company.external_ref],
+                individual: Self::internal_account_set_details(&deposit.individual, &deposit_ids),
+                government_entity: Self::internal_account_set_details(
+                    &deposit.government_entity,
+                    &deposit_ids,
+                ),
+                private_company: Self::internal_account_set_details(
+                    &deposit.private_company,
+                    &deposit_ids,
+                ),
+                bank: Self::internal_account_set_details(&deposit.bank, &deposit_ids),
+                financial_institution: Self::internal_account_set_details(
+                    &deposit.financial_institution,
+                    &deposit_ids,
+                ),
+                non_domiciled_company: Self::internal_account_set_details(
+                    &deposit.non_domiciled_company,
+                    &deposit_ids,
+                ),
             },
             frozen_deposit_account_sets: DepositAccountSets {
-                individual: frozen_ids[frozen.individual.external_ref],
-                government_entity: frozen_ids[frozen.government_entity.external_ref],
-                private_company: frozen_ids[frozen.private_company.external_ref],
-                bank: frozen_ids[frozen.bank.external_ref],
-                financial_institution: frozen_ids[frozen.financial_institution.external_ref],
-                non_domiciled_company: frozen_ids[frozen.non_domiciled_company.external_ref],
+                individual: Self::internal_account_set_details(&frozen.individual, &frozen_ids),
+                government_entity: Self::internal_account_set_details(
+                    &frozen.government_entity,
+                    &frozen_ids,
+                ),
+                private_company: Self::internal_account_set_details(
+                    &frozen.private_company,
+                    &frozen_ids,
+                ),
+                bank: Self::internal_account_set_details(&frozen.bank, &frozen_ids),
+                financial_institution: Self::internal_account_set_details(
+                    &frozen.financial_institution,
+                    &frozen_ids,
+                ),
+                non_domiciled_company: Self::internal_account_set_details(
+                    &frozen.non_domiciled_company,
+                    &frozen_ids,
+                ),
             },
             deposit_omnibus_account_ids,
+            accounting_currency: CurrencyCode::USD,
             deposit_control_id,
-            usd: Currency::USD,
         })
     }
 
@@ -232,6 +319,7 @@ impl DepositLedger {
         reference: String,
         name: String,
         normal_balance_type: DebitOrCredit,
+        currency: CurrencyCode,
     ) -> Result<LedgerOmnibusAccountIds, DepositLedgerError> {
         let account_set_id = Self::find_or_create_account_set(
             cala,
@@ -253,6 +341,7 @@ impl DepositLedger {
                     return Ok(LedgerOmnibusAccountIds {
                         account_set_id,
                         account_id: id,
+                        currency,
                     });
                 }
                 AccountSetMemberId::AccountSet(_) => {
@@ -298,6 +387,7 @@ impl DepositLedger {
         Ok(LedgerOmnibusAccountIds {
             account_set_id,
             account_id,
+            currency,
         })
     }
 
@@ -394,13 +484,15 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-
+        let deposit_omnibus_account_id = self
+            .deposit_omnibus_account(self.accounting_currency)?
+            .account_id;
         let params = templates::RecordDepositParams {
             entity_id: entity_id.into(),
             journal_id: self.journal_id,
-            currency: self.usd,
+            currency: self.accounting_currency,
             amount: amount.to_usd(),
-            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
+            deposit_omnibus_account_id,
             credit_account_id,
             initiated_by,
             effective_date: self.clock.today(),
@@ -432,14 +524,16 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-
+        let deposit_omnibus_account_id = self
+            .deposit_omnibus_account(self.accounting_currency)?
+            .account_id;
         let params = templates::InitiateWithdrawParams {
             entity_id: entity_id.into(),
             journal_id: self.journal_id,
-            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
+            deposit_omnibus_account_id,
             credit_account_id,
             amount: amount.to_usd(),
-            currency: self.usd,
+            currency: self.accounting_currency,
             initiated_by,
             effective_date: self.clock.today(),
         };
@@ -474,14 +568,16 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-
+        let deposit_omnibus_account_id = self
+            .deposit_omnibus_account(self.accounting_currency)?
+            .account_id;
         let params = templates::DenyWithdrawParams {
             entity_id: entity_id.into(),
             journal_id: self.journal_id,
-            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
+            deposit_omnibus_account_id,
             credit_account_id,
             amount: amount.to_usd(),
-            currency: self.usd,
+            currency: self.accounting_currency,
             initiated_by,
             effective_date: self.clock.today(),
         };
@@ -501,13 +597,16 @@ impl DepositLedger {
         reversal_data: WithdrawalReversalData,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
+        let deposit_omnibus_account_id = self
+            .deposit_omnibus_account(self.accounting_currency)?
+            .account_id;
         let params = templates::RevertWithdrawParams {
             entity_id: reversal_data.entity_id.into(),
             journal_id: self.journal_id,
-            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
+            deposit_omnibus_account_id,
             credit_account_id: reversal_data.credit_account_id.into(),
             amount: reversal_data.amount.to_usd(),
-            currency: self.usd,
+            currency: self.accounting_currency,
             correlation_id: reversal_data.correlation_id,
             external_id: reversal_data.external_id,
             initiated_by,
@@ -534,15 +633,18 @@ impl DepositLedger {
         reversal_data: DepositReversalData,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
+        let deposit_omnibus_account_id = self
+            .deposit_omnibus_account(self.accounting_currency)?
+            .account_id;
         let params = templates::RevertDepositParams {
             entity_id: reversal_data.entity_id.into(),
             journal_id: self.journal_id,
-            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
+            deposit_omnibus_account_id,
             credit_account_id: reversal_data.credit_account_id.into(),
             correlation_id: reversal_data.correlation_id,
             external_id: reversal_data.external_id,
             amount: reversal_data.amount.to_usd(),
-            currency: self.usd,
+            currency: self.accounting_currency,
             initiated_by,
             effective_date: self.clock.today(),
         };
@@ -575,7 +677,7 @@ impl DepositLedger {
         account: &DepositAccount,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
-        let balance = self.balance(account.id).await?;
+        let balance = self.balance(account.id, account.currency).await?;
 
         if !balance.settled.is_zero() {
             let params = templates::FreezeAccountParams {
@@ -583,7 +685,7 @@ impl DepositLedger {
                 account_id: account.account_ids.deposit_account_id,
                 frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
                 amount: balance.settled.to_usd(),
-                currency: self.usd,
+                currency: self.accounting_currency,
                 initiated_by,
                 effective_date: self.clock.today(),
             };
@@ -623,7 +725,10 @@ impl DepositLedger {
         initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let frozen_balance = self
-            .balance(account.account_ids.frozen_deposit_account_id)
+            .balance(
+                account.account_ids.frozen_deposit_account_id,
+                account.currency,
+            )
             .await?;
 
         self.cala
@@ -637,7 +742,7 @@ impl DepositLedger {
                 account_id: account.account_ids.deposit_account_id,
                 frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
                 amount: frozen_balance.settled.to_usd(),
-                currency: self.usd,
+                currency: self.accounting_currency,
                 initiated_by,
                 effective_date: self.clock.today(),
             };
@@ -692,13 +797,15 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-
+        let deposit_omnibus_account_id = self
+            .deposit_omnibus_account(self.accounting_currency)?
+            .account_id;
         let params = templates::ConfirmWithdrawParams {
             entity_id: entity_id.into(),
             journal_id: self.journal_id,
-            currency: self.usd,
+            currency: self.accounting_currency,
             amount: amount.to_usd(),
-            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
+            deposit_omnibus_account_id,
             credit_account_id,
             correlation_id,
             external_id,
@@ -735,14 +842,16 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-
+        let deposit_omnibus_account_id = self
+            .deposit_omnibus_account(self.accounting_currency)?
+            .account_id;
         let params = templates::CancelWithdrawParams {
             entity_id: entity_id.into(),
             journal_id: self.journal_id,
-            currency: self.usd,
+            currency: self.accounting_currency,
             amount: amount.to_usd(),
             credit_account_id,
-            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
+            deposit_omnibus_account_id,
             initiated_by,
             effective_date: self.clock.today(),
         };
@@ -758,13 +867,18 @@ impl DepositLedger {
     pub async fn balance(
         &self,
         account_id: impl Into<AccountId>,
+        currency: CurrencyCode,
     ) -> Result<DepositAccountBalance, DepositLedgerError> {
         let account_id = account_id.into();
         tracing::Span::current().record("account_id", tracing::field::debug(&account_id));
         match self
             .cala
             .balances()
-            .find(self.journal_id, account_id, self.usd)
+            .find(
+                self.journal_id,
+                account_id,
+                self.cala_balance_currency(currency)?,
+            )
             .await
         {
             Ok(balances) => Ok(DepositAccountBalance {
@@ -788,13 +902,17 @@ impl DepositLedger {
     ) -> Result<(), DepositLedgerError> {
         let holder_id = account.account_holder_id;
         let deposit_account_type = deposit_account_type.into();
+        let deposit_account_set =
+            self.deposit_internal_account_set(deposit_account_type, account.currency)?;
+        let frozen_account_set =
+            self.frozen_deposit_internal_account_set(deposit_account_type, account.currency)?;
 
         let entity_ref = EntityRef::new(DEPOSIT_ACCOUNT_ENTITY_TYPE, account.id);
         let deposit_account_name = format!("Deposit Account {holder_id}");
         self.create_account_in_op(
             op,
             account.id,
-            self.deposit_internal_account_set_from_type(deposit_account_type),
+            deposit_account_set,
             &format!("deposit-customer-account:{holder_id}"),
             &deposit_account_name,
             &deposit_account_name,
@@ -809,7 +927,7 @@ impl DepositLedger {
         self.create_account_in_op(
             op,
             account.account_ids.frozen_deposit_account_id,
-            self.frozen_deposit_internal_account_set_from_type(deposit_account_type),
+            frozen_account_set,
             &format!("frozen-deposit-customer-account:{holder_id}"),
             &frozen_deposit_account_name,
             &frozen_deposit_account_name,
@@ -820,41 +938,60 @@ impl DepositLedger {
         Ok(())
     }
 
-    fn deposit_internal_account_set_from_type(
+    fn deposit_internal_account_set(
         &self,
         deposit_account_type: DepositAccountType,
-    ) -> InternalAccountSetDetails {
-        match deposit_account_type {
-            DepositAccountType::Individual => self.deposit_account_sets.individual,
-            DepositAccountType::GovernmentEntity => self.deposit_account_sets.government_entity,
-            DepositAccountType::PrivateCompany => self.deposit_account_sets.private_company,
-            DepositAccountType::Bank => self.deposit_account_sets.bank,
-            DepositAccountType::FinancialInstitution => {
-                self.deposit_account_sets.financial_institution
-            }
-            DepositAccountType::NonDomiciledCompany => {
-                self.deposit_account_sets.non_domiciled_company
-            }
-        }
+        currency: CurrencyCode,
+    ) -> Result<InternalAccountSetDetails, DepositLedgerError> {
+        self.deposit_account_sets
+            .find(deposit_account_type, currency)
+            .ok_or_else(|| DepositLedgerError::UnsupportedCurrencyForAccountType {
+                account_type: deposit_account_type,
+                currency,
+            })
     }
 
-    fn frozen_deposit_internal_account_set_from_type(
+    fn frozen_deposit_internal_account_set(
         &self,
         deposit_account_type: DepositAccountType,
-    ) -> InternalAccountSetDetails {
-        match deposit_account_type {
-            DepositAccountType::Individual => self.frozen_deposit_account_sets.individual,
-            DepositAccountType::GovernmentEntity => {
-                self.frozen_deposit_account_sets.government_entity
-            }
-            DepositAccountType::PrivateCompany => self.frozen_deposit_account_sets.private_company,
-            DepositAccountType::Bank => self.frozen_deposit_account_sets.bank,
-            DepositAccountType::FinancialInstitution => {
-                self.frozen_deposit_account_sets.financial_institution
-            }
-            DepositAccountType::NonDomiciledCompany => {
-                self.frozen_deposit_account_sets.non_domiciled_company
-            }
+        currency: CurrencyCode,
+    ) -> Result<InternalAccountSetDetails, DepositLedgerError> {
+        self.frozen_deposit_account_sets
+            .find(deposit_account_type, currency)
+            .ok_or_else(|| DepositLedgerError::UnsupportedCurrencyForAccountType {
+                account_type: deposit_account_type,
+                currency,
+            })
+    }
+
+    fn internal_account_set_details(
+        specs: &CurrencyMap<DepositSummaryAccountSetSpec>,
+        ids: &HashMap<&str, InternalAccountSetDetails>,
+    ) -> CurrencyMap<InternalAccountSetDetails> {
+        specs
+            .iter()
+            .map(|(currency, spec)| (*currency, ids[spec.external_ref]))
+            .collect()
+    }
+
+    fn deposit_omnibus_account(
+        &self,
+        currency: CurrencyCode,
+    ) -> Result<&LedgerOmnibusAccountIds, DepositLedgerError> {
+        self.deposit_omnibus_account_ids
+            .get(&currency)
+            .ok_or_else(|| DepositLedgerError::MissingOmnibusAccountForCurrency { currency })
+    }
+
+    // TODO: Remove this when Cala balance queries return currency (denomination of balance).
+    fn cala_balance_currency(
+        &self,
+        currency: CurrencyCode,
+    ) -> Result<Currency, DepositLedgerError> {
+        match currency {
+            CurrencyCode::USD => Ok(Currency::USD),
+            CurrencyCode::BTC => Ok(Currency::BTC),
+            currency => Err(DepositLedgerError::UnsupportedCalaCurrency { currency }),
         }
     }
 
@@ -884,7 +1021,7 @@ impl DepositLedger {
             .description(description)
             .code(id.to_string())
             .normal_balance_type(parent_account_set.normal_balance_type)
-            .metadata(serde_json::json!({"entity_ref": entity_ref}))
+            .metadata(serde_json::json!({ "entity_ref": entity_ref }))
             .expect("Could not add metadata")
             .build()
             .expect("Could not build new account");
@@ -937,15 +1074,42 @@ impl DepositLedger {
         tracing::Span::current().record("account_id", tracing::field::debug(&account_id));
         self.cala
             .velocities()
-            .attach_control_to_account_in_op(
-                op,
-                self.deposit_control_id,
-                account_id,
-                Params::default(),
-            )
+            .attach_control_to_account_in_op(op, self.deposit_control_id, account_id, Params::new())
             .await?;
 
         Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "deposit_ledger.attach_single_currency_control_to_account_set",
+        skip(cala),
+        fields(account_set_id = tracing::field::Empty)
+    )]
+    async fn attach_single_currency_control_to_account_set(
+        cala: &CalaLedger,
+        control_id: VelocityControlId,
+        account_set_id: CalaAccountSetId,
+    ) -> Result<(), DepositLedgerError> {
+        tracing::Span::current().record("account_set_id", tracing::field::debug(&account_set_id));
+
+        match cala
+            .velocities()
+            .attach_control_to_account_set(control_id, account_set_id.into(), Params::new())
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(cala_ledger::velocity::error::VelocityError::Sqlx(sqlx::Error::Database(
+                db_err,
+            ))) if db_err.constraint().is_some_and(|constraint| {
+                constraint
+                    .contains("cala_velocity_account_controls_account_id_velocity_control_id_key")
+            }) =>
+            {
+                Ok(())
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     #[record_error_severity]
@@ -1003,7 +1167,8 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.deposit_omnibus_account_ids.account_set_id,
+            self.deposit_omnibus_account(self.accounting_currency)?
+                .account_set_id,
             *omnibus_parent_account_set_id,
             old_integration_config.map(|config| config.omnibus_parent_account_set_id),
         )
@@ -1011,7 +1176,8 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.deposit_account_sets.individual.id,
+            self.deposit_internal_account_set(DepositAccountType::Individual, CurrencyCode::USD)?
+                .id,
             *individual_deposit_accounts_parent_account_set_id,
             old_integration_config
                 .map(|config| config.individual_deposit_accounts_parent_account_set_id),
@@ -1020,7 +1186,11 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.deposit_account_sets.government_entity.id,
+            self.deposit_internal_account_set(
+                DepositAccountType::GovernmentEntity,
+                CurrencyCode::USD,
+            )?
+            .id,
             *government_entity_deposit_accounts_parent_account_set_id,
             old_integration_config
                 .map(|config| config.government_entity_deposit_accounts_parent_account_set_id),
@@ -1029,7 +1199,11 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.deposit_account_sets.private_company.id,
+            self.deposit_internal_account_set(
+                DepositAccountType::PrivateCompany,
+                CurrencyCode::USD,
+            )?
+            .id,
             *private_company_deposit_accounts_parent_account_set_id,
             old_integration_config
                 .map(|config| config.private_company_deposit_accounts_parent_account_set_id),
@@ -1038,7 +1212,8 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.deposit_account_sets.bank.id,
+            self.deposit_internal_account_set(DepositAccountType::Bank, CurrencyCode::USD)?
+                .id,
             *bank_deposit_accounts_parent_account_set_id,
             old_integration_config.map(|config| config.bank_deposit_accounts_parent_account_set_id),
         )
@@ -1046,7 +1221,11 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.deposit_account_sets.financial_institution.id,
+            self.deposit_internal_account_set(
+                DepositAccountType::FinancialInstitution,
+                CurrencyCode::USD,
+            )?
+            .id,
             *financial_institution_deposit_accounts_parent_account_set_id,
             old_integration_config
                 .map(|config| config.financial_institution_deposit_accounts_parent_account_set_id),
@@ -1055,7 +1234,11 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.deposit_account_sets.non_domiciled_company.id,
+            self.deposit_internal_account_set(
+                DepositAccountType::NonDomiciledCompany,
+                CurrencyCode::USD,
+            )?
+            .id,
             *non_domiciled_company_deposit_accounts_parent_account_set_id,
             old_integration_config
                 .map(|config| config.non_domiciled_company_deposit_accounts_parent_account_set_id),
@@ -1064,7 +1247,11 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.frozen_deposit_account_sets.individual.id,
+            self.frozen_deposit_internal_account_set(
+                DepositAccountType::Individual,
+                CurrencyCode::USD,
+            )?
+            .id,
             *frozen_individual_deposit_accounts_parent_account_set_id,
             old_integration_config
                 .map(|config| config.frozen_individual_deposit_accounts_parent_account_set_id),
@@ -1073,7 +1260,11 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.frozen_deposit_account_sets.government_entity.id,
+            self.frozen_deposit_internal_account_set(
+                DepositAccountType::GovernmentEntity,
+                CurrencyCode::USD,
+            )?
+            .id,
             *frozen_government_entity_deposit_accounts_parent_account_set_id,
             old_integration_config.map(|config| {
                 config.frozen_government_entity_deposit_accounts_parent_account_set_id
@@ -1083,7 +1274,11 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.frozen_deposit_account_sets.private_company.id,
+            self.frozen_deposit_internal_account_set(
+                DepositAccountType::PrivateCompany,
+                CurrencyCode::USD,
+            )?
+            .id,
             *frozen_private_company_deposit_accounts_parent_account_set_id,
             old_integration_config
                 .map(|config| config.frozen_private_company_deposit_accounts_parent_account_set_id),
@@ -1092,7 +1287,8 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.frozen_deposit_account_sets.bank.id,
+            self.frozen_deposit_internal_account_set(DepositAccountType::Bank, CurrencyCode::USD)?
+                .id,
             *frozen_bank_deposit_accounts_parent_account_set_id,
             old_integration_config
                 .map(|config| config.frozen_bank_deposit_accounts_parent_account_set_id),
@@ -1101,7 +1297,11 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.frozen_deposit_account_sets.financial_institution.id,
+            self.frozen_deposit_internal_account_set(
+                DepositAccountType::FinancialInstitution,
+                CurrencyCode::USD,
+            )?
+            .id,
             *frozen_financial_institution_deposit_accounts_parent_account_set_id,
             old_integration_config.map(|config| {
                 config.frozen_financial_institution_deposit_accounts_parent_account_set_id
@@ -1111,7 +1311,11 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.frozen_deposit_account_sets.non_domiciled_company.id,
+            self.frozen_deposit_internal_account_set(
+                DepositAccountType::NonDomiciledCompany,
+                CurrencyCode::USD,
+            )?
+            .id,
             *frozen_non_domiciled_company_deposit_accounts_parent_account_set_id,
             old_integration_config.map(|config| {
                 config.frozen_non_domiciled_company_deposit_accounts_parent_account_set_id

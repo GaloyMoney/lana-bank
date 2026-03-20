@@ -1,3 +1,4 @@
+use money::CurrencyCode;
 use rust_decimal::Decimal;
 
 use tracing::instrument;
@@ -19,7 +20,7 @@ pub const CONFIRM_WITHDRAW_CODE: &str = "CONFIRM_WITHDRAW";
 pub struct ConfirmWithdrawParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
-    pub currency: Currency,
+    pub currency: CurrencyCode,
     pub amount: Decimal,
     pub deposit_omnibus_account_id: CalaAccountId,
     pub credit_account_id: CalaAccountId,
@@ -98,7 +99,7 @@ impl<S: std::fmt::Display> From<ConfirmWithdrawParams<S>> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("currency", currency);
+        params.insert("currency", currency.to_string());
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);

@@ -1,9 +1,10 @@
+use money::CurrencyCode;
 use rust_decimal::Decimal;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use cala_ledger::{
-    AccountId as CalaAccountId, CalaLedger, Currency, JournalId, TxTemplateId,
+    AccountId as CalaAccountId, CalaLedger, JournalId, TxTemplateId,
     tx_template::{
         NewParamDefinition, NewTxTemplate, NewTxTemplateEntry, NewTxTemplateTransaction,
         ParamDataType, Params, error::TxTemplateError,
@@ -20,7 +21,7 @@ pub struct UnfreezeAccountParams<S: std::fmt::Display> {
     pub account_id: CalaAccountId,
     pub frozen_accounts_account_id: CalaAccountId,
     pub amount: Decimal,
-    pub currency: Currency,
+    pub currency: CurrencyCode,
     pub initiated_by: S,
     pub effective_date: chrono::NaiveDate,
 }
@@ -81,7 +82,7 @@ impl<S: std::fmt::Display> From<UnfreezeAccountParams<S>> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("currency", currency);
+        params.insert("currency", currency.to_string());
         params.insert("amount", amount);
         params.insert("account_id", account_id);
         params.insert("frozen_accounts_account_id", frozen_accounts_account_id);

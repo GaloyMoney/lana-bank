@@ -1,3 +1,4 @@
+use money::CurrencyCode;
 use rust_decimal::Decimal;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -21,7 +22,7 @@ pub struct RevertDepositParams<S: std::fmt::Display> {
     pub deposit_omnibus_account_id: CalaAccountId,
     pub credit_account_id: CalaAccountId,
     pub amount: Decimal,
-    pub currency: Currency,
+    pub currency: CurrencyCode,
     pub correlation_id: String,
     pub external_id: String,
     pub initiated_by: S,
@@ -100,7 +101,7 @@ impl<S: std::fmt::Display> From<RevertDepositParams<S>> for Params {
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
         params.insert("amount", amount);
-        params.insert("currency", currency);
+        params.insert("currency", currency.to_string());
         params.insert("correlation_id", correlation_id);
         params.insert("external_id", external_id);
 

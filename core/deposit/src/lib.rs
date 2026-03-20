@@ -261,6 +261,7 @@ where
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
+            .currency(CurrencyCode::USD)
             .account_ids(account_ids)
             .public_id(public_id.id)
             .build()
@@ -790,7 +791,9 @@ where
                 CoreDepositAction::DEPOSIT_ACCOUNT_CLOSE,
             )
             .await?;
-        let balance = self.ledger.balance(account_id).await?;
+
+        let account = self.deposit_accounts.find_by_id(account_id).await?;
+        let balance = self.ledger.balance(account_id, account.currency).await?;
         if !balance.is_zero() {
             return Err(DepositAccountError::BalanceIsNotZero.into());
         }
@@ -832,7 +835,8 @@ where
             )
             .await?;
 
-        let balance = self.ledger.balance(account_id).await?;
+        let account = self.deposit_accounts.find_by_id(account_id).await?;
+        let balance = self.ledger.balance(account_id, account.currency).await?;
         Ok(balance)
     }
 

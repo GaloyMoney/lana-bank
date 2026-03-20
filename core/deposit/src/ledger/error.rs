@@ -2,6 +2,8 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use crate::primitives::{CurrencyCode, DepositAccountType};
+
 #[derive(Error, Debug)]
 pub enum DepositLedgerError {
     #[error("DepositLedgerError - Sqlx: {0}")]
@@ -36,6 +38,17 @@ pub enum DepositLedgerError {
     NonAccountMemberFoundInAccountSet(String),
     #[error("DepositLedgerError - JournalIdMismatch: Account sets have wrong JournalId")]
     JournalIdMismatch,
+    #[error(
+        "DepositLedgerError - UnsupportedCurrencyForAccountType: account_type={account_type:?}, currency={currency}"
+    )]
+    UnsupportedCurrencyForAccountType {
+        account_type: DepositAccountType,
+        currency: CurrencyCode,
+    },
+    #[error("DepositLedgerError - MissingOmnibusAccountForCurrency: currency={currency}")]
+    MissingOmnibusAccountForCurrency { currency: CurrencyCode },
+    #[error("DepositLedgerError - UnsupportedCalaCurrency: currency={currency}")]
+    UnsupportedCalaCurrency { currency: CurrencyCode },
 }
 
 impl ErrorSeverity for DepositLedgerError {
@@ -62,6 +75,9 @@ impl ErrorSeverity for DepositLedgerError {
             Self::MismatchedTxMetadata(_) => Level::WARN,
             Self::NonAccountMemberFoundInAccountSet(_) => Level::ERROR,
             Self::JournalIdMismatch => Level::ERROR,
+            Self::UnsupportedCurrencyForAccountType { .. } => Level::WARN,
+            Self::MissingOmnibusAccountForCurrency { .. } => Level::ERROR,
+            Self::UnsupportedCalaCurrency { .. } => Level::WARN,
         }
     }
 }

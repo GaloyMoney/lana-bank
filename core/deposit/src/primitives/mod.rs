@@ -41,7 +41,7 @@ es_entity::entity_id! {
     WithdrawalId => ApprovalProcessId
 }
 
-pub use money::UsdCents;
+pub use money::{CurrencyCode, UsdCents};
 
 #[derive(
     Debug,
@@ -99,6 +99,7 @@ pub const WITHDRAWAL_REF_TARGET: public_id::PublicIdTargetType =
 pub struct LedgerOmnibusAccountIds {
     pub account_set_id: CalaAccountSetId,
     pub account_id: CalaAccountId,
+    pub currency: CurrencyCode,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -427,7 +428,7 @@ pub enum DepositAccountStatus {
     Closed,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum DepositAccountType {
     Individual,
     GovernmentEntity,

@@ -1,4 +1,9 @@
+use std::sync::LazyLock;
+
 use cala_ledger::DebitOrCredit;
+use money::{CurrencyCode, CurrencyMap};
+
+use super::DepositAccountType;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::Display, strum::EnumString)]
 pub enum DepositAccountCategory {
@@ -21,6 +26,7 @@ pub struct DepositSummaryAccountSetSpec {
     pub external_ref: &'static str,
     pub account_category: DepositAccountCategory,
     pub normal_balance_type: DebitOrCredit,
+    pub currency: CurrencyCode,
 }
 
 impl DepositSummaryAccountSetSpec {
@@ -29,12 +35,14 @@ impl DepositSummaryAccountSetSpec {
         external_ref: &'static str,
         account_category: DepositAccountCategory,
         normal_balance_type: DebitOrCredit,
+        currency: CurrencyCode,
     ) -> Self {
         Self {
             name,
             external_ref,
             account_category,
             normal_balance_type,
+            currency,
         }
     }
 }
@@ -46,6 +54,7 @@ pub struct DepositOmnibusAccountSetSpec {
     pub account_ref: &'static str,
     pub account_category: DepositAccountCategory,
     pub normal_balance_type: DebitOrCredit,
+    pub currency: CurrencyCode,
 }
 
 impl DepositOmnibusAccountSetSpec {
@@ -55,6 +64,7 @@ impl DepositOmnibusAccountSetSpec {
         account_ref: &'static str,
         account_category: DepositAccountCategory,
         normal_balance_type: DebitOrCredit,
+        currency: CurrencyCode,
     ) -> Self {
         Self {
             name,
@@ -62,6 +72,7 @@ impl DepositOmnibusAccountSetSpec {
             account_ref,
             account_category,
             normal_balance_type,
+            currency,
         }
     }
 }
@@ -70,17 +81,41 @@ impl DepositOmnibusAccountSetSpec {
 pub struct DepositAccountSetCatalog {
     deposit: DepositAccountSetCatalogGroup,
     frozen: DepositAccountSetCatalogGroup,
-    omnibus: DepositOmnibusAccountSetSpec,
+    omnibus: CurrencyMap<DepositOmnibusAccountSetSpec>,
 }
 
 #[derive(Debug, Clone)]
 pub struct DepositAccountSetCatalogGroup {
-    pub individual: DepositSummaryAccountSetSpec,
-    pub government_entity: DepositSummaryAccountSetSpec,
-    pub private_company: DepositSummaryAccountSetSpec,
-    pub bank: DepositSummaryAccountSetSpec,
-    pub financial_institution: DepositSummaryAccountSetSpec,
-    pub non_domiciled_company: DepositSummaryAccountSetSpec,
+    pub individual: CurrencyMap<DepositSummaryAccountSetSpec>,
+    pub government_entity: CurrencyMap<DepositSummaryAccountSetSpec>,
+    pub private_company: CurrencyMap<DepositSummaryAccountSetSpec>,
+    pub bank: CurrencyMap<DepositSummaryAccountSetSpec>,
+    pub financial_institution: CurrencyMap<DepositSummaryAccountSetSpec>,
+    pub non_domiciled_company: CurrencyMap<DepositSummaryAccountSetSpec>,
+}
+
+impl DepositAccountSetCatalogGroup {
+    pub fn for_type(
+        &self,
+        deposit_account_type: DepositAccountType,
+    ) -> &CurrencyMap<DepositSummaryAccountSetSpec> {
+        match deposit_account_type {
+            DepositAccountType::Individual => &self.individual,
+            DepositAccountType::GovernmentEntity => &self.government_entity,
+            DepositAccountType::PrivateCompany => &self.private_company,
+            DepositAccountType::Bank => &self.bank,
+            DepositAccountType::FinancialInstitution => &self.financial_institution,
+            DepositAccountType::NonDomiciledCompany => &self.non_domiciled_company,
+        }
+    }
+
+    pub fn find(
+        &self,
+        deposit_account_type: DepositAccountType,
+        currency: CurrencyCode,
+    ) -> Option<DepositSummaryAccountSetSpec> {
+        self.for_type(deposit_account_type).get(&currency).copied()
+    }
 }
 
 impl DepositAccountSetCatalog {
@@ -92,34 +127,46 @@ impl DepositAccountSetCatalog {
         &self.frozen
     }
 
-    pub fn omnibus(&self) -> &DepositOmnibusAccountSetSpec {
+    pub fn omnibus(&self) -> &CurrencyMap<DepositOmnibusAccountSetSpec> {
         &self.omnibus
     }
 
-    pub fn deposit_specs(&self) -> [DepositSummaryAccountSetSpec; 6] {
-        [
-            self.deposit.individual,
-            self.deposit.government_entity,
-            self.deposit.private_company,
-            self.deposit.bank,
-            self.deposit.financial_institution,
-            self.deposit.non_domiciled_company,
-        ]
+    pub fn find_omnibus(&self, currency: CurrencyCode) -> Option<DepositOmnibusAccountSetSpec> {
+        self.omnibus.get(&currency).copied()
     }
 
-    pub fn frozen_specs(&self) -> [DepositSummaryAccountSetSpec; 6] {
-        [
-            self.frozen.individual,
-            self.frozen.government_entity,
-            self.frozen.private_company,
-            self.frozen.bank,
-            self.frozen.financial_institution,
-            self.frozen.non_domiciled_company,
-        ]
+    pub fn deposit_specs(&self) -> Vec<DepositSummaryAccountSetSpec> {
+        let mut specs = Vec::new();
+        for specs_for_type in [
+            &self.deposit.individual,
+            &self.deposit.government_entity,
+            &self.deposit.private_company,
+            &self.deposit.bank,
+            &self.deposit.financial_institution,
+            &self.deposit.non_domiciled_company,
+        ] {
+            specs.extend(specs_for_type.values().copied());
+        }
+        specs
     }
 
-    pub fn omnibus_specs(&self) -> [DepositOmnibusAccountSetSpec; 1] {
-        [self.omnibus]
+    pub fn frozen_specs(&self) -> Vec<DepositSummaryAccountSetSpec> {
+        let mut specs = Vec::new();
+        for specs_for_type in [
+            &self.frozen.individual,
+            &self.frozen.government_entity,
+            &self.frozen.private_company,
+            &self.frozen.bank,
+            &self.frozen.financial_institution,
+            &self.frozen.non_domiciled_company,
+        ] {
+            specs.extend(specs_for_type.values().copied());
+        }
+        specs
+    }
+
+    pub fn omnibus_specs(&self) -> Vec<DepositOmnibusAccountSetSpec> {
+        self.omnibus.values().copied().collect()
     }
 }
 
@@ -131,6 +178,7 @@ const DEPOSIT_INDIVIDUAL_ACCOUNT_SET: DepositSummaryAccountSetSpec =
         DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME: &str = "Deposit Government Entity Account Set";
@@ -141,6 +189,7 @@ const DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET: DepositSummaryAccountSetSpec =
         DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME: &str = "Deposit Private Company Account Set";
@@ -151,6 +200,7 @@ const DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET: DepositSummaryAccountSetSpec =
         DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const DEPOSIT_BANK_ACCOUNT_SET_NAME: &str = "Deposit Bank Account Set";
@@ -160,6 +210,7 @@ const DEPOSIT_BANK_ACCOUNT_SET: DepositSummaryAccountSetSpec = DepositSummaryAcc
     DEPOSIT_BANK_ACCOUNT_SET_REF,
     DepositAccountCategory::Liability,
     DebitOrCredit::Credit,
+    CurrencyCode::USD,
 );
 
 const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME: &str =
@@ -172,6 +223,7 @@ const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET: DepositSummaryAccountSetSpec =
         DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_NAME: &str =
@@ -184,6 +236,7 @@ const DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET: DepositSummaryAccountSetSpec =
         DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str = "Frozen Deposit Individual Account Set";
@@ -194,6 +247,7 @@ const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET: DepositSummaryAccountSetSpec =
         FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME: &str =
@@ -206,6 +260,7 @@ const FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET: DepositSummaryAccountSetSpec
         FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME: &str =
@@ -218,6 +273,7 @@ const FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET: DepositSummaryAccountSetSpec =
         FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const FROZEN_DEPOSIT_BANK_ACCOUNT_SET_NAME: &str = "Frozen Deposit Bank Account Set";
@@ -228,6 +284,7 @@ const FROZEN_DEPOSIT_BANK_ACCOUNT_SET: DepositSummaryAccountSetSpec =
         FROZEN_DEPOSIT_BANK_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME: &str =
@@ -240,6 +297,7 @@ const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET: DepositSummaryAccountSet
         FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_NAME: &str =
@@ -252,6 +310,7 @@ const FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET: DepositSummaryAccountSet
         FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
+        CurrencyCode::USD,
     );
 
 const DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME: &str = "Deposit Omnibus Account Set";
@@ -263,24 +322,95 @@ const DEPOSIT_OMNIBUS_ACCOUNT_SET: DepositOmnibusAccountSetSpec = DepositOmnibus
     DEPOSIT_OMNIBUS_ACCOUNT_REF,
     DepositAccountCategory::Asset,
     DebitOrCredit::Debit,
+    CurrencyCode::USD,
 );
 
-pub const DEPOSIT_ACCOUNT_SET_CATALOG: DepositAccountSetCatalog = DepositAccountSetCatalog {
-    deposit: DepositAccountSetCatalogGroup {
-        individual: DEPOSIT_INDIVIDUAL_ACCOUNT_SET,
-        government_entity: DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET,
-        private_company: DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET,
-        bank: DEPOSIT_BANK_ACCOUNT_SET,
-        financial_institution: DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET,
-        non_domiciled_company: DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET,
-    },
-    frozen: DepositAccountSetCatalogGroup {
-        individual: FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET,
-        government_entity: FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET,
-        private_company: FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET,
-        bank: FROZEN_DEPOSIT_BANK_ACCOUNT_SET,
-        financial_institution: FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET,
-        non_domiciled_company: FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET,
-    },
-    omnibus: DEPOSIT_OMNIBUS_ACCOUNT_SET,
-};
+fn summary_currency_map(
+    specs: impl IntoIterator<Item = DepositSummaryAccountSetSpec>,
+) -> CurrencyMap<DepositSummaryAccountSetSpec> {
+    specs
+        .into_iter()
+        .map(|spec| (spec.currency, spec))
+        .collect()
+}
+
+fn omnibus_currency_map(
+    specs: impl IntoIterator<Item = DepositOmnibusAccountSetSpec>,
+) -> CurrencyMap<DepositOmnibusAccountSetSpec> {
+    specs
+        .into_iter()
+        .map(|spec| (spec.currency, spec))
+        .collect()
+}
+
+pub static DEPOSIT_ACCOUNT_SET_CATALOG: LazyLock<DepositAccountSetCatalog> =
+    LazyLock::new(|| DepositAccountSetCatalog {
+        deposit: DepositAccountSetCatalogGroup {
+            individual: summary_currency_map([DEPOSIT_INDIVIDUAL_ACCOUNT_SET]),
+            government_entity: summary_currency_map([DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET]),
+            private_company: summary_currency_map([DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET]),
+            bank: summary_currency_map([DEPOSIT_BANK_ACCOUNT_SET]),
+            financial_institution: summary_currency_map([
+                DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET,
+            ]),
+            non_domiciled_company: summary_currency_map([
+                DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET,
+            ]),
+        },
+        frozen: DepositAccountSetCatalogGroup {
+            individual: summary_currency_map([FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET]),
+            government_entity: summary_currency_map([FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET]),
+            private_company: summary_currency_map([FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET]),
+            bank: summary_currency_map([FROZEN_DEPOSIT_BANK_ACCOUNT_SET]),
+            financial_institution: summary_currency_map([
+                FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET,
+            ]),
+            non_domiciled_company: summary_currency_map([
+                FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET,
+            ]),
+        },
+        omnibus: omnibus_currency_map([DEPOSIT_OMNIBUS_ACCOUNT_SET]),
+    });
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn deposit_catalog_finds_configured_currency_for_account_type() {
+        let spec = DEPOSIT_ACCOUNT_SET_CATALOG
+            .deposit()
+            .find(DepositAccountType::Individual, CurrencyCode::USD);
+
+        let spec = spec.expect("expected USD deposit spec for individual accounts");
+        assert_eq!(
+            spec.external_ref,
+            DEPOSIT_INDIVIDUAL_ACCOUNT_SET.external_ref
+        );
+        assert_eq!(spec.currency, CurrencyCode::USD);
+        assert!(
+            DEPOSIT_ACCOUNT_SET_CATALOG
+                .deposit()
+                .find(DepositAccountType::Individual, CurrencyCode::BTC)
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn omnibus_catalog_finds_configured_currency() {
+        let spec = DEPOSIT_ACCOUNT_SET_CATALOG
+            .find_omnibus(CurrencyCode::USD)
+            .expect("expected USD omnibus spec");
+
+        assert_eq!(
+            spec.account_set_ref,
+            DEPOSIT_OMNIBUS_ACCOUNT_SET.account_set_ref
+        );
+        assert_eq!(spec.currency, CurrencyCode::USD);
+        assert!(
+            DEPOSIT_ACCOUNT_SET_CATALOG
+                .find_omnibus(CurrencyCode::BTC)
+                .is_none()
+        );
+    }
+}
