@@ -15,7 +15,7 @@ use core_time_events::deposit_activity_process::{
 };
 use governance::GovernanceEvent;
 use job::*;
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::OutboxEventMarker;
 
 use super::evaluate_deposit_account_activity::{
     EvaluateDepositAccountActivityConfig, EvaluateDepositAccountActivityJobSpawner,
@@ -30,7 +30,6 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    outbox: Outbox<E>,
     jobs: Jobs,
     deposits: CoreDeposit<Perms, E>,
     evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
@@ -44,13 +43,11 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     pub fn new(
-        outbox: &Outbox<E>,
         jobs: &Jobs,
         deposits: &CoreDeposit<Perms, E>,
         evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,
     ) -> Self {
         Self {
-            outbox: outbox.clone(),
             jobs: jobs.clone(),
             deposits: deposits.clone(),
             evaluate_spawner,
@@ -82,7 +79,6 @@ where
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(DepositActivityProcessRunner {
             config: job.config()?,
-            _outbox: self.outbox.clone(),
             jobs: self.jobs.clone(),
             deposits: self.deposits.clone(),
             evaluate_spawner: self.evaluate_spawner.clone(),
@@ -98,8 +94,6 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     config: DepositActivityProcessConfig,
-    // Kept for future use when a public DepositActivityEvaluated event is added
-    _outbox: Outbox<E>,
     jobs: Jobs,
     deposits: CoreDeposit<Perms, E>,
     evaluate_spawner: EvaluateDepositAccountActivityJobSpawner,

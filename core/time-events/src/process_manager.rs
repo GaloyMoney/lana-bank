@@ -13,7 +13,7 @@ use crate::{
         CreditFacilityEodProcessConfig, CreditFacilityEodProcessSpawner,
     },
     deposit_activity_process::{DepositActivityProcessConfig, DepositActivityProcessSpawner},
-    eod_process::{EodProcesses, NewEodProcess},
+    eod_process::{EodProcesses, NewEodProcess, error::EodProcessError},
     event::CoreTimeEvent,
     obligation_status_process::{ObligationStatusProcessConfig, ObligationStatusProcessSpawner},
     primitives::*,
@@ -180,7 +180,10 @@ where
                 EodProcessStatus::AwaitingObligationsAndDeposits => {
                     let (obligation_job, deposit_job) = process
                         .obligations_and_deposits_job_ids()
-                        .ok_or("job IDs must be set in AwaitingObligationsAndDeposits")?;
+                        .ok_or(EodProcessError::MissingJobIds {
+                            field: "obligation_job_id/deposit_job_id",
+                            status: "AwaitingObligationsAndDeposits",
+                        })?;
 
                     let job_ids = [obligation_job, deposit_job];
                     let terminals = match process_manager::await_job_completions(
@@ -227,9 +230,13 @@ where
                 }
 
                 EodProcessStatus::AwaitingCreditFacilityEod => {
-                    let credit_facility_job = process
-                        .credit_facility_job_id()
-                        .ok_or("credit_facility_job_id must be set in AwaitingCreditFacilityEod")?;
+                    let credit_facility_job =
+                        process
+                            .credit_facility_job_id()
+                            .ok_or(EodProcessError::MissingJobIds {
+                                field: "credit_facility_job_id",
+                                status: "AwaitingCreditFacilityEod",
+                            })?;
 
                     let job_ids = [credit_facility_job];
                     let terminals = match process_manager::await_job_completions(

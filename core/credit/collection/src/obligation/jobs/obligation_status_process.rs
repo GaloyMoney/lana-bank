@@ -268,7 +268,7 @@ where
             None => {
                 let state = ObligationStatusState::AwaitingStatusUpdates {
                     pending,
-                    start_sequence,
+                    start_sequence: u64::from(seq) as i64,
                 };
                 current_job.update_execution_state(&state).await?;
                 tracing::info!("Shutdown requested, rescheduling obligation status tracking");

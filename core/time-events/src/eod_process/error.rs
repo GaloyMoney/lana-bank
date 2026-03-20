@@ -21,4 +21,9 @@ pub enum EodProcessError {
         current: EodProcessStatus,
         attempted: &'static str,
     },
+    #[error("Expected {field} to be set in {status} state")]
+    MissingJobIds {
+        field: &'static str,
+        status: &'static str,
+    },
 }

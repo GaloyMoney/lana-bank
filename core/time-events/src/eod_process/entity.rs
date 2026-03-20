@@ -234,6 +234,12 @@ impl EodProcess {
     }
 
     pub fn mark_failed(&mut self, reason: String) -> Result<Idempotent<()>, EodProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            already_applied: EodProcessEvent::Failed { .. },
+            already_applied: EodProcessEvent::Completed { .. },
+            already_applied: EodProcessEvent::Cancelled { .. }
+        );
         match self.status() {
             EodProcessStatus::AwaitingObligationsAndDeposits
             | EodProcessStatus::ObligationsAndDepositsComplete
@@ -245,17 +251,18 @@ impl EodProcess {
                 });
             }
         }
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::Failed { .. },
-            already_applied: EodProcessEvent::Completed { .. },
-            already_applied: EodProcessEvent::Cancelled { .. }
-        );
         self.events.push(EodProcessEvent::Failed { reason });
         Ok(Idempotent::Executed(()))
     }
 
     pub fn request_cancellation(&mut self) -> Result<Idempotent<()>, EodProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            already_applied: EodProcessEvent::CancellationRequested { .. },
+            already_applied: EodProcessEvent::Cancelled { .. },
+            already_applied: EodProcessEvent::Completed { .. },
+            already_applied: EodProcessEvent::Failed { .. }
+        );
         match self.status() {
             EodProcessStatus::Completed
             | EodProcessStatus::Failed
@@ -267,18 +274,17 @@ impl EodProcess {
             }
             _ => {}
         }
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::CancellationRequested { .. },
-            already_applied: EodProcessEvent::Cancelled { .. },
-            already_applied: EodProcessEvent::Completed { .. },
-            already_applied: EodProcessEvent::Failed { .. }
-        );
         self.events.push(EodProcessEvent::CancellationRequested {});
         Ok(Idempotent::Executed(()))
     }
 
     pub fn mark_cancelled(&mut self) -> Result<Idempotent<()>, EodProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            already_applied: EodProcessEvent::Cancelled { .. },
+            already_applied: EodProcessEvent::Completed { .. },
+            already_applied: EodProcessEvent::Failed { .. }
+        );
         match self.status() {
             EodProcessStatus::Completed
             | EodProcessStatus::Failed
@@ -290,12 +296,6 @@ impl EodProcess {
             }
             _ => {}
         }
-        idempotency_guard!(
-            self.events.iter_all(),
-            already_applied: EodProcessEvent::Cancelled { .. },
-            already_applied: EodProcessEvent::Completed { .. },
-            already_applied: EodProcessEvent::Failed { .. }
-        );
         self.events.push(EodProcessEvent::Cancelled {});
         Ok(Idempotent::Executed(()))
     }
