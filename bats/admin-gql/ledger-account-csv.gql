@@ -1,0 +1,9 @@
+query LedgerAccountCsv($ledgerAccountId: UUID!) {
+  ledgerAccountCsv(ledgerAccountId: $ledgerAccountId) {
+    ledgerAccountCsvDocumentId
+    ledgerAccountId
+    status
+    createdAt
+    filename
+  }
+}
