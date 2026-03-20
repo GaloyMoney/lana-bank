@@ -1,0 +1,175 @@
+use async_trait::async_trait;
+use domain_config::ExposedDomainConfigsReadOnly;
+use serde::{Deserialize, Serialize};
+use smtp_client::SmtpClient;
+
+use audit::AuditSvc;
+use authz::PermissionCheck;
+use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType};
+use core_customer::Customers;
+use job::*;
+use lana_events::LanaEvent;
+use money::UsdCents;
+use tracing_macros::record_error_severity;
+
+use crate::email::templates::{EmailTemplate, EmailType, OverduePaymentEmailData};
+
+pub const SEND_OBLIGATION_OVERDUE_EMAIL_COMMAND: JobType =
+    JobType::new("command.notification.send-obligation-overdue-email");
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SendObligationOverdueEmailConfig {
+    pub obligation_id: ObligationId,
+    pub credit_facility_id: CreditFacilityId,
+    pub outstanding_amount: UsdCents,
+    pub recipient_email: String,
+}
+
+pub struct SendObligationOverdueEmailInitializer<Perms>
+where
+    Perms: PermissionCheck,
+{
+    credit: CoreCredit<Perms, LanaEvent>,
+    customers: Customers<Perms, LanaEvent>,
+    smtp_client: SmtpClient,
+    template: EmailTemplate,
+    domain_configs: ExposedDomainConfigsReadOnly,
+}
+
+impl<Perms> SendObligationOverdueEmailInitializer<Perms>
+where
+    Perms: PermissionCheck,
+{
+    pub fn new(
+        credit: &CoreCredit<Perms, LanaEvent>,
+        customers: &Customers<Perms, LanaEvent>,
+        smtp_client: SmtpClient,
+        template: EmailTemplate,
+        domain_configs: ExposedDomainConfigsReadOnly,
+    ) -> Self {
+        Self {
+            credit: credit.clone(),
+            customers: customers.clone(),
+            smtp_client,
+            template,
+            domain_configs,
+        }
+    }
+}
+
+impl<Perms> JobInitializer for SendObligationOverdueEmailInitializer<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>
+        + From<core_credit_collateral::CoreCreditCollateralAction>
+        + From<core_customer::CoreCustomerAction>
+        + From<governance::GovernanceAction>
+        + From<core_custody::CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>
+        + From<core_credit_collateral::CoreCreditCollateralObject>
+        + From<core_customer::CustomerObject>
+        + From<governance::GovernanceObject>
+        + From<core_custody::CoreCustodyObject>,
+{
+    type Config = SendObligationOverdueEmailConfig;
+
+    fn job_type(&self) -> JobType {
+        SEND_OBLIGATION_OVERDUE_EMAIL_COMMAND
+    }
+
+    fn init(
+        &self,
+        job: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+        Ok(Box::new(SendObligationOverdueEmailRunner::<Perms> {
+            config: job.config()?,
+            credit: self.credit.clone(),
+            customers: self.customers.clone(),
+            smtp_client: self.smtp_client.clone(),
+            template: self.template.clone(),
+            domain_configs: self.domain_configs.clone(),
+        }))
+    }
+}
+
+struct SendObligationOverdueEmailRunner<Perms>
+where
+    Perms: PermissionCheck,
+{
+    config: SendObligationOverdueEmailConfig,
+    credit: CoreCredit<Perms, LanaEvent>,
+    customers: Customers<Perms, LanaEvent>,
+    smtp_client: SmtpClient,
+    template: EmailTemplate,
+    domain_configs: ExposedDomainConfigsReadOnly,
+}
+
+#[async_trait]
+impl<Perms> JobRunner for SendObligationOverdueEmailRunner<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>
+        + From<core_credit_collateral::CoreCreditCollateralAction>
+        + From<core_customer::CoreCustomerAction>
+        + From<governance::GovernanceAction>
+        + From<core_custody::CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>
+        + From<core_credit_collateral::CoreCreditCollateralObject>
+        + From<core_customer::CustomerObject>
+        + From<governance::GovernanceObject>
+        + From<core_custody::CoreCustodyObject>,
+{
+    #[record_error_severity]
+    #[tracing::instrument(name = "notification.send_obligation_overdue_email.run", skip_all)]
+    async fn run(
+        &self,
+        _current_job: CurrentJob,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let obligation = self
+            .credit
+            .collections()
+            .obligations()
+            .find_by_id_without_audit(self.config.obligation_id)
+            .await?;
+
+        let credit_facility = self
+            .credit
+            .facilities()
+            .find_by_id_without_audit(self.config.credit_facility_id)
+            .await?;
+
+        let party = self
+            .customers
+            .find_party_by_customer_id_without_audit(credit_facility.customer_id)
+            .await?;
+
+        let email_data = OverduePaymentEmailData {
+            public_id: credit_facility.public_id.to_string(),
+            payment_type: match obligation.obligation_type {
+                ObligationType::Disbursal => "Principal Repayment".to_string(),
+                ObligationType::Interest => "Interest Payment".to_string(),
+            },
+            original_amount: obligation.initial_amount,
+            outstanding_amount: self.config.outstanding_amount,
+            due_date: obligation.due_at(),
+            customer_email: party.email,
+        };
+
+        super::send_rendered_email(
+            &self.smtp_client,
+            &self.template,
+            &self.domain_configs,
+            &self.config.recipient_email,
+            &EmailType::OverduePayment(email_data),
+        )
+        .await?;
+
+        Ok(JobCompletion::Complete)
+    }
+}

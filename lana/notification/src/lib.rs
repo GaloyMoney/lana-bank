@@ -17,8 +17,7 @@ use lana_events::LanaEvent;
 use obix::out::OutboxEventJobConfig;
 
 pub use config::NotificationConfig;
-use email::EmailNotification;
-use email::job::{EMAIL_LISTENER_JOB, EmailEventListenerHandler};
+use email::job::EMAIL_LISTENER_JOB;
 pub use email::{NotificationFromEmail, NotificationFromName};
 
 pub struct Notification<AuthzType>
@@ -47,7 +46,6 @@ where
         + From<core_credit_collateral::CoreCreditCollateralAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
-        + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
@@ -55,7 +53,6 @@ where
         + From<core_credit_collateral::CoreCreditCollateralObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
-        + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
@@ -72,7 +69,7 @@ where
         customers: &Customers<AuthzType, LanaEvent>,
         domain_configs: &ExposedDomainConfigsReadOnly,
     ) -> Result<Self, NotificationError> {
-        let email = EmailNotification::init(
+        let handler = email::init::<AuthzType>(
             jobs,
             domain_configs,
             config.email.clone(),
@@ -83,11 +80,7 @@ where
         .await?;
 
         outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(EMAIL_LISTENER_JOB),
-                EmailEventListenerHandler::new(&email),
-            )
+            .register_event_handler(jobs, OutboxEventJobConfig::new(EMAIL_LISTENER_JOB), handler)
             .await?;
 
         Ok(Self {
