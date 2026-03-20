@@ -20,7 +20,6 @@ pub use approve_sumsub_applicant::ApproveSumsubApplicantJobInitializer;
 pub use create_keycloak_user::*;
 pub use deactivate_sumsub_applicant::DeactivateSumsubApplicantJobInitializer;
 pub use disable_keycloak_user::*;
-pub use freeze_customer_deposits::FreezeCustomerDepositsJobInitializer;
 pub use reject_sumsub_applicant::RejectSumsubApplicantJobInitializer;
 pub use sync_customer_close_keycloak::*;
 pub use sync_customer_freeze::*;
