@@ -162,7 +162,7 @@ where
             .maybe_find_by_id_in_op(&mut op, self.config.credit_facility_id)
             .await?
         else {
-            return Ok(JobCompletion::Complete);
+            return Ok(JobCompletion::CompleteWithOp(op));
         };
 
         self.authz
