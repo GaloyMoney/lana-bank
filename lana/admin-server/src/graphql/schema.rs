@@ -760,6 +760,19 @@ impl Query {
             .collect())
     }
 
+    async fn accounting_template(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<AccountingTemplate>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            AccountingTemplate,
+            ctx,
+            app.accounting().accounting_templates().find_by_id(sub, id)
+        )
+    }
+
     async fn ledger_transaction(
         &self,
         ctx: &Context<'_>,
@@ -2347,6 +2360,92 @@ impl Mutation {
             app.accounting()
                 .import_csv(sub, CHART_REF.0, data, TRIAL_BALANCE_STATEMENT_NAME)
         )
+    }
+
+    pub async fn accounting_template_create(
+        &self,
+        ctx: &Context<'_>,
+        input: AccountingTemplateCreateInput,
+    ) -> async_graphql::Result<AccountingTemplateCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let AccountingTemplateCreateInput {
+            code,
+            name,
+            chart_ref,
+            description_template,
+            entries,
+        } = input;
+
+        let values = lana_app::accounting::accounting_templates::AccountingTemplateValues {
+            chart_ref,
+            description_template,
+            entries: entries.into_iter().map(Into::into).collect(),
+        };
+
+        exec_mutation!(
+            AccountingTemplateCreatePayload,
+            AccountingTemplate,
+            ctx,
+            app.accounting()
+                .accounting_templates()
+                .create(sub, code, name, values)
+        )
+    }
+
+    pub async fn accounting_template_update(
+        &self,
+        ctx: &Context<'_>,
+        input: AccountingTemplateUpdateInput,
+    ) -> async_graphql::Result<AccountingTemplateUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let AccountingTemplateUpdateInput {
+            id,
+            name,
+            chart_ref,
+            description_template,
+            entries,
+        } = input;
+
+        let mut template = app
+            .accounting()
+            .accounting_templates()
+            .find_by_id(sub, id)
+            .await?
+            .ok_or_else(|| Error::new("Accounting template not found"))?;
+
+        if let Some(name) = name {
+            template = app
+                .accounting()
+                .accounting_templates()
+                .update_name(sub, id, name)
+                .await?;
+        }
+
+        if chart_ref.is_some() || description_template.is_some() || entries.is_some() {
+            let values = lana_app::accounting::accounting_templates::AccountingTemplateValues {
+                chart_ref: chart_ref.or(template.values.chart_ref.clone()),
+                description_template: description_template
+                    .unwrap_or_else(|| template.values.description_template.clone()),
+                entries: entries
+                    .map(|entries| entries.into_iter().map(Into::into).collect())
+                    .unwrap_or_else(|| template.values.entries.clone()),
+            };
+
+            template = app
+                .accounting()
+                .accounting_templates()
+                .update_values(sub, id, values)
+                .await?;
+        }
+
+        let graphql_template: AccountingTemplate = template.into();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        loader
+            .feed_one(graphql_template.entity.id, graphql_template.clone())
+            .await;
+        Ok(AccountingTemplateUpdatePayload::from(graphql_template))
     }
 
     async fn fiscal_year_init(

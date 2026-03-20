@@ -69,10 +69,40 @@ type AccountingTemplate {
 	entries: [AccountingTemplateEntry!]!
 }
 
+input AccountingTemplateCreateInput {
+	code: String!
+	name: String!
+	chartRef: String
+	descriptionTemplate: String!
+	entries: [AccountingTemplateEntryInput!]!
+}
+
+type AccountingTemplateCreatePayload {
+	accountingTemplate: AccountingTemplate!
+}
+
 type AccountingTemplateEntry {
 	accountIdOrCode: String!
 	direction: DebitOrCredit!
 	descriptionTemplate: String
+}
+
+input AccountingTemplateEntryInput {
+	accountIdOrCode: String!
+	direction: DebitOrCredit!
+	descriptionTemplate: String
+}
+
+input AccountingTemplateUpdateInput {
+	id: UUID!
+	name: String
+	chartRef: String
+	descriptionTemplate: String
+	entries: [AccountingTemplateEntryInput!]
+}
+
+type AccountingTemplateUpdatePayload {
+	accountingTemplate: AccountingTemplate!
 }
 
 enum Activity {
@@ -1903,6 +1933,8 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
+	accountingTemplateCreate(input: AccountingTemplateCreateInput!): AccountingTemplateCreatePayload!
+	accountingTemplateUpdate(input: AccountingTemplateUpdateInput!): AccountingTemplateUpdatePayload!
 	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
 	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
 	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
@@ -2279,6 +2311,7 @@ type Query {
 	ledgerAccountByCode(code: String!): LedgerAccount
 	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
 	accountingTemplates: [AccountingTemplate!]!
+	accountingTemplate(id: UUID!): AccountingTemplate
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(templateCode: String!, first: Int!, after: String): LedgerTransactionConnection!
 	journalEntries(first: Int!, after: String): JournalEntryConnection!

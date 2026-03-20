@@ -7,7 +7,8 @@ use domain_config::{DomainConfigError, DomainConfigId};
 use lana_app::{
     access::{error::CoreAccessError, user::error::UserError},
     accounting::{
-        Chart, FiscalYearId, LedgerAccountId, TransactionTemplateId,
+        AccountingTemplateId, Chart, FiscalYearId, LedgerAccountId, TransactionTemplateId,
+        accounting_templates::error::AccountingTemplateError,
         chart_of_accounts::error::ChartOfAccountsError,
         csv::{AccountingCsvDocumentId, error::AccountingCsvExportError},
         fiscal_year::error::FiscalYearError,
@@ -362,6 +363,33 @@ impl Loader<TransactionTemplateId> for LanaLoader {
             .find_all(keys)
             .await
             .map_err(Arc::new)
+    }
+}
+
+impl Loader<AccountingTemplateId> for LanaLoader {
+    type Value = AccountingTemplate;
+    type Error = Arc<AccountingTemplateError>;
+
+    #[instrument(name = "loader.accounting_templates", skip(self), fields(count = keys.len()), err)]
+    async fn load(
+        &self,
+        keys: &[AccountingTemplateId],
+    ) -> Result<HashMap<AccountingTemplateId, Self::Value>, Self::Error> {
+        let results = self
+            .app
+            .accounting()
+            .accounting_templates()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)?;
+
+        Ok(results
+            .into_iter()
+            .map(|(id, domain)| {
+                let graphql: AccountingTemplate = domain.into();
+                (id, graphql)
+            })
+            .collect())
     }
 }
 

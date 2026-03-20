@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use audit::AuditSvc;
@@ -183,5 +184,12 @@ where
             .list_by_name(Default::default(), es_entity::ListDirection::Ascending)
             .await?
             .entities)
+    }
+
+    pub async fn find_all(
+        &self,
+        ids: &[AccountingTemplateId],
+    ) -> Result<HashMap<AccountingTemplateId, AccountingTemplate>, AccountingTemplateError> {
+        self.repo.find_all(ids).await
     }
 }
