@@ -12,7 +12,7 @@ use crate::{
         CreditFacilityEodProcessConfig, CreditFacilityEodProcessSpawner,
     },
     deposit_activity_process::{DepositActivityProcessConfig, DepositActivityProcessSpawner},
-    eod_process::{EodAction, EodProcesses, NewEodProcess},
+    eod_process::{EodProcesses, NewEodProcess, error::EodProcessError},
     event::CoreTimeEvent,
     obligation_status_process::{ObligationStatusProcessConfig, ObligationStatusProcessSpawner},
     primitives::*,
@@ -136,10 +136,9 @@ where
             }
         };
 
-        // The entity tells the PM what to do — the PM never inspects status.
-        let action = process.next_action()?;
-        match action {
-            EodAction::StartObligationsAndDeposits => {
+        let status = process.status();
+        match status {
+            EodProcessStatus::Initialized => {
                 let obligation_job = JobId::new();
                 let deposit_job = JobId::new();
 
@@ -178,10 +177,11 @@ where
                 Ok(JobCompletion::RescheduleNowWithOp(op))
             }
 
-            EodAction::AwaitObligationsAndDeposits {
-                obligation_job_id,
-                deposit_job_id,
-            } => {
+            EodProcessStatus::AwaitingObligationsAndDeposits => {
+                let (obligation_job_id, deposit_job_id) = process
+                    .obligations_and_deposits_job_ids()
+                    .ok_or(EodProcessError::MissingJobIds)?;
+
                 let job_ids = [obligation_job_id, deposit_job_id];
                 let terminals = match process_manager::await_job_completions(
                     &mut current_job,
@@ -211,7 +211,7 @@ where
                 Ok(JobCompletion::RescheduleNowWithOp(op))
             }
 
-            EodAction::StartCreditFacilityEod => {
+            EodProcessStatus::ObligationsAndDepositsComplete => {
                 let credit_facility_job = JobId::new();
                 let mut op = current_job.begin_op().await?;
 
@@ -237,9 +237,11 @@ where
                 Ok(JobCompletion::RescheduleNowWithOp(op))
             }
 
-            EodAction::AwaitCreditFacilityEod {
-                credit_facility_job_id,
-            } => {
+            EodProcessStatus::AwaitingCreditFacilityEod => {
+                let credit_facility_job_id = process
+                    .credit_facility_job_id()
+                    .ok_or(EodProcessError::MissingJobIds)?;
+
                 let job_ids = [credit_facility_job_id];
                 let terminals = match process_manager::await_job_completions(
                     &mut current_job,
@@ -266,7 +268,7 @@ where
                 Ok(JobCompletion::CompleteWithOp(op))
             }
 
-            EodAction::Complete => Ok(JobCompletion::Complete),
+            EodProcessStatus::Completed | EodProcessStatus::Failed => Ok(JobCompletion::Complete),
         }
     }
 }

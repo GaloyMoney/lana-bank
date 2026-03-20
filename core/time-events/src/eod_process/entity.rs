@@ -24,26 +24,6 @@ impl From<job::JobTerminalState> for JobTerminalState {
     }
 }
 
-/// Action the process manager should take next, as determined by the entity.
-/// The entity owns all state and business logic; the PM is a thin orchestration
-/// layer that executes whatever action the entity prescribes.
-#[derive(Debug)]
-pub enum EodAction {
-    /// Spawn obligation-status and deposit-activity child jobs.
-    StartObligationsAndDeposits,
-    /// Wait for the obligation and deposit child jobs to complete.
-    AwaitObligationsAndDeposits {
-        obligation_job_id: job::JobId,
-        deposit_job_id: job::JobId,
-    },
-    /// Spawn the credit-facility EOD child job.
-    StartCreditFacilityEod,
-    /// Wait for the credit-facility EOD child job to complete.
-    AwaitCreditFacilityEod { credit_facility_job_id: job::JobId },
-    /// The process has reached a terminal state — nothing more to do.
-    Complete,
-}
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "EodProcessId")]
@@ -88,36 +68,6 @@ pub struct EodProcess {
 }
 
 impl EodProcess {
-    /// Returns the next action the process manager should take.
-    /// The entity encapsulates all state checks — the PM never inspects
-    /// status directly.
-    pub fn next_action(&self) -> Result<EodAction, EodProcessError> {
-        match self.status() {
-            EodProcessStatus::Initialized => Ok(EodAction::StartObligationsAndDeposits),
-            EodProcessStatus::AwaitingObligationsAndDeposits => {
-                let (obligation_job_id, deposit_job_id) = self
-                    .obligations_and_deposits_job_ids()
-                    .ok_or(EodProcessError::MissingJobIds)?;
-                Ok(EodAction::AwaitObligationsAndDeposits {
-                    obligation_job_id,
-                    deposit_job_id,
-                })
-            }
-            EodProcessStatus::ObligationsAndDepositsComplete => {
-                Ok(EodAction::StartCreditFacilityEod)
-            }
-            EodProcessStatus::AwaitingCreditFacilityEod => {
-                let credit_facility_job_id = self
-                    .credit_facility_job_id()
-                    .ok_or(EodProcessError::MissingJobIds)?;
-                Ok(EodAction::AwaitCreditFacilityEod {
-                    credit_facility_job_id,
-                })
-            }
-            EodProcessStatus::Completed | EodProcessStatus::Failed => Ok(EodAction::Complete),
-        }
-    }
-
     /// Derive status from events via a single reverse scan.
     pub fn status(&self) -> EodProcessStatus {
         let mut has_credit_facility_eod_started = false;
@@ -581,51 +531,5 @@ mod tests {
             .unwrap();
         assert!(result.did_execute());
         assert_eq!(process.status(), EodProcessStatus::Failed);
-    }
-
-    #[test]
-    fn next_action_lifecycle() {
-        let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
-        let mut process =
-            EodProcess::try_from_events(init_events(date)).expect("Could not build eod process");
-        let job1 = job::JobId::from(uuid::Uuid::new_v4());
-        let job2 = job::JobId::from(uuid::Uuid::new_v4());
-        let cf_job = job::JobId::from(uuid::Uuid::new_v4());
-
-        assert!(matches!(
-            process.next_action().unwrap(),
-            EodAction::StartObligationsAndDeposits
-        ));
-
-        let _ = process.start_obligations_and_deposits(job1, job2).unwrap();
-        assert!(matches!(
-            process.next_action().unwrap(),
-            EodAction::AwaitObligationsAndDeposits { .. }
-        ));
-
-        let _ = process
-            .complete_obligations_and_deposits(
-                JobTerminalState::Completed,
-                JobTerminalState::Completed,
-            )
-            .unwrap();
-        assert!(matches!(
-            process.next_action().unwrap(),
-            EodAction::StartCreditFacilityEod
-        ));
-
-        let _ = process.start_credit_facility_eod(cf_job).unwrap();
-        assert!(matches!(
-            process.next_action().unwrap(),
-            EodAction::AwaitCreditFacilityEod { .. }
-        ));
-
-        let _ = process
-            .complete_credit_facility_eod(JobTerminalState::Completed)
-            .unwrap();
-        assert!(matches!(
-            process.next_action().unwrap(),
-            EodAction::Complete
-        ));
     }
 }
