@@ -197,7 +197,7 @@ where
                     pending_facility.id.to_string(),
                 );
 
-                if pending_facility.status() == PendingCreditFacilityStatus::Completed {
+                if pending_facility.is_completed() {
                     all_fully_collateralized = false;
                     continue;
                 }

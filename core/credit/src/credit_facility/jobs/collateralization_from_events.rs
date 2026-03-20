@@ -23,7 +23,6 @@ use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent,
     credit_facility::{
         CreditFacilitiesByNormalizedCollateralizationRatioCursor, CreditFacilityRepo,
-        CreditFacilityStatus,
     },
     ledger::*,
     primitives::*,
@@ -235,7 +234,7 @@ where
             for mut facility in credit_facilities.entities {
                 tracing::Span::current().record("credit_facility_id", facility.id.to_string());
 
-                if facility.status() == CreditFacilityStatus::Closed {
+                if facility.is_completed() {
                     all_fully_collateralized = false;
                     continue;
                 }
