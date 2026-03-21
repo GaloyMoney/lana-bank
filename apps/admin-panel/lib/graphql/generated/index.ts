@@ -1920,6 +1920,18 @@ export type LedgerAccountCsvExportUploadedPayload = {
 
 export type LedgerAccountEntity = Collateral | CreditFacility | DepositAccount;
 
+export type LedgerManualTransactionExecuteInput = {
+  description: Scalars['String']['input'];
+  effective?: InputMaybe<Scalars['Date']['input']>;
+  entries: Array<ManualTransactionEntryInput>;
+  reference?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type LedgerManualTransactionExecutePayload = {
+  __typename?: 'LedgerManualTransactionExecutePayload';
+  transaction: LedgerTransaction;
+};
+
 export type LedgerTransaction = {
   __typename?: 'LedgerTransaction';
   createdAt: Scalars['Timestamp']['output'];
@@ -2058,18 +2070,6 @@ export type ManualTransactionEntryInput = {
   direction: DebitOrCredit;
 };
 
-export type ManualTransactionExecuteInput = {
-  description: Scalars['String']['input'];
-  effective?: InputMaybe<Scalars['Date']['input']>;
-  entries: Array<ManualTransactionEntryInput>;
-  reference?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type ManualTransactionExecutePayload = {
-  __typename?: 'ManualTransactionExecutePayload';
-  transaction: LedgerTransaction;
-};
-
 export type Me = {
   __typename?: 'Me';
   user: User;
@@ -2127,7 +2127,7 @@ export type Mutation = {
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   ledgerAccountCsvDownloadLinkGenerate: LedgerAccountCsvDownloadLinkGeneratePayload;
-  manualTransactionExecute: ManualTransactionExecutePayload;
+  ledgerManualTransactionExecute: LedgerManualTransactionExecutePayload;
   policyCommitteeAssign: PolicyCommitteeAssignPayload;
   priceProviderActivate: PriceProviderActivatePayload;
   priceProviderConfigUpdate: PriceProviderConfigUpdatePayload;
@@ -2382,8 +2382,8 @@ export type MutationLedgerAccountCsvDownloadLinkGenerateArgs = {
 };
 
 
-export type MutationManualTransactionExecuteArgs = {
-  input: ManualTransactionExecuteInput;
+export type MutationLedgerManualTransactionExecuteArgs = {
+  input: LedgerManualTransactionExecuteInput;
 };
 
 
@@ -4943,11 +4943,11 @@ export type FiscalYearOpenNextMutationVariables = Exact<{
 export type FiscalYearOpenNextMutation = { __typename?: 'Mutation', fiscalYearOpenNext: { __typename?: 'FiscalYearOpenNextPayload', fiscalYear: { __typename?: 'FiscalYear', fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
 
 export type ExecuteManualTransactionMutationVariables = Exact<{
-  input: ManualTransactionExecuteInput;
+  input: LedgerManualTransactionExecuteInput;
 }>;
 
 
-export type ExecuteManualTransactionMutation = { __typename?: 'Mutation', manualTransactionExecute: { __typename?: 'ManualTransactionExecutePayload', transaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, description?: string | null } } };
+export type ExecuteManualTransactionMutation = { __typename?: 'Mutation', ledgerManualTransactionExecute: { __typename?: 'LedgerManualTransactionExecutePayload', transaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string, createdAt: string, description?: string | null } } };
 
 export type JournalEntriesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -10888,8 +10888,8 @@ export type FiscalYearOpenNextMutationHookResult = ReturnType<typeof useFiscalYe
 export type FiscalYearOpenNextMutationResult = Apollo.MutationResult<FiscalYearOpenNextMutation>;
 export type FiscalYearOpenNextMutationOptions = Apollo.BaseMutationOptions<FiscalYearOpenNextMutation, FiscalYearOpenNextMutationVariables>;
 export const ExecuteManualTransactionDocument = gql`
-    mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
-  manualTransactionExecute(input: $input) {
+    mutation ExecuteManualTransaction($input: LedgerManualTransactionExecuteInput!) {
+  ledgerManualTransactionExecute(input: $input) {
     transaction {
       ledgerTransactionId
       createdAt

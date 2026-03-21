@@ -104,7 +104,7 @@
       "customerClose": "Closes a customer account after verifying all preconditions are met",
       "domainConfigUpdate": "Updates a domain configuration setting",
       "depositAccountModuleConfigure": "Configures the deposit account module's chart of accounts mappings",
-      "manualTransactionExecute": "Executes a manual ledger transaction with specified entries",
+      "ledgerManualTransactionExecute": "Executes a manual ledger transaction with specified entries",
       "depositRecord": "Records a new deposit to a deposit account",
       "withdrawalInitiate": "Initiates a withdrawal request from a deposit account",
       "withdrawalConfirm": "Confirms an approved withdrawal, completing the transfer",

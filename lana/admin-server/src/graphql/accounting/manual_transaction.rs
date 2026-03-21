@@ -10,13 +10,13 @@ use lana_app::primitives::DebitOrCredit;
 use super::ledger_transaction::LedgerTransaction;
 
 #[derive(InputObject)]
-pub struct ManualTransactionExecuteInput {
+pub struct LedgerManualTransactionExecuteInput {
     pub description: String,
     pub reference: Option<String>,
     pub effective: Option<Date>,
     pub entries: Vec<ManualTransactionEntryInput>,
 }
-crate::mutation_payload! { ManualTransactionExecutePayload, transaction: LedgerTransaction }
+crate::mutation_payload! { LedgerManualTransactionExecutePayload, transaction: LedgerTransaction }
 
 #[derive(InputObject)]
 pub struct ManualTransactionEntryInput {
