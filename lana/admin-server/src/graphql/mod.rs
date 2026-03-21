@@ -36,6 +36,7 @@ mod access;
 pub(crate) mod entity_key;
 mod policy;
 mod schema;
+pub(crate) mod workflow_directives;
 
 use async_graphql::*;
 

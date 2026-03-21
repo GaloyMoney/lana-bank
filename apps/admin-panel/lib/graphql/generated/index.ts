@@ -2089,29 +2089,14 @@ export type Mutation = {
   chartOfAccountsCsvImportWithBaseConfig: ChartOfAccountsCsvImportWithBaseConfigPayload;
   collateralRecordProceedsFromLiquidation: CollateralRecordProceedsFromLiquidationPayload;
   collateralRecordSentToLiquidation: CollateralRecordSentToLiquidationPayload;
-  /**
-   * Update collateral for a pending or active facility.
-   *
-   * requires:
-   * - collateralId
-   */
+  /** Update collateral for a pending or active facility. */
   collateralUpdate: CollateralUpdatePayload;
   committeeCreate: CommitteeCreatePayload;
   committeeUserAdd: CommitteeUserAddPayload;
   committeeUserRemove: CommitteeUserRemovePayload;
-  /**
-   * Generate a download link for an existing loan agreement.
-   *
-   * requires:
-   * - creditFacilityAgreementId
-   */
+  /** Generate a download link for an existing loan agreement. */
   creditFacilityAgreementDownloadLinkGenerate: CreditFacilityAgreementDownloadLinksGeneratePayload;
-  /**
-   * Generate a loan agreement for a credit facility.
-   *
-   * requires:
-   * - creditFacilityId
-   */
+  /** Generate a loan agreement for a credit facility. */
   creditFacilityAgreementGenerate: CreditFacilityAgreementGeneratePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
   /**
@@ -2121,9 +2106,6 @@ export type Mutation = {
    * activation. Facilities using `SINGLE_DISBURSAL` may already have a
    * disbursal by the time they become active, in which case this mutation can
    * fail with `OnlyOneDisbursalAllowed`.
-   *
-   * requires:
-   * - creditFacilityId
    */
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityModuleConfigure: CreditFacilityModuleConfigurePayload;
@@ -2141,19 +2123,9 @@ export type Mutation = {
    * collateralization. In that case, a later
    * `creditFacilityDisbursalInitiate` call can fail with
    * `OnlyOneDisbursalAllowed`.
-   *
-   * requires:
-   * - customerId
    */
   creditFacilityProposalCreate: CreditFacilityProposalCreatePayload;
-  /**
-   * Conclude customer approval for a credit facility proposal.
-   *
-   * requires:
-   * - creditFacilityProposalId
-   * produces:
-   * - creditFacilityProposal.approvalProcessId
-   */
+  /** Conclude customer approval for a credit facility proposal. */
   creditFacilityProposalCustomerApprovalConclude: CreditFacilityProposalCustomerApprovalConcludePayload;
   custodianConfigUpdate: CustodianConfigUpdatePayload;
   custodianCreate: CustodianCreatePayload;
@@ -2167,22 +2139,12 @@ export type Mutation = {
   customerTelegramHandleUpdate: CustomerTelegramHandleUpdatePayload;
   customerUnfreeze: CustomerUnfreezePayload;
   depositAccountClose: DepositAccountClosePayload;
-  /**
-   * Create a deposit account for a customer.
-   *
-   * requires:
-   * - customerId
-   */
+  /** Create a deposit account for a customer. */
   depositAccountCreate: DepositAccountCreatePayload;
   depositAccountFreeze: DepositAccountFreezePayload;
   depositAccountModuleConfigure: DepositAccountModuleConfigurePayload;
   depositAccountUnfreeze: DepositAccountUnfreezePayload;
-  /**
-   * Record a deposit on an account.
-   *
-   * requires:
-   * - depositAccountId
-   */
+  /** Record a deposit on an account. */
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
   domainConfigUpdate: DomainConfigUpdatePayload;
@@ -2198,18 +2160,9 @@ export type Mutation = {
   priceProviderConfigUpdate: PriceProviderConfigUpdatePayload;
   priceProviderDeactivate: PriceProviderDeactivatePayload;
   prospectClose: ProspectClosePayload;
-  /**
-   * Convert a prospect into a customer.
-   *
-   * requires:
-   * - prospectId
-   */
+  /** Convert a prospect into a customer. */
   prospectConvert: ProspectConvertPayload;
-  /**
-   * Create a prospect.
-   *
-   * requires: []
-   */
+  /** Create a prospect. */
   prospectCreate: ProspectCreatePayload;
   prospectKycLinkCreate: ProspectKycLinkCreatePayload;
   reportFileDownloadLinkGenerate: ReportFileDownloadLinkGeneratePayload;
@@ -2217,11 +2170,7 @@ export type Mutation = {
   roleCreate: RoleCreatePayload;
   rolePermissionSetsAdd: RolePermissionSetsAddPayload;
   rolePermissionSetsRemove: RolePermissionSetsRemovePayload;
-  /**
-   * Create a terms template.
-   *
-   * requires: []
-   */
+  /** Create a terms template. */
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
   /**
@@ -2232,19 +2181,9 @@ export type Mutation = {
   userCreate: UserCreatePayload;
   userRoleUpdate: UserRoleUpdatePayload;
   withdrawalCancel: WithdrawalCancelPayload;
-  /**
-   * Confirm a pending withdrawal.
-   *
-   * requires:
-   * - withdrawalId
-   */
+  /** Confirm a pending withdrawal. */
   withdrawalConfirm: WithdrawalConfirmPayload;
-  /**
-   * Initiate a withdrawal from a deposit account.
-   *
-   * requires:
-   * - depositAccountId
-   */
+  /** Initiate a withdrawal from a deposit account. */
   withdrawalInitiate: WithdrawalInitiatePayload;
   withdrawalRevert: WithdrawalRevertPayload;
 };
@@ -3027,16 +2966,7 @@ export type Query = {
   liquidations: LiquidationConnection;
   me: Me;
   pendingCreditFacilities: PendingCreditFacilityConnection;
-  /**
-   * Get a pending credit facility.
-   *
-   * requires:
-   * - creditFacilityProposalId
-   * - creditFacilityProposal.approvalProcessId
-   * produces:
-   * - pendingCreditFacility.creditFacilityId
-   * - pendingCreditFacility.collateralId
-   */
+  /** Get a pending credit facility. */
   pendingCreditFacility?: Maybe<PendingCreditFacility>;
   permissionSets: PermissionSetConnection;
   policies: PolicyConnection;

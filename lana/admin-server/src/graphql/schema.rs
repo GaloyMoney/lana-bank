@@ -497,13 +497,20 @@ impl Query {
     }
 
     /// Get a pending credit facility.
-    ///
-    ///   requires:
-    ///   - creditFacilityProposalId
-    ///   - creditFacilityProposal.approvalProcessId
-    ///   produces:
-    ///   - pendingCreditFacility.creditFacilityId
-    ///   - pendingCreditFacility.collateralId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "creditFacilityProposalId".to_string()
+        ),
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "creditFacilityProposal.approvalProcessId".to_string()
+        ),
+        directive = crate::graphql::workflow_directives::workflow_output::apply(
+            "pendingCreditFacility.creditFacilityId".to_string()
+        ),
+        directive = crate::graphql::workflow_directives::workflow_output::apply(
+            "pendingCreditFacility.collateralId".to_string()
+        )
+    )]
     async fn pending_credit_facility(
         &self,
         ctx: &Context<'_>,
@@ -1471,8 +1478,6 @@ impl Mutation {
     }
 
     /// Create a prospect.
-    ///
-    ///   requires: []
     async fn prospect_create(
         &self,
         ctx: &Context<'_>,
@@ -1509,9 +1514,11 @@ impl Mutation {
     }
 
     /// Convert a prospect into a customer.
-    ///
-    ///   requires:
-    ///   - prospectId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "prospectId".to_string()
+        )
+    )]
     async fn prospect_convert(
         &self,
         ctx: &Context<'_>,
@@ -1726,9 +1733,11 @@ impl Mutation {
     }
 
     /// Record a deposit on an account.
-    ///
-    ///   requires:
-    ///   - depositAccountId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "depositAccountId".to_string()
+        )
+    )]
     pub async fn deposit_record(
         &self,
         ctx: &Context<'_>,
@@ -1750,9 +1759,11 @@ impl Mutation {
     }
 
     /// Initiate a withdrawal from a deposit account.
-    ///
-    ///   requires:
-    ///   - depositAccountId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "depositAccountId".to_string()
+        )
+    )]
     pub async fn withdrawal_initiate(
         &self,
         ctx: &Context<'_>,
@@ -1773,9 +1784,11 @@ impl Mutation {
     }
 
     /// Confirm a pending withdrawal.
-    ///
-    ///   requires:
-    ///   - withdrawalId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "withdrawalId".to_string()
+        )
+    )]
     pub async fn withdrawal_confirm(
         &self,
         ctx: &Context<'_>,
@@ -1834,9 +1847,11 @@ impl Mutation {
     }
 
     /// Create a deposit account for a customer.
-    ///
-    ///   requires:
-    ///   - customerId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "customerId".to_string()
+        )
+    )]
     pub async fn deposit_account_create(
         &self,
         ctx: &Context<'_>,
@@ -1896,8 +1911,6 @@ impl Mutation {
     }
 
     /// Create a terms template.
-    ///
-    ///   requires: []
     async fn terms_template_create(
         &self,
         ctx: &Context<'_>,
@@ -2167,8 +2180,11 @@ impl Mutation {
     /// `creditFacilityDisbursalInitiate` call can fail with
     /// `OnlyOneDisbursalAllowed`.
     ///
-    ///   requires:
-    ///   - customerId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "customerId".to_string()
+        )
+    )]
     pub async fn credit_facility_proposal_create(
         &self,
         ctx: &Context<'_>,
@@ -2199,11 +2215,14 @@ impl Mutation {
     }
 
     /// Conclude customer approval for a credit facility proposal.
-    ///
-    ///   requires:
-    ///   - creditFacilityProposalId
-    ///   produces:
-    ///   - creditFacilityProposal.approvalProcessId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "creditFacilityProposalId".to_string()
+        ),
+        directive = crate::graphql::workflow_directives::workflow_output::apply(
+            "creditFacilityProposal.approvalProcessId".to_string()
+        )
+    )]
     pub async fn credit_facility_proposal_customer_approval_conclude(
         &self,
         ctx: &Context<'_>,
@@ -2228,9 +2247,11 @@ impl Mutation {
     }
 
     /// Update collateral for a pending or active facility.
-    ///
-    ///   requires:
-    ///   - collateralId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "collateralId".to_string()
+        )
+    )]
     pub async fn collateral_update(
         &self,
         ctx: &Context<'_>,
@@ -2295,8 +2316,11 @@ impl Mutation {
     /// disbursal by the time they become active, in which case this mutation can
     /// fail with `OnlyOneDisbursalAllowed`.
     ///
-    ///   requires:
-    ///   - creditFacilityId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "creditFacilityId".to_string()
+        )
+    )]
     pub async fn credit_facility_disbursal_initiate(
         &self,
         ctx: &Context<'_>,
@@ -2754,9 +2778,11 @@ impl Mutation {
     }
 
     /// Generate a loan agreement for a credit facility.
-    ///
-    ///   requires:
-    ///   - creditFacilityId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "creditFacilityId".to_string()
+        )
+    )]
     pub async fn credit_facility_agreement_generate(
         &self,
         ctx: &Context<'_>,
@@ -2785,9 +2811,11 @@ impl Mutation {
     }
 
     /// Generate a download link for an existing loan agreement.
-    ///
-    ///   requires:
-    ///   - creditFacilityAgreementId
+    #[graphql(
+        directive = crate::graphql::workflow_directives::workflow_require::apply(
+            "creditFacilityAgreementId".to_string()
+        )
+    )]
     async fn credit_facility_agreement_download_link_generate(
         &self,
         ctx: &Context<'_>,

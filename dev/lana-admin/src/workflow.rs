@@ -1,5 +1,5 @@
 use anyhow::{Context, bail};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{cli::WorkflowAction, output};
@@ -29,11 +29,9 @@ struct WorkflowStep {
     mutating: bool,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone)]
 struct AutomationDefinition {
-    #[serde(default)]
     requires: Vec<String>,
-    #[serde(default)]
     produces: Vec<AutomationToken>,
 }
 
@@ -49,7 +47,7 @@ struct SchemaObjectType {
     key_field: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone)]
 struct AutomationToken {
     token: String,
     path: String,
@@ -216,7 +214,7 @@ fn build_workflow_export(workflow: &WorkflowDefinition) -> anyhow::Result<Workfl
     let included_ids: BTreeSet<&str> = workflow.steps.iter().map(|step| step.id.as_str()).collect();
     let ordered_ids = topologically_order_steps(workflow, &step_by_id, &included_ids)?;
     Ok(WorkflowExport {
-        source: "schema.graphql workflow metadata",
+        source: "schema.graphql workflow directives",
         steps: ordered_ids
             .into_iter()
             .map(|step_id| {
@@ -432,18 +430,22 @@ fn parse_schema_workflow(schema: &str) -> anyhow::Result<WorkflowDefinition> {
             continue;
         }
 
-        let Some(operation) = parse_field_name(trimmed) else {
+        let Some((operation, return_type)) = parse_field_signature(trimmed) else {
             continue;
         };
-        let Some(return_type) = parse_return_type(trimmed) else {
+        let description = pending_description.take().unwrap_or_default();
+        if operation_to_command(operation).is_err() {
             continue;
-        };
-
-        let Some(description) = pending_description.take() else {
-            continue;
-        };
-        let Some(parsed_doc) = parse_automation_definition(&description)? else {
-            continue;
+        }
+        let parsed_doc = ParsedWorkflowDoc {
+            description: dedent_block(&description).trim().to_string(),
+            automation: AutomationDefinition {
+                requires: parse_directive_values(trimmed, "workflow_require", "token")?,
+                produces: parse_directive_values(trimmed, "workflow_output", "path")?
+                    .into_iter()
+                    .map(|path| parse_produced_token(&path))
+                    .collect::<anyhow::Result<Vec<_>>>()?,
+            },
         };
 
         steps.push((
@@ -455,7 +457,7 @@ fn parse_schema_workflow(schema: &str) -> anyhow::Result<WorkflowDefinition> {
     }
 
     if steps.is_empty() {
-        bail!("no workflow metadata blocks found in embedded schema.graphql");
+        bail!("no workflow steps found in embedded schema.graphql");
     }
 
     build_workflow_definition(steps, &object_types)
@@ -492,12 +494,15 @@ fn collect_description<'a>(
     bail!("unterminated triple-quoted description in schema.graphql")
 }
 
-fn parse_field_name(line: &str) -> Option<&str> {
+fn parse_field_signature(line: &str) -> Option<(&str, String)> {
     if line.is_empty() || line.starts_with('"') {
         return None;
     }
 
-    let name = line.split(['(', ':']).next()?.trim();
+    let name_end = line
+        .char_indices()
+        .find_map(|(idx, ch)| (ch == '(' || ch == ':').then_some(idx))?;
+    let name = line[..name_end].trim();
     if name.is_empty()
         || !name
             .chars()
@@ -506,12 +511,49 @@ fn parse_field_name(line: &str) -> Option<&str> {
         return None;
     }
 
-    Some(name)
-}
+    let mut index = name_end;
+    let bytes = line.as_bytes();
+    if bytes.get(index) == Some(&b'(') {
+        let mut depth = 0usize;
+        while index < bytes.len() {
+            match bytes[index] {
+                b'(' => depth += 1,
+                b')' => {
+                    depth = depth.saturating_sub(1);
+                    if depth == 0 {
+                        index += 1;
+                        break;
+                    }
+                }
+                _ => {}
+            }
+            index += 1;
+        }
+    }
 
-fn parse_return_type(line: &str) -> Option<String> {
-    let (_, return_type) = line.rsplit_once(':')?;
-    Some(strip_type_wrappers(return_type.split_whitespace().next()?))
+    while index < bytes.len() && bytes[index].is_ascii_whitespace() {
+        index += 1;
+    }
+    if bytes.get(index) != Some(&b':') {
+        return None;
+    }
+    index += 1;
+    while index < bytes.len() && bytes[index].is_ascii_whitespace() {
+        index += 1;
+    }
+
+    let return_start = index;
+    while index < bytes.len()
+        && (bytes[index].is_ascii_alphanumeric()
+            || matches!(bytes[index], b'_' | b'!' | b'[' | b']'))
+    {
+        index += 1;
+    }
+    if return_start == index {
+        return None;
+    }
+
+    Some((name, strip_type_wrappers(&line[return_start..index])))
 }
 
 fn strip_type_wrappers(type_ref: &str) -> String {
@@ -554,10 +596,7 @@ fn parse_schema_object_types(schema: &str) -> anyhow::Result<BTreeMap<String, Sc
             continue;
         }
 
-        let Some(field_name) = parse_field_name(trimmed) else {
-            continue;
-        };
-        let Some(return_type) = parse_return_type(trimmed) else {
+        let Some((field_name, return_type)) = parse_field_signature(trimmed) else {
             continue;
         };
 
@@ -598,79 +637,43 @@ fn parse_entity_key_field(line: &str) -> Option<String> {
     (!field.is_empty()).then(|| field.to_string())
 }
 
-fn parse_automation_definition(description: &str) -> anyhow::Result<Option<ParsedWorkflowDoc>> {
-    let description = dedent_block(description);
-    let lines: Vec<&str> = description.lines().collect();
-    let Some(metadata_index) = lines.iter().position(|line| {
-        let trimmed = line.trim();
-        trimmed.starts_with("requires:") || trimmed == "produces:"
-    }) else {
-        return Ok(None);
-    };
+fn parse_directive_values(
+    line: &str,
+    directive: &str,
+    arg_name: &str,
+) -> anyhow::Result<Vec<String>> {
+    let mut values = Vec::new();
+    let needle = format!("@{directive}(");
+    let mut remainder = line;
 
-    let block = lines[metadata_index..].join("\n");
-    let description = lines[..metadata_index].join("\n").trim().to_string();
-    let mut requires = Vec::new();
-    let mut produces = Vec::new();
-    enum Section {
-        None,
-        Requires,
-        Produces,
-    }
-    let mut section = Section::None;
-
-    for line in block.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-        if trimmed.starts_with("```") {
-            continue;
-        }
-
-        if let Some(value) = trimmed.strip_prefix("requires:") {
-            let value = value.trim();
-            if value.is_empty() {
-                section = Section::Requires;
-            } else {
-                requires = parse_token_list(value).with_context(|| {
-                    format!("failed to parse requires in automation block:\n{block}")
-                })?;
-                section = Section::None;
-            }
-            continue;
-        }
-
-        if trimmed == "produces:" {
-            section = Section::Produces;
-            continue;
-        }
-
-        let Some(entry) = trimmed.strip_prefix("- ") else {
-            bail!("unsupported automation line `{trimmed}` in block:\n{block}");
-        };
-
-        match section {
-            Section::Requires => {
-                requires.push(entry.trim().to_string());
-            }
-            Section::Produces => {
-                produces.push(parse_produced_token(entry).with_context(|| {
-                    format!(
-                        "failed to parse produces entry `{entry}` in automation block:\n{block}"
-                    )
-                })?);
-            }
-            Section::None => {
-                bail!("list item outside requires/produces in automation block:\n{block}");
-            }
-        }
+    while let Some(start) = remainder.find(&needle) {
+        let after = &remainder[start + needle.len()..];
+        let end = after
+            .find(')')
+            .with_context(|| format!("unterminated directive `@{directive}` in `{line}`"))?;
+        let args = &after[..end];
+        values.push(parse_directive_argument(args, arg_name).with_context(|| {
+            format!("failed to parse `@{directive}` argument `{arg_name}` in `{line}`")
+        })?);
+        remainder = &after[end + 1..];
     }
 
-    Ok(Some(ParsedWorkflowDoc {
-        description,
-        automation: AutomationDefinition { requires, produces },
-    }))
+    Ok(values)
+}
+
+fn parse_directive_argument(args: &str, arg_name: &str) -> anyhow::Result<String> {
+    let value = args
+        .split(',')
+        .find_map(|arg| {
+            let (name, value) = arg.split_once(':')?;
+            (name.trim() == arg_name).then_some(value.trim())
+        })
+        .with_context(|| format!("missing `{arg_name}` in directive args `{args}`"))?;
+    let quoted = value
+        .strip_prefix('"')
+        .and_then(|value| value.strip_suffix('"'))
+        .with_context(|| format!("expected quoted string for `{arg_name}`, got `{value}`"))?;
+    Ok(quoted.to_string())
 }
 
 fn dedent_block(block: &str) -> String {
@@ -697,25 +700,6 @@ fn dedent_block(block: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join("\n")
-}
-
-fn parse_token_list(value: &str) -> anyhow::Result<Vec<String>> {
-    let value = value.trim();
-    if value == "[]" {
-        return Ok(Vec::new());
-    }
-
-    let inner = value
-        .strip_prefix('[')
-        .and_then(|value| value.strip_suffix(']'))
-        .with_context(|| format!("expected bracketed token list, got `{value}`"))?;
-
-    Ok(inner
-        .split(',')
-        .map(str::trim)
-        .filter(|item| !item.is_empty())
-        .map(ToOwned::to_owned)
-        .collect())
 }
 
 fn parse_produced_token(entry: &str) -> anyhow::Result<AutomationToken> {
@@ -784,12 +768,12 @@ fn build_workflow_definition(
             };
             let Some(step_ids) = producers.get(required) else {
                 bail!(
-                    "Automation step `{step_id}` requires token `{required}` with no producer in schema docs",
+                    "workflow step `{step_id}` requires token `{required}` with no producer in schema metadata",
                 );
             };
             if step_ids.len() != 1 {
                 bail!(
-                    "Automation step `{step_id}` requires token `{required}` with multiple producers: {}",
+                    "workflow step `{step_id}` requires token `{required}` with multiple producers: {}",
                     step_ids.join(", ")
                 );
             }

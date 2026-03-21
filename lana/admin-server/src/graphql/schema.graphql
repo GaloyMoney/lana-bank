@@ -2023,28 +2023,19 @@ type Mutation {
 	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
 	"""
 	Update collateral for a pending or active facility.
-	
-	requires:
-	- collateralId
 	"""
-	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
+	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload! @workflow_require(token: "collateralId")
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeUserAdd(input: CommitteeUserAddInput!): CommitteeUserAddPayload!
 	committeeUserRemove(input: CommitteeUserRemoveInput!): CommitteeUserRemovePayload!
 	"""
 	Generate a download link for an existing loan agreement.
-	
-	requires:
-	- creditFacilityAgreementId
 	"""
-	creditFacilityAgreementDownloadLinkGenerate(input: CreditFacilityAgreementDownloadLinksGenerateInput!): CreditFacilityAgreementDownloadLinksGeneratePayload!
+	creditFacilityAgreementDownloadLinkGenerate(input: CreditFacilityAgreementDownloadLinksGenerateInput!): CreditFacilityAgreementDownloadLinksGeneratePayload! @workflow_require(token: "creditFacilityAgreementId")
 	"""
 	Generate a loan agreement for a credit facility.
-	
-	requires:
-	- creditFacilityId
 	"""
-	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload!
+	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload! @workflow_require(token: "creditFacilityId")
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	"""
 	Initiate a disbursal for an active credit facility.
@@ -2053,11 +2044,8 @@ type Mutation {
 	activation. Facilities using `SINGLE_DISBURSAL` may already have a
 	disbursal by the time they become active, in which case this mutation can
 	fail with `OnlyOneDisbursalAllowed`.
-	
-	requires:
-	- creditFacilityId
 	"""
-	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
+	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload! @workflow_require(token: "creditFacilityId")
 	creditFacilityModuleConfigure(input: CreditFacilityModuleConfigureInput!): CreditFacilityModuleConfigurePayload!
 	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
@@ -2073,20 +2061,12 @@ type Mutation {
 	collateralization. In that case, a later
 	`creditFacilityDisbursalInitiate` call can fail with
 	`OnlyOneDisbursalAllowed`.
-	
-	requires:
-	- customerId
 	"""
-	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
+	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload! @workflow_require(token: "customerId")
 	"""
 	Conclude customer approval for a credit facility proposal.
-	
-	requires:
-	- creditFacilityProposalId
-	produces:
-	- creditFacilityProposal.approvalProcessId
 	"""
-	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload!
+	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload! @workflow_require(token: "creditFacilityProposalId") @workflow_output(path: "creditFacilityProposal.approvalProcessId")
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	customerClose(input: CustomerCloseInput!): CustomerClosePayload!
@@ -2101,21 +2081,15 @@ type Mutation {
 	depositAccountClose(input: DepositAccountCloseInput!): DepositAccountClosePayload!
 	"""
 	Create a deposit account for a customer.
-	
-	requires:
-	- customerId
 	"""
-	depositAccountCreate(input: DepositAccountCreateInput!): DepositAccountCreatePayload!
+	depositAccountCreate(input: DepositAccountCreateInput!): DepositAccountCreatePayload! @workflow_require(token: "customerId")
 	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
 	depositAccountModuleConfigure(input: DepositAccountModuleConfigureInput!): DepositAccountModuleConfigurePayload!
 	depositAccountUnfreeze(input: DepositAccountUnfreezeInput!): DepositAccountUnfreezePayload!
 	"""
 	Record a deposit on an account.
-	
-	requires:
-	- depositAccountId
 	"""
-	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
+	depositRecord(input: DepositRecordInput!): DepositRecordPayload! @workflow_require(token: "depositAccountId")
 	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
 	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
@@ -2132,15 +2106,10 @@ type Mutation {
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
 	"""
 	Convert a prospect into a customer.
-	
-	requires:
-	- prospectId
 	"""
-	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
+	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload! @workflow_require(token: "prospectId")
 	"""
 	Create a prospect.
-	
-	requires: []
 	"""
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
 	prospectKycLinkCreate(input: ProspectKycLinkCreateInput!): ProspectKycLinkCreatePayload!
@@ -2151,8 +2120,6 @@ type Mutation {
 	rolePermissionSetsRemove(input: RolePermissionSetsRemoveInput!): RolePermissionSetsRemovePayload!
 	"""
 	Create a terms template.
-	
-	requires: []
 	"""
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
@@ -2166,18 +2133,12 @@ type Mutation {
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	"""
 	Confirm a pending withdrawal.
-	
-	requires:
-	- withdrawalId
 	"""
-	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
+	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload! @workflow_require(token: "withdrawalId")
 	"""
 	Initiate a withdrawal from a deposit account.
-	
-	requires:
-	- depositAccountId
 	"""
-	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
+	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload! @workflow_require(token: "depositAccountId")
 	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
 }
 
@@ -2646,15 +2607,8 @@ type Query {
 	pendingCreditFacilities(after: String, filter: PendingCreditFacilitiesFilter, first: Int!, sort: PendingCreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): PendingCreditFacilityConnection!
 	"""
 	Get a pending credit facility.
-	
-	requires:
-	- creditFacilityProposalId
-	- creditFacilityProposal.approvalProcessId
-	produces:
-	- pendingCreditFacility.creditFacilityId
-	- pendingCreditFacility.collateralId
 	"""
-	pendingCreditFacility(id: UUID!): PendingCreditFacility
+	pendingCreditFacility(id: UUID!): PendingCreditFacility @workflow_require(token: "creditFacilityProposalId") @workflow_require(token: "creditFacilityProposal.approvalProcessId") @workflow_output(path: "pendingCreditFacility.creditFacilityId") @workflow_output(path: "pendingCreditFacility.collateralId")
 	permissionSets(after: String, first: Int!): PermissionSetConnection!
 	policies(after: String, first: Int!): PolicyConnection!
 	policy(id: UUID!): Policy
@@ -3316,6 +3270,8 @@ directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 Provides a scalar specification URL for specifying the behavior of custom scalar types.
 """
 directive @specifiedBy(url: String!) on SCALAR
+directive @workflow_output(path: String!) repeatable on FIELD_DEFINITION
+directive @workflow_require(token: String!) repeatable on FIELD_DEFINITION
 schema {
 	query: Query
 	mutation: Mutation
