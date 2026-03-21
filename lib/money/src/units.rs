@@ -6,26 +6,23 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use crate::{
-    Btc, ConversionError, Currency, CurrencyCode, CurrencyMeta, StaticCurrency, Untyped, Usd,
-};
+use crate::{Btc, ConversionError, Currency, CurrencyCode, StaticCurrency, Untyped, Usd};
 
 // ---------------------------------------------------------------------------
-// MinorUnits<C> — unsigned
+// MinorUnits<C>
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MinorUnits<C: Currency> {
     value: u64,
-    meta: C::Meta,
-    _phantom: PhantomData<C>,
+    currency: C,
 }
 
-// --- Methods available on ALL MinorUnits<C> ---
+// --- Methods on all MinorUnits<C> ---
 
 impl<C: Currency> MinorUnits<C> {
     pub fn to_major(self) -> Decimal {
-        Decimal::from(self.value) / Decimal::from(C::minor_units_per_major(&self.meta))
+        Decimal::from(self.value) / Decimal::from(self.currency.minor_units_per_major())
     }
 
     pub fn into_inner(self) -> u64 {
@@ -37,33 +34,42 @@ impl<C: Currency> MinorUnits<C> {
     }
 
     pub fn currency(&self) -> CurrencyCode {
-        C::code(&self.meta)
+        self.currency.code()
     }
 
     pub fn to_untyped(self) -> MinorUnits<Untyped> {
         MinorUnits {
             value: self.value,
-            meta: CurrencyMeta {
-                code: C::code(&self.meta),
-                minor_units_per_major: C::minor_units_per_major(&self.meta),
+            currency: Untyped {
+                code: self.currency.code(),
+                minor_units_per_major: self.currency.minor_units_per_major(),
             },
-            _phantom: PhantomData,
         }
     }
 }
 
-// --- Methods only for StaticCurrency (Usd, Btc, etc.) ---
+impl<C: Currency> fmt::Display for MinorUnits<C> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
+impl<C: StaticCurrency> Default for MinorUnits<C> {
+    fn default() -> Self {
+        Self::ZERO
+    }
+}
+
+// --- StaticCurrency impls ---
 
 impl<C: StaticCurrency> MinorUnits<C> {
     pub const ZERO: Self = Self {
         value: 0,
-        meta: (),
-        _phantom: PhantomData,
+        currency: C::INSTANCE,
     };
     pub const ONE: Self = Self {
         value: 1,
-        meta: (),
-        _phantom: PhantomData,
+        currency: C::INSTANCE,
     };
 
     pub fn try_from_major(major: Decimal) -> Result<Self, ConversionError> {
@@ -76,173 +82,26 @@ impl<C: StaticCurrency> MinorUnits<C> {
         }
         Ok(Self {
             value: u64::try_from(minor)?,
-            meta: (),
-            _phantom: PhantomData,
+            currency: C::INSTANCE,
         })
     }
 }
 
-// --- Currency-specific convenience methods ---
-
-impl MinorUnits<Btc> {
-    pub fn to_btc(self) -> Decimal {
-        self.to_major()
-    }
-
-    pub fn try_from_btc(btc: Decimal) -> Result<Self, ConversionError> {
-        Self::try_from_major(btc)
-    }
-
-    pub fn formatted_btc(self) -> String {
-        format!("{:.8}", self.to_btc())
-    }
-}
-
-impl MinorUnits<Usd> {
-    pub fn to_usd(self) -> Decimal {
-        self.to_major()
-    }
-
-    pub fn try_from_usd(usd: Decimal) -> Result<Self, ConversionError> {
-        Self::try_from_major(usd)
-    }
-
-    pub fn formatted_usd(self) -> String {
-        format!("${:.2}", self.to_usd())
-    }
-}
-
-// --- UntypedAmount-specific methods ---
-
-impl MinorUnits<Untyped> {
-    pub fn try_from_major(currency: CurrencyCode, major: Decimal) -> Result<Self, ConversionError> {
-        match currency {
-            CurrencyCode::USD => Ok(MinorUnits::<Usd>::try_from_major(major)?.into()),
-            CurrencyCode::BTC => Ok(MinorUnits::<Btc>::try_from_major(major)?.into()),
-            _ => Err(ConversionError::UnsupportedCurrency(currency)),
+impl<C: StaticCurrency> From<u64> for MinorUnits<C> {
+    fn from(value: u64) -> Self {
+        Self {
+            value,
+            currency: C::INSTANCE,
         }
     }
-
-    pub fn to_typed<C: StaticCurrency>(&self) -> Option<MinorUnits<C>> {
-        (self.meta.code == C::CODE).then_some(MinorUnits {
-            value: self.value,
-            meta: (),
-            _phantom: PhantomData,
-        })
-    }
 }
-
-// --- Serde for StaticCurrency: bare u64 (backwards compatible) ---
-
-impl<C: StaticCurrency> Serialize for MinorUnits<C> {
-    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.value.serialize(serializer)
-    }
-}
-
-impl<'de, C: StaticCurrency> Deserialize<'de> for MinorUnits<C> {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        u64::deserialize(deserializer).map(|v| Self {
-            value: v,
-            meta: (),
-            _phantom: PhantomData,
-        })
-    }
-}
-
-// --- Serde for Untyped: struct with currency metadata ---
-
-impl Serialize for MinorUnits<Untyped> {
-    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeStruct;
-        let mut s = serializer.serialize_struct("Amount", 3)?;
-        s.serialize_field("currency", &self.meta.code)?;
-        s.serialize_field("minor_units", &self.value)?;
-        s.serialize_field("minor_units_per_major", &self.meta.minor_units_per_major)?;
-        s.end()
-    }
-}
-
-impl<'de> Deserialize<'de> for MinorUnits<Untyped> {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[derive(Deserialize)]
-        struct Raw {
-            currency: CurrencyCode,
-            minor_units: u64,
-            minor_units_per_major: u64,
-        }
-        let raw = Raw::deserialize(deserializer)?;
-        Ok(Self {
-            value: raw.minor_units,
-            meta: CurrencyMeta {
-                code: raw.currency,
-                minor_units_per_major: raw.minor_units_per_major,
-            },
-            _phantom: PhantomData,
-        })
-    }
-}
-
-// --- JsonSchema ---
-
-#[cfg(feature = "json-schema")]
-impl<C: StaticCurrency> JsonSchema for MinorUnits<C> {
-    fn inline_schema() -> bool {
-        true
-    }
-
-    fn schema_name() -> std::borrow::Cow<'static, str> {
-        u64::schema_name()
-    }
-
-    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        u64::json_schema(generator)
-    }
-}
-
-#[cfg(feature = "json-schema")]
-impl JsonSchema for MinorUnits<Untyped> {
-    fn schema_name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed("Amount")
-    }
-
-    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        #[derive(JsonSchema)]
-        #[allow(dead_code)]
-        struct AmountSchema {
-            currency: CurrencyCode,
-            minor_units: u64,
-            minor_units_per_major: u64,
-        }
-        AmountSchema::json_schema(generator)
-    }
-}
-
-// --- Display ---
-
-impl<C: Currency> fmt::Display for MinorUnits<C> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.value)
-    }
-}
-
-// --- Default (only for StaticCurrency) ---
-
-impl<C: StaticCurrency> Default for MinorUnits<C> {
-    fn default() -> Self {
-        Self::ZERO
-    }
-}
-
-// --- Arithmetic (only for StaticCurrency — prevents cross-currency addition) ---
 
 impl<C: StaticCurrency> std::ops::Add for MinorUnits<C> {
     type Output = Self;
     fn add(self, other: Self) -> Self {
         Self {
             value: self.value + other.value,
-            meta: (),
-            _phantom: PhantomData,
+            currency: C::INSTANCE,
         }
     }
 }
@@ -252,8 +111,7 @@ impl<C: StaticCurrency> std::ops::Sub for MinorUnits<C> {
     fn sub(self, other: Self) -> Self {
         Self {
             value: self.value - other.value,
-            meta: (),
-            _phantom: PhantomData,
+            currency: C::INSTANCE,
         }
     }
 }
@@ -270,38 +128,153 @@ impl<C: StaticCurrency> std::ops::SubAssign for MinorUnits<C> {
     }
 }
 
-impl std::ops::Mul<u64> for MinorUnits<Usd> {
-    type Output = Self;
-    fn mul(self, rhs: u64) -> Self {
-        Self {
-            value: self.value * rhs,
-            meta: (),
-            _phantom: PhantomData,
-        }
+impl<C: StaticCurrency> Serialize for MinorUnits<C> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.value.serialize(serializer)
     }
 }
 
-// --- From<u64> (only for StaticCurrency) ---
-
-impl<C: StaticCurrency> From<u64> for MinorUnits<C> {
-    fn from(value: u64) -> Self {
-        Self {
-            value,
-            meta: (),
-            _phantom: PhantomData,
-        }
+impl<'de, C: StaticCurrency> Deserialize<'de> for MinorUnits<C> {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        u64::deserialize(deserializer).map(|v| Self {
+            value: v,
+            currency: C::INSTANCE,
+        })
     }
 }
 
-// --- Typed → Untyped (always succeeds) ---
+#[cfg(feature = "json-schema")]
+impl<C: StaticCurrency> JsonSchema for MinorUnits<C> {
+    fn inline_schema() -> bool {
+        true
+    }
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        u64::schema_name()
+    }
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        u64::json_schema(generator)
+    }
+}
 
 impl<C: StaticCurrency> From<MinorUnits<C>> for MinorUnits<Untyped> {
     fn from(typed: MinorUnits<C>) -> Self {
         Self {
             value: typed.value,
-            meta: CurrencyMeta::of::<C>(),
-            _phantom: PhantomData,
+            currency: Untyped::of::<C>(),
         }
+    }
+}
+
+// --- Usd-specific ---
+
+impl MinorUnits<Usd> {
+    pub fn to_usd(self) -> Decimal {
+        self.to_major()
+    }
+    pub fn try_from_usd(usd: Decimal) -> Result<Self, ConversionError> {
+        Self::try_from_major(usd)
+    }
+    pub fn formatted_usd(self) -> String {
+        format!("${:.2}", self.to_usd())
+    }
+}
+
+impl std::ops::Mul<u64> for MinorUnits<Usd> {
+    type Output = Self;
+    fn mul(self, rhs: u64) -> Self {
+        Self {
+            value: self.value * rhs,
+            currency: Usd,
+        }
+    }
+}
+
+// --- Btc-specific ---
+
+impl MinorUnits<Btc> {
+    pub fn to_btc(self) -> Decimal {
+        self.to_major()
+    }
+    pub fn try_from_btc(btc: Decimal) -> Result<Self, ConversionError> {
+        Self::try_from_major(btc)
+    }
+    pub fn formatted_btc(self) -> String {
+        format!("{:.8}", self.to_btc())
+    }
+}
+
+// --- Untyped-specific ---
+
+impl MinorUnits<Untyped> {
+    pub fn try_from_major(currency: CurrencyCode, major: Decimal) -> Result<Self, ConversionError> {
+        match currency {
+            CurrencyCode::USD => Ok(MinorUnits::<Usd>::try_from_major(major)?.into()),
+            CurrencyCode::BTC => Ok(MinorUnits::<Btc>::try_from_major(major)?.into()),
+            _ => Err(ConversionError::UnsupportedCurrency(currency)),
+        }
+    }
+
+    pub fn to_typed<C: StaticCurrency>(&self) -> Result<MinorUnits<C>, ConversionError> {
+        if self.currency.code != C::CODE {
+            return Err(ConversionError::CurrencyMismatch {
+                expected: C::CODE,
+                actual: self.currency.code,
+            });
+        }
+        Ok(MinorUnits {
+            value: self.value,
+            currency: C::INSTANCE,
+        })
+    }
+}
+
+impl Serialize for MinorUnits<Untyped> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeStruct;
+        let mut s = serializer.serialize_struct("Amount", 3)?;
+        s.serialize_field("currency", &self.currency.code)?;
+        s.serialize_field("minor_units", &self.value)?;
+        s.serialize_field(
+            "minor_units_per_major",
+            &self.currency.minor_units_per_major,
+        )?;
+        s.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for MinorUnits<Untyped> {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct Raw {
+            currency: CurrencyCode,
+            minor_units: u64,
+            minor_units_per_major: u64,
+        }
+        let raw = Raw::deserialize(deserializer)?;
+        Ok(Self {
+            value: raw.minor_units,
+            currency: Untyped {
+                code: raw.currency,
+                minor_units_per_major: raw.minor_units_per_major,
+            },
+        })
+    }
+}
+
+#[cfg(feature = "json-schema")]
+impl JsonSchema for MinorUnits<Untyped> {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed("Amount")
+    }
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        #[derive(JsonSchema)]
+        #[allow(dead_code)]
+        struct AmountSchema {
+            currency: CurrencyCode,
+            minor_units: u64,
+            minor_units_per_major: u64,
+        }
+        AmountSchema::json_schema(generator)
     }
 }
 
@@ -358,7 +331,6 @@ mod minor_units_sqlx {
         fn type_info() -> PgTypeInfo {
             <sqlx::types::Json<MinorUnits<Untyped>> as Type<Postgres>>::type_info()
         }
-
         fn compatible(ty: &PgTypeInfo) -> bool {
             <sqlx::types::Json<MinorUnits<Untyped>> as Type<Postgres>>::compatible(ty)
         }
@@ -482,13 +454,10 @@ impl<C: StaticCurrency> SignedMinorUnits<C> {
     }
 }
 
-// --- Currency-specific methods ---
-
 impl SignedMinorUnits<Btc> {
     pub fn to_btc(self) -> Decimal {
         self.to_major()
     }
-
     pub fn from_btc(btc: Decimal) -> Self {
         Self::try_from_major(btc).expect("BTC must convert to whole satoshis")
     }
@@ -498,13 +467,10 @@ impl SignedMinorUnits<Usd> {
     pub fn to_usd(self) -> Decimal {
         self.to_major()
     }
-
     pub fn from_usd(usd: Decimal) -> Self {
         Self::try_from_major(usd).expect("USD must convert to whole cents")
     }
 }
-
-// --- Serde ---
 
 impl<C: StaticCurrency> Serialize for SignedMinorUnits<C> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -518,28 +484,16 @@ impl<'de, C: StaticCurrency> Deserialize<'de> for SignedMinorUnits<C> {
     }
 }
 
-// --- JsonSchema ---
-
 #[cfg(feature = "json-schema")]
 impl<C: StaticCurrency> JsonSchema for SignedMinorUnits<C> {
     fn inline_schema() -> bool {
         true
     }
-
     fn schema_name() -> std::borrow::Cow<'static, str> {
         i64::schema_name()
     }
-
     fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
         i64::json_schema(generator)
-    }
-}
-
-// --- Display / Default ---
-
-impl<C: StaticCurrency> fmt::Display for SignedMinorUnits<C> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
 
@@ -549,7 +503,11 @@ impl<C: StaticCurrency> Default for SignedMinorUnits<C> {
     }
 }
 
-// --- Arithmetic ---
+impl<C: StaticCurrency> fmt::Display for SignedMinorUnits<C> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl<C: StaticCurrency> std::ops::Add for SignedMinorUnits<C> {
     type Output = Self;
@@ -582,8 +540,7 @@ impl<C: StaticCurrency> TryFrom<MinorUnits<C>> for SignedMinorUnits<C> {
 impl<C: StaticCurrency> TryFrom<SignedMinorUnits<C>> for MinorUnits<C> {
     type Error = ConversionError;
     fn try_from(value: SignedMinorUnits<C>) -> Result<Self, Self::Error> {
-        let major = value.to_major();
-        Self::try_from_major(major)
+        Self::try_from_major(value.to_major())
     }
 }
 

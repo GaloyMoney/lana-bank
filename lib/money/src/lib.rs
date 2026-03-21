@@ -50,10 +50,10 @@ mod tests {
     #[test]
     fn to_major_works_for_static() {
         let cents = UsdCents::from(150u64);
-        assert_eq!(cents.to_major(), Decimal::new(150, 2)); // $1.50
+        assert_eq!(cents.to_major(), Decimal::new(150, 2));
 
         let sats = Satoshis::from(100_000_000u64);
-        assert_eq!(sats.to_major(), Decimal::from(1)); // 1 BTC
+        assert_eq!(sats.to_major(), Decimal::from(1));
     }
 
     #[test]
@@ -63,7 +63,7 @@ mod tests {
 
         assert_eq!(untyped.currency(), CurrencyCode::USD);
         assert_eq!(untyped.into_inner(), 1500);
-        assert_eq!(untyped.to_major(), Decimal::new(1500, 2)); // $15.00
+        assert_eq!(untyped.to_major(), Decimal::new(1500, 2));
     }
 
     #[test]
@@ -71,12 +71,10 @@ mod tests {
         let cents = UsdCents::from(1500u64);
         let untyped: UntypedAmount = cents.into();
 
-        // Correct downcast
         let back = untyped.to_typed::<Usd>().unwrap();
         assert_eq!(back, UsdCents::from(1500u64));
 
-        // Wrong downcast
-        assert!(untyped.to_typed::<Btc>().is_none());
+        assert!(untyped.to_typed::<Btc>().is_err());
     }
 
     #[test]
@@ -111,7 +109,7 @@ mod tests {
 
         let back: UntypedAmount = serde_json::from_str(&json).unwrap();
         assert_eq!(back, untyped);
-        assert_eq!(back.to_typed::<Usd>(), Some(UsdCents::from(42u64)));
+        assert_eq!(back.to_typed::<Usd>().unwrap(), UsdCents::from(42u64));
     }
 
     #[test]
@@ -122,17 +120,13 @@ mod tests {
         assert_eq!((a - b).into_inner(), 50);
     }
 
-    // Arithmetic does NOT compile for Untyped — this is intentional.
-    // let a: UntypedAmount = ...; let b: UntypedAmount = ...; a + b; // ERROR
-
     #[test]
     fn size_of_types() {
-        // StaticCurrency: just u64 + ZSTs = 8 bytes
+        // StaticCurrency: u64 + ZST currency = 8 bytes
         assert_eq!(std::mem::size_of::<UsdCents>(), 8);
         assert_eq!(std::mem::size_of::<Satoshis>(), 8);
 
-        // Untyped: u64 + CurrencyMeta (CurrencyCode + u64) + ZST
-        // CurrencyCode is &'static str = pointer = 16 bytes (ptr + len)
+        // Untyped: u64 + Untyped (CurrencyCode + u64)
         let untyped_size = std::mem::size_of::<UntypedAmount>();
         assert!(
             untyped_size > 8,

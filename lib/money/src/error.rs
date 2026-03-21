@@ -14,6 +14,11 @@ pub enum ConversionError {
     PrecisionLoss(rust_decimal::Decimal),
     #[error("ConversionError - UnsupportedCurrency: {0}")]
     UnsupportedCurrency(crate::CurrencyCode),
+    #[error("ConversionError - CurrencyMismatch: expected {expected}, got {actual}")]
+    CurrencyMismatch {
+        expected: crate::CurrencyCode,
+        actual: crate::CurrencyCode,
+    },
 }
 
 impl ErrorSeverity for ConversionError {
@@ -24,6 +29,7 @@ impl ErrorSeverity for ConversionError {
             Self::Overflow => Level::ERROR,
             Self::PrecisionLoss(_) => Level::WARN,
             Self::UnsupportedCurrency(_) => Level::ERROR,
+            Self::CurrencyMismatch { .. } => Level::ERROR,
         }
     }
 }
