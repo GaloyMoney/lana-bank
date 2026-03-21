@@ -10,6 +10,7 @@ import { usePendingCreditFacilityEventHistoryQuery } from "@/lib/graphql/generat
 gql`
   query PendingCreditFacilityEventHistory($id: UUID!, $first: Int!, $after: String) {
     pendingCreditFacility(id: $id) {
+      pendingCreditFacilityId
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

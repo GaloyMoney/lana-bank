@@ -25,6 +25,7 @@ gql`
   mutation CustomerFreeze($input: CustomerFreezeInput!) {
     customerFreeze(input: $input) {
       customer {
+        customerId
         status
       }
     }

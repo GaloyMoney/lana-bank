@@ -42,12 +42,15 @@ gql`
       entity {
         __typename
         ... on Deposit {
+          depositId
           publicId
         }
         ... on Withdrawal {
+          withdrawalId
           publicId
         }
         ... on CreditFacilityDisbursal {
+          creditFacilityDisbursalId
           publicId
         }
       }
@@ -70,6 +73,7 @@ gql`
           code
           name
           closestAccountWithCode {
+            ledgerAccountId
             code
           }
         }

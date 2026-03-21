@@ -10,6 +10,7 @@ import { useUserEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query UserEventHistory($id: UUID!, $first: Int!, $after: String) {
     user(id: $id) {
+      userId
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

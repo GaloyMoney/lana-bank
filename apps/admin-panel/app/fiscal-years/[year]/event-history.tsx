@@ -10,6 +10,7 @@ import { useFiscalYearEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query FiscalYearEventHistory($year: String!, $first: Int!, $after: String) {
     fiscalYearByYear(year: $year) {
+      fiscalYearId
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }
