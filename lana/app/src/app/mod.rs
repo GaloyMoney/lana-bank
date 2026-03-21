@@ -212,6 +212,7 @@ impl LanaApp {
         )
         .await?;
         let fx = Fx::init(
+            &pool,
             &authz,
             &cala,
             journal_init.journal_id,
