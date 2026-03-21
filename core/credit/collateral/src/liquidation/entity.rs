@@ -131,8 +131,8 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
     ) -> Result<Self, EntityHydrationError> {
         let mut builder = LiquidationBuilder::default();
 
-        let mut amount_sent = Default::default();
-        let mut amount_received = Default::default();
+        let mut amount_sent = Satoshis::ZERO;
+        let mut amount_received = UsdCents::ZERO;
 
         for event in events.iter_all() {
             match event {
