@@ -8,17 +8,11 @@ use schemars::JsonSchema;
 
 use crate::{Btc, ConversionError, Currency, CurrencyCode, StaticCurrency, Untyped, Usd};
 
-// ---------------------------------------------------------------------------
-// MinorUnits<C>
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MinorUnits<C: Currency> {
     value: u64,
     currency: C,
 }
-
-// --- Methods on all MinorUnits<C> ---
 
 impl<C: Currency> MinorUnits<C> {
     pub fn to_major(self) -> Decimal {
@@ -49,8 +43,6 @@ impl<C: StaticCurrency> Default for MinorUnits<C> {
         Self::ZERO
     }
 }
-
-// --- StaticCurrency impls ---
 
 impl<C: StaticCurrency> MinorUnits<C> {
     pub const ZERO: Self = Self {
@@ -162,8 +154,6 @@ impl<C: StaticCurrency> From<MinorUnits<C>> for MinorUnits<Untyped> {
     }
 }
 
-// --- Usd-specific ---
-
 impl MinorUnits<Usd> {
     pub fn to_usd(self) -> Decimal {
         self.to_major()
@@ -186,8 +176,6 @@ impl std::ops::Mul<u64> for MinorUnits<Usd> {
     }
 }
 
-// --- Btc-specific ---
-
 impl MinorUnits<Btc> {
     pub fn to_btc(self) -> Decimal {
         self.to_major()
@@ -199,8 +187,6 @@ impl MinorUnits<Btc> {
         format!("{:.8}", self.to_btc())
     }
 }
-
-// --- Untyped-specific ---
 
 impl MinorUnits<Untyped> {
     pub fn try_from_major(currency: CurrencyCode, major: Decimal) -> Result<Self, ConversionError> {
@@ -272,17 +258,11 @@ impl JsonSchema for MinorUnits<Untyped> {
     }
 }
 
-// ---------------------------------------------------------------------------
-// MinorUnits SQLx impls
-// ---------------------------------------------------------------------------
-
 #[cfg(feature = "sqlx")]
 mod minor_units_sqlx {
     use sqlx::{Type, postgres::*};
 
     use super::*;
-
-    // --- StaticCurrency: stored as BIGINT ---
 
     impl<C: StaticCurrency> Type<Postgres> for MinorUnits<C> {
         fn type_info() -> PgTypeInfo {
@@ -319,8 +299,6 @@ mod minor_units_sqlx {
         }
     }
 
-    // --- Untyped: stored as JSONB ---
-
     impl Type<Postgres> for MinorUnits<Untyped> {
         fn type_info() -> PgTypeInfo {
             <sqlx::types::Json<MinorUnits<Untyped>> as Type<Postgres>>::type_info()
@@ -356,10 +334,6 @@ mod minor_units_sqlx {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// MinorUnits GraphQL scalars
-// ---------------------------------------------------------------------------
 
 #[cfg(feature = "graphql")]
 mod minor_units_graphql {
@@ -405,10 +379,6 @@ mod minor_units_graphql {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// SignedMinorUnits<C> — signed (only for StaticCurrency)
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SignedMinorUnits<C: StaticCurrency>(i64, PhantomData<C>);
@@ -517,10 +487,6 @@ impl<C: StaticCurrency> std::ops::Sub for SignedMinorUnits<C> {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Cross-type conversions
-// ---------------------------------------------------------------------------
-
 impl<C: StaticCurrency> TryFrom<MinorUnits<C>> for SignedMinorUnits<C> {
     type Error = ConversionError;
     fn try_from(val: MinorUnits<C>) -> Result<Self, Self::Error> {
@@ -537,10 +503,6 @@ impl<C: StaticCurrency> TryFrom<SignedMinorUnits<C>> for MinorUnits<C> {
         Self::try_from_major(value.to_major())
     }
 }
-
-// ---------------------------------------------------------------------------
-// SignedMinorUnits SQLx impls
-// ---------------------------------------------------------------------------
 
 #[cfg(feature = "sqlx")]
 mod signed_minor_units_sqlx {
@@ -579,10 +541,6 @@ mod signed_minor_units_sqlx {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// SignedMinorUnits GraphQL scalars
-// ---------------------------------------------------------------------------
 
 #[cfg(feature = "graphql")]
 mod signed_minor_units_graphql {

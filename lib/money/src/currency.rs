@@ -4,10 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::CurrencyCode;
 
-// ---------------------------------------------------------------------------
-// Currency trait
-// ---------------------------------------------------------------------------
-
 pub trait Currency:
     'static + Copy + Clone + Send + Sync + fmt::Debug + PartialEq + Eq + std::hash::Hash
 {
@@ -28,49 +24,30 @@ pub trait StaticCurrency: Currency {
     const INSTANCE: Self;
 }
 
-// ---------------------------------------------------------------------------
-// Static currency markers
-// ---------------------------------------------------------------------------
+macro_rules! define_static_currency {
+    ($Name:ident, $code:expr, $minor_units_per_major:expr) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        pub struct $Name;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Usd;
+        impl Currency for $Name {
+            fn code(&self) -> CurrencyCode {
+                $code
+            }
+            fn minor_units_per_major(&self) -> u64 {
+                $minor_units_per_major
+            }
+        }
 
-impl Currency for Usd {
-    fn code(&self) -> CurrencyCode {
-        CurrencyCode::USD
-    }
-    fn minor_units_per_major(&self) -> u64 {
-        100
-    }
+        impl StaticCurrency for $Name {
+            const CODE: CurrencyCode = $code;
+            const MINOR_UNITS_PER_MAJOR: u64 = $minor_units_per_major;
+            const INSTANCE: Self = $Name;
+        }
+    };
 }
 
-impl StaticCurrency for Usd {
-    const CODE: CurrencyCode = CurrencyCode::USD;
-    const MINOR_UNITS_PER_MAJOR: u64 = 100;
-    const INSTANCE: Self = Usd;
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Btc;
-
-impl Currency for Btc {
-    fn code(&self) -> CurrencyCode {
-        CurrencyCode::BTC
-    }
-    fn minor_units_per_major(&self) -> u64 {
-        100_000_000
-    }
-}
-
-impl StaticCurrency for Btc {
-    const CODE: CurrencyCode = CurrencyCode::BTC;
-    const MINOR_UNITS_PER_MAJOR: u64 = 100_000_000;
-    const INSTANCE: Self = Btc;
-}
-
-// ---------------------------------------------------------------------------
-// Untyped currency — carries metadata at runtime
-// ---------------------------------------------------------------------------
+define_static_currency!(Usd, CurrencyCode::USD, 100);
+define_static_currency!(Btc, CurrencyCode::BTC, 100_000_000);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
