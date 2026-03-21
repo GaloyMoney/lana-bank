@@ -1,5 +1,5 @@
-mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
-  manualTransactionExecute(input: $input) {
+mutation ExecuteManualTransaction($input: LedgerManualTransactionExecuteInput!) {
+  ledgerManualTransactionExecute(input: $input) {
     transaction {
       ledgerTransactionId
       createdAt

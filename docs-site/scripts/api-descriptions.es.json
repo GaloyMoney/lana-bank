@@ -104,7 +104,7 @@
       "customerClose": "Cierra una cuenta de cliente despues de verificar que se cumplan todas las precondiciones",
       "domainConfigUpdate": "Actualiza una configuracion de dominio",
       "depositAccountModuleConfigure": "Configura las asignaciones del plan de cuentas del módulo de cuenta de depósito",
-      "manualTransactionExecute": "Ejecuta una transaccion contable manual con asientos especificados",
+      "ledgerManualTransactionExecute": "Ejecuta una transaccion contable manual con asientos especificados",
       "depositRecord": "Registra un nuevo deposito en una cuenta de deposito",
       "withdrawalInitiate": "Inicia una solicitud de retiro de una cuenta de deposito",
       "withdrawalConfirm": "Confirma un retiro aprobado, completando la transferencia",

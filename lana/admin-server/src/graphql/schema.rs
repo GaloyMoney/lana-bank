@@ -1683,11 +1683,11 @@ impl Mutation {
         ))
     }
 
-    pub async fn manual_transaction_execute(
+    pub async fn ledger_manual_transaction_execute(
         &self,
         ctx: &Context<'_>,
-        input: ManualTransactionExecuteInput,
-    ) -> async_graphql::Result<ManualTransactionExecutePayload> {
+        input: LedgerManualTransactionExecuteInput,
+    ) -> async_graphql::Result<LedgerManualTransactionExecutePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let mut entries = Vec::with_capacity(input.entries.len());
@@ -1696,7 +1696,7 @@ impl Mutation {
         }
 
         exec_mutation!(
-            ManualTransactionExecutePayload,
+            LedgerManualTransactionExecutePayload,
             LedgerTransaction,
             ctx,
             app.accounting().execute_manual_transaction(

@@ -30,8 +30,8 @@ import { Plus, Trash2 } from "lucide-react"
 
 import {
   DebitOrCredit,
+  LedgerManualTransactionExecuteInput,
   ManualTransactionEntryInput,
-  ManualTransactionExecuteInput,
   useExecuteManualTransactionMutation,
 } from "@/lib/graphql/generated"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
@@ -39,8 +39,8 @@ import DataTable from "@/components/data-table"
 import { getCurrentLocalDate } from "@/lib/utils"
 
 gql`
-  mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
-    manualTransactionExecute(input: $input) {
+  mutation ExecuteManualTransaction($input: LedgerManualTransactionExecuteInput!) {
+    ledgerManualTransactionExecute(input: $input) {
       transaction {
         ledgerTransactionId
         createdAt
@@ -82,7 +82,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
 
   const isLoading = loading || isNavigating
 
-  const [formValues, setFormValues] = useState<ManualTransactionExecuteInput>({
+  const [formValues, setFormValues] = useState<LedgerManualTransactionExecuteInput>({
     description: "",
     reference: "",
     effective: getCurrentLocalDate(),
@@ -108,10 +108,10 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
           input: { ...formValues },
         },
         onCompleted: (data) => {
-          if (data?.manualTransactionExecute.transaction) {
+          if (data?.ledgerManualTransactionExecute.transaction) {
             toast.success(t("success"))
             navigate(
-              `/ledger-transactions/${data.manualTransactionExecute.transaction.ledgerTransactionId}`,
+              `/ledger-transactions/${data.ledgerManualTransactionExecute.transaction.ledgerTransactionId}`,
             )
           } else {
             throw new Error(t("errored"))

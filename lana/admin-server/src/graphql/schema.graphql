@@ -1851,6 +1851,17 @@ type LedgerAccountCsvExportUploadedPayload {
 
 union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
 
+input LedgerManualTransactionExecuteInput {
+	description: String!
+	effective: Date
+	entries: [ManualTransactionEntryInput!]!
+	reference: String
+}
+
+type LedgerManualTransactionExecutePayload {
+	transaction: LedgerTransaction!
+}
+
 type LedgerTransaction @entity_key(field: "ledgerTransactionId") {
 	createdAt: Timestamp!
 	description: String
@@ -1993,17 +2004,6 @@ input ManualTransactionEntryInput {
 	direction: DebitOrCredit!
 }
 
-input ManualTransactionExecuteInput {
-	description: String!
-	effective: Date
-	entries: [ManualTransactionEntryInput!]!
-	reference: String
-}
-
-type ManualTransactionExecutePayload {
-	transaction: LedgerTransaction!
-}
-
 type Me {
 	user: User!
 	userCanCreateCustodian: Boolean!
@@ -2059,7 +2059,7 @@ type Mutation {
 	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	ledgerAccountCsvDownloadLinkGenerate(input: LedgerAccountCsvDownloadLinkGenerateInput!): LedgerAccountCsvDownloadLinkGeneratePayload!
-	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
+	ledgerManualTransactionExecute(input: LedgerManualTransactionExecuteInput!): LedgerManualTransactionExecutePayload!
 	policyCommitteeAssign(input: PolicyCommitteeAssignInput!): PolicyCommitteeAssignPayload!
 	priceProviderActivate(input: PriceProviderActivateInput!): PriceProviderActivatePayload!
 	priceProviderConfigUpdate(input: PriceProviderConfigUpdateInput!): PriceProviderConfigUpdatePayload!

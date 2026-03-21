@@ -2159,7 +2159,7 @@ checksums:
     admin/mutations/customerClose: b28c9ede0effd084a8d01546ccd0e708
     admin/mutations/domainConfigUpdate: 7c8152f40fc4a56c954717b3c5132f65
     admin/mutations/depositAccountModuleConfigure: 6e2c449d7b0aa1e574102564afdad739
-    admin/mutations/manualTransactionExecute: dd512f872d793ac164f2840fe67c4762
+    admin/mutations/ledgerManualTransactionExecute: dd512f872d793ac164f2840fe67c4762
     admin/mutations/depositRecord: c7cbbc8442b73abd5b36b92090dd9f6a
     admin/mutations/withdrawalInitiate: bbd87241d56e1a37ab521fe3b04fb15e
     admin/mutations/withdrawalConfirm: 71533bc862e67becfaad92b3112b8791
