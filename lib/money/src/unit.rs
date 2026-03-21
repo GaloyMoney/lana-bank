@@ -17,7 +17,7 @@ pub struct MinorUnits<C: Currency> {
 }
 
 impl<C: Currency> MinorUnits<C> {
-    pub fn to_major(self) -> Decimal {
+    pub fn to_major(&self) -> Decimal {
         Decimal::from(self.value) / Decimal::from(self.currency.minor_units_per_major())
     }
 
@@ -25,7 +25,7 @@ impl<C: Currency> MinorUnits<C> {
         self.value
     }
 
-    pub fn is_zero(self) -> bool {
+    pub fn is_zero(&self) -> bool {
         self.value == 0
     }
 
@@ -43,13 +43,6 @@ impl<C: StaticCurrency> MinorUnits<C> {
         value: 1,
         currency: C::INSTANCE,
     };
-
-    pub fn to_untyped(self) -> MinorUnits<Untyped> {
-        MinorUnits {
-            value: self.value,
-            currency: Untyped::from_raw(C::CODE, C::MINOR_UNITS_PER_MAJOR),
-        }
-    }
 
     pub fn try_from_major(major: Decimal) -> Result<Self, ConversionError> {
         let minor = major * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
@@ -121,7 +114,7 @@ impl<C: StaticCurrency> From<MinorUnits<C>> for MinorUnits<Untyped> {
     fn from(typed: MinorUnits<C>) -> Self {
         Self {
             value: typed.value,
-            currency: Untyped::from_raw(C::CODE, C::MINOR_UNITS_PER_MAJOR),
+            currency: Untyped::from(typed.currency),
         }
     }
 }
@@ -158,16 +151,19 @@ impl MinorUnits<Untyped> {
             _ => Err(ConversionError::UnsupportedCurrency(currency)),
         }
     }
+}
 
-    pub fn to_typed<C: StaticCurrency>(&self) -> Result<MinorUnits<C>, ConversionError> {
-        if self.currency.code() != C::CODE {
+impl<C: StaticCurrency> TryFrom<MinorUnits<Untyped>> for MinorUnits<C> {
+    type Error = ConversionError;
+    fn try_from(untyped: MinorUnits<Untyped>) -> Result<Self, Self::Error> {
+        if untyped.currency.code() != C::CODE {
             return Err(ConversionError::CurrencyMismatch {
                 expected: C::CODE,
-                actual: self.currency.code(),
+                actual: untyped.currency.code(),
             });
         }
         Ok(MinorUnits {
-            value: self.value,
+            value: untyped.value,
             currency: C::INSTANCE,
         })
     }

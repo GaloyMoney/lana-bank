@@ -71,10 +71,11 @@ mod tests {
         let cents = UsdCents::from(1500u64);
         let untyped: UntypedAmount = cents.into();
 
-        let back = untyped.to_typed::<Usd>().unwrap();
+        let back: UsdCents = untyped.try_into().unwrap();
         assert_eq!(back, UsdCents::from(1500u64));
 
-        assert!(untyped.to_typed::<Btc>().is_err());
+        let bad: Result<Satoshis, _> = untyped.try_into();
+        assert!(bad.is_err());
     }
 
     #[test]
@@ -109,7 +110,7 @@ mod tests {
 
         let back: UntypedAmount = serde_json::from_str(&json).unwrap();
         assert_eq!(back, untyped);
-        assert_eq!(back.to_typed::<Usd>().unwrap(), UsdCents::from(42u64));
+        assert_eq!(UsdCents::try_from(back).unwrap(), UsdCents::from(42u64));
     }
 
     #[test]

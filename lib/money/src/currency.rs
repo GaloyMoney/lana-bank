@@ -65,6 +65,15 @@ impl Untyped {
     }
 }
 
+impl<C: StaticCurrency> From<C> for Untyped {
+    fn from(_: C) -> Self {
+        Self {
+            code: C::CODE,
+            minor_units_per_major: C::MINOR_UNITS_PER_MAJOR,
+        }
+    }
+}
+
 impl Currency for Untyped {
     fn code(&self) -> CurrencyCode {
         self.code
