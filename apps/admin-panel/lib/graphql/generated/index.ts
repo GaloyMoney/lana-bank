@@ -234,7 +234,7 @@ export type BitfinexCreateInput = {
   name: Scalars['String']['input'];
 };
 
-export type BitgoConfig = {
+export type BitgoConfigInput = {
   enterpriseId: Scalars['String']['input'];
   longLivedToken: Scalars['String']['input'];
   name: Scalars['String']['input'];
@@ -1017,9 +1017,9 @@ export type Custodian = {
 };
 
 export type CustodianConfigInput =
-  { bitgo: BitgoConfig; komainu?: never; selfCustody?: never; }
-  |  { bitgo?: never; komainu: KomainuConfig; selfCustody?: never; }
-  |  { bitgo?: never; komainu?: never; selfCustody: SelfCustodyConfig; };
+  { bitgo: BitgoConfigInput; komainu?: never; selfCustody?: never; }
+  |  { bitgo?: never; komainu: KomainuConfigInput; selfCustody?: never; }
+  |  { bitgo?: never; komainu?: never; selfCustody: SelfCustodyConfigInput; };
 
 export type CustodianConfigUpdateInput = {
   config: CustodianConfigInput;
@@ -1042,10 +1042,10 @@ export type CustodianConnection = {
 };
 
 export type CustodianCreateInput =
-  { bitgo: BitgoConfig; komainu?: never; manual?: never; selfCustody?: never; }
-  |  { bitgo?: never; komainu: KomainuConfig; manual?: never; selfCustody?: never; }
-  |  { bitgo?: never; komainu?: never; manual: ManualConfig; selfCustody?: never; }
-  |  { bitgo?: never; komainu?: never; manual?: never; selfCustody: SelfCustodyConfig; };
+  { bitgo: BitgoConfigInput; komainu?: never; manual?: never; selfCustody?: never; }
+  |  { bitgo?: never; komainu: KomainuConfigInput; manual?: never; selfCustody?: never; }
+  |  { bitgo?: never; komainu?: never; manual: ManualConfigInput; selfCustody?: never; }
+  |  { bitgo?: never; komainu?: never; manual?: never; selfCustody: SelfCustodyConfigInput; };
 
 export type CustodianCreatePayload = {
   __typename?: 'CustodianCreatePayload';
@@ -1815,7 +1815,7 @@ export type JournalEntryEdge = {
   node: JournalEntry;
 };
 
-export type KomainuConfig = {
+export type KomainuConfigInput = {
   apiKey: Scalars['String']['input'];
   apiSecret: Scalars['String']['input'];
   name: Scalars['String']['input'];
@@ -2054,7 +2054,7 @@ export type Loan = {
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
 };
 
-export type ManualConfig = {
+export type ManualConfigInput = {
   name: Scalars['String']['input'];
 };
 
@@ -3543,7 +3543,7 @@ export enum RolesSortBy {
   Name = 'NAME'
 }
 
-export type SelfCustodyConfig = {
+export type SelfCustodyConfigInput = {
   accountXpub: Scalars['String']['input'];
   name: Scalars['String']['input'];
   network: SelfCustodyNetwork;
