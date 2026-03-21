@@ -20,7 +20,9 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
+import NotAuthorized from "@/components/not-authorized"
 import { camelToScreamingSnake } from "@/lib/utils"
+import { isAuthorizationError } from "@/lib/auth-error"
 
 gql`
   fragment CustodianFields on Custodian {
@@ -64,6 +66,10 @@ const CustodiansList = () => {
       sort: sortBy,
     },
   })
+
+  if (isAuthorizationError(error)) {
+    return <NotAuthorized />
+  }
 
   return (
     <div>
