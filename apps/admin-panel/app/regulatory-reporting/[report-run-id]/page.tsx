@@ -22,7 +22,7 @@ import DataTable, { Column } from "@/components/data-table"
 
 import {
   ReportRunByIdQuery,
-  useReportFileGenerateDownloadLinkMutation,
+  useReportFileDownloadLinkGenerateMutation,
   useReportRunByIdQuery,
   useReportRunUpdatedSubscription,
 } from "@/lib/graphql/generated"
@@ -53,8 +53,8 @@ gql`
     }
   }
 
-  mutation ReportFileGenerateDownloadLink($input: ReportFileGenerateDownloadLinkInput!) {
-    reportFileGenerateDownloadLink(input: $input) {
+  mutation ReportFileDownloadLinkGenerate($input: ReportFileDownloadLinkGenerateInput!) {
+    reportFileDownloadLinkGenerate(input: $input) {
       url
     }
   }
@@ -78,7 +78,7 @@ const ReportRunPage = ({ params }: ReportRunPageProps) => {
 
   const t = useTranslations("ReportRun")
 
-  const [generateDownloadLink] = useReportFileGenerateDownloadLinkMutation()
+  const [generateDownloadLink] = useReportFileDownloadLinkGenerateMutation()
 
   const { data, loading, error, refetch } = useReportRunByIdQuery({
     variables: {
@@ -187,7 +187,7 @@ export default ReportRunPage
 
 const columns = (
   t: ReturnType<typeof useTranslations>,
-  generateDownloadLink: ReturnType<typeof useReportFileGenerateDownloadLinkMutation>[0],
+  generateDownloadLink: ReturnType<typeof useReportFileDownloadLinkGenerateMutation>[0],
 ): Column<ReportRow>[] => [
   {
     key: "name",
@@ -202,7 +202,7 @@ const columns = (
         const { data } = await generateDownloadLink({
           variables: { input: { reportId, extension } },
         })
-        return data?.reportFileGenerateDownloadLink.url
+        return data?.reportFileDownloadLinkGenerate.url
       }
 
       return (

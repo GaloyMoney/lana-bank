@@ -73,18 +73,18 @@ pub struct RoleCreateInput {
 crate::mutation_payload! { RoleCreatePayload, role: Role }
 
 #[derive(InputObject)]
-pub struct RoleAddPermissionSetsInput {
+pub struct RolePermissionSetsAddInput {
     pub role_id: UUID,
     pub permission_set_ids: Vec<UUID>,
 }
-crate::mutation_payload! { RoleAddPermissionSetsPayload, role: Role }
+crate::mutation_payload! { RolePermissionSetsAddPayload, role: Role }
 
 #[derive(InputObject)]
-pub struct RoleRemovePermissionSetsInput {
+pub struct RolePermissionSetsRemoveInput {
     pub role_id: UUID,
     pub permission_set_ids: Vec<UUID>,
 }
-crate::mutation_payload! { RoleRemovePermissionSetsPayload, role: Role }
+crate::mutation_payload! { RolePermissionSetsRemovePayload, role: Role }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum RolesSortBy {

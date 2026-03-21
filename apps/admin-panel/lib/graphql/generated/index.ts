@@ -409,16 +409,6 @@ export type CommitteeEventHistoryArgs = {
   first: Scalars['Int']['input'];
 };
 
-export type CommitteeAddUserInput = {
-  committeeId: Scalars['UUID']['input'];
-  userId: Scalars['UUID']['input'];
-};
-
-export type CommitteeAddUserPayload = {
-  __typename?: 'CommitteeAddUserPayload';
-  committee: Committee;
-};
-
 export type CommitteeApproval = {
   __typename?: 'CommitteeApproval';
   committee: Committee;
@@ -453,13 +443,23 @@ export type CommitteeEdge = {
   node: Committee;
 };
 
-export type CommitteeRemoveUserInput = {
+export type CommitteeUserAddInput = {
   committeeId: Scalars['UUID']['input'];
   userId: Scalars['UUID']['input'];
 };
 
-export type CommitteeRemoveUserPayload = {
-  __typename?: 'CommitteeRemoveUserPayload';
+export type CommitteeUserAddPayload = {
+  __typename?: 'CommitteeUserAddPayload';
+  committee: Committee;
+};
+
+export type CommitteeUserRemoveInput = {
+  committeeId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
+};
+
+export type CommitteeUserRemovePayload = {
+  __typename?: 'CommitteeUserRemovePayload';
   committee: Committee;
 };
 
@@ -2121,9 +2121,9 @@ export type Mutation = {
   collateralRecordProceedsFromLiquidation: CollateralRecordProceedsFromLiquidationPayload;
   collateralRecordSentToLiquidation: CollateralRecordSentToLiquidationPayload;
   collateralUpdate: CollateralUpdatePayload;
-  committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
-  committeeRemoveUser: CommitteeRemoveUserPayload;
+  committeeUserAdd: CommitteeUserAddPayload;
+  committeeUserRemove: CommitteeUserRemovePayload;
   creditFacilityAgreementDownloadLinkGenerate: CreditFacilityAgreementDownloadLinksGeneratePayload;
   creditFacilityAgreementGenerate: CreditFacilityAgreementGeneratePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
@@ -2159,7 +2159,7 @@ export type Mutation = {
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   ledgerAccountCsvDownloadLinkGenerate: LedgerAccountCsvDownloadLinkGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
-  policyAssignCommittee: PolicyAssignCommitteePayload;
+  policyCommitteeAssign: PolicyCommitteeAssignPayload;
   priceProviderActivate: PriceProviderActivatePayload;
   priceProviderConfigUpdate: PriceProviderConfigUpdatePayload;
   priceProviderDeactivate: PriceProviderDeactivatePayload;
@@ -2167,11 +2167,11 @@ export type Mutation = {
   prospectConvert: ProspectConvertPayload;
   prospectCreate: ProspectCreatePayload;
   prospectKycLinkCreate: ProspectKycLinkCreatePayload;
-  reportFileGenerateDownloadLink: ReportFileGenerateDownloadLinkPayload;
+  reportFileDownloadLinkGenerate: ReportFileDownloadLinkGeneratePayload;
   reportRunTrigger: ReportRunTriggerPayload;
-  roleAddPermissionSets: RoleAddPermissionSetsPayload;
   roleCreate: RoleCreatePayload;
-  roleRemovePermissionSets: RoleRemovePermissionSetsPayload;
+  rolePermissionSetsAdd: RolePermissionSetsAddPayload;
+  rolePermissionSetsRemove: RolePermissionSetsRemovePayload;
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
   /**
@@ -2180,7 +2180,7 @@ export type Mutation = {
    */
   timeAdvanceToNextEndOfDay: TimeAdvanceToNextEndOfDayPayload;
   userCreate: UserCreatePayload;
-  userUpdateRole: UserUpdateRolePayload;
+  userRoleUpdate: UserRoleUpdatePayload;
   withdrawalCancel: WithdrawalCancelPayload;
   withdrawalConfirm: WithdrawalConfirmPayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
@@ -2228,18 +2228,18 @@ export type MutationCollateralUpdateArgs = {
 };
 
 
-export type MutationCommitteeAddUserArgs = {
-  input: CommitteeAddUserInput;
-};
-
-
 export type MutationCommitteeCreateArgs = {
   input: CommitteeCreateInput;
 };
 
 
-export type MutationCommitteeRemoveUserArgs = {
-  input: CommitteeRemoveUserInput;
+export type MutationCommitteeUserAddArgs = {
+  input: CommitteeUserAddInput;
+};
+
+
+export type MutationCommitteeUserRemoveArgs = {
+  input: CommitteeUserRemoveInput;
 };
 
 
@@ -2418,8 +2418,8 @@ export type MutationManualTransactionExecuteArgs = {
 };
 
 
-export type MutationPolicyAssignCommitteeArgs = {
-  input: PolicyAssignCommitteeInput;
+export type MutationPolicyCommitteeAssignArgs = {
+  input: PolicyCommitteeAssignInput;
 };
 
 
@@ -2458,8 +2458,8 @@ export type MutationProspectKycLinkCreateArgs = {
 };
 
 
-export type MutationReportFileGenerateDownloadLinkArgs = {
-  input: ReportFileGenerateDownloadLinkInput;
+export type MutationReportFileDownloadLinkGenerateArgs = {
+  input: ReportFileDownloadLinkGenerateInput;
 };
 
 
@@ -2468,18 +2468,18 @@ export type MutationReportRunTriggerArgs = {
 };
 
 
-export type MutationRoleAddPermissionSetsArgs = {
-  input: RoleAddPermissionSetsInput;
-};
-
-
 export type MutationRoleCreateArgs = {
   input: RoleCreateInput;
 };
 
 
-export type MutationRoleRemovePermissionSetsArgs = {
-  input: RoleRemovePermissionSetsInput;
+export type MutationRolePermissionSetsAddArgs = {
+  input: RolePermissionSetsAddInput;
+};
+
+
+export type MutationRolePermissionSetsRemoveArgs = {
+  input: RolePermissionSetsRemoveInput;
 };
 
 
@@ -2498,8 +2498,8 @@ export type MutationUserCreateArgs = {
 };
 
 
-export type MutationUserUpdateRoleArgs = {
-  input: UserUpdateRoleInput;
+export type MutationUserRoleUpdateArgs = {
+  input: UserRoleUpdateInput;
 };
 
 
@@ -2698,13 +2698,13 @@ export type PolicyEventHistoryArgs = {
   first: Scalars['Int']['input'];
 };
 
-export type PolicyAssignCommitteeInput = {
+export type PolicyCommitteeAssignInput = {
   committeeId: Scalars['UUID']['input'];
   policyId: Scalars['UUID']['input'];
 };
 
-export type PolicyAssignCommitteePayload = {
-  __typename?: 'PolicyAssignCommitteePayload';
+export type PolicyCommitteeAssignPayload = {
+  __typename?: 'PolicyCommitteeAssignPayload';
   policy: Policy;
 };
 
@@ -3422,13 +3422,13 @@ export type ReportFile = {
   extension: Scalars['String']['output'];
 };
 
-export type ReportFileGenerateDownloadLinkInput = {
+export type ReportFileDownloadLinkGenerateInput = {
   extension: Scalars['String']['input'];
   reportId: Scalars['UUID']['input'];
 };
 
-export type ReportFileGenerateDownloadLinkPayload = {
-  __typename?: 'ReportFileGenerateDownloadLinkPayload';
+export type ReportFileDownloadLinkGeneratePayload = {
+  __typename?: 'ReportFileDownloadLinkGeneratePayload';
   url: Scalars['String']['output'];
 };
 
@@ -3526,16 +3526,6 @@ export type RoleEventHistoryArgs = {
   first: Scalars['Int']['input'];
 };
 
-export type RoleAddPermissionSetsInput = {
-  permissionSetIds: Array<Scalars['UUID']['input']>;
-  roleId: Scalars['UUID']['input'];
-};
-
-export type RoleAddPermissionSetsPayload = {
-  __typename?: 'RoleAddPermissionSetsPayload';
-  role: Role;
-};
-
 export type RoleConnection = {
   __typename?: 'RoleConnection';
   /** A list of edges. */
@@ -3565,13 +3555,23 @@ export type RoleEdge = {
   node: Role;
 };
 
-export type RoleRemovePermissionSetsInput = {
+export type RolePermissionSetsAddInput = {
   permissionSetIds: Array<Scalars['UUID']['input']>;
   roleId: Scalars['UUID']['input'];
 };
 
-export type RoleRemovePermissionSetsPayload = {
-  __typename?: 'RoleRemovePermissionSetsPayload';
+export type RolePermissionSetsAddPayload = {
+  __typename?: 'RolePermissionSetsAddPayload';
+  role: Role;
+};
+
+export type RolePermissionSetsRemoveInput = {
+  permissionSetIds: Array<Scalars['UUID']['input']>;
+  roleId: Scalars['UUID']['input'];
+};
+
+export type RolePermissionSetsRemovePayload = {
+  __typename?: 'RolePermissionSetsRemovePayload';
   role: Role;
 };
 
@@ -3865,13 +3865,13 @@ export type UserEdge = {
   node: User;
 };
 
-export type UserUpdateRoleInput = {
+export type UserRoleUpdateInput = {
   roleId: Scalars['UUID']['input'];
   userId: Scalars['UUID']['input'];
 };
 
-export type UserUpdateRolePayload = {
-  __typename?: 'UserUpdateRolePayload';
+export type UserRoleUpdatePayload = {
+  __typename?: 'UserRoleUpdatePayload';
   user: User;
 };
 
@@ -4130,12 +4130,12 @@ export type GetCommitteeDetailsQueryVariables = Exact<{
 
 export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } | null };
 
-export type CommitteeAddUserMutationVariables = Exact<{
-  input: CommitteeAddUserInput;
+export type CommitteeUserAddMutationVariables = Exact<{
+  input: CommitteeUserAddInput;
 }>;
 
 
-export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } } };
+export type CommitteeUserAddMutation = { __typename?: 'Mutation', committeeUserAdd: { __typename?: 'CommitteeUserAddPayload', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } } };
 
 export type CreateCommitteeMutationVariables = Exact<{
   input: CommitteeCreateInput;
@@ -4155,12 +4155,12 @@ export type CommitteesQueryVariables = Exact<{
 
 export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type CommitteeRemoveUserMutationVariables = Exact<{
-  input: CommitteeRemoveUserInput;
+export type CommitteeUserRemoveMutationVariables = Exact<{
+  input: CommitteeUserRemoveInput;
 }>;
 
 
-export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } } };
+export type CommitteeUserRemoveMutation = { __typename?: 'Mutation', committeeUserRemove: { __typename?: 'CommitteeUserRemovePayload', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } } };
 
 export type DomainConfigsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5317,12 +5317,12 @@ export type PendingCreditFacilitiesQueryVariables = Exact<{
 
 export type PendingCreditFacilitiesQuery = { __typename?: 'Query', pendingCreditFacilities: { __typename?: 'PendingCreditFacilityConnection', edges: Array<{ __typename?: 'PendingCreditFacilityEdge', cursor: string, node: { __typename?: 'PendingCreditFacility', pendingCreditFacilityId: string, createdAt: string, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: PendingCreditFacilityStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
-export type PolicyAssignCommitteeMutationVariables = Exact<{
-  input: PolicyAssignCommitteeInput;
+export type PolicyCommitteeAssignMutationVariables = Exact<{
+  input: PolicyCommitteeAssignInput;
 }>;
 
 
-export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', policyId: string, approvalProcessType: ApprovalProcessType, rules:
+export type PolicyCommitteeAssignMutation = { __typename?: 'Mutation', policyCommitteeAssign: { __typename?: 'PolicyCommitteeAssignPayload', policy: { __typename?: 'Policy', policyId: string, approvalProcessType: ApprovalProcessType, rules:
         | { __typename: 'AutoApproval' }
         | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', committeeId: string, createdAt: string, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } }> } }
        } } };
@@ -5481,12 +5481,12 @@ export type ReportRunByIdQueryVariables = Exact<{
 
 export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', reportRunId: string, state: ReportRunState, runType: ReportRunType, startTime?: string | null, requestedAsOfDate?: string | null, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: string, norm: string, name: string } | null, reports: Array<{ __typename?: 'Report', reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
 
-export type ReportFileGenerateDownloadLinkMutationVariables = Exact<{
-  input: ReportFileGenerateDownloadLinkInput;
+export type ReportFileDownloadLinkGenerateMutationVariables = Exact<{
+  input: ReportFileDownloadLinkGenerateInput;
 }>;
 
 
-export type ReportFileGenerateDownloadLinkMutation = { __typename?: 'Mutation', reportFileGenerateDownloadLink: { __typename?: 'ReportFileGenerateDownloadLinkPayload', url: string } };
+export type ReportFileDownloadLinkGenerateMutation = { __typename?: 'Mutation', reportFileDownloadLinkGenerate: { __typename?: 'ReportFileDownloadLinkGeneratePayload', url: string } };
 
 export type AvailableReportDefinitionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5514,19 +5514,19 @@ export type ReportRunUpdatedSubscriptionVariables = Exact<{ [key: string]: never
 
 export type ReportRunUpdatedSubscription = { __typename?: 'Subscription', reportRunUpdated: { __typename?: 'ReportRunUpdatedPayload', reportRunId: string } };
 
-export type RoleAddPermissionSetsMutationVariables = Exact<{
-  input: RoleAddPermissionSetsInput;
+export type RolePermissionSetsAddMutationVariables = Exact<{
+  input: RolePermissionSetsAddInput;
 }>;
 
 
-export type RoleAddPermissionSetsMutation = { __typename?: 'Mutation', roleAddPermissionSets: { __typename?: 'RoleAddPermissionSetsPayload', role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } };
+export type RolePermissionSetsAddMutation = { __typename?: 'Mutation', rolePermissionSetsAdd: { __typename?: 'RolePermissionSetsAddPayload', role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } };
 
-export type RoleRemovePermissionSetsMutationVariables = Exact<{
-  input: RoleRemovePermissionSetsInput;
+export type RolePermissionSetsRemoveMutationVariables = Exact<{
+  input: RolePermissionSetsRemoveInput;
 }>;
 
 
-export type RoleRemovePermissionSetsMutation = { __typename?: 'Mutation', roleRemovePermissionSets: { __typename?: 'RoleRemovePermissionSetsPayload', role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } };
+export type RolePermissionSetsRemoveMutation = { __typename?: 'Mutation', rolePermissionSetsRemove: { __typename?: 'RolePermissionSetsRemovePayload', role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } };
 
 export type RoleQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -5747,12 +5747,12 @@ export type UsersQueryVariables = Exact<{
 
 export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'UserEdge', cursor: string, node: { __typename?: 'User', userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } };
 
-export type UserUpdateRoleMutationVariables = Exact<{
-  input: UserUpdateRoleInput;
+export type UserRoleUpdateMutationVariables = Exact<{
+  input: UserRoleUpdateInput;
 }>;
 
 
-export type UserUpdateRoleMutation = { __typename?: 'Mutation', userUpdateRole: { __typename?: 'UserUpdateRolePayload', user: { __typename?: 'User', userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } } };
+export type UserRoleUpdateMutation = { __typename?: 'Mutation', userRoleUpdate: { __typename?: 'UserRoleUpdatePayload', user: { __typename?: 'User', userId: string, email: string, createdAt: string, userCanUpdateRoleOfUser: boolean, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } } };
 
 export type WithdrawalCancelMutationVariables = Exact<{
   input: WithdrawalCancelInput;
@@ -7735,41 +7735,41 @@ export type GetCommitteeDetailsQueryHookResult = ReturnType<typeof useGetCommitt
 export type GetCommitteeDetailsLazyQueryHookResult = ReturnType<typeof useGetCommitteeDetailsLazyQuery>;
 export type GetCommitteeDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCommitteeDetailsSuspenseQuery>;
 export type GetCommitteeDetailsQueryResult = Apollo.QueryResult<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>;
-export const CommitteeAddUserDocument = gql`
-    mutation CommitteeAddUser($input: CommitteeAddUserInput!) {
-  committeeAddUser(input: $input) {
+export const CommitteeUserAddDocument = gql`
+    mutation CommitteeUserAdd($input: CommitteeUserAddInput!) {
+  committeeUserAdd(input: $input) {
     committee {
       ...CommitteeFields
     }
   }
 }
     ${CommitteeFieldsFragmentDoc}`;
-export type CommitteeAddUserMutationFn = Apollo.MutationFunction<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>;
+export type CommitteeUserAddMutationFn = Apollo.MutationFunction<CommitteeUserAddMutation, CommitteeUserAddMutationVariables>;
 
 /**
- * __useCommitteeAddUserMutation__
+ * __useCommitteeUserAddMutation__
  *
- * To run a mutation, you first call `useCommitteeAddUserMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCommitteeAddUserMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCommitteeUserAddMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCommitteeUserAddMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [committeeAddUserMutation, { data, loading, error }] = useCommitteeAddUserMutation({
+ * const [committeeUserAddMutation, { data, loading, error }] = useCommitteeUserAddMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCommitteeAddUserMutation(baseOptions?: Apollo.MutationHookOptions<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>) {
+export function useCommitteeUserAddMutation(baseOptions?: Apollo.MutationHookOptions<CommitteeUserAddMutation, CommitteeUserAddMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>(CommitteeAddUserDocument, options);
+        return Apollo.useMutation<CommitteeUserAddMutation, CommitteeUserAddMutationVariables>(CommitteeUserAddDocument, options);
       }
-export type CommitteeAddUserMutationHookResult = ReturnType<typeof useCommitteeAddUserMutation>;
-export type CommitteeAddUserMutationResult = Apollo.MutationResult<CommitteeAddUserMutation>;
-export type CommitteeAddUserMutationOptions = Apollo.BaseMutationOptions<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>;
+export type CommitteeUserAddMutationHookResult = ReturnType<typeof useCommitteeUserAddMutation>;
+export type CommitteeUserAddMutationResult = Apollo.MutationResult<CommitteeUserAddMutation>;
+export type CommitteeUserAddMutationOptions = Apollo.BaseMutationOptions<CommitteeUserAddMutation, CommitteeUserAddMutationVariables>;
 export const CreateCommitteeDocument = gql`
     mutation CreateCommittee($input: CommitteeCreateInput!) {
   committeeCreate(input: $input) {
@@ -7861,41 +7861,41 @@ export type CommitteesQueryHookResult = ReturnType<typeof useCommitteesQuery>;
 export type CommitteesLazyQueryHookResult = ReturnType<typeof useCommitteesLazyQuery>;
 export type CommitteesSuspenseQueryHookResult = ReturnType<typeof useCommitteesSuspenseQuery>;
 export type CommitteesQueryResult = Apollo.QueryResult<CommitteesQuery, CommitteesQueryVariables>;
-export const CommitteeRemoveUserDocument = gql`
-    mutation CommitteeRemoveUser($input: CommitteeRemoveUserInput!) {
-  committeeRemoveUser(input: $input) {
+export const CommitteeUserRemoveDocument = gql`
+    mutation CommitteeUserRemove($input: CommitteeUserRemoveInput!) {
+  committeeUserRemove(input: $input) {
     committee {
       ...CommitteeFields
     }
   }
 }
     ${CommitteeFieldsFragmentDoc}`;
-export type CommitteeRemoveUserMutationFn = Apollo.MutationFunction<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
+export type CommitteeUserRemoveMutationFn = Apollo.MutationFunction<CommitteeUserRemoveMutation, CommitteeUserRemoveMutationVariables>;
 
 /**
- * __useCommitteeRemoveUserMutation__
+ * __useCommitteeUserRemoveMutation__
  *
- * To run a mutation, you first call `useCommitteeRemoveUserMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCommitteeRemoveUserMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCommitteeUserRemoveMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCommitteeUserRemoveMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [committeeRemoveUserMutation, { data, loading, error }] = useCommitteeRemoveUserMutation({
+ * const [committeeUserRemoveMutation, { data, loading, error }] = useCommitteeUserRemoveMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCommitteeRemoveUserMutation(baseOptions?: Apollo.MutationHookOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>) {
+export function useCommitteeUserRemoveMutation(baseOptions?: Apollo.MutationHookOptions<CommitteeUserRemoveMutation, CommitteeUserRemoveMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>(CommitteeRemoveUserDocument, options);
+        return Apollo.useMutation<CommitteeUserRemoveMutation, CommitteeUserRemoveMutationVariables>(CommitteeUserRemoveDocument, options);
       }
-export type CommitteeRemoveUserMutationHookResult = ReturnType<typeof useCommitteeRemoveUserMutation>;
-export type CommitteeRemoveUserMutationResult = Apollo.MutationResult<CommitteeRemoveUserMutation>;
-export type CommitteeRemoveUserMutationOptions = Apollo.BaseMutationOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
+export type CommitteeUserRemoveMutationHookResult = ReturnType<typeof useCommitteeUserRemoveMutation>;
+export type CommitteeUserRemoveMutationResult = Apollo.MutationResult<CommitteeUserRemoveMutation>;
+export type CommitteeUserRemoveMutationOptions = Apollo.BaseMutationOptions<CommitteeUserRemoveMutation, CommitteeUserRemoveMutationVariables>;
 export const DomainConfigsDocument = gql`
     query DomainConfigs($first: Int!, $after: String) {
   domainConfigs(first: $first, after: $after) {
@@ -12494,9 +12494,9 @@ export type PendingCreditFacilitiesQueryHookResult = ReturnType<typeof usePendin
 export type PendingCreditFacilitiesLazyQueryHookResult = ReturnType<typeof usePendingCreditFacilitiesLazyQuery>;
 export type PendingCreditFacilitiesSuspenseQueryHookResult = ReturnType<typeof usePendingCreditFacilitiesSuspenseQuery>;
 export type PendingCreditFacilitiesQueryResult = Apollo.QueryResult<PendingCreditFacilitiesQuery, PendingCreditFacilitiesQueryVariables>;
-export const PolicyAssignCommitteeDocument = gql`
-    mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
-  policyAssignCommittee(input: $input) {
+export const PolicyCommitteeAssignDocument = gql`
+    mutation PolicyCommitteeAssign($input: PolicyCommitteeAssignInput!) {
+  policyCommitteeAssign(input: $input) {
     policy {
       policyId
       approvalProcessType
@@ -12514,32 +12514,32 @@ export const PolicyAssignCommitteeDocument = gql`
   }
 }
     ${CommitteeFieldsFragmentDoc}`;
-export type PolicyAssignCommitteeMutationFn = Apollo.MutationFunction<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>;
+export type PolicyCommitteeAssignMutationFn = Apollo.MutationFunction<PolicyCommitteeAssignMutation, PolicyCommitteeAssignMutationVariables>;
 
 /**
- * __usePolicyAssignCommitteeMutation__
+ * __usePolicyCommitteeAssignMutation__
  *
- * To run a mutation, you first call `usePolicyAssignCommitteeMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `usePolicyAssignCommitteeMutation` returns a tuple that includes:
+ * To run a mutation, you first call `usePolicyCommitteeAssignMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePolicyCommitteeAssignMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [policyAssignCommitteeMutation, { data, loading, error }] = usePolicyAssignCommitteeMutation({
+ * const [policyCommitteeAssignMutation, { data, loading, error }] = usePolicyCommitteeAssignMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function usePolicyAssignCommitteeMutation(baseOptions?: Apollo.MutationHookOptions<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>) {
+export function usePolicyCommitteeAssignMutation(baseOptions?: Apollo.MutationHookOptions<PolicyCommitteeAssignMutation, PolicyCommitteeAssignMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>(PolicyAssignCommitteeDocument, options);
+        return Apollo.useMutation<PolicyCommitteeAssignMutation, PolicyCommitteeAssignMutationVariables>(PolicyCommitteeAssignDocument, options);
       }
-export type PolicyAssignCommitteeMutationHookResult = ReturnType<typeof usePolicyAssignCommitteeMutation>;
-export type PolicyAssignCommitteeMutationResult = Apollo.MutationResult<PolicyAssignCommitteeMutation>;
-export type PolicyAssignCommitteeMutationOptions = Apollo.BaseMutationOptions<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>;
+export type PolicyCommitteeAssignMutationHookResult = ReturnType<typeof usePolicyCommitteeAssignMutation>;
+export type PolicyCommitteeAssignMutationResult = Apollo.MutationResult<PolicyCommitteeAssignMutation>;
+export type PolicyCommitteeAssignMutationOptions = Apollo.BaseMutationOptions<PolicyCommitteeAssignMutation, PolicyCommitteeAssignMutationVariables>;
 export const PolicyEventHistoryDocument = gql`
     query PolicyEventHistory($id: UUID!, $first: Int!, $after: String) {
   policy(id: $id) {
@@ -13345,39 +13345,39 @@ export type ReportRunByIdQueryHookResult = ReturnType<typeof useReportRunByIdQue
 export type ReportRunByIdLazyQueryHookResult = ReturnType<typeof useReportRunByIdLazyQuery>;
 export type ReportRunByIdSuspenseQueryHookResult = ReturnType<typeof useReportRunByIdSuspenseQuery>;
 export type ReportRunByIdQueryResult = Apollo.QueryResult<ReportRunByIdQuery, ReportRunByIdQueryVariables>;
-export const ReportFileGenerateDownloadLinkDocument = gql`
-    mutation ReportFileGenerateDownloadLink($input: ReportFileGenerateDownloadLinkInput!) {
-  reportFileGenerateDownloadLink(input: $input) {
+export const ReportFileDownloadLinkGenerateDocument = gql`
+    mutation ReportFileDownloadLinkGenerate($input: ReportFileDownloadLinkGenerateInput!) {
+  reportFileDownloadLinkGenerate(input: $input) {
     url
   }
 }
     `;
-export type ReportFileGenerateDownloadLinkMutationFn = Apollo.MutationFunction<ReportFileGenerateDownloadLinkMutation, ReportFileGenerateDownloadLinkMutationVariables>;
+export type ReportFileDownloadLinkGenerateMutationFn = Apollo.MutationFunction<ReportFileDownloadLinkGenerateMutation, ReportFileDownloadLinkGenerateMutationVariables>;
 
 /**
- * __useReportFileGenerateDownloadLinkMutation__
+ * __useReportFileDownloadLinkGenerateMutation__
  *
- * To run a mutation, you first call `useReportFileGenerateDownloadLinkMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useReportFileGenerateDownloadLinkMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useReportFileDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReportFileDownloadLinkGenerateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [reportFileGenerateDownloadLinkMutation, { data, loading, error }] = useReportFileGenerateDownloadLinkMutation({
+ * const [reportFileDownloadLinkGenerateMutation, { data, loading, error }] = useReportFileDownloadLinkGenerateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useReportFileGenerateDownloadLinkMutation(baseOptions?: Apollo.MutationHookOptions<ReportFileGenerateDownloadLinkMutation, ReportFileGenerateDownloadLinkMutationVariables>) {
+export function useReportFileDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<ReportFileDownloadLinkGenerateMutation, ReportFileDownloadLinkGenerateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ReportFileGenerateDownloadLinkMutation, ReportFileGenerateDownloadLinkMutationVariables>(ReportFileGenerateDownloadLinkDocument, options);
+        return Apollo.useMutation<ReportFileDownloadLinkGenerateMutation, ReportFileDownloadLinkGenerateMutationVariables>(ReportFileDownloadLinkGenerateDocument, options);
       }
-export type ReportFileGenerateDownloadLinkMutationHookResult = ReturnType<typeof useReportFileGenerateDownloadLinkMutation>;
-export type ReportFileGenerateDownloadLinkMutationResult = Apollo.MutationResult<ReportFileGenerateDownloadLinkMutation>;
-export type ReportFileGenerateDownloadLinkMutationOptions = Apollo.BaseMutationOptions<ReportFileGenerateDownloadLinkMutation, ReportFileGenerateDownloadLinkMutationVariables>;
+export type ReportFileDownloadLinkGenerateMutationHookResult = ReturnType<typeof useReportFileDownloadLinkGenerateMutation>;
+export type ReportFileDownloadLinkGenerateMutationResult = Apollo.MutationResult<ReportFileDownloadLinkGenerateMutation>;
+export type ReportFileDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<ReportFileDownloadLinkGenerateMutation, ReportFileDownloadLinkGenerateMutationVariables>;
 export const AvailableReportDefinitionsDocument = gql`
     query AvailableReportDefinitions {
   availableReportDefinitions {
@@ -13555,76 +13555,76 @@ export function useReportRunUpdatedSubscription(baseOptions?: Apollo.Subscriptio
       }
 export type ReportRunUpdatedSubscriptionHookResult = ReturnType<typeof useReportRunUpdatedSubscription>;
 export type ReportRunUpdatedSubscriptionResult = Apollo.SubscriptionResult<ReportRunUpdatedSubscription>;
-export const RoleAddPermissionSetsDocument = gql`
-    mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
-  roleAddPermissionSets(input: $input) {
+export const RolePermissionSetsAddDocument = gql`
+    mutation RolePermissionSetsAdd($input: RolePermissionSetsAddInput!) {
+  rolePermissionSetsAdd(input: $input) {
     role {
       ...RoleFields
     }
   }
 }
     ${RoleFieldsFragmentDoc}`;
-export type RoleAddPermissionSetsMutationFn = Apollo.MutationFunction<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>;
+export type RolePermissionSetsAddMutationFn = Apollo.MutationFunction<RolePermissionSetsAddMutation, RolePermissionSetsAddMutationVariables>;
 
 /**
- * __useRoleAddPermissionSetsMutation__
+ * __useRolePermissionSetsAddMutation__
  *
- * To run a mutation, you first call `useRoleAddPermissionSetsMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRoleAddPermissionSetsMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useRolePermissionSetsAddMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRolePermissionSetsAddMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [roleAddPermissionSetsMutation, { data, loading, error }] = useRoleAddPermissionSetsMutation({
+ * const [rolePermissionSetsAddMutation, { data, loading, error }] = useRolePermissionSetsAddMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useRoleAddPermissionSetsMutation(baseOptions?: Apollo.MutationHookOptions<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>) {
+export function useRolePermissionSetsAddMutation(baseOptions?: Apollo.MutationHookOptions<RolePermissionSetsAddMutation, RolePermissionSetsAddMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>(RoleAddPermissionSetsDocument, options);
+        return Apollo.useMutation<RolePermissionSetsAddMutation, RolePermissionSetsAddMutationVariables>(RolePermissionSetsAddDocument, options);
       }
-export type RoleAddPermissionSetsMutationHookResult = ReturnType<typeof useRoleAddPermissionSetsMutation>;
-export type RoleAddPermissionSetsMutationResult = Apollo.MutationResult<RoleAddPermissionSetsMutation>;
-export type RoleAddPermissionSetsMutationOptions = Apollo.BaseMutationOptions<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>;
-export const RoleRemovePermissionSetsDocument = gql`
-    mutation RoleRemovePermissionSets($input: RoleRemovePermissionSetsInput!) {
-  roleRemovePermissionSets(input: $input) {
+export type RolePermissionSetsAddMutationHookResult = ReturnType<typeof useRolePermissionSetsAddMutation>;
+export type RolePermissionSetsAddMutationResult = Apollo.MutationResult<RolePermissionSetsAddMutation>;
+export type RolePermissionSetsAddMutationOptions = Apollo.BaseMutationOptions<RolePermissionSetsAddMutation, RolePermissionSetsAddMutationVariables>;
+export const RolePermissionSetsRemoveDocument = gql`
+    mutation RolePermissionSetsRemove($input: RolePermissionSetsRemoveInput!) {
+  rolePermissionSetsRemove(input: $input) {
     role {
       ...RoleFields
     }
   }
 }
     ${RoleFieldsFragmentDoc}`;
-export type RoleRemovePermissionSetsMutationFn = Apollo.MutationFunction<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>;
+export type RolePermissionSetsRemoveMutationFn = Apollo.MutationFunction<RolePermissionSetsRemoveMutation, RolePermissionSetsRemoveMutationVariables>;
 
 /**
- * __useRoleRemovePermissionSetsMutation__
+ * __useRolePermissionSetsRemoveMutation__
  *
- * To run a mutation, you first call `useRoleRemovePermissionSetsMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRoleRemovePermissionSetsMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useRolePermissionSetsRemoveMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRolePermissionSetsRemoveMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [roleRemovePermissionSetsMutation, { data, loading, error }] = useRoleRemovePermissionSetsMutation({
+ * const [rolePermissionSetsRemoveMutation, { data, loading, error }] = useRolePermissionSetsRemoveMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useRoleRemovePermissionSetsMutation(baseOptions?: Apollo.MutationHookOptions<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>) {
+export function useRolePermissionSetsRemoveMutation(baseOptions?: Apollo.MutationHookOptions<RolePermissionSetsRemoveMutation, RolePermissionSetsRemoveMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>(RoleRemovePermissionSetsDocument, options);
+        return Apollo.useMutation<RolePermissionSetsRemoveMutation, RolePermissionSetsRemoveMutationVariables>(RolePermissionSetsRemoveDocument, options);
       }
-export type RoleRemovePermissionSetsMutationHookResult = ReturnType<typeof useRoleRemovePermissionSetsMutation>;
-export type RoleRemovePermissionSetsMutationResult = Apollo.MutationResult<RoleRemovePermissionSetsMutation>;
-export type RoleRemovePermissionSetsMutationOptions = Apollo.BaseMutationOptions<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>;
+export type RolePermissionSetsRemoveMutationHookResult = ReturnType<typeof useRolePermissionSetsRemoveMutation>;
+export type RolePermissionSetsRemoveMutationResult = Apollo.MutationResult<RolePermissionSetsRemoveMutation>;
+export type RolePermissionSetsRemoveMutationOptions = Apollo.BaseMutationOptions<RolePermissionSetsRemoveMutation, RolePermissionSetsRemoveMutationVariables>;
 export const RoleDocument = gql`
     query Role($id: UUID!) {
   role(id: $id) {
@@ -14527,41 +14527,41 @@ export type UsersQueryHookResult = ReturnType<typeof useUsersQuery>;
 export type UsersLazyQueryHookResult = ReturnType<typeof useUsersLazyQuery>;
 export type UsersSuspenseQueryHookResult = ReturnType<typeof useUsersSuspenseQuery>;
 export type UsersQueryResult = Apollo.QueryResult<UsersQuery, UsersQueryVariables>;
-export const UserUpdateRoleDocument = gql`
-    mutation UserUpdateRole($input: UserUpdateRoleInput!) {
-  userUpdateRole(input: $input) {
+export const UserRoleUpdateDocument = gql`
+    mutation UserRoleUpdate($input: UserRoleUpdateInput!) {
+  userRoleUpdate(input: $input) {
     user {
       ...UserFields
     }
   }
 }
     ${UserFieldsFragmentDoc}`;
-export type UserUpdateRoleMutationFn = Apollo.MutationFunction<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>;
+export type UserRoleUpdateMutationFn = Apollo.MutationFunction<UserRoleUpdateMutation, UserRoleUpdateMutationVariables>;
 
 /**
- * __useUserUpdateRoleMutation__
+ * __useUserRoleUpdateMutation__
  *
- * To run a mutation, you first call `useUserUpdateRoleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUserUpdateRoleMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useUserRoleUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUserRoleUpdateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [userUpdateRoleMutation, { data, loading, error }] = useUserUpdateRoleMutation({
+ * const [userRoleUpdateMutation, { data, loading, error }] = useUserRoleUpdateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useUserUpdateRoleMutation(baseOptions?: Apollo.MutationHookOptions<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>) {
+export function useUserRoleUpdateMutation(baseOptions?: Apollo.MutationHookOptions<UserRoleUpdateMutation, UserRoleUpdateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>(UserUpdateRoleDocument, options);
+        return Apollo.useMutation<UserRoleUpdateMutation, UserRoleUpdateMutationVariables>(UserRoleUpdateDocument, options);
       }
-export type UserUpdateRoleMutationHookResult = ReturnType<typeof useUserUpdateRoleMutation>;
-export type UserUpdateRoleMutationResult = Apollo.MutationResult<UserUpdateRoleMutation>;
-export type UserUpdateRoleMutationOptions = Apollo.BaseMutationOptions<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>;
+export type UserRoleUpdateMutationHookResult = ReturnType<typeof useUserRoleUpdateMutation>;
+export type UserRoleUpdateMutationResult = Apollo.MutationResult<UserRoleUpdateMutation>;
+export type UserRoleUpdateMutationOptions = Apollo.BaseMutationOptions<UserRoleUpdateMutation, UserRoleUpdateMutationVariables>;
 export const WithdrawalCancelDocument = gql`
     mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
   withdrawalCancel(input: $input) {

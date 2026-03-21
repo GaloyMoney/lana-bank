@@ -1,5 +1,5 @@
-mutation ReportFileGenerateDownloadLink($input: ReportFileGenerateDownloadLinkInput!) {
-  reportFileGenerateDownloadLink(input: $input) {
+mutation ReportFileDownloadLinkGenerate($input: ReportFileDownloadLinkGenerateInput!) {
+  reportFileDownloadLinkGenerate(input: $input) {
     url
   }
 }

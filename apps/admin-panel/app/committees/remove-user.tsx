@@ -15,11 +15,11 @@ import {
 
 import { Button } from "@lana/web/ui/button"
 
-import { useCommitteeRemoveUserMutation } from "@/lib/graphql/generated"
+import { useCommitteeUserRemoveMutation } from "@/lib/graphql/generated"
 
 gql`
-  mutation CommitteeRemoveUser($input: CommitteeRemoveUserInput!) {
-    committeeRemoveUser(input: $input) {
+  mutation CommitteeUserRemove($input: CommitteeUserRemoveInput!) {
+    committeeUserRemove(input: $input) {
       committee {
         ...CommitteeFields
       }
@@ -43,7 +43,7 @@ export const RemoveUserCommitteeDialog: React.FC<RemoveUserCommitteeDialogProps>
   setOpenRemoveUserDialog,
 }) => {
   const t = useTranslations("Committees.CommitteeDetails.RemoveUserCommitteeDialog")
-  const [removeUser, { loading }] = useCommitteeRemoveUserMutation()
+  const [removeUser, { loading }] = useCommitteeUserRemoveMutation()
 
   const handleRemove = async () => {
     try {
@@ -55,7 +55,7 @@ export const RemoveUserCommitteeDialog: React.FC<RemoveUserCommitteeDialogProps>
           },
         },
       })
-      if (data?.committeeRemoveUser.committee) {
+      if (data?.committeeUserRemove.committee) {
         toast.success(t("success"))
         setOpenRemoveUserDialog(false)
       }

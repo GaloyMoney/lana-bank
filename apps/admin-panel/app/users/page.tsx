@@ -55,8 +55,8 @@ gql`
     }
   }
 
-  mutation UserUpdateRole($input: UserUpdateRoleInput!) {
-    userUpdateRole(input: $input) {
+  mutation UserRoleUpdate($input: UserRoleUpdateInput!) {
+    userRoleUpdate(input: $input) {
       user {
         ...UserFields
       }

@@ -350,15 +350,6 @@ type Committee @entity_key(field: "committeeId") {
 	name: String!
 }
 
-input CommitteeAddUserInput {
-	committeeId: UUID!
-	userId: UUID!
-}
-
-type CommitteeAddUserPayload {
-	committee: Committee!
-}
-
 type CommitteeApproval {
 	committee: Committee!
 }
@@ -401,12 +392,21 @@ type CommitteeEdge {
 	node: Committee!
 }
 
-input CommitteeRemoveUserInput {
+input CommitteeUserAddInput {
 	committeeId: UUID!
 	userId: UUID!
 }
 
-type CommitteeRemoveUserPayload {
+type CommitteeUserAddPayload {
+	committee: Committee!
+}
+
+input CommitteeUserRemoveInput {
+	committeeId: UUID!
+	userId: UUID!
+}
+
+type CommitteeUserRemovePayload {
 	committee: Committee!
 }
 
@@ -2051,9 +2051,9 @@ type Mutation {
 	collateralRecordProceedsFromLiquidation(input: CollateralRecordProceedsFromLiquidationInput!): CollateralRecordProceedsFromLiquidationPayload!
 	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
 	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
-	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
-	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
+	committeeUserAdd(input: CommitteeUserAddInput!): CommitteeUserAddPayload!
+	committeeUserRemove(input: CommitteeUserRemoveInput!): CommitteeUserRemovePayload!
 	creditFacilityAgreementDownloadLinkGenerate(input: CreditFacilityAgreementDownloadLinksGenerateInput!): CreditFacilityAgreementDownloadLinksGeneratePayload!
 	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
@@ -2089,19 +2089,19 @@ type Mutation {
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	ledgerAccountCsvDownloadLinkGenerate(input: LedgerAccountCsvDownloadLinkGenerateInput!): LedgerAccountCsvDownloadLinkGeneratePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
-	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
-	priceProviderActivate(input: PriceProviderActivateInput!): PriceProviderActivatePayload!
+	policyCommitteeAssign(input: PolicyCommitteeAssignInput!): PolicyCommitteeAssignPayload!
+	priceProviderActivate(priceProviderId: UUID!): PriceProviderActivatePayload!
 	priceProviderConfigUpdate(input: PriceProviderConfigUpdateInput!): PriceProviderConfigUpdatePayload!
-	priceProviderDeactivate(input: PriceProviderDeactivateInput!): PriceProviderDeactivatePayload!
+	priceProviderDeactivate(priceProviderId: UUID!): PriceProviderDeactivatePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
 	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
 	prospectKycLinkCreate(input: ProspectKycLinkCreateInput!): ProspectKycLinkCreatePayload!
-	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
+	reportFileDownloadLinkGenerate(input: ReportFileDownloadLinkGenerateInput!): ReportFileDownloadLinkGeneratePayload!
 	reportRunTrigger(input: ReportRunTriggerInput!): ReportRunTriggerPayload!
-	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
 	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
-	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
+	rolePermissionSetsAdd(input: RolePermissionSetsAddInput!): RolePermissionSetsAddPayload!
+	rolePermissionSetsRemove(input: RolePermissionSetsRemoveInput!): RolePermissionSetsRemovePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	"""
@@ -2110,7 +2110,7 @@ type Mutation {
 	"""
 	timeAdvanceToNextEndOfDay: TimeAdvanceToNextEndOfDayPayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
-	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
+	userRoleUpdate(input: UserRoleUpdateInput!): UserRoleUpdatePayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
@@ -2297,12 +2297,12 @@ type Policy @entity_key(field: "policyId") {
 	rules: ApprovalRules!
 }
 
-input PolicyAssignCommitteeInput {
+input PolicyCommitteeAssignInput {
 	committeeId: UUID!
 	policyId: UUID!
 }
 
-type PolicyAssignCommitteePayload {
+type PolicyCommitteeAssignPayload {
 	policy: Policy!
 }
 
@@ -2344,10 +2344,6 @@ type PriceProvider @entity_key(field: "priceProviderId") {
 	provider: String!
 }
 
-input PriceProviderActivateInput {
-	priceProviderId: UUID!
-}
-
 type PriceProviderActivatePayload {
 	priceProvider: PriceProvider!
 }
@@ -2379,10 +2375,6 @@ type PriceProviderConnection {
 	Information to aid in pagination.
 	"""
 	pageInfo: PageInfo!
-}
-
-input PriceProviderDeactivateInput {
-	priceProviderId: UUID!
 }
 
 type PriceProviderDeactivatePayload {
@@ -2537,7 +2529,7 @@ scalar PublicId
 union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
-	appConfig: Yaml!
+	appConfig: String!
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(after: String, first: Int!): ApprovalProcessConnection!
 	audit(action: String, after: String, authorized: Boolean, first: Int!, object: String, subject: AuditSubjectId): AuditEntryConnection!
@@ -2652,12 +2644,12 @@ type ReportFile {
 	extension: String!
 }
 
-input ReportFileGenerateDownloadLinkInput {
+input ReportFileDownloadLinkGenerateInput {
 	extension: String!
 	reportId: UUID!
 }
 
-type ReportFileGenerateDownloadLinkPayload {
+type ReportFileDownloadLinkGeneratePayload {
 	url: String!
 }
 
@@ -2754,15 +2746,6 @@ type Role @entity_key(field: "roleId") {
 	roleId: UUID!
 }
 
-input RoleAddPermissionSetsInput {
-	permissionSetIds: [UUID!]!
-	roleId: UUID!
-}
-
-type RoleAddPermissionSetsPayload {
-	role: Role!
-}
-
 type RoleConnection {
 	"""
 	A list of edges.
@@ -2801,12 +2784,21 @@ type RoleEdge {
 	node: Role!
 }
 
-input RoleRemovePermissionSetsInput {
+input RolePermissionSetsAddInput {
 	permissionSetIds: [UUID!]!
 	roleId: UUID!
 }
 
-type RoleRemovePermissionSetsPayload {
+type RolePermissionSetsAddPayload {
+	role: Role!
+}
+
+input RolePermissionSetsRemoveInput {
+	permissionSetIds: [UUID!]!
+	roleId: UUID!
+}
+
+type RolePermissionSetsRemovePayload {
 	role: Role!
 }
 
@@ -3084,12 +3076,12 @@ type UserEdge {
 	node: User!
 }
 
-input UserUpdateRoleInput {
+input UserRoleUpdateInput {
 	roleId: UUID!
 	userId: UUID!
 }
 
-type UserUpdateRolePayload {
+type UserRoleUpdatePayload {
 	user: User!
 }
 
@@ -3235,8 +3227,6 @@ enum WithdrawalsSortBy {
 	CREATED_AT
 	PUBLIC_ID
 }
-
-scalar Yaml
 
 directive @entity_key(field: String!) on OBJECT
 """

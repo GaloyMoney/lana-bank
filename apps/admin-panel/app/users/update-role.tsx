@@ -27,13 +27,13 @@ import { PermissionsDisplay } from "./permissions-display"
 
 import {
   useRolesQuery,
-  useUserUpdateRoleMutation,
+  useUserRoleUpdateMutation,
   UserEventHistoryDocument,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation UserUpdateRole($input: UserUpdateRoleInput!) {
-    userUpdateRole(input: $input) {
+  mutation UserRoleUpdate($input: UserRoleUpdateInput!) {
+    userRoleUpdate(input: $input) {
       user {
         ...UserFields
       }
@@ -70,7 +70,7 @@ export function UpdateUserRoleDialog({
       .map((edge) => edge.node)
       .filter((role) => role.name !== "superuser") || []
 
-  const [assignRole, { loading: assignLoading }] = useUserUpdateRoleMutation({
+  const [assignRole, { loading: assignLoading }] = useUserRoleUpdateMutation({
     refetchQueries: [UserEventHistoryDocument],
   })
   const isLoading = rolesLoading || assignLoading

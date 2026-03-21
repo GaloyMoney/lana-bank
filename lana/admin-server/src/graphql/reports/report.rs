@@ -76,12 +76,12 @@ impl Report {
 }
 
 #[derive(SimpleObject)]
-pub struct ReportFileGenerateDownloadLinkPayload {
+pub struct ReportFileDownloadLinkGeneratePayload {
     pub url: String,
 }
 
 #[derive(InputObject)]
-pub struct ReportFileGenerateDownloadLinkInput {
+pub struct ReportFileDownloadLinkGenerateInput {
     pub report_id: UUID,
     pub extension: String,
 }

@@ -25,15 +25,15 @@ import {
   User,
   SortDirection,
   UsersSort,
-  useCommitteeAddUserMutation,
+  useCommitteeUserAddMutation,
   useUsersQuery,
 } from "@/lib/graphql/generated"
 
 import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
-  mutation CommitteeAddUser($input: CommitteeAddUserInput!) {
-    committeeAddUser(input: $input) {
+  mutation CommitteeUserAdd($input: CommitteeUserAddInput!) {
+    committeeUserAdd(input: $input) {
       committee {
         ...CommitteeFields
       }
@@ -53,7 +53,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
   openAddUserDialog,
 }) => {
   const t = useTranslations("Committees.CommitteeDetails.AddUserCommitteeDialog")
-  const [addUser, { loading, reset, error: addUserError }] = useCommitteeAddUserMutation()
+  const [addUser, { loading, reset, error: addUserError }] = useCommitteeUserAddMutation()
   const [sortBy, setSortBy] = useState<UsersSort | null>(null)
 
   const { data: userData, loading: usersLoading, fetchMore } = useUsersQuery({
@@ -86,7 +86,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
         },
       })
 
-      if (data?.committeeAddUser.committee) {
+      if (data?.committeeUserAdd.committee) {
         toast.success(t("success"))
         setOpenAddUserDialog(false)
       } else {

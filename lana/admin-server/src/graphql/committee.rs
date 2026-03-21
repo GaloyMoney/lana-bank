@@ -73,18 +73,18 @@ pub struct CommitteeCreateInput {
 crate::mutation_payload! { CommitteeCreatePayload, committee: Committee }
 
 #[derive(InputObject)]
-pub struct CommitteeAddUserInput {
+pub struct CommitteeUserAddInput {
     pub committee_id: UUID,
     pub user_id: UUID,
 }
-crate::mutation_payload! { CommitteeAddUserPayload, committee: Committee }
+crate::mutation_payload! { CommitteeUserAddPayload, committee: Committee }
 
 #[derive(InputObject)]
-pub struct CommitteeRemoveUserInput {
+pub struct CommitteeUserRemoveInput {
     pub committee_id: UUID,
     pub user_id: UUID,
 }
-crate::mutation_payload! { CommitteeRemoveUserPayload, committee: Committee }
+crate::mutation_payload! { CommitteeUserRemovePayload, committee: Committee }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CommitteesSortBy {
