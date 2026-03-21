@@ -206,6 +206,90 @@ async fn facility_collateralization_changed_event_on_price_change() -> anyhow::R
     Ok(())
 }
 
+/// When a price event fires, **all** non-closed facilities must be checked —
+/// not just the ones with the lowest collateralization ratio.
+///
+/// Regression: the old handler sorted by collateralization_ratio ascending and
+/// broke early when a page had no updates.  Facilities with *higher* CVL
+/// thresholds (e.g. margin_call=280%) could be skipped even though the new
+/// price pushed them under their own threshold.
+///
+/// This test creates two facilities with different CVL thresholds but the same
+/// collateral and amount.  A price drop to $55,000 makes the high-threshold
+/// facility transition to UnderMarginCallThreshold (275% < 280%) while the
+/// low-threshold facility stays FullyCollateralized (275% > 125%).  Both
+/// facilities must be evaluated.
+#[tokio::test]
+#[serial_test::file_serial(core_credit_shared_jobs)]
+async fn price_change_updates_facilities_with_different_cvl_thresholds() -> anyhow::Result<()> {
+    let mut ctx = helpers::setup().await?;
+    ctx.jobs.start_poll().await?;
+
+    // Facility A: low thresholds (margin_call=125%) — will stay FullyCollateralized at $55k.
+    let state_a = helpers::create_active_facility(&ctx, helpers::test_terms()).await?;
+
+    // Facility B: high thresholds (margin_call=280%) — will go UnderMarginCallThreshold at $55k.
+    let state_b = helpers::create_active_facility(&ctx, isolated_price_change_terms()).await?;
+
+    // Wait for both facilities to have outstanding balances.
+    for (label, fid) in [("A", state_a.facility_id), ("B", state_b.facility_id)] {
+        for attempt in 0..100 {
+            let balances = ctx.credit.facilities().balance(&DummySubject, fid).await?;
+            if balances.any_outstanding_or_defaulted() {
+                break;
+            }
+            if attempt == 99 {
+                panic!("Timed out waiting for outstanding balance on facility {label}");
+            }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+    }
+
+    // At $55,000/BTC:
+    //   0.5 BTC = $27,500; outstanding ≈ $10,000 → CVL ≈ 275%
+    //   Facility A (margin_call=125%): 275% > 125% → FullyCollateralized (no event)
+    //   Facility B (margin_call=280%): 275% < 280% → UnderMarginCallThreshold (event!)
+    let low_price = core_price::PriceOfOneBTC::new(money::UsdCents::from(5_500_000));
+
+    let outbox = ctx.outbox.clone();
+    let facility_b_id = state_b.facility_id;
+    let (_, recorded) = expect_event(
+        &ctx.outbox,
+        move || {
+            let outbox = outbox.clone();
+            async move {
+                outbox
+                    .publish_ephemeral(
+                        core_price::PRICE_UPDATED_EVENT_TYPE,
+                        core_price::CorePriceEvent::PriceUpdated {
+                            price: low_price,
+                            timestamp: chrono::Utc::now(),
+                        },
+                    )
+                    .await
+            }
+        },
+        |_result, e| match e {
+            CoreCreditEvent::FacilityCollateralizationChanged { entity }
+                if entity.id == facility_b_id =>
+            {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.id, state_b.facility_id);
+    assert_eq!(
+        recorded.collateralization.state,
+        CollateralizationState::UnderMarginCallThreshold,
+    );
+
+    ctx.jobs.shutdown().await?;
+    Ok(())
+}
+
 /// `FacilityActivated` is published when a pending facility transitions to active.
 ///
 /// # Trigger
