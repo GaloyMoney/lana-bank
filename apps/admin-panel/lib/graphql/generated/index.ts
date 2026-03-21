@@ -2424,7 +2424,7 @@ export type MutationPolicyAssignCommitteeArgs = {
 
 
 export type MutationPriceProviderActivateArgs = {
-  priceProviderId: Scalars['UUID']['input'];
+  input: PriceProviderActivateInput;
 };
 
 
@@ -2434,7 +2434,7 @@ export type MutationPriceProviderConfigUpdateArgs = {
 
 
 export type MutationPriceProviderDeactivateArgs = {
-  priceProviderId: Scalars['UUID']['input'];
+  input: PriceProviderDeactivateInput;
 };
 
 
@@ -2737,6 +2737,10 @@ export type PriceProvider = {
   provider: Scalars['String']['output'];
 };
 
+export type PriceProviderActivateInput = {
+  priceProviderId: Scalars['UUID']['input'];
+};
+
 export type PriceProviderActivatePayload = {
   __typename?: 'PriceProviderActivatePayload';
   priceProvider: PriceProvider;
@@ -2764,6 +2768,10 @@ export type PriceProviderConnection = {
   nodes: Array<PriceProvider>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
+};
+
+export type PriceProviderDeactivateInput = {
+  priceProviderId: Scalars['UUID']['input'];
 };
 
 export type PriceProviderDeactivatePayload = {
@@ -5364,14 +5372,14 @@ export type PriceProvidersQueryVariables = Exact<{
 export type PriceProvidersQuery = { __typename?: 'Query', priceProviders: { __typename?: 'PriceProviderConnection', edges: Array<{ __typename?: 'PriceProviderEdge', cursor: string, node: { __typename?: 'PriceProvider', priceProviderId: string, createdAt: string, name: string, provider: string, active: boolean, latestPrice?: UsdCents | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type PriceProviderActivateMutationVariables = Exact<{
-  priceProviderId: Scalars['UUID']['input'];
+  input: PriceProviderActivateInput;
 }>;
 
 
 export type PriceProviderActivateMutation = { __typename?: 'Mutation', priceProviderActivate: { __typename?: 'PriceProviderActivatePayload', priceProvider: { __typename?: 'PriceProvider', priceProviderId: string, active: boolean } } };
 
 export type PriceProviderDeactivateMutationVariables = Exact<{
-  priceProviderId: Scalars['UUID']['input'];
+  input: PriceProviderDeactivateInput;
 }>;
 
 
@@ -12759,8 +12767,8 @@ export type PriceProvidersLazyQueryHookResult = ReturnType<typeof usePriceProvid
 export type PriceProvidersSuspenseQueryHookResult = ReturnType<typeof usePriceProvidersSuspenseQuery>;
 export type PriceProvidersQueryResult = Apollo.QueryResult<PriceProvidersQuery, PriceProvidersQueryVariables>;
 export const PriceProviderActivateDocument = gql`
-    mutation PriceProviderActivate($priceProviderId: UUID!) {
-  priceProviderActivate(priceProviderId: $priceProviderId) {
+    mutation PriceProviderActivate($input: PriceProviderActivateInput!) {
+  priceProviderActivate(input: $input) {
     priceProvider {
       priceProviderId
       active
@@ -12783,7 +12791,7 @@ export type PriceProviderActivateMutationFn = Apollo.MutationFunction<PriceProvi
  * @example
  * const [priceProviderActivateMutation, { data, loading, error }] = usePriceProviderActivateMutation({
  *   variables: {
- *      priceProviderId: // value for 'priceProviderId'
+ *      input: // value for 'input'
  *   },
  * });
  */
@@ -12795,8 +12803,8 @@ export type PriceProviderActivateMutationHookResult = ReturnType<typeof usePrice
 export type PriceProviderActivateMutationResult = Apollo.MutationResult<PriceProviderActivateMutation>;
 export type PriceProviderActivateMutationOptions = Apollo.BaseMutationOptions<PriceProviderActivateMutation, PriceProviderActivateMutationVariables>;
 export const PriceProviderDeactivateDocument = gql`
-    mutation PriceProviderDeactivate($priceProviderId: UUID!) {
-  priceProviderDeactivate(priceProviderId: $priceProviderId) {
+    mutation PriceProviderDeactivate($input: PriceProviderDeactivateInput!) {
+  priceProviderDeactivate(input: $input) {
     priceProvider {
       priceProviderId
       active
@@ -12819,7 +12827,7 @@ export type PriceProviderDeactivateMutationFn = Apollo.MutationFunction<PricePro
  * @example
  * const [priceProviderDeactivateMutation, { data, loading, error }] = usePriceProviderDeactivateMutation({
  *   variables: {
- *      priceProviderId: // value for 'priceProviderId'
+ *      input: // value for 'input'
  *   },
  * });
  */

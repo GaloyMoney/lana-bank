@@ -92,7 +92,17 @@ pub struct PriceProviderConfigUpdateInput {
 
 crate::mutation_payload! { PriceProviderConfigUpdatePayload, price_provider: PriceProvider }
 
+#[derive(InputObject)]
+pub struct PriceProviderActivateInput {
+    pub price_provider_id: UUID,
+}
+
 crate::mutation_payload! { PriceProviderActivatePayload, price_provider: PriceProvider }
+
+#[derive(InputObject)]
+pub struct PriceProviderDeactivateInput {
+    pub price_provider_id: UUID,
+}
 
 crate::mutation_payload! { PriceProviderDeactivatePayload, price_provider: PriceProvider }
 

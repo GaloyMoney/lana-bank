@@ -55,8 +55,8 @@ gql`
     }
   }
 
-  mutation PriceProviderActivate($priceProviderId: UUID!) {
-    priceProviderActivate(priceProviderId: $priceProviderId) {
+  mutation PriceProviderActivate($input: PriceProviderActivateInput!) {
+    priceProviderActivate(input: $input) {
       priceProvider {
         priceProviderId
         active
@@ -64,8 +64,8 @@ gql`
     }
   }
 
-  mutation PriceProviderDeactivate($priceProviderId: UUID!) {
-    priceProviderDeactivate(priceProviderId: $priceProviderId) {
+  mutation PriceProviderDeactivate($input: PriceProviderDeactivateInput!) {
+    priceProviderDeactivate(input: $input) {
       priceProvider {
         priceProviderId
         active
@@ -93,7 +93,7 @@ const PriceProvidersList = () => {
   const handleActivate = async (priceProviderId: string) => {
     try {
       await activate({
-        variables: { priceProviderId },
+        variables: { input: { priceProviderId } },
         refetchQueries: [PriceProvidersDocument],
       })
       toast.success(t("success.activated"))
@@ -105,7 +105,7 @@ const PriceProvidersList = () => {
   const handleDeactivate = async (priceProviderId: string) => {
     try {
       await deactivate({
-        variables: { priceProviderId },
+        variables: { input: { priceProviderId } },
         refetchQueries: [PriceProvidersDocument],
       })
       toast.success(t("success.deactivated"))
