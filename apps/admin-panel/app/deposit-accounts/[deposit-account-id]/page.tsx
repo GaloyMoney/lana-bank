@@ -30,8 +30,12 @@ gql`
       pending
     }
     ledgerAccounts {
-      depositAccountId
-      frozenDepositAccountId
+      depositAccount {
+        ledgerAccountId
+      }
+      frozenDepositAccount {
+        ledgerAccountId
+      }
     }
     customer {
       customerId

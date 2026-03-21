@@ -34,7 +34,7 @@ teardown_file() {
 
   # Execute the GraphQL mutation for file upload
   response=$(exec_admin_graphql_upload "customer-document-create" "$variables" "$temp_file")
-  document_id=$(echo "$response" | jq -r '.data.customerDocumentCreate.document.customerDocumentId')
+  document_id=$(echo "$response" | jq -r '.data.customerDocumentCreate.customerDocument.customerDocumentId')
   [[ "$document_id" != null ]] || exit 1
   
   rm "$temp_file"
@@ -106,7 +106,7 @@ teardown_file() {
 
   exec_admin_graphql 'customer-document-archive' "$variables"
 
-  status=$(graphql_output .data.customerDocumentArchive.document.status)
+  status=$(graphql_output .data.customerDocumentArchive.customerDocument.status)
   [[ "$status" == "ARCHIVED" ]] || exit 1
 
   # Delete the document

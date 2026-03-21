@@ -65,12 +65,8 @@ gql`
             }
           }
           balance {
-            collateral {
-              btcBalance
-            }
-            outstanding {
-              usdBalance
-            }
+            collateral
+            outstanding
           }
           customer {
             customerId
@@ -148,7 +144,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     label: t("table.headers.outstanding"),
     labelClassName: "w-[15%]",
     render: (balance) => (
-      <Balance amount={balance.outstanding.usdBalance} currency="usd" />
+      <Balance amount={balance.outstanding} currency="usd" />
     ),
   },
   {

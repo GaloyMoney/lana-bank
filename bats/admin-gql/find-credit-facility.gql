@@ -23,34 +23,18 @@ query creditFacility($id: UUID!) {
       }
     }
     balance {
-      facilityRemaining {
-        usdBalance
-      }
-      outstanding {
-        usdBalance
-      }
-      collateral {
-        btcBalance
-      }
+      facilityRemaining
+      outstanding
+      collateral
       disbursed {
-        total {
-          usdBalance
-        }
-        outstanding {
-          usdBalance
-        }
+        total
+        outstanding
       }
       interest {
-        total {
-          usdBalance
-        }
-        outstanding {
-          usdBalance
-        }
+        total
+        outstanding
       }
-      paymentsUnapplied {
-        usdBalance
-      }
+      paymentsUnapplied
     }
     liquidations {
       liquidationId

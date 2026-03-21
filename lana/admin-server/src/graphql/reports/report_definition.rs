@@ -41,7 +41,6 @@ impl From<DomainReportDefinitionOutput> for ReportDefinitionOutput {
 pub struct ReportDefinition {
     report_definition_id: String,
     norm: String,
-    id: String,
     friendly_name: String,
     source_table: String,
     outputs: Vec<ReportDefinitionOutput>,
@@ -53,7 +52,6 @@ impl From<DomainReportDefinition> for ReportDefinition {
         Self {
             report_definition_id: report_definition.report_definition_id().to_string(),
             norm: report_definition.norm,
-            id: report_definition.id,
             friendly_name: report_definition.friendly_name,
             source_table: report_definition.source_table,
             outputs: report_definition

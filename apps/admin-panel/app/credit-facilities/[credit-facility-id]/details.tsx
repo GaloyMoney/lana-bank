@@ -186,7 +186,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       />
       <CreditFacilityCollateralUpdateDialog
         collateralId={creditFacilityDetails.collateralId}
-        currentCollateral={creditFacilityDetails.balance.collateral.btcBalance}
+        currentCollateral={creditFacilityDetails.balance.collateral}
         collateralToMatchInitialCvl={creditFacilityDetails.collateralToMatchInitialCvl}
         openDialog={openCollateralUpdateDialog}
         setOpenDialog={setOpenCollateralUpdateDialog}

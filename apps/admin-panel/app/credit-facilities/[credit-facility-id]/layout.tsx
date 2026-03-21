@@ -47,34 +47,18 @@ gql`
       status
     }
     balance {
-      facilityRemaining {
-        usdBalance
-      }
+      facilityRemaining
       disbursed {
-        total {
-          usdBalance
-        }
-        outstandingPayable {
-          usdBalance
-        }
-        outstanding {
-          usdBalance
-        }
+        total
+        outstandingPayable
+        outstanding
       }
       interest {
-        total {
-          usdBalance
-        }
-        outstanding {
-          usdBalance
-        }
+        total
+        outstanding
       }
-      outstanding {
-        usdBalance
-      }
-      collateral {
-        btcBalance
-      }
+      outstanding
+      collateral
     }
     creditFacilityTerms {
       annualRate

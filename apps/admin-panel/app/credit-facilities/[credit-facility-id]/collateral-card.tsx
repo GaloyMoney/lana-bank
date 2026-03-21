@@ -60,16 +60,16 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.CollateralCard")
 
-  const basisAmountInCents = creditFacility.balance.outstanding.usdBalance
+  const basisAmountInCents = creditFacility.balance.outstanding
   const MarginCallPrice = calculatePrice({
     cvlPercentage: getCvlValue(creditFacility.creditFacilityTerms.marginCallCvl),
     basisAmountInCents,
-    collateralInSatoshis: creditFacility.balance.collateral.btcBalance,
+    collateralInSatoshis: creditFacility.balance.collateral,
   })
   const LiquidationCallPrice = calculatePrice({
     cvlPercentage: getCvlValue(creditFacility.creditFacilityTerms.liquidationCvl),
     basisAmountInCents,
-    collateralInSatoshis: creditFacility.balance.collateral.btcBalance,
+    collateralInSatoshis: creditFacility.balance.collateral,
   })
 
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
@@ -77,7 +77,7 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
   })
 
   const collateralInUsd = priceInfo
-    ? (creditFacility.balance.collateral.btcBalance / SATS_PER_BTC) *
+    ? (creditFacility.balance.collateral / SATS_PER_BTC) *
       (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
     : 0
 
@@ -85,7 +85,7 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
     {
       label: t("details.collateralBalance"),
       value: (
-        <Balance amount={creditFacility.balance.collateral.btcBalance} currency="btc" />
+        <Balance amount={creditFacility.balance.collateral} currency="btc" />
       ),
     },
     {

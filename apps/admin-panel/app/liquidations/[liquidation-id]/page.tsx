@@ -68,12 +68,8 @@ gql`
           }
         }
         balance {
-          outstanding {
-            usdBalance
-          }
-          collateral {
-            btcBalance
-          }
+          outstanding
+          collateral
         }
         customer {
           customerId

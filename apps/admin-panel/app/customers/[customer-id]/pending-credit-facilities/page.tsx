@@ -21,9 +21,7 @@ gql`
         collateralizationState
         facilityAmount
         status
-        collateral {
-          btcBalance
-        }
+        collateral
         customer {
           customerId
           email

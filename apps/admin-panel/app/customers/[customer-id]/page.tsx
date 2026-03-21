@@ -18,12 +18,8 @@ gql`
         status
         activatedAt
         balance {
-          collateral {
-            btcBalance
-          }
-          outstanding {
-            usdBalance
-          }
+          collateral
+          outstanding
         }
       }
     }

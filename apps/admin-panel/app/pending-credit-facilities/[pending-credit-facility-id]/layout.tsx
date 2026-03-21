@@ -34,9 +34,7 @@ gql`
     status
     facilityAmount
     collateralizationState
-    collateral {
-      btcBalance
-    }
+    collateral
     collateralToMatchInitialCvl @client
     customer {
       customerId

@@ -95,7 +95,7 @@ wait_for_payment() {
   exec_admin_graphql 'find-credit-facility' "$variables"
 
   balance=$(graphql_output '.data.creditFacility.balance')
-  after=$(echo $balance | jq -r '.outstanding.usdBalance')
+  after=$(echo $balance | jq -r '.outstanding')
 
   [[ "$after" -eq "$expected_after" ]] || exit 1
 }
@@ -228,7 +228,7 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
-  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.creditFacilityDisbursalId')
+  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.creditFacilityDisbursal.creditFacilityDisbursalId')
   [[ "$disbursal_id" != "null" ]] || exit 1
 
   retry 30 2 wait_for_disbursal "$credit_facility_id" "$disbursal_id"
@@ -249,18 +249,18 @@ ymd() {
   exec_admin_graphql 'find-credit-facility' "$variables"
   balance=$(graphql_output '.data.creditFacility.balance')
 
-  interest=$(echo $balance | jq -r '.interest.total.usdBalance')
-  interest_outstanding=$(echo $balance | jq -r '.interest.outstanding.usdBalance')
+  interest=$(echo $balance | jq -r '.interest.total')
+  interest_outstanding=$(echo $balance | jq -r '.interest.outstanding')
   [[ "$interest" -eq "$interest_outstanding" ]] || exit 1
 
-  disbursed=$(echo $balance | jq -r '.disbursed.total.usdBalance')
-  disbursed_outstanding=$(echo $balance | jq -r '.disbursed.outstanding.usdBalance')
+  disbursed=$(echo $balance | jq -r '.disbursed.total')
+  disbursed_outstanding=$(echo $balance | jq -r '.disbursed.outstanding')
   [[ "$disbursed" -eq "$disbursed_outstanding" ]] || exit 1
 
-  total_outstanding=$(echo $balance | jq -r '.outstanding.usdBalance')
+  total_outstanding=$(echo $balance | jq -r '.outstanding')
   [[ "$total_outstanding" -eq "$(( $interest_outstanding + $disbursed_outstanding ))" ]] || exit 1
 
-  payments_unapplied=$(echo $balance | jq -r '.paymentsUnapplied.usdBalance')
+  payments_unapplied=$(echo $balance | jq -r '.paymentsUnapplied')
   [[ "$payments_unapplied" != "null" ]] || exit 1
   [[ "$payments_unapplied" -eq 0 ]] || exit 1
 
@@ -279,7 +279,7 @@ ymd() {
   )
   exec_admin_graphql 'credit-facility-partial-payment-record' "$variables"
   balance_after_payment=$(graphql_output '.data.creditFacilityPartialPaymentRecord.creditFacility.balance')
-  payments_unapplied_after=$(echo $balance_after_payment | jq -r '.paymentsUnapplied.usdBalance')
+  payments_unapplied_after=$(echo $balance_after_payment | jq -r '.paymentsUnapplied')
   [[ "$payments_unapplied_after" -gt 0 ]] || exit 1
 
   retry 30 2 wait_for_payment "$credit_facility_id" "$total_outstanding" "$amount"
@@ -292,15 +292,15 @@ ymd() {
   exec_admin_graphql 'find-credit-facility' "$variables"
   updated_balance=$(graphql_output '.data.creditFacility.balance')
 
-  updated_interest=$(echo $updated_balance | jq -r '.interest.total.usdBalance')
+  updated_interest=$(echo $updated_balance | jq -r '.interest.total')
   [[ "$interest" -eq "$updated_interest" ]] || exit 1
-  updated_disbursed=$(echo $updated_balance | jq -r '.disbursed.total.usdBalance')
+  updated_disbursed=$(echo $updated_balance | jq -r '.disbursed.total')
   [[ "$disbursed" -eq "$updated_disbursed" ]] || exit 1
 
-  updated_total_outstanding=$(echo $updated_balance | jq -r '.outstanding.usdBalance')
+  updated_total_outstanding=$(echo $updated_balance | jq -r '.outstanding')
   [[ "$updated_total_outstanding" -lt "$total_outstanding" ]] || exit 1
 
-  updated_interest_outstanding=$(echo $updated_balance | jq -r '.interest.outstanding.usdBalance')
+  updated_interest_outstanding=$(echo $updated_balance | jq -r '.interest.outstanding')
   [[ "$updated_interest_outstanding" -eq "0" ]] || exit 1
 
   retry 30 2 wait_for_dashboard_payment "$disbursed_before" "$disbursed_payment"

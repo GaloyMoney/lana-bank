@@ -297,10 +297,6 @@ type Collateral @entity_key(field: "collateralId") {
 	walletId: UUID
 }
 
-type CollateralBalance {
-	btcBalance: Satoshis!
-}
-
 enum CollateralDirection {
 	ADD
 	REMOVE
@@ -491,7 +487,6 @@ input CreditFacilityAgreementDownloadLinksGenerateInput {
 }
 
 type CreditFacilityAgreementDownloadLinksGeneratePayload {
-	creditFacilityAgreementId: UUID!
 	link: String!
 }
 
@@ -517,14 +512,14 @@ type CreditFacilityApproved {
 }
 
 type CreditFacilityBalance {
-	collateral: CollateralBalance!
+	collateral: Satoshis!
 	disbursed: Disbursed!
-	dueOutstanding: Outstanding!
-	facilityRemaining: FacilityRemaining!
+	dueOutstanding: UsdCents!
+	facilityRemaining: UsdCents!
 	interest: Interest!
-	outstanding: Outstanding!
-	outstandingPayable: Outstanding!
-	paymentsUnapplied: PaymentsUnapplied!
+	outstanding: UsdCents!
+	outstandingPayable: UsdCents!
+	paymentsUnapplied: UsdCents!
 }
 
 type CreditFacilityCollateralSentOut {
@@ -629,7 +624,7 @@ input CreditFacilityDisbursalInitiateInput {
 }
 
 type CreditFacilityDisbursalInitiatePayload {
-	disbursal: CreditFacilityDisbursal!
+	creditFacilityDisbursal: CreditFacilityDisbursal!
 }
 
 """
@@ -665,39 +660,22 @@ type CreditFacilityInterestAccrued {
 
 type CreditFacilityLedgerAccounts {
 	collateralAccount: LedgerAccount!
-	collateralAccountId: UUID!
 	collateralInLiquidationAccount: LedgerAccount!
-	collateralInLiquidationAccountId: UUID!
 	disbursedDefaultedAccount: LedgerAccount!
-	disbursedDefaultedAccountId: UUID!
 	disbursedReceivableDueAccount: LedgerAccount!
-	disbursedReceivableDueAccountId: UUID!
 	disbursedReceivableNotYetDueAccount: LedgerAccount!
-	disbursedReceivableNotYetDueAccountId: UUID!
 	disbursedReceivableOverdueAccount: LedgerAccount!
-	disbursedReceivableOverdueAccountId: UUID!
 	facilityAccount: LedgerAccount!
-	facilityAccountId: UUID!
 	feeIncomeAccount: LedgerAccount!
-	feeIncomeAccountId: UUID!
 	interestDefaultedAccount: LedgerAccount!
-	interestDefaultedAccountId: UUID!
 	interestIncomeAccount: LedgerAccount!
-	interestIncomeAccountId: UUID!
 	interestReceivableDueAccount: LedgerAccount!
-	interestReceivableDueAccountId: UUID!
 	interestReceivableNotYetDueAccount: LedgerAccount!
-	interestReceivableNotYetDueAccountId: UUID!
 	interestReceivableOverdueAccount: LedgerAccount!
-	interestReceivableOverdueAccountId: UUID!
 	liquidatedCollateralAccount: LedgerAccount!
-	liquidatedCollateralAccountId: UUID!
 	paymentHoldingAccount: LedgerAccount!
-	paymentHoldingAccountId: UUID!
 	proceedsFromLiquidationAccount: LedgerAccount!
-	proceedsFromLiquidationAccountId: UUID!
 	uncoveredOutstandingAccount: LedgerAccount!
-	uncoveredOutstandingAccountId: UUID!
 }
 
 input CreditFacilityModuleConfigureInput {
@@ -1086,7 +1064,7 @@ input CustomerDocumentArchiveInput {
 }
 
 type CustomerDocumentArchivePayload {
-	document: CustomerDocument!
+	customerDocument: CustomerDocument!
 }
 
 input CustomerDocumentCreateInput {
@@ -1095,7 +1073,7 @@ input CustomerDocumentCreateInput {
 }
 
 type CustomerDocumentCreatePayload {
-	document: CustomerDocument!
+	customerDocument: CustomerDocument!
 }
 
 input CustomerDocumentDeleteInput {
@@ -1111,7 +1089,6 @@ input CustomerDocumentDownloadLinksGenerateInput {
 }
 
 type CustomerDocumentDownloadLinksGeneratePayload {
-	documentId: UUID!
 	link: String!
 }
 
@@ -1253,7 +1230,7 @@ input DepositAccountCloseInput {
 }
 
 type DepositAccountClosePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 type DepositAccountConnection {
@@ -1276,7 +1253,7 @@ input DepositAccountCreateInput {
 }
 
 type DepositAccountCreatePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 """
@@ -1298,7 +1275,7 @@ input DepositAccountFreezeInput {
 }
 
 type DepositAccountFreezePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | FreezeEntry | UnfreezeEntry | UnknownEntry
@@ -1334,9 +1311,7 @@ type DepositAccountHistoryEntryEdge {
 
 type DepositAccountLedgerAccounts {
 	depositAccount: LedgerAccount!
-	depositAccountId: UUID!
 	frozenDepositAccount: LedgerAccount!
-	frozenDepositAccountId: UUID!
 }
 
 input DepositAccountModuleConfigureInput {
@@ -1370,7 +1345,7 @@ input DepositAccountUnfreezeInput {
 }
 
 type DepositAccountUnfreezePayload {
-	account: DepositAccount!
+	depositAccount: DepositAccount!
 }
 
 input DepositAccountsFilter {
@@ -1509,9 +1484,9 @@ enum DisbursalsSortBy {
 }
 
 type Disbursed {
-	outstanding: Outstanding!
-	outstandingPayable: Outstanding!
-	total: Total!
+	outstanding: UsdCents!
+	outstandingPayable: UsdCents!
+	total: UsdCents!
 }
 
 enum DocumentStatus {
@@ -1615,10 +1590,6 @@ type EventTimelineEntryEdge {
 	The item at the end of the edge
 	"""
 	node: EventTimelineEntry!
-}
-
-type FacilityRemaining {
-	usdBalance: UsdCents!
 }
 
 type FiniteCvlPct {
@@ -1733,9 +1704,9 @@ type InfiniteCvlPct {
 }
 
 type Interest {
-	outstanding: Outstanding!
-	outstandingPayable: Outstanding!
-	total: Total!
+	outstanding: UsdCents!
+	outstandingPayable: UsdCents!
+	total: UsdCents!
 }
 
 enum InterestInterval {
@@ -2119,10 +2090,6 @@ type Mutation {
 
 scalar OneTimeFeeRatePct
 
-type Outstanding {
-	usdBalance: UsdCents!
-}
-
 """
 Information about pagination in a connection
 """
@@ -2150,10 +2117,6 @@ type PaymentEntry {
 	recordedAt: Timestamp!
 }
 
-type PaymentsUnapplied {
-	usdBalance: UsdCents!
-}
-
 input PendingCreditFacilitiesFilter {
 	collateralizationState: PendingCreditFacilityCollateralizationState
 	status: PendingCreditFacilityStatus
@@ -2172,7 +2135,7 @@ enum PendingCreditFacilitiesSortBy {
 type PendingCreditFacility @entity_key(field: "pendingCreditFacilityId") {
 	approvalProcess: ApprovalProcess!
 	approvalProcessId: UUID!
-	collateral: CollateralBalance!
+	collateral: Satoshis!
 	collateralId: UUID!
 	collateralizationState: PendingCreditFacilityCollateralizationState!
 	createdAt: Timestamp!
@@ -2636,7 +2599,6 @@ type Report @entity_key(field: "reportId") {
 
 type ReportDefinition @entity_key(field: "reportDefinitionId") {
 	friendlyName: String!
-	id: String!
 	norm: String!
 	outputs: [ReportDefinitionOutput!]!
 	reportDefinitionId: String!
@@ -2950,10 +2912,6 @@ type TimeAdvanceToNextEndOfDayPayload {
 An ISO 8601 UTC timestamp (e.g., 2024-01-15T09:30:00Z). Always in UTC.
 """
 scalar Timestamp
-
-type Total {
-	usdBalance: UsdCents!
-}
 
 type TransactionTemplate @entity_key(field: "transactionTemplateId") {
 	code: String!

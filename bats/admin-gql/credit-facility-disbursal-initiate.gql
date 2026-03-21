@@ -2,7 +2,7 @@ mutation CreditFacilityDisbursalInitiate(
   $input: CreditFacilityDisbursalInitiateInput!
 ) {
   creditFacilityDisbursalInitiate(input: $input) {
-    disbursal {
+    creditFacilityDisbursal {
       creditFacilityDisbursalId
     }
   }

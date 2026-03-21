@@ -37,14 +37,14 @@ export const CustomerCreditFacilitiesTable: React.FC<
       key: "balance",
       header: t("table.headers.outstandingBalance"),
       render: (_, facility) => (
-        <Balance amount={facility.balance.outstanding.usdBalance} currency="usd" />
+        <Balance amount={facility.balance.outstanding} currency="usd" />
       ),
     },
     {
       key: "balance",
       header: t("table.headers.collateralBtc"),
       render: (_, facility) => (
-        <Balance amount={facility.balance.collateral.btcBalance} currency="btc" />
+        <Balance amount={facility.balance.collateral} currency="btc" />
       ),
     },
     {

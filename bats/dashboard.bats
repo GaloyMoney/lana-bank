@@ -113,7 +113,7 @@ wait_for_total_disbursed() {
     }'
   )
   exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
-  disbursal_index=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.index')
+  disbursal_index=$(graphql_output '.data.creditFacilityDisbursalInitiate.creditFacilityDisbursal.index')
 
     variables=$(
     jq -n \

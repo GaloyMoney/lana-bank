@@ -54,8 +54,8 @@ const DepositAccountDetailsCard: React.FC<DepositAccountDetailsProps> = ({
   const handleViewLedgerAccount = () => {
     const accountId =
       depositAccount.status === DepositAccountStatus.Frozen
-        ? depositAccount.ledgerAccounts?.frozenDepositAccountId
-        : depositAccount.ledgerAccounts?.depositAccountId
+        ? depositAccount.ledgerAccounts?.frozenDepositAccount?.ledgerAccountId
+        : depositAccount.ledgerAccounts?.depositAccount?.ledgerAccountId
 
     if (accountId) {
       router.push(`/ledger-accounts/${accountId}`)
