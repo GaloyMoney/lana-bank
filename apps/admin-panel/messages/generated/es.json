@@ -100,6 +100,14 @@
       "description": "Puede actualizar valores de configuración expuestos",
       "label": "Escritor de configuración expuesta"
     },
+    "fx_viewer": {
+      "description": "Puede ver la configuración de integración del catálogo de cuentas de FX",
+      "label": "Visualizador de Fx"
+    },
+    "fx_writer": {
+      "description": "Puede actualizar la configuración de integración del catálogo de cuentas de FX",
+      "label": "Editor de Fx"
+    },
     "governance_viewer": {
       "description": "Puede ver comités de gobernanza, políticas y procesos de aprobación",
       "label": "Visualizador de gobernanza"
@@ -137,6 +145,7 @@
     "CREDIT_FACILITY_ACCRUE_INTEREST": "Acumular intereses de línea de crédito",
     "CREDIT_FACILITY_POST_ACCRUED_INTEREST": "Registrar intereses acumulados de línea de crédito",
     "DENY_WITHDRAW": "Denegar retiro",
+    "FIAT_FX_CONVERSION_VIA_TRADING": "Conversión de Fiat Fx mediante Trading",
     "FREEZE_ACCOUNT": "Congelar cuenta",
     "INITIAL_DISBURSAL": "Desembolso inicial",
     "INITIATE_CREDIT_FACILITY_DISBURSAL": "Iniciar desembolso de línea de crédito",
@@ -164,6 +173,7 @@
     "Confirm a withdraw": "Confirmar un retiro",
     "Create credit facility": "Crear línea de crédito",
     "Deny a withdraw": "Denegar un retiro",
+    "Fiat FX conversion via trading account": "Conversión de FX de fiat mediante cuenta de trading",
     "Freeze a deposit account": "Congelar una cuenta de depósito",
     "Initial disbursal": "Desembolso inicial",
     "Initiate a withdraw": "Iniciar un retiro",

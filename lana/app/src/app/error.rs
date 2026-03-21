@@ -52,6 +52,8 @@ pub enum ApplicationError {
     ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
     #[error("ApplicationError - DepositError: {0}")]
     DepositError(#[from] crate::deposit::error::CoreDepositError),
+    #[error("ApplicationError - FxError: {0}")]
+    FxError(#[from] crate::fx::error::CoreFxError),
     #[error("ApplicationError - StorageError: {0}")]
     StorageError(#[from] crate::storage::error::StorageError),
     #[error("ApplicationError - KycError: {0}")]
@@ -98,6 +100,7 @@ impl ErrorSeverity for ApplicationError {
             Self::CalaError(_) => Level::ERROR,
             Self::ChartOfAccountsError(e) => e.severity(),
             Self::DepositError(e) => e.severity(),
+            Self::FxError(e) => e.severity(),
             Self::StorageError(e) => e.severity(),
             Self::KycError(e) => e.severity(),
             Self::CustodyError(e) => e.severity(),

@@ -13,6 +13,7 @@ use core_credit_terms::CoreCreditTermsAction;
 use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
 use core_deposit::CoreDepositAction;
+use core_fx::CoreFxAction;
 use core_price::CorePriceAction;
 use core_report::CoreReportAction;
 use dashboard::DashboardModuleAction;
@@ -31,6 +32,7 @@ pub enum LanaAction {
     Accounting(CoreAccountingAction),
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
+    Fx(CoreFxAction),
     Credit(CoreCreditAction),
     CreditCollection(CoreCreditCollectionAction),
     CreditCollateral(CoreCreditCollateralAction),
@@ -53,6 +55,7 @@ impl LanaAction {
             CoreAccountingAction::actions(),
             DashboardModuleAction::actions(),
             CoreDepositAction::actions(),
+            CoreFxAction::actions(),
             CoreCreditAction::actions(),
             CoreCreditCollectionAction::actions(),
             CoreCreditCollateralAction::actions(),
@@ -104,6 +107,11 @@ impl From<CoreAccountingAction> for LanaAction {
 impl From<CoreDepositAction> for LanaAction {
     fn from(action: CoreDepositAction) -> Self {
         LanaAction::Deposit(action)
+    }
+}
+impl From<CoreFxAction> for LanaAction {
+    fn from(action: CoreFxAction) -> Self {
+        LanaAction::Fx(action)
     }
 }
 impl From<CoreCreditAction> for LanaAction {
@@ -160,6 +168,7 @@ impl Display for LanaAction {
             Dashboard(action) => action.fmt(f),
             Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
+            Fx(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
             CreditCollection(action) => action.fmt(f),
             CreditCollateral(action) => action.fmt(f),
@@ -187,6 +196,7 @@ impl FromStr for LanaAction {
             Dashboard => LanaAction::from(action.parse::<DashboardModuleAction>()?),
             Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
+            Fx => LanaAction::from(action.parse::<CoreFxAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
             CreditCollection => LanaAction::from(action.parse::<CoreCreditCollectionAction>()?),
             CreditCollateral => LanaAction::from(action.parse::<CoreCreditCollateralAction>()?),

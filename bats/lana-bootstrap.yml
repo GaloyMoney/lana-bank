@@ -20,6 +20,7 @@ app:
     chart_of_accounts_opening_date: "2020-01-01"
     credit_config_path: "./bats/accounting-init/credit-module-config.json"
     deposit_config_path: "./bats/accounting-init/deposit-module-config.json"
+    fx_config_path: "./bats/accounting-init/fx-module-config.json"
     chart_of_accounts_integration_config_path: "./bats/accounting-init/accounting-base-config.json"
 time:
   mode: manual

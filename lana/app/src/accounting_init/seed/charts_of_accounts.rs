@@ -1,19 +1,21 @@
 use crate::accounting_init::{constants::*, *};
+use crate::fx::Fx;
 
 use core_accounting::AccountingBaseConfig;
 use rbac_types::Subject;
 
-use super::module_config::{chart_integration_config::*, credit::*, deposit::*};
+use super::module_config::{chart_integration_config::*, credit::*, deposit::*, fx::*};
 
 pub(crate) async fn init(
     accounting: &Accounting,
     credit: &Credit,
     deposit: &Deposits,
+    fx: &Fx,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     create_chart_of_accounts(accounting, accounting_init_config.clone()).await?;
 
-    seed_chart_of_accounts(accounting, credit, deposit, accounting_init_config).await?;
+    seed_chart_of_accounts(accounting, credit, deposit, fx, accounting_init_config).await?;
 
     Ok(())
 }
@@ -59,6 +61,7 @@ async fn seed_chart_of_accounts(
     accounting: &Accounting,
     credit: &Credit,
     deposit: &Deposits,
+    fx: &Fx,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
@@ -66,6 +69,7 @@ async fn seed_chart_of_accounts(
         chart_of_accounts_integration_config_path: chart_integration_config_path,
         credit_config_path,
         deposit_config_path,
+        fx_config_path,
         chart_of_accounts_opening_date: _,
     } = accounting_init_config;
 
@@ -101,6 +105,14 @@ async fn seed_chart_of_accounts(
 
     if let Some(config_path) = deposit_config_path {
         deposit_account_module_configure(deposit, &chart, config_path)
+            .await
+            .unwrap_or_else(|e| {
+                dbg!(&e); // TODO: handle the un-returned error differently
+            });
+    }
+
+    if let Some(config_path) = fx_config_path {
+        fx_module_configure(fx, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
                 dbg!(&e); // TODO: handle the un-returned error differently

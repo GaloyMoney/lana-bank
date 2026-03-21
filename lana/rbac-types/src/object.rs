@@ -11,6 +11,7 @@ use core_credit_terms::CoreCreditTermsObject;
 use core_custody::CoreCustodyObject;
 use core_customer::CustomerObject;
 use core_deposit::CoreDepositObject;
+use core_fx::CoreFxObject;
 use core_price::CorePriceObject;
 use core_report::ReportObject;
 use dashboard::DashboardModuleObject;
@@ -28,6 +29,7 @@ pub enum LanaObject {
     Customer(CustomerObject),
     Accounting(CoreAccountingObject),
     Deposit(CoreDepositObject),
+    Fx(CoreFxObject),
     Credit(CoreCreditObject),
     CreditCollection(CoreCreditCollectionObject),
     CreditCollateral(CoreCreditCollateralObject),
@@ -77,6 +79,11 @@ impl From<CoreAccountingObject> for LanaObject {
 impl From<CoreDepositObject> for LanaObject {
     fn from(object: CoreDepositObject) -> Self {
         LanaObject::Deposit(object)
+    }
+}
+impl From<CoreFxObject> for LanaObject {
+    fn from(object: CoreFxObject) -> Self {
+        LanaObject::Fx(object)
     }
 }
 impl From<CoreCustodyObject> for LanaObject {
@@ -137,6 +144,7 @@ impl Display for LanaObject {
             Customer(object) => object.fmt(f),
             Accounting(object) => object.fmt(f),
             Deposit(object) => object.fmt(f),
+            Fx(object) => object.fmt(f),
             Credit(object) => object.fmt(f),
             CreditCollection(object) => object.fmt(f),
             CreditCollateral(object) => object.fmt(f),
@@ -164,6 +172,7 @@ impl FromStr for LanaObject {
             Customer => LanaObject::from(object.parse::<CustomerObject>()?),
             Accounting => LanaObject::from(object.parse::<CoreAccountingObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
+            Fx => LanaObject::from(object.parse::<CoreFxObject>()?),
             Credit => LanaObject::from(object.parse::<CoreCreditObject>()?),
             CreditCollection => LanaObject::from(object.parse::<CoreCreditCollectionObject>()?),
             CreditCollateral => LanaObject::from(object.parse::<CoreCreditCollateralObject>()?),

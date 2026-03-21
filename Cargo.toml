@@ -55,6 +55,7 @@ core-credit-terms = { path = "core/credit/terms" }
 core-custody = { path = "core/custody" }
 core-customer = { path = "core/customer" }
 core-deposit = { path = "core/deposit" }
+core-fx = { path = "core/fx" }
 core-price = { path = "core/price" }
 core-report = { path = "core/report" }
 core-time-events = { path = "core/time-events" }

@@ -112,6 +112,11 @@ pub mod audit {
     pub type AuditEntry = audit::AuditEntry<Subject, LanaObject, LanaAction>;
 }
 
+pub mod fx {
+    pub use core_fx::{ChartOfAccountsIntegrationConfig as FxChartOfAccountsIntegrationConfig, *};
+    pub type Fx = core_fx::CoreFx<crate::authorization::Authorization>;
+}
+
 pub mod deposit {
     pub use core_deposit::{
         Activity, ChartOfAccountsIntegrationConfig, CoreDepositEvent, DEPOSIT_ACCOUNT_ENTITY_TYPE,
