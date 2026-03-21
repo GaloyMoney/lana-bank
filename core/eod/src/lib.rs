@@ -81,6 +81,12 @@ where
         TE: OutboxEventMarker<core_time_events::CoreTimeEvent>,
     {
         let phase_names: Vec<String> = phases.iter().map(|p| p.name().to_string()).collect();
+        let mut seen = std::collections::HashSet::new();
+        for name in &phase_names {
+            if !seen.insert(name.as_str()) {
+                return Err(CoreEodError::DuplicatePhase(name.clone()));
+            }
+        }
         let phases = Arc::new(phases);
 
         let publisher = EodPublisher::new(outbox);

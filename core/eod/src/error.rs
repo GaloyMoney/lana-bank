@@ -10,6 +10,8 @@ pub enum CoreEodError {
     JobError(#[from] job::error::JobError),
     #[error("CoreEodError - RegisterEventHandler: {0}")]
     RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
+    #[error("CoreEodError - DuplicatePhase: phase '{0}' is registered more than once")]
+    DuplicatePhase(String),
 }
 
 impl ErrorSeverity for CoreEodError {
@@ -18,6 +20,7 @@ impl ErrorSeverity for CoreEodError {
             Self::EodProcessError(_) => Level::ERROR,
             Self::JobError(_) => Level::ERROR,
             Self::RegisterEventHandler(_) => Level::ERROR,
+            Self::DuplicatePhase(_) => Level::ERROR,
         }
     }
 }

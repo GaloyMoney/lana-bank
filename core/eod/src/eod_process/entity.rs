@@ -141,6 +141,9 @@ impl EodProcess {
             self.events.iter_all(),
             already_applied: EodProcessEvent::PhaseStarted { phase_name: n, .. } if *n == pn
         );
+        if !self.phase_names.contains(&phase_name) {
+            return Err(EodProcessError::PhaseNotRegistered(phase_name));
+        }
         let status = self.status();
         if status != EodProcessStatus::Initialized && status != EodProcessStatus::InProgress {
             return Err(EodProcessError::InvalidStateTransition {
@@ -164,6 +167,9 @@ impl EodProcess {
             self.events.iter_all(),
             already_applied: EodProcessEvent::PhaseCompleted { phase_name: n, .. } if *n == pn
         );
+        if !self.phase_names.contains(&phase_name) {
+            return Err(EodProcessError::PhaseNotRegistered(phase_name));
+        }
         let status = self.status();
         if status != EodProcessStatus::InProgress {
             return Err(EodProcessError::InvalidStateTransition {
@@ -406,6 +412,30 @@ mod tests {
                 .unwrap()
                 .was_already_applied()
         );
+    }
+
+    #[test]
+    fn start_phase_rejects_unknown_phase() {
+        let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
+        let mut process = EodProcess::try_from_events(init_events(date, default_phases()))
+            .expect("Could not build eod process");
+        let job_id = job::JobId::from(uuid::Uuid::new_v4());
+        let result = process.start_phase("nonexistent-phase".to_string(), job_id);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn complete_phase_rejects_unknown_phase() {
+        let date = chrono::NaiveDate::from_ymd_opt(2026, 3, 18).unwrap();
+        let mut process = EodProcess::try_from_events(init_events(date, default_phases()))
+            .expect("Could not build eod process");
+        let job_id = job::JobId::from(uuid::Uuid::new_v4());
+        let _ = process
+            .start_phase("obligation-status".to_string(), job_id)
+            .unwrap();
+        let result =
+            process.complete_phase("nonexistent-phase".to_string(), JobTerminalState::Completed);
+        assert!(result.is_err());
     }
 
     #[test]
