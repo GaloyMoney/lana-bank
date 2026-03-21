@@ -1,0 +1,23 @@
+query TimeGet {
+  time {
+    currentDate
+    currentTime
+    nextEndOfDayAt
+    timezone
+    endOfDayTime
+    canAdvanceToNextEndOfDay
+  }
+}
+
+mutation TimeAdvanceToNextEndOfDay {
+  timeAdvanceToNextEndOfDay {
+    time {
+      currentDate
+      currentTime
+      nextEndOfDayAt
+      timezone
+      endOfDayTime
+      canAdvanceToNextEndOfDay
+    }
+  }
+}

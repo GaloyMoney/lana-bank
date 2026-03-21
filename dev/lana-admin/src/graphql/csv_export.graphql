@@ -1,0 +1,30 @@
+query AccountEntryCsv($ledgerAccountId: UUID!) {
+  ledgerAccountCsv(ledgerAccountId: $ledgerAccountId) {
+    ledgerAccountCsvDocumentId
+    ledgerAccountId
+    status
+    createdAt
+    filename
+  }
+}
+
+mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
+  ledgerAccountCsvCreate(input: $input) {
+    ledgerAccountCsvDocument {
+      ledgerAccountCsvDocumentId
+      ledgerAccountId
+      status
+      createdAt
+      filename
+    }
+  }
+}
+
+mutation AccountingCsvDownloadLinkGenerate($input: LedgerAccountCsvDownloadLinkGenerateInput!) {
+  ledgerAccountCsvDownloadLinkGenerate(input: $input) {
+    link {
+      url
+      csvId
+    }
+  }
+}
