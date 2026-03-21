@@ -12,12 +12,14 @@ pub const END_OF_DAY_HANDLER_JOB: job::JobType = job::JobType::new("outbox.eod-e
 
 pub struct EndOfDayHandler {
     pm_spawner: EodProcessManagerJobSpawner,
+    phase_names: Vec<String>,
 }
 
 impl EndOfDayHandler {
-    pub fn new(pm_spawner: &EodProcessManagerJobSpawner) -> Self {
+    pub fn new(pm_spawner: &EodProcessManagerJobSpawner, phase_names: Vec<String>) -> Self {
         Self {
             pm_spawner: pm_spawner.clone(),
+            phase_names,
         }
     }
 }
@@ -50,6 +52,7 @@ where
                     date: *day,
                     closing_time: *closing_time,
                     process_id,
+                    phase_names: self.phase_names.clone(),
                 },
             )
             .queue_id("eod-manager".to_string());

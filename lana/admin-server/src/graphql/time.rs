@@ -5,12 +5,8 @@ use crate::primitives::{Date, Timestamp, UUID};
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum EodProcessStatus {
     Initialized,
-    #[graphql(name = "AWAITING_OBLIGATIONS_AND_DEPOSITS")]
-    AwaitingObligationsAndDeposits,
-    #[graphql(name = "OBLIGATIONS_AND_DEPOSITS_COMPLETE")]
-    ObligationsAndDepositsComplete,
-    #[graphql(name = "AWAITING_CREDIT_FACILITY_EOD")]
-    AwaitingCreditFacilityEod,
+    #[graphql(name = "IN_PROGRESS")]
+    InProgress,
     Completed,
     Failed,
 }
@@ -19,15 +15,7 @@ impl From<lana_app::eod::EodProcessStatus> for EodProcessStatus {
     fn from(value: lana_app::eod::EodProcessStatus) -> Self {
         match value {
             lana_app::eod::EodProcessStatus::Initialized => Self::Initialized,
-            lana_app::eod::EodProcessStatus::AwaitingObligationsAndDeposits => {
-                Self::AwaitingObligationsAndDeposits
-            }
-            lana_app::eod::EodProcessStatus::ObligationsAndDepositsComplete => {
-                Self::ObligationsAndDepositsComplete
-            }
-            lana_app::eod::EodProcessStatus::AwaitingCreditFacilityEod => {
-                Self::AwaitingCreditFacilityEod
-            }
+            lana_app::eod::EodProcessStatus::InProgress => Self::InProgress,
             lana_app::eod::EodProcessStatus::Completed => Self::Completed,
             lana_app::eod::EodProcessStatus::Failed => Self::Failed,
         }

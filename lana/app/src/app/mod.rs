@@ -299,15 +299,24 @@ impl LanaApp {
         .await?;
 
         // Wire EOD orchestration — listens for CoreTimeEvent::EndOfDay via outbox
+        let eod_phases: Vec<Box<dyn core_eod::phase::EodPhase>> = vec![
+            Box::new(core_eod::phase::ObligationStatusPhase::new(
+                obligation_status_spawner,
+            )),
+            Box::new(core_eod::phase::DepositActivityPhase::new(
+                deposit_activity_spawner,
+            )),
+            Box::new(core_eod::phase::CreditFacilityEodPhase::new(
+                credit_facility_eod_spawner,
+            )),
+        ];
         let core_eod = CoreEod::init(
             &pool,
             &mut jobs,
             &outbox,
             &outbox,
             clock.clone(),
-            obligation_status_spawner,
-            deposit_activity_spawner,
-            credit_facility_eod_spawner,
+            eod_phases,
         )
         .await?;
 

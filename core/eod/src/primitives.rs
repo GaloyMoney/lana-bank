@@ -22,21 +22,13 @@ es_entity::entity_id! { EodProcessId }
 pub enum EodProcessStatus {
     #[default]
     Initialized,
-    AwaitingObligationsAndDeposits,
-    ObligationsAndDepositsComplete,
-    AwaitingCreditFacilityEod,
+    InProgress,
     Completed,
     Failed,
 }
 
 impl EodProcessStatus {
     pub fn is_in_progress(&self) -> bool {
-        matches!(
-            self,
-            Self::Initialized
-                | Self::AwaitingObligationsAndDeposits
-                | Self::ObligationsAndDepositsComplete
-                | Self::AwaitingCreditFacilityEod
-        )
+        matches!(self, Self::Initialized | Self::InProgress)
     }
 }

@@ -23,4 +23,6 @@ pub enum EodProcessError {
     },
     #[error("EodProcessError - MissingJobIds: expected job IDs not found in event stream")]
     MissingJobIds,
+    #[error("EodProcessError - PhaseNotRegistered: phase '{0}' is not registered")]
+    PhaseNotRegistered(String),
 }

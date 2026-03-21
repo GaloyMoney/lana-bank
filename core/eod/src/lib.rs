@@ -11,10 +11,13 @@ pub mod error;
 mod event;
 pub mod interest_accrual_process;
 pub mod obligation_status_process;
+pub mod phase;
 mod primitives;
 mod process_manager;
 pub mod public;
 mod publisher;
+
+use std::sync::Arc;
 
 use es_entity::clock::ClockHandle;
 use obix::out::{OutboxEventJobConfig, OutboxEventMarker};
@@ -23,6 +26,7 @@ use sqlx::PgPool;
 use crate::{
     end_of_day_handler::{END_OF_DAY_HANDLER_JOB, EndOfDayHandler},
     error::CoreEodError,
+    phase::EodPhase,
 };
 
 pub use eod_process::{EodProcess, EodProcessEvent, EodProcesses, NewEodProcess};
@@ -71,29 +75,28 @@ where
         outbox: &obix::Outbox<E>,
         time_outbox: &obix::Outbox<TE>,
         clock: ClockHandle,
-        obligation_status_process_spawner: obligation_status_process::ObligationStatusProcessSpawner,
-        deposit_activity_process_spawner: deposit_activity_process::DepositActivityProcessSpawner,
-        credit_facility_eod_process_spawner: credit_facility_eod_process::CreditFacilityEodProcessSpawner,
+        phases: Vec<Box<dyn EodPhase>>,
     ) -> Result<Self, CoreEodError>
     where
         TE: OutboxEventMarker<core_time_events::CoreTimeEvent>,
     {
+        let phase_names: Vec<String> = phases.iter().map(|p| p.name().to_string()).collect();
+        let phases = Arc::new(phases);
+
         let publisher = EodPublisher::new(outbox);
         let eod_processes = EodProcesses::new(pool, &publisher, clock);
 
         let eod_pm_spawner = jobs.add_initializer(EodProcessManagerJobInit::new(
             jobs,
             eod_processes.clone(),
-            obligation_status_process_spawner,
-            deposit_activity_process_spawner,
-            credit_facility_eod_process_spawner,
+            phases,
         ));
 
         time_outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(END_OF_DAY_HANDLER_JOB),
-                EndOfDayHandler::new(&eod_pm_spawner),
+                EndOfDayHandler::new(&eod_pm_spawner, phase_names),
             )
             .await?;
 

@@ -190,9 +190,7 @@ function useBrowserTime() {
 
 const EOD_IN_PROGRESS_STATUSES: EodProcessStatus[] = [
   EodProcessStatus.Initialized,
-  EodProcessStatus.AwaitingObligationsAndDeposits,
-  EodProcessStatus.ObligationsAndDepositsComplete,
-  EodProcessStatus.AwaitingCreditFacilityEod,
+  EodProcessStatus.InProgress,
 ]
 
 function isEodInProgress(status: EodProcessStatus | null | undefined): boolean {
@@ -202,9 +200,7 @@ function isEodInProgress(status: EodProcessStatus | null | undefined): boolean {
 function formatEodStatus(status: EodProcessStatus): string {
   const labels: Record<EodProcessStatus, string> = {
     [EodProcessStatus.Initialized]: "Initialized",
-    [EodProcessStatus.AwaitingObligationsAndDeposits]: "Awaiting Obligations & Deposits",
-    [EodProcessStatus.ObligationsAndDepositsComplete]: "Obligations & Deposits Complete",
-    [EodProcessStatus.AwaitingCreditFacilityEod]: "Awaiting Credit Facility EOD",
+    [EodProcessStatus.InProgress]: "In Progress",
     [EodProcessStatus.Completed]: "Completed",
     [EodProcessStatus.Failed]: "Failed",
   }

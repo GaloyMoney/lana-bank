@@ -676,15 +676,24 @@ pub async fn setup() -> anyhow::Result<TestContext> {
 
     // Wire up EOD orchestration so EndOfDay events trigger the full pipeline
     let deposit_activity_spawner = jobs.add_initializer(noop_eod_job::NoopDepositActivityInit);
+    let eod_phases: Vec<Box<dyn core_eod::phase::EodPhase>> = vec![
+        Box::new(core_eod::phase::ObligationStatusPhase::new(
+            credit_init.obligation_status_spawner,
+        )),
+        Box::new(core_eod::phase::DepositActivityPhase::new(
+            deposit_activity_spawner,
+        )),
+        Box::new(core_eod::phase::CreditFacilityEodPhase::new(
+            credit_init.credit_facility_eod_spawner,
+        )),
+    ];
     let _core_eod = core_eod::CoreEod::init(
         &pool,
         &mut jobs,
         &outbox,
         &outbox,
         clock.clone(),
-        credit_init.obligation_status_spawner,
-        deposit_activity_spawner,
-        credit_init.credit_facility_eod_spawner,
+        eod_phases,
     )
     .await?;
 
