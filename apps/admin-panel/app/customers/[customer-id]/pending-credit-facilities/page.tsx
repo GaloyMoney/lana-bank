@@ -14,6 +14,7 @@ import { useGetCustomerPendingCreditFacilitiesQuery } from "@/lib/graphql/genera
 gql`
   query GetCustomerPendingCreditFacilities($id: PublicId!) {
     customerByPublicId(id: $id) {
+      customerId
       pendingCreditFacilities {
         pendingCreditFacilityId
         createdAt

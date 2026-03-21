@@ -61,6 +61,7 @@ gql`
             code
             name
             closestAccountWithCode {
+              ledgerAccountId
               code
             }
           }

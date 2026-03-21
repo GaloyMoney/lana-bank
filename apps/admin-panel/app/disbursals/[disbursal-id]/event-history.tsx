@@ -10,6 +10,7 @@ import { useDisbursalEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query DisbursalEventHistory($publicId: PublicId!, $first: Int!, $after: String) {
     disbursalByPublicId(id: $publicId) {
+      creditFacilityDisbursalId
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

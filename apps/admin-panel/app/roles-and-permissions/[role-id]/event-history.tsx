@@ -10,6 +10,7 @@ import { useRoleEventHistoryQuery } from "@/lib/graphql/generated"
 gql`
   query RoleEventHistory($id: UUID!, $first: Int!, $after: String) {
     role(id: $id) {
+      roleId
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

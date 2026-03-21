@@ -10,6 +10,7 @@ import { useCreditFacilityProposalEventHistoryQuery } from "@/lib/graphql/genera
 gql`
   query CreditFacilityProposalEventHistory($id: UUID!, $first: Int!, $after: String) {
     creditFacilityProposal(id: $id) {
+      creditFacilityProposalId
       eventHistory(first: $first, after: $after) {
         ...EventHistoryConnectionFields
       }

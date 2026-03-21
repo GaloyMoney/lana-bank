@@ -109,6 +109,7 @@ gql`
 
   query ChartAccountingBaseConfig {
     chartOfAccounts {
+      chartOfAccountsId
       name
       accountingBaseConfig {
         assetsCode

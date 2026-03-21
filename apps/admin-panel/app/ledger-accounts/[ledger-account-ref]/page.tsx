@@ -123,8 +123,10 @@ gql`
           layer
           createdAt
           ledgerAccount {
+            ledgerAccountId
             code
             closestAccountWithCode {
+              ledgerAccountId
               code
             }
           }
