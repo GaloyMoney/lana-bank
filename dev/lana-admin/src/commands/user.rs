@@ -25,10 +25,10 @@ pub async fn execute(client: &mut GraphQLClient, action: UserAction, json: bool)
         }
         UserAction::UpdateRole { user_id, role_id } => {
             let vars = user_update_role::Variables {
-                input: user_update_role::UserUpdateRoleInput { user_id, role_id },
+                input: user_update_role::UserRoleUpdateInput { user_id, role_id },
             };
             let data = client.execute::<UserUpdateRole>(vars).await?;
-            let u = data.user_update_role.user;
+            let u = data.user_role_update.user;
             if json {
                 output::print_json(&u)?;
             } else {

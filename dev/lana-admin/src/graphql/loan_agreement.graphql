@@ -18,7 +18,6 @@ mutation CreditFacilityAgreementGenerate($input: CreditFacilityAgreementGenerate
 
 mutation LoanAgreementDownloadLinkGenerate($input: CreditFacilityAgreementDownloadLinksGenerateInput!) {
   creditFacilityAgreementDownloadLinkGenerate(input: $input) {
-    creditFacilityAgreementId
     link
   }
 }

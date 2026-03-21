@@ -54,7 +54,7 @@ pub async fn execute(
                 input: deposit_account_create::DepositAccountCreateInput { customer_id },
             };
             let data = client.execute::<DepositAccountCreate>(vars).await?;
-            let a = data.deposit_account_create.account;
+            let a = data.deposit_account_create.deposit_account;
             if json {
                 output::print_json(&json!({
                     "depositAccountId": a.deposit_account_id,
@@ -151,7 +151,7 @@ pub async fn execute(
                 input: deposit_account_freeze::DepositAccountFreezeInput { deposit_account_id },
             };
             let data = client.execute::<DepositAccountFreeze>(vars).await?;
-            let a = data.deposit_account_freeze.account;
+            let a = data.deposit_account_freeze.deposit_account;
             if json {
                 output::print_json(&json!({
                     "depositAccountId": a.deposit_account_id,
@@ -172,7 +172,7 @@ pub async fn execute(
                 input: deposit_account_unfreeze::DepositAccountUnfreezeInput { deposit_account_id },
             };
             let data = client.execute::<DepositAccountUnfreeze>(vars).await?;
-            let a = data.deposit_account_unfreeze.account;
+            let a = data.deposit_account_unfreeze.deposit_account;
             if json {
                 output::print_json(&json!({
                     "depositAccountId": a.deposit_account_id,
@@ -193,7 +193,7 @@ pub async fn execute(
                 input: deposit_account_close::DepositAccountCloseInput { deposit_account_id },
             };
             let data = client.execute::<DepositAccountClose>(vars).await?;
-            let a = data.deposit_account_close.account;
+            let a = data.deposit_account_close.deposit_account;
             if json {
                 output::print_json(&json!({
                     "depositAccountId": a.deposit_account_id,

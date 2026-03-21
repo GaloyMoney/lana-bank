@@ -29,8 +29,8 @@ query RoleGet($id: UUID!) {
   }
 }
 
-mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
-  roleAddPermissionSets(input: $input) {
+mutation RoleAddPermissionSets($input: RolePermissionSetsAddInput!) {
+  rolePermissionSetsAdd(input: $input) {
     role {
       roleId
       name
@@ -44,8 +44,8 @@ mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
   }
 }
 
-mutation RoleRemovePermissionSets($input: RoleRemovePermissionSetsInput!) {
-  roleRemovePermissionSets(input: $input) {
+mutation RoleRemovePermissionSets($input: RolePermissionSetsRemoveInput!) {
+  rolePermissionSetsRemove(input: $input) {
     role {
       roleId
       name

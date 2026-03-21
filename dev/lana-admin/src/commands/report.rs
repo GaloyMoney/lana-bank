@@ -89,7 +89,7 @@ pub async fn execute(client: &mut GraphQLClient, action: ReportAction, json: boo
             extension,
         } => {
             let vars = report_file_download_link_generate::Variables {
-                input: report_file_download_link_generate::ReportFileGenerateDownloadLinkInput {
+                input: report_file_download_link_generate::ReportFileDownloadLinkGenerateInput {
                     report_id,
                     extension,
                 },
@@ -97,7 +97,7 @@ pub async fn execute(client: &mut GraphQLClient, action: ReportAction, json: boo
             let data = client
                 .execute::<ReportFileDownloadLinkGenerate>(vars)
                 .await?;
-            let result = data.report_file_generate_download_link;
+            let result = data.report_file_download_link_generate;
             if json {
                 output::print_json(&result)?;
             } else {

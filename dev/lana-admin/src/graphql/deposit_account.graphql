@@ -1,6 +1,6 @@
 mutation DepositAccountCreate($input: DepositAccountCreateInput!) {
   depositAccountCreate(input: $input) {
-    account {
+    depositAccount {
       depositAccountId
       customerId
       publicId
@@ -137,7 +137,7 @@ mutation WithdrawalRevert($input: WithdrawalRevertInput!) {
 
 mutation DepositAccountFreeze($input: DepositAccountFreezeInput!) {
   depositAccountFreeze(input: $input) {
-    account {
+    depositAccount {
       depositAccountId
       status
       balance {
@@ -149,7 +149,7 @@ mutation DepositAccountFreeze($input: DepositAccountFreezeInput!) {
 
 mutation DepositAccountUnfreeze($input: DepositAccountUnfreezeInput!) {
   depositAccountUnfreeze(input: $input) {
-    account {
+    depositAccount {
       depositAccountId
       status
       balance {
@@ -161,7 +161,7 @@ mutation DepositAccountUnfreeze($input: DepositAccountUnfreezeInput!) {
 
 mutation DepositAccountClose($input: DepositAccountCloseInput!) {
   depositAccountClose(input: $input) {
-    account {
+    depositAccount {
       depositAccountId
       status
       balance {

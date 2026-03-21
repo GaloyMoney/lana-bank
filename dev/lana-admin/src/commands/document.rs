@@ -19,7 +19,7 @@ pub async fn execute(client: &mut GraphQLClient, action: DocumentAction, json: b
                     vec![MultipartUpload::new(file, "file")],
                 )
                 .await?;
-            let doc = data.customer_document_create.document;
+            let doc = data.customer_document_create.customer_document;
             if json {
                 let mut value = serde_json::to_value(&doc)?;
                 add_document_id_alias(&mut value);
@@ -88,7 +88,7 @@ pub async fn execute(client: &mut GraphQLClient, action: DocumentAction, json: b
             let vars = customer_document_download_link_generate::Variables {
                 input:
                     customer_document_download_link_generate::CustomerDocumentDownloadLinksGenerateInput {
-                        document_id,
+                        document_id: document_id.clone(),
                     },
             };
             let data = client
@@ -98,7 +98,7 @@ pub async fn execute(client: &mut GraphQLClient, action: DocumentAction, json: b
             if json {
                 output::print_json(&result)?;
             } else {
-                output::print_kv(&[("Document ID", &result.document_id), ("Link", &result.link)]);
+                output::print_kv(&[("Document ID", &document_id), ("Link", &result.link)]);
             }
         }
         DocumentAction::Archive { document_id } => {
@@ -106,7 +106,7 @@ pub async fn execute(client: &mut GraphQLClient, action: DocumentAction, json: b
                 input: customer_document_archive::CustomerDocumentArchiveInput { document_id },
             };
             let data = client.execute::<CustomerDocumentArchive>(vars).await?;
-            let doc = data.customer_document_archive.document;
+            let doc = data.customer_document_archive.customer_document;
             if json {
                 let mut value = serde_json::to_value(&doc)?;
                 add_document_id_alias(&mut value);

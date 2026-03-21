@@ -74,7 +74,7 @@ query CreditFacilityGet($id: UUID!) {
 
 mutation CreditFacilityDisbursalInitiate($input: CreditFacilityDisbursalInitiateInput!) {
   creditFacilityDisbursalInitiate(input: $input) {
-    disbursal {
+    creditFacilityDisbursal {
       creditFacilityDisbursalId
       amount
       status
@@ -121,9 +121,7 @@ query PendingCreditFacilityGet($id: UUID!) {
     wallet {
       address
     }
-    collateral {
-      btcBalance
-    }
+    collateral
   }
 }
 
@@ -148,38 +146,25 @@ query CreditFacilityFind($id: UUID!) {
         days
       }
       ... on CreditFacilityCollateralizationUpdated {
-        state
+        collateral
+        outstandingDisbursal
+        outstandingInterest
+        price
       }
     }
     balance {
-      facilityRemaining {
-        usdBalance
-      }
-      outstanding {
-        usdBalance
-      }
-      collateral {
-        btcBalance
-      }
+      facilityRemaining
+      outstanding
+      collateral
       disbursed {
-        total {
-          usdBalance
-        }
-        outstanding {
-          usdBalance
-        }
+        total
+        outstanding
       }
       interest {
-        total {
-          usdBalance
-        }
-        outstanding {
-          usdBalance
-        }
+        total
+        outstanding
       }
-      paymentsUnapplied {
-        usdBalance
-      }
+      paymentsUnapplied
     }
     liquidations {
       liquidationId
@@ -193,34 +178,18 @@ mutation CreditFacilityPartialPaymentRecord($input: CreditFacilityPartialPayment
       creditFacilityId
       facilityAmount
       balance {
-        facilityRemaining {
-          usdBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        collateral {
-          btcBalance
-        }
+        facilityRemaining
+        outstanding
+        collateral
         disbursed {
-          total {
-            usdBalance
-          }
-          outstanding {
-            usdBalance
-          }
+          total
+          outstanding
         }
         interest {
-          total {
-            usdBalance
-          }
-          outstanding {
-            usdBalance
-          }
+          total
+          outstanding
         }
-        paymentsUnapplied {
-          usdBalance
-        }
+        paymentsUnapplied
       }
     }
   }

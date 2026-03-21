@@ -11,8 +11,8 @@ mutation UserCreate($input: UserCreateInput!) {
   }
 }
 
-mutation UserUpdateRole($input: UserUpdateRoleInput!) {
-  userUpdateRole(input: $input) {
+mutation UserUpdateRole($input: UserRoleUpdateInput!) {
+  userRoleUpdate(input: $input) {
     user {
       userId
       email

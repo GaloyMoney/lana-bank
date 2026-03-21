@@ -28,8 +28,8 @@ query ReportRunsList($first: Int!) {
   }
 }
 
-mutation ReportFileDownloadLinkGenerate($input: ReportFileGenerateDownloadLinkInput!) {
-  reportFileGenerateDownloadLink(input: $input) {
+mutation ReportFileDownloadLinkGenerate($input: ReportFileDownloadLinkGenerateInput!) {
+  reportFileDownloadLinkGenerate(input: $input) {
     url
   }
 }

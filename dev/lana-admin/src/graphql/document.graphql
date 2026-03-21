@@ -1,6 +1,6 @@
 mutation CustomerDocumentCreate($file: Upload!, $customerId: UUID!) {
   customerDocumentCreate(input: { file: $file, customerId: $customerId }) {
-    document {
+    customerDocument {
       customerDocumentId
       customerId
       filename
@@ -32,14 +32,13 @@ query CustomerDocumentsList($customerId: UUID!) {
 
 mutation CustomerDocumentDownloadLinkGenerate($input: CustomerDocumentDownloadLinksGenerateInput!) {
   customerDocumentDownloadLinkGenerate(input: $input) {
-    documentId
     link
   }
 }
 
 mutation CustomerDocumentArchive($input: CustomerDocumentArchiveInput!) {
   customerDocumentArchive(input: $input) {
-    document {
+    customerDocument {
       customerDocumentId
       customerId
       filename

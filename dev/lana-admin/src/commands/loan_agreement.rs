@@ -74,7 +74,7 @@ pub async fn execute(
             let vars = loan_agreement_download_link_generate::Variables {
                 input:
                     loan_agreement_download_link_generate::CreditFacilityAgreementDownloadLinksGenerateInput {
-                        credit_facility_agreement_id,
+                        credit_facility_agreement_id: credit_facility_agreement_id.clone(),
                     },
             };
             let data = client
@@ -83,14 +83,14 @@ pub async fn execute(
             let result = data.credit_facility_agreement_download_link_generate;
             if json {
                 output::print_json(&json!({
-                    "creditFacilityAgreementId": result.credit_facility_agreement_id,
+                    "creditFacilityAgreementId": credit_facility_agreement_id,
                     "link": result.link,
                 }))?;
             } else {
                 output::print_kv(&[
                     (
                         "Credit Facility Agreement ID",
-                        &result.credit_facility_agreement_id,
+                        &credit_facility_agreement_id,
                     ),
                     ("Link", &result.link),
                 ]);

@@ -66,13 +66,13 @@ pub async fn execute(client: &mut GraphQLClient, action: RoleAction, json: bool)
             permission_set_ids,
         } => {
             let vars = role_add_permission_sets::Variables {
-                input: role_add_permission_sets::RoleAddPermissionSetsInput {
+                input: role_add_permission_sets::RolePermissionSetsAddInput {
                     role_id,
                     permission_set_ids,
                 },
             };
             let data = client.execute::<RoleAddPermissionSets>(vars).await?;
-            let role = data.role_add_permission_sets.role;
+            let role = data.role_permission_sets_add.role;
             if json {
                 output::print_json(&role)?;
             } else {
@@ -95,13 +95,13 @@ pub async fn execute(client: &mut GraphQLClient, action: RoleAction, json: bool)
             permission_set_ids,
         } => {
             let vars = role_remove_permission_sets::Variables {
-                input: role_remove_permission_sets::RoleRemovePermissionSetsInput {
+                input: role_remove_permission_sets::RolePermissionSetsRemoveInput {
                     role_id,
                     permission_set_ids,
                 },
             };
             let data = client.execute::<RoleRemovePermissionSets>(vars).await?;
-            let role = data.role_remove_permission_sets.role;
+            let role = data.role_permission_sets_remove.role;
             if json {
                 output::print_json(&role)?;
             } else {

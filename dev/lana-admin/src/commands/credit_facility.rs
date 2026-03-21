@@ -346,7 +346,7 @@ pub async fn execute(
                     .as_ref()
                     .map(|w| w.address.as_str())
                     .unwrap_or("N/A");
-                let btc_balance = scalar(&pending.collateral.btc_balance);
+                let btc_balance = scalar(&pending.collateral);
                 output::print_kv(&[
                     ("Pending CF ID", &pending.pending_credit_facility_id),
                     ("Facility ID", &pending.credit_facility_id),
@@ -379,7 +379,9 @@ pub async fn execute(
             let data = client
                 .execute::<CreditFacilityDisbursalInitiate>(vars)
                 .await?;
-            let d = data.credit_facility_disbursal_initiate.disbursal;
+            let d = data
+                .credit_facility_disbursal_initiate
+                .credit_facility_disbursal;
 
             let final_status = match wait_for {
                 Some(DisbursalInitiateWaitFor::Confirmed) => {
@@ -463,26 +465,23 @@ pub async fn execute(
                     "creditFacilityId": f.credit_facility_id,
                     "facilityAmount": f.facility_amount,
                     "balance": {
-                        "facilityRemainingUsdBalance": f.balance.facility_remaining.usd_balance,
-                        "outstandingUsdBalance": f.balance.outstanding.usd_balance,
-                        "collateralBtcBalance": f.balance.collateral.btc_balance,
-                        "disbursedTotalUsdBalance": f.balance.disbursed.total.usd_balance,
-                        "disbursedOutstandingUsdBalance": f.balance.disbursed.outstanding.usd_balance,
-                        "interestTotalUsdBalance": f.balance.interest.total.usd_balance,
-                        "interestOutstandingUsdBalance": f.balance.interest.outstanding.usd_balance,
-                        "paymentsUnappliedUsdBalance": f.balance.payments_unapplied.usd_balance,
+                        "facilityRemainingUsdBalance": f.balance.facility_remaining,
+                        "outstandingUsdBalance": f.balance.outstanding,
+                        "collateralBtcBalance": f.balance.collateral,
+                        "disbursedTotalUsdBalance": f.balance.disbursed.total,
+                        "disbursedOutstandingUsdBalance": f.balance.disbursed.outstanding,
+                        "interestTotalUsdBalance": f.balance.interest.total,
+                        "interestOutstandingUsdBalance": f.balance.interest.outstanding,
+                        "paymentsUnappliedUsdBalance": f.balance.payments_unapplied,
                     }
                 }))?;
             } else {
                 output::print_kv(&[
                     ("Facility ID", &f.credit_facility_id),
-                    (
-                        "Outstanding USD",
-                        &scalar(&f.balance.outstanding.usd_balance),
-                    ),
+                    ("Outstanding USD", &scalar(&f.balance.outstanding)),
                     (
                         "Payments Unapplied USD",
-                        &scalar(&f.balance.payments_unapplied.usd_balance),
+                        &scalar(&f.balance.payments_unapplied),
                     ),
                 ]);
             }
@@ -532,14 +531,14 @@ fn credit_facility_find_json(
         }).collect::<Vec<_>>(),
         "history": f.history,
         "balance": {
-            "facilityRemainingUsdBalance": f.balance.facility_remaining.usd_balance,
-            "outstandingUsdBalance": f.balance.outstanding.usd_balance,
-            "collateralBtcBalance": f.balance.collateral.btc_balance,
-            "disbursedTotalUsdBalance": f.balance.disbursed.total.usd_balance,
-            "disbursedOutstandingUsdBalance": f.balance.disbursed.outstanding.usd_balance,
-            "interestTotalUsdBalance": f.balance.interest.total.usd_balance,
-            "interestOutstandingUsdBalance": f.balance.interest.outstanding.usd_balance,
-            "paymentsUnappliedUsdBalance": f.balance.payments_unapplied.usd_balance,
+            "facilityRemainingUsdBalance": f.balance.facility_remaining,
+            "outstandingUsdBalance": f.balance.outstanding,
+            "collateralBtcBalance": f.balance.collateral,
+            "disbursedTotalUsdBalance": f.balance.disbursed.total,
+            "disbursedOutstandingUsdBalance": f.balance.disbursed.outstanding,
+            "interestTotalUsdBalance": f.balance.interest.total,
+            "interestOutstandingUsdBalance": f.balance.interest.outstanding,
+            "paymentsUnappliedUsdBalance": f.balance.payments_unapplied,
         },
         "liquidationIds": f.liquidations.iter().map(|liquidation| liquidation.liquidation_id.clone()).collect::<Vec<_>>(),
     })
@@ -558,7 +557,7 @@ fn pending_credit_facility_json(
         "facilityAmount": p.facility_amount,
         "collateralizationState": format!("{:?}", p.collateralization_state),
         "walletAddress": p.wallet.as_ref().map(|wallet| wallet.address.clone()),
-        "btcBalance": p.collateral.btc_balance,
+        "btcBalance": p.collateral,
     })
 }
 
