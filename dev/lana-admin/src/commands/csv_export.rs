@@ -15,20 +15,19 @@ pub async fn execute(
         CsvExportAction::AccountEntry { ledger_account_id } => {
             let vars = account_entry_csv::Variables { ledger_account_id };
             let data = client.execute::<AccountEntryCsv>(vars).await?;
-            match data.account_entry_csv {
+            match data.ledger_account_csv {
                 Some(doc) => {
                     if json {
                         let mut value = serde_json::to_value(&doc)?;
                         if let Value::Object(ref mut obj) = value
-                            && let Some(id) = obj.get("accountingCsvDocumentId").cloned()
+                            && let Some(id) = obj.get("ledgerAccountCsvDocumentId").cloned()
                         {
-                            // Keep backward compatibility for older automation/test scripts.
                             obj.insert("documentId".to_string(), id);
                         }
                         output::print_json(&value)?;
                     } else {
                         output::print_kv(&[
-                            ("Document ID", &doc.accounting_csv_document_id),
+                            ("Document ID", &doc.ledger_account_csv_document_id),
                             ("Ledger Account ID", &doc.ledger_account_id),
                             ("Status", &format!("{:?}", doc.status)),
                             ("Created At", &doc.created_at),
@@ -36,7 +35,7 @@ pub async fn execute(
                         ]);
                     }
                 }
-                None => output::not_found("Account entry CSV", json),
+                None => output::not_found("Ledger account CSV", json),
             }
         }
         CsvExportAction::CreateLedgerCsv { ledger_account_id } => {
@@ -44,19 +43,18 @@ pub async fn execute(
                 input: ledger_account_csv_create::LedgerAccountCsvCreateInput { ledger_account_id },
             };
             let data = client.execute::<LedgerAccountCsvCreate>(vars).await?;
-            let doc = data.ledger_account_csv_create.accounting_csv_document;
+            let doc = data.ledger_account_csv_create.ledger_account_csv_document;
             if json {
                 let mut value = serde_json::to_value(&doc)?;
                 if let Value::Object(ref mut obj) = value
-                    && let Some(id) = obj.get("accountingCsvDocumentId").cloned()
+                    && let Some(id) = obj.get("ledgerAccountCsvDocumentId").cloned()
                 {
-                    // Keep backward compatibility for older automation/test scripts.
                     obj.insert("documentId".to_string(), id);
                 }
                 output::print_json(&value)?;
             } else {
                 output::print_kv(&[
-                    ("Document ID", &doc.accounting_csv_document_id),
+                    ("Document ID", &doc.ledger_account_csv_document_id),
                     ("Ledger Account ID", &doc.ledger_account_id),
                     ("Status", &format!("{:?}", doc.status)),
                     ("Created At", &doc.created_at),
@@ -67,14 +65,14 @@ pub async fn execute(
         CsvExportAction::DownloadLink { document_id } => {
             let vars = accounting_csv_download_link_generate::Variables {
                 input:
-                    accounting_csv_download_link_generate::AccountingCsvDownloadLinkGenerateInput {
+                    accounting_csv_download_link_generate::LedgerAccountCsvDownloadLinkGenerateInput {
                         document_id,
                     },
             };
             let data = client
                 .execute::<AccountingCsvDownloadLinkGenerate>(vars)
                 .await?;
-            let link = data.accounting_csv_download_link_generate.link;
+            let link = data.ledger_account_csv_download_link_generate.link;
             if json {
                 output::print_json(&link)?;
             } else {

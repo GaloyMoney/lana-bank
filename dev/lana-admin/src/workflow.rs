@@ -46,6 +46,7 @@ struct ParsedWorkflowDoc {
 #[derive(Debug, Clone)]
 struct SchemaObjectType {
     fields: BTreeMap<String, String>,
+    key_field: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -534,6 +535,7 @@ fn parse_schema_object_types(schema: &str) -> anyhow::Result<BTreeMap<String, Sc
                 .entry(type_name.to_string())
                 .or_insert_with(|| SchemaObjectType {
                     fields: BTreeMap::new(),
+                    key_field: parse_entity_key_field(trimmed),
                 });
             continue;
         }
@@ -585,6 +587,15 @@ fn parse_object_type_start(line: &str) -> Option<&str> {
     }
 
     Some(name)
+}
+
+fn parse_entity_key_field(line: &str) -> Option<String> {
+    let directive = line.split("@entity_key(").nth(1)?;
+    let args = directive.split(')').next()?;
+    let value = args.split("field:").nth(1)?.trim();
+    let quoted = value.strip_prefix('"')?;
+    let field = quoted.split('"').next()?.trim();
+    (!field.is_empty()).then(|| field.to_string())
 }
 
 fn parse_automation_definition(description: &str) -> anyhow::Result<Option<ParsedWorkflowDoc>> {
@@ -870,6 +881,10 @@ fn derive_key_field(
     object_types: &BTreeMap<String, SchemaObjectType>,
 ) -> Option<String> {
     let schema_type = object_types.get(type_name)?;
+    if let Some(key_field) = &schema_type.key_field {
+        return Some(key_field.clone());
+    }
+
     let key_field = format!("{}Id", lower_camel(type_name));
     schema_type
         .fields
@@ -919,7 +934,7 @@ fn operation_to_command(operation: &str) -> anyhow::Result<String> {
         "collateralUpdate" => "credit collateral update",
         "creditFacilityDisbursalInitiate" => "credit facility disbursal-initiate",
         "creditFacilityAgreementGenerate" => "credit loan-agreement generate",
-        "loanAgreementDownloadLinkGenerate" => "credit loan-agreement download-link",
+        "creditFacilityAgreementDownloadLinkGenerate" => "credit loan-agreement download-link",
         _ => bail!("unknown workflow command mapping"),
     };
 

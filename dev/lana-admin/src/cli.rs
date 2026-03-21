@@ -988,12 +988,12 @@ pub enum LoanAgreementAction {
     /// Generate a loan agreement
     Generate {
         #[arg(long, value_parser = parse_uuid_arg)]
-        customer_id: String,
+        credit_facility_id: String,
     },
     /// Generate download link for a loan agreement
     DownloadLink {
         #[arg(long, value_parser = parse_uuid_arg)]
-        loan_agreement_id: String,
+        credit_facility_agreement_id: String,
     },
 }
 

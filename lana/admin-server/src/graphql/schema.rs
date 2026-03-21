@@ -496,6 +496,14 @@ impl Query {
         )
     }
 
+    /// Get a pending credit facility.
+    ///
+    ///   requires:
+    ///   - creditFacilityProposalId
+    ///   - creditFacilityProposal.approvalProcessId
+    ///   produces:
+    ///   - pendingCreditFacility.creditFacilityId
+    ///   - pendingCreditFacility.collateralId
     async fn pending_credit_facility(
         &self,
         ctx: &Context<'_>,
@@ -1462,6 +1470,9 @@ impl Mutation {
         )
     }
 
+    /// Create a prospect.
+    ///
+    ///   requires: []
     async fn prospect_create(
         &self,
         ctx: &Context<'_>,
@@ -1497,6 +1508,10 @@ impl Mutation {
         )
     }
 
+    /// Convert a prospect into a customer.
+    ///
+    ///   requires:
+    ///   - prospectId
     async fn prospect_convert(
         &self,
         ctx: &Context<'_>,
@@ -1710,6 +1725,10 @@ impl Mutation {
         )
     }
 
+    /// Record a deposit on an account.
+    ///
+    ///   requires:
+    ///   - depositAccountId
     pub async fn deposit_record(
         &self,
         ctx: &Context<'_>,
@@ -1730,6 +1749,10 @@ impl Mutation {
         )
     }
 
+    /// Initiate a withdrawal from a deposit account.
+    ///
+    ///   requires:
+    ///   - depositAccountId
     pub async fn withdrawal_initiate(
         &self,
         ctx: &Context<'_>,
@@ -1749,6 +1772,10 @@ impl Mutation {
         )
     }
 
+    /// Confirm a pending withdrawal.
+    ///
+    ///   requires:
+    ///   - withdrawalId
     pub async fn withdrawal_confirm(
         &self,
         ctx: &Context<'_>,
@@ -1806,6 +1833,10 @@ impl Mutation {
         )
     }
 
+    /// Create a deposit account for a customer.
+    ///
+    ///   requires:
+    ///   - customerId
     pub async fn deposit_account_create(
         &self,
         ctx: &Context<'_>,
@@ -1864,6 +1895,9 @@ impl Mutation {
         )
     }
 
+    /// Create a terms template.
+    ///
+    ///   requires: []
     async fn terms_template_create(
         &self,
         ctx: &Context<'_>,
@@ -2121,6 +2155,20 @@ impl Mutation {
         ))
     }
 
+    /// Create a credit facility proposal.
+    ///
+    /// The requested facility amount uses `UsdCents`, so pass the number of
+    /// cents as a JSON number, not a dollar amount string. For example,
+    /// `1000000` means USD 10,000.00.
+    ///
+    /// If the selected terms use `SINGLE_DISBURSAL`, the resulting facility may
+    /// disburse automatically as part of activation after approval and
+    /// collateralization. In that case, a later
+    /// `creditFacilityDisbursalInitiate` call can fail with
+    /// `OnlyOneDisbursalAllowed`.
+    ///
+    ///   requires:
+    ///   - customerId
     pub async fn credit_facility_proposal_create(
         &self,
         ctx: &Context<'_>,
@@ -2150,6 +2198,12 @@ impl Mutation {
         )
     }
 
+    /// Conclude customer approval for a credit facility proposal.
+    ///
+    ///   requires:
+    ///   - creditFacilityProposalId
+    ///   produces:
+    ///   - creditFacilityProposal.approvalProcessId
     pub async fn credit_facility_proposal_customer_approval_conclude(
         &self,
         ctx: &Context<'_>,
@@ -2173,6 +2227,10 @@ impl Mutation {
         )
     }
 
+    /// Update collateral for a pending or active facility.
+    ///
+    ///   requires:
+    ///   - collateralId
     pub async fn collateral_update(
         &self,
         ctx: &Context<'_>,
@@ -2230,6 +2288,15 @@ impl Mutation {
         )
     }
 
+    /// Initiate a disbursal for an active credit facility.
+    ///
+    /// This is only needed when the facility has not already disbursed during
+    /// activation. Facilities using `SINGLE_DISBURSAL` may already have a
+    /// disbursal by the time they become active, in which case this mutation can
+    /// fail with `OnlyOneDisbursalAllowed`.
+    ///
+    ///   requires:
+    ///   - creditFacilityId
     pub async fn credit_facility_disbursal_initiate(
         &self,
         ctx: &Context<'_>,
@@ -2686,6 +2753,10 @@ impl Mutation {
         Ok(LedgerAccountCsvDownloadLinkGeneratePayload::from(link))
     }
 
+    /// Generate a loan agreement for a credit facility.
+    ///
+    ///   requires:
+    ///   - creditFacilityId
     pub async fn credit_facility_agreement_generate(
         &self,
         ctx: &Context<'_>,
@@ -2713,6 +2784,10 @@ impl Mutation {
         ))
     }
 
+    /// Generate a download link for an existing loan agreement.
+    ///
+    ///   requires:
+    ///   - creditFacilityAgreementId
     async fn credit_facility_agreement_download_link_generate(
         &self,
         ctx: &Context<'_>,

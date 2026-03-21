@@ -1,6 +1,6 @@
 query AccountEntryCsv($ledgerAccountId: UUID!) {
-  accountEntryCsv(ledgerAccountId: $ledgerAccountId) {
-    accountingCsvDocumentId
+  ledgerAccountCsv(ledgerAccountId: $ledgerAccountId) {
+    ledgerAccountCsvDocumentId
     ledgerAccountId
     status
     createdAt
@@ -10,8 +10,8 @@ query AccountEntryCsv($ledgerAccountId: UUID!) {
 
 mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
   ledgerAccountCsvCreate(input: $input) {
-    accountingCsvDocument {
-      accountingCsvDocumentId
+    ledgerAccountCsvDocument {
+      ledgerAccountCsvDocumentId
       ledgerAccountId
       status
       createdAt
@@ -20,8 +20,8 @@ mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
   }
 }
 
-mutation AccountingCsvDownloadLinkGenerate($input: AccountingCsvDownloadLinkGenerateInput!) {
-  accountingCsvDownloadLinkGenerate(input: $input) {
+mutation AccountingCsvDownloadLinkGenerate($input: LedgerAccountCsvDownloadLinkGenerateInput!) {
+  ledgerAccountCsvDownloadLinkGenerate(input: $input) {
     link {
       url
       csvId

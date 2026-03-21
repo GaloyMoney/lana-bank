@@ -1,6 +1,6 @@
 query FindLoanAgreement($id: UUID!) {
-  loanAgreement(id: $id) {
-    loanAgreementId
+  creditFacilityAgreement(id: $id) {
+    creditFacilityAgreementId
     status
     createdAt
   }
@@ -8,17 +8,17 @@ query FindLoanAgreement($id: UUID!) {
 
 mutation CreditFacilityAgreementGenerate($input: CreditFacilityAgreementGenerateInput!) {
   creditFacilityAgreementGenerate(input: $input) {
-    loanAgreement {
-      loanAgreementId
+    creditFacilityAgreement {
+      creditFacilityAgreementId
       status
       createdAt
     }
   }
 }
 
-mutation LoanAgreementDownloadLinkGenerate($input: LoanAgreementDownloadLinksGenerateInput!) {
-  loanAgreementDownloadLinkGenerate(input: $input) {
-    loanAgreementId
+mutation LoanAgreementDownloadLinkGenerate($input: CreditFacilityAgreementDownloadLinksGenerateInput!) {
+  creditFacilityAgreementDownloadLinkGenerate(input: $input) {
+    creditFacilityAgreementId
     link
   }
 }
