@@ -75,16 +75,20 @@ impl StaticCurrency for Btc {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct Untyped {
-    pub code: CurrencyCode,
-    pub minor_units_per_major: u64,
+    code: CurrencyCode,
+    minor_units_per_major: u64,
 }
 
 impl Untyped {
-    pub fn of<C: StaticCurrency>() -> Self {
+    pub(crate) fn from_raw(code: CurrencyCode, minor_units_per_major: u64) -> Self {
         Self {
-            code: C::CODE,
-            minor_units_per_major: C::MINOR_UNITS_PER_MAJOR,
+            code,
+            minor_units_per_major,
         }
+    }
+
+    pub(crate) fn of<C: StaticCurrency>() -> Self {
+        Self::from_raw(C::CODE, C::MINOR_UNITS_PER_MAJOR)
     }
 }
 

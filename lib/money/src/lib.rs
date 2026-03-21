@@ -5,13 +5,13 @@ mod code;
 mod currency;
 mod error;
 mod map;
-mod units;
+mod unit;
 
 pub use code::*;
 pub use currency::*;
 pub use error::ConversionError;
 pub use map::*;
-pub use units::{MinorUnits, SignedMinorUnits};
+pub use unit::{MinorUnits, SignedMinorUnits};
 
 // ---------------------------------------------------------------------------
 // Type aliases

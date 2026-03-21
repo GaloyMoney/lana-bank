@@ -36,16 +36,6 @@ impl<C: Currency> MinorUnits<C> {
     pub fn currency(&self) -> CurrencyCode {
         self.currency.code()
     }
-
-    pub fn to_untyped(self) -> MinorUnits<Untyped> {
-        MinorUnits {
-            value: self.value,
-            currency: Untyped {
-                code: self.currency.code(),
-                minor_units_per_major: self.currency.minor_units_per_major(),
-            },
-        }
-    }
 }
 
 impl<C: Currency> fmt::Display for MinorUnits<C> {
@@ -71,6 +61,13 @@ impl<C: StaticCurrency> MinorUnits<C> {
         value: 1,
         currency: C::INSTANCE,
     };
+
+    pub fn to_untyped(self) -> MinorUnits<Untyped> {
+        MinorUnits {
+            value: self.value,
+            currency: Untyped::of::<C>(),
+        }
+    }
 
     pub fn try_from_major(major: Decimal) -> Result<Self, ConversionError> {
         let minor = major * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
@@ -215,10 +212,10 @@ impl MinorUnits<Untyped> {
     }
 
     pub fn to_typed<C: StaticCurrency>(&self) -> Result<MinorUnits<C>, ConversionError> {
-        if self.currency.code != C::CODE {
+        if self.currency.code() != C::CODE {
             return Err(ConversionError::CurrencyMismatch {
                 expected: C::CODE,
-                actual: self.currency.code,
+                actual: self.currency.code(),
             });
         }
         Ok(MinorUnits {
@@ -232,11 +229,11 @@ impl Serialize for MinorUnits<Untyped> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeStruct;
         let mut s = serializer.serialize_struct("Amount", 3)?;
-        s.serialize_field("currency", &self.currency.code)?;
+        s.serialize_field("currency", &self.currency.code())?;
         s.serialize_field("minor_units", &self.value)?;
         s.serialize_field(
             "minor_units_per_major",
-            &self.currency.minor_units_per_major,
+            &self.currency.minor_units_per_major(),
         )?;
         s.end()
     }
@@ -253,10 +250,7 @@ impl<'de> Deserialize<'de> for MinorUnits<Untyped> {
         let raw = Raw::deserialize(deserializer)?;
         Ok(Self {
             value: raw.minor_units,
-            currency: Untyped {
-                code: raw.currency,
-                minor_units_per_major: raw.minor_units_per_major,
-            },
+            currency: Untyped::from_raw(raw.currency, raw.minor_units_per_major),
         })
     }
 }
