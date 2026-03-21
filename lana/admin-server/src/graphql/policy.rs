@@ -52,9 +52,9 @@ impl Policy {
 }
 
 #[derive(InputObject)]
-pub struct PolicyAssignCommitteeInput {
+pub struct PolicyCommitteeAssignInput {
     pub policy_id: UUID,
     pub committee_id: UUID,
 }
 
-mutation_payload! { PolicyAssignCommitteePayload, policy: Policy }
+mutation_payload! { PolicyCommitteeAssignPayload, policy: Policy }

@@ -25,12 +25,12 @@ import { Label } from "@lana/web/ui/label"
 
 import {
   useCommitteesQuery,
-  usePolicyAssignCommitteeMutation,
+  usePolicyCommitteeAssignMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
-    policyAssignCommittee(input: $input) {
+  mutation PolicyCommitteeAssign($input: PolicyCommitteeAssignInput!) {
+    policyCommitteeAssign(input: $input) {
       policy {
         policyId
         approvalProcessType
@@ -63,7 +63,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
   const t = useTranslations("Policies.PolicyDetails.CommitteeAssignmentDialog")
 
   const [assignCommittee, { loading, reset, error: assignCommitteeError }] =
-    usePolicyAssignCommitteeMutation()
+    usePolicyCommitteeAssignMutation()
   const { data: committeeData, loading: committeesLoading } = useCommitteesQuery({
     variables: { first: 100 },
   })
@@ -90,7 +90,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
         },
       })
 
-      if (data?.policyAssignCommittee.policy) {
+      if (data?.policyCommitteeAssign.policy) {
         toast.success(t("success.assigned"))
         setOpenAssignDialog(false)
       } else {

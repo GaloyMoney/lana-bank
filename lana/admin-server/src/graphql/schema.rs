@@ -1394,15 +1394,15 @@ impl Mutation {
         )
     }
 
-    async fn user_update_role(
+    async fn user_role_update(
         &self,
         ctx: &Context<'_>,
-        input: UserUpdateRoleInput,
-    ) -> async_graphql::Result<UserUpdateRolePayload> {
+        input: UserRoleUpdateInput,
+    ) -> async_graphql::Result<UserRoleUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let UserUpdateRoleInput { user_id, role_id } = input;
+        let UserRoleUpdateInput { user_id, role_id } = input;
         exec_mutation!(
-            UserUpdateRolePayload,
+            UserRoleUpdatePayload,
             User,
             ctx,
             app.access().update_role_of_user(sub, user_id, role_id)
@@ -1427,15 +1427,15 @@ impl Mutation {
         )
     }
 
-    async fn role_add_permission_sets(
+    async fn role_permission_sets_add(
         &self,
         ctx: &Context<'_>,
-        input: RoleAddPermissionSetsInput,
-    ) -> async_graphql::Result<RoleAddPermissionSetsPayload> {
+        input: RolePermissionSetsAddInput,
+    ) -> async_graphql::Result<RolePermissionSetsAddPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         exec_mutation!(
-            RoleAddPermissionSetsPayload,
+            RolePermissionSetsAddPayload,
             Role,
             ctx,
             app.access()
@@ -1443,15 +1443,15 @@ impl Mutation {
         )
     }
 
-    async fn role_remove_permission_sets(
+    async fn role_permission_sets_remove(
         &self,
         ctx: &Context<'_>,
-        input: RoleRemovePermissionSetsInput,
-    ) -> async_graphql::Result<RoleRemovePermissionSetsPayload> {
+        input: RolePermissionSetsRemoveInput,
+    ) -> async_graphql::Result<RolePermissionSetsRemovePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         exec_mutation!(
-            RoleRemovePermissionSetsPayload,
+            RolePermissionSetsRemovePayload,
             Role,
             ctx,
             app.access().remove_permission_sets_from_role(
@@ -2396,14 +2396,14 @@ impl Mutation {
         )
     }
 
-    async fn committee_add_user(
+    async fn committee_user_add(
         &self,
         ctx: &Context<'_>,
-        input: CommitteeAddUserInput,
-    ) -> async_graphql::Result<CommitteeAddUserPayload> {
+        input: CommitteeUserAddInput,
+    ) -> async_graphql::Result<CommitteeUserAddPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            CommitteeAddUserPayload,
+            CommitteeUserAddPayload,
             Committee,
             ctx,
             app.governance()
@@ -2411,14 +2411,14 @@ impl Mutation {
         )
     }
 
-    async fn committee_remove_user(
+    async fn committee_user_remove(
         &self,
         ctx: &Context<'_>,
-        input: CommitteeRemoveUserInput,
-    ) -> async_graphql::Result<CommitteeRemoveUserPayload> {
+        input: CommitteeUserRemoveInput,
+    ) -> async_graphql::Result<CommitteeUserRemovePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            CommitteeRemoveUserPayload,
+            CommitteeUserRemovePayload,
             Committee,
             ctx,
             app.governance()
@@ -2426,14 +2426,14 @@ impl Mutation {
         )
     }
 
-    async fn policy_assign_committee(
+    async fn policy_committee_assign(
         &self,
         ctx: &Context<'_>,
-        input: PolicyAssignCommitteeInput,
-    ) -> async_graphql::Result<PolicyAssignCommitteePayload> {
+        input: PolicyCommitteeAssignInput,
+    ) -> async_graphql::Result<PolicyCommitteeAssignPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            PolicyAssignCommitteePayload,
+            PolicyCommitteeAssignPayload,
             Policy,
             ctx,
             app.governance()
@@ -2745,17 +2745,17 @@ impl Mutation {
         })
     }
 
-    async fn report_file_generate_download_link(
+    async fn report_file_download_link_generate(
         &self,
         ctx: &Context<'_>,
-        input: ReportFileGenerateDownloadLinkInput,
-    ) -> async_graphql::Result<ReportFileGenerateDownloadLinkPayload> {
+        input: ReportFileDownloadLinkGenerateInput,
+    ) -> async_graphql::Result<ReportFileDownloadLinkGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let url = app
             .reports()
             .generate_report_file_download_link(sub, input.report_id, input.extension)
             .await?;
-        Ok(ReportFileGenerateDownloadLinkPayload { url })
+        Ok(ReportFileDownloadLinkGeneratePayload { url })
     }
 }
 

@@ -19,24 +19,24 @@ import {
 
 import {
   usePermissionSetsQuery,
-  useRoleAddPermissionSetsMutation,
-  useRoleRemovePermissionSetsMutation,
+  useRolePermissionSetsAddMutation,
+  useRolePermissionSetsRemoveMutation,
   useRoleQuery,
   RoleEventHistoryDocument,
 } from "@/lib/graphql/generated"
 import { usePermissionDisplay } from "@/hooks/use-permission-display"
 
 gql`
-  mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
-    roleAddPermissionSets(input: $input) {
+  mutation RolePermissionSetsAdd($input: RolePermissionSetsAddInput!) {
+    rolePermissionSetsAdd(input: $input) {
       role {
         ...RoleFields
       }
     }
   }
 
-  mutation RoleRemovePermissionSets($input: RoleRemovePermissionSetsInput!) {
-    roleRemovePermissionSets(input: $input) {
+  mutation RolePermissionSetsRemove($input: RolePermissionSetsRemoveInput!) {
+    rolePermissionSetsRemove(input: $input) {
       role {
         ...RoleFields
       }
@@ -75,12 +75,12 @@ export default function EditRolePage({
     })
 
   const [addPermissionSets, { loading: addingPermissions }] =
-    useRoleAddPermissionSetsMutation({
+    useRolePermissionSetsAddMutation({
       refetchQueries: [RoleEventHistoryDocument],
     })
 
   const [removePermissionSet, { loading: removingPermission }] =
-    useRoleRemovePermissionSetsMutation({
+    useRolePermissionSetsRemoveMutation({
       refetchQueries: [RoleEventHistoryDocument],
     })
 

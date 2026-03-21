@@ -85,7 +85,7 @@ wait_for_report_run_complete() {
       exec_admin_graphql 'report-file-download-link' "$variables"
       echo "Download link response: $(graphql_output)"
 
-      url=$(graphql_output '.data.reportFileGenerateDownloadLink.url')
+      url=$(graphql_output '.data.reportFileDownloadLinkGenerate.url')
       [[ "$url" != "null" && -n "$url" ]] || exit 1
 
       # Handle both local file:// URLs and HTTP URLs

@@ -94,11 +94,11 @@ pub struct UserCreateInput {
 mutation_payload! { UserCreatePayload, user: User }
 
 #[derive(InputObject)]
-pub struct UserUpdateRoleInput {
+pub struct UserRoleUpdateInput {
     pub user_id: UUID,
     pub role_id: UUID,
 }
-mutation_payload! { UserUpdateRolePayload, user: User }
+mutation_payload! { UserRoleUpdatePayload, user: User }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum UsersSortBy {
