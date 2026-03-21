@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id AS \"id: PendingCreditFacilityId\", created_at\n               FROM core_pending_credit_facilities\n               WHERE status != 'Completed'\n                 AND (($1::timestamptz IS NULL) OR (created_at, id) > ($1, $2))\n               ORDER BY created_at, id\n               LIMIT $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: PendingCreditFacilityId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "1b15b6c4754f83ba807e709b18d8d6c321f513da6b3c801af1a3ffe5027da04d"
+}
