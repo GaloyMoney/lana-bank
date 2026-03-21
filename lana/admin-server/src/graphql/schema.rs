@@ -3028,10 +3028,10 @@ impl Subscription {
         Ok(filtered_stream)
     }
 
-    async fn end_of_day_completed(
+    async fn eod_process_updated(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<impl Stream<Item = EndOfDayEvent>> {
+    ) -> async_graphql::Result<impl Stream<Item = EodProcess>> {
         let app = ctx.data_unchecked::<LanaApp>();
 
         let outbox_stream = app.outbox().listen_persisted(None);
@@ -3040,7 +3040,7 @@ impl Subscription {
             let eod_event: &CoreEodEvent = payload.as_event()?;
             match eod_event {
                 CoreEodEvent::EodProcessCompleted { entity }
-                | CoreEodEvent::EodProcessFailed { entity } => Some(EndOfDayEvent {
+                | CoreEodEvent::EodProcessFailed { entity } => Some(EodProcess {
                     id: UUID::from(entity.id),
                     date: entity.date.into(),
                     status: EodProcessStatus::from(entity.status),

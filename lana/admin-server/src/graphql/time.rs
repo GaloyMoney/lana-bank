@@ -35,7 +35,7 @@ impl From<lana_app::eod::EodProcessStatus> for EodProcessStatus {
 }
 
 #[derive(SimpleObject, Clone)]
-pub struct EndOfDayEvent {
+pub struct EodProcess {
     pub id: UUID,
     pub date: Date,
     pub status: EodProcessStatus,
