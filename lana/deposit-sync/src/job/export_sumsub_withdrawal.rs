@@ -6,7 +6,7 @@ use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
-    GovernanceAction, GovernanceObject, UsdCents, WithdrawalId,
+    GovernanceAction, GovernanceObject, UntypedAmount, WithdrawalId,
 };
 use governance::GovernanceEvent;
 use job::*;
@@ -24,7 +24,7 @@ pub const EXPORT_SUMSUB_WITHDRAWAL_COMMAND: JobType =
 pub struct ExportSumsubWithdrawalConfig {
     pub deposit_account_id: DepositAccountId,
     pub withdrawal_id: WithdrawalId,
-    pub amount: UsdCents,
+    pub amount: UntypedAmount,
 }
 
 pub struct ExportSumsubWithdrawalJobInitializer<Perms, E>
@@ -147,7 +147,7 @@ where
         // Valid use case branching
         // lint:allow(service-conditionals)
         if customer.should_sync_financial_transactions() {
-            let amount_usd: f64 = self.config.amount.to_usd().try_into()?;
+            let amount_usd: f64 = self.config.amount.to_major().try_into()?;
             self.sumsub_client
                 .submit_finance_transaction(
                     account.account_holder_id,

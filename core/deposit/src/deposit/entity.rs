@@ -4,9 +4,11 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use es_entity::*;
-use money::UsdCents;
+use money::UntypedAmount;
 
-use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId, DepositStatus, PublicId};
+use crate::primitives::{
+    CalaAccountId, CalaTransactionId, DepositAccountId, DepositId, DepositStatus, PublicId,
+};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -17,7 +19,8 @@ pub enum DepositEvent {
         id: DepositId,
         ledger_tx_id: CalaTransactionId,
         deposit_account_id: DepositAccountId,
-        amount: UsdCents,
+        ledger_account_id: CalaAccountId,
+        amount: UntypedAmount,
         reference: String,
         status: DepositStatus,
         public_id: PublicId,
@@ -32,8 +35,8 @@ pub enum DepositEvent {
 pub struct DepositReversalData {
     pub entity_id: DepositId,
     pub ledger_tx_id: CalaTransactionId,
-    pub credit_account_id: DepositAccountId,
-    pub amount: UsdCents,
+    pub credit_account_id: CalaAccountId,
+    pub amount: UntypedAmount,
     pub correlation_id: String,
     pub external_id: String,
 }
@@ -43,7 +46,8 @@ pub struct DepositReversalData {
 pub struct Deposit {
     pub id: DepositId,
     pub deposit_account_id: DepositAccountId,
-    pub amount: UsdCents,
+    pub ledger_account_id: CalaAccountId,
+    pub amount: UntypedAmount,
     pub reference: String,
     pub public_id: PublicId,
     events: EntityEvents<DepositEvent>,
@@ -83,7 +87,7 @@ impl Deposit {
         Idempotent::Executed(DepositReversalData {
             entity_id: self.id,
             ledger_tx_id,
-            credit_account_id: self.deposit_account_id,
+            credit_account_id: self.ledger_account_id,
             amount: self.amount,
             correlation_id: self.id.to_string(),
             external_id: format!("lana:deposit:{}:reverted", self.id),
@@ -110,6 +114,7 @@ impl TryFromEvents<DepositEvent> for Deposit {
                     id,
                     reference,
                     deposit_account_id,
+                    ledger_account_id,
                     amount,
                     public_id,
                     ..
@@ -117,6 +122,7 @@ impl TryFromEvents<DepositEvent> for Deposit {
                     builder = builder
                         .id(*id)
                         .deposit_account_id(*deposit_account_id)
+                        .ledger_account_id(*ledger_account_id)
                         .amount(*amount)
                         .reference(reference.clone())
                         .public_id(public_id.clone());
@@ -138,7 +144,9 @@ pub struct NewDeposit {
     #[builder(setter(into))]
     pub(super) deposit_account_id: DepositAccountId,
     #[builder(setter(into))]
-    pub(super) amount: UsdCents,
+    pub(super) ledger_account_id: CalaAccountId,
+    #[builder(setter(into))]
+    pub(super) amount: UntypedAmount,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
     reference: Option<String>,
@@ -178,6 +186,7 @@ impl IntoEvents<DepositEvent> for NewDeposit {
                 id: self.id,
                 ledger_tx_id: self.ledger_transaction_id,
                 deposit_account_id: self.deposit_account_id,
+                ledger_account_id: self.ledger_account_id,
                 amount: self.amount,
                 status: DepositStatus::Confirmed,
                 public_id: self.public_id,
@@ -189,6 +198,7 @@ impl IntoEvents<DepositEvent> for NewDeposit {
 #[cfg(test)]
 mod test {
     use super::*;
+    use money::UsdCents;
 
     #[test]
     fn errors_when_zero_amount_deposit_amount_is_passed() {
@@ -196,6 +206,7 @@ mod test {
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
+            .ledger_account_id(CalaAccountId::new())
             .amount(UsdCents::ZERO)
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
@@ -213,6 +224,7 @@ mod test {
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
+            .ledger_account_id(CalaAccountId::new())
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
             .build();
@@ -229,6 +241,7 @@ mod test {
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
+            .ledger_account_id(CalaAccountId::new())
             .amount(UsdCents::ONE)
             .reference(None)
             .public_id(PublicId::new("test-public-id"))
@@ -243,6 +256,7 @@ mod test {
             .id(DepositId::new())
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
+            .ledger_account_id(CalaAccountId::new())
             .amount(UsdCents::ONE)
             .reference(None)
             .public_id(PublicId::new("test-public-id"))

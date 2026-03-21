@@ -690,6 +690,7 @@ pub struct PendingFacilityState {
     pub pending_facility_id: PendingCreditFacilityId,
     pub collateral_id: CollateralId,
     pub deposit_account_id: core_deposit::DepositAccountId,
+    pub deposit_ledger_account_id: core_deposit::CalaAccountId,
     pub amount: money::UsdCents,
     pub terms: TermValues,
 }
@@ -710,8 +711,13 @@ pub async fn create_pending_facility(
 
     let deposit_account = ctx
         .deposit
-        .create_account(&DummySubject, customer.id)
+        .create_account(&DummySubject, customer.id, [money::CurrencyCode::USD])
         .await?;
+    let deposit_ledger_account_id = deposit_account
+        .account_ids
+        .get(&money::CurrencyCode::USD)?
+        .expect("USD ledger account must exist for USD deposit account")
+        .active;
 
     let amount = money::UsdCents::from(1_000_000);
     let proposal = ctx
@@ -719,7 +725,7 @@ pub async fn create_pending_facility(
         .create_facility_proposal(
             &DummySubject,
             customer.id,
-            deposit_account.id,
+            deposit_ledger_account_id,
             amount,
             terms,
             ctx.manual_custodian_id,
@@ -761,6 +767,7 @@ pub async fn create_pending_facility(
         pending_facility_id,
         collateral_id: pf.collateral_id,
         deposit_account_id: deposit_account.id,
+        deposit_ledger_account_id,
         amount,
         terms,
     })
@@ -770,6 +777,7 @@ pub struct ActiveFacilityState {
     pub facility_id: CreditFacilityId,
     pub collateral_id: CollateralId,
     pub deposit_account_id: core_deposit::DepositAccountId,
+    pub deposit_ledger_account_id: core_deposit::CalaAccountId,
     pub customer_id: CustomerId,
     pub amount: money::UsdCents,
 }
@@ -819,6 +827,7 @@ pub async fn create_active_facility(
         facility_id,
         collateral_id: state.collateral_id,
         deposit_account_id: state.deposit_account_id,
+        deposit_ledger_account_id: state.deposit_ledger_account_id,
         customer_id: state.customer_id,
         amount: state.amount,
     })

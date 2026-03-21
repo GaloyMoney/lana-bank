@@ -40,11 +40,17 @@ pub struct DepositAccountBalance {
     pending: UsdCents,
 }
 
-impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
-    fn from(balance: lana_app::deposit::DepositAccountBalance) -> Self {
-        Self {
-            settled: balance.settled,
-            pending: balance.pending,
+impl From<lana_app::deposit::DepositAccountBalances> for DepositAccountBalance {
+    fn from(balances: lana_app::deposit::DepositAccountBalances) -> Self {
+        match balances.get(&CurrencyCode::USD) {
+            Ok(Some(bal)) => Self {
+                settled: bal.settled.to_typed().unwrap_or(UsdCents::ZERO),
+                pending: bal.pending.to_typed().unwrap_or(UsdCents::ZERO),
+            },
+            _ => Self {
+                settled: UsdCents::ZERO,
+                pending: UsdCents::ZERO,
+            },
         }
     }
 }

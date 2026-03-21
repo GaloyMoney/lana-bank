@@ -97,7 +97,7 @@ where
                         withdraw.id,
                         denied_tx_id,
                         withdraw.amount,
-                        withdraw.deposit_account_id,
+                        withdraw.ledger_account_id,
                         &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
                             crate::primitives::DEPOSIT_APPROVAL,
                         ),

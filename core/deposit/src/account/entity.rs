@@ -147,7 +147,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                     builder = builder
                         .id(*id)
                         .account_holder_id(*account_holder_id)
-                        .account_ids(*account_ids)
+                        .account_ids(account_ids.clone())
                         .status(*status)
                         .activity(*activity)
                         .public_id(public_id.clone())
@@ -176,7 +176,6 @@ pub struct NewDepositAccount {
     pub(super) id: DepositAccountId,
     #[builder(setter(into))]
     pub(super) account_holder_id: DepositAccountHolderId,
-    #[builder(setter(into))]
     pub(super) account_ids: DepositAccountLedgerAccountIds,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
@@ -214,21 +213,36 @@ fn default_account_activity() -> Activity {
 
 #[cfg(test)]
 mod tests {
+    use cala_ledger::AccountId as CalaAccountId;
     use es_entity::{EntityEvents, TryFromEvents as _};
     use public_id::PublicId;
 
-    use crate::{Activity, DepositAccountHolderId, DepositAccountId, DepositAccountStatus};
+    use crate::{
+        Activity, DepositAccountHolderId, DepositAccountId, DepositAccountStatus,
+        primitives::CurrencyCode,
+    };
 
     use super::{
         DepositAccount, DepositAccountError, DepositAccountEvent, DepositAccountLedgerAccountIds,
+        LedgerAccountPair,
     };
 
     fn initial_events() -> Vec<DepositAccountEvent> {
         let id = DepositAccountId::new();
+
+        // Build a single-currency (USD) account for tests
+        let mut account_ids = DepositAccountLedgerAccountIds::new([CurrencyCode::USD]);
+        account_ids
+            .insert(
+                CurrencyCode::USD,
+                LedgerAccountPair::new(id.into(), CalaAccountId::new()),
+            )
+            .expect("insert USD pair");
+
         vec![DepositAccountEvent::Initialized {
             id,
             account_holder_id: DepositAccountHolderId::new(),
-            account_ids: DepositAccountLedgerAccountIds::new(id),
+            account_ids,
             status: DepositAccountStatus::Active,
             activity: Activity::Active,
             public_id: PublicId::new("1"),

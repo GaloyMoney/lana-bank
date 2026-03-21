@@ -29,6 +29,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerO
 use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
+use money::{Currency, MinorUnits};
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use public_id::PublicIds;
 
@@ -47,7 +48,7 @@ use deposit::*;
 pub use deposit::{
     Deposit, DepositsByCreatedAtCursor, DepositsCursor, DepositsFilters, DepositsSortBy,
 };
-pub use deposit_account_balance::DepositAccountBalance;
+pub use deposit_account_balance::{DepositAccountBalance, DepositAccountBalances};
 use error::*;
 pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
@@ -227,11 +228,12 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "deposit.create_account", skip(self))]
+    #[instrument(name = "deposit.create_account", skip(self, currencies))]
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + Copy + std::fmt::Debug,
+        currencies: impl IntoIterator<Item = CurrencyCode>,
     ) -> Result<DepositAccount, CoreDepositError> {
         self.authz
             .enforce_permission(
@@ -240,6 +242,11 @@ where
                 CoreDepositAction::DEPOSIT_ACCOUNT_CREATE,
             )
             .await?;
+
+        let currencies: Vec<CurrencyCode> = currencies.into_iter().collect();
+        if currencies.is_empty() {
+            return Err(CoreDepositError::NoCurrenciesProvided);
+        }
 
         let customer_id = CustomerId::from(holder_id.into());
 
@@ -257,7 +264,15 @@ where
             .create_in_op(&mut op, DEPOSIT_ACCOUNT_REF_TARGET, account_id)
             .await?;
 
-        let account_ids = DepositAccountLedgerAccountIds::new(account_id);
+        let mut account_ids = DepositAccountLedgerAccountIds::new(currencies.iter().copied());
+        for currency in &currencies {
+            account_ids
+                .insert(
+                    *currency,
+                    LedgerAccountPair::new(CalaAccountId::new(), CalaAccountId::new()),
+                )
+                .expect("currency in allowed set");
+        }
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
@@ -361,11 +376,11 @@ where
 
     #[record_error_severity]
     #[instrument(name = "deposit.record_deposit", skip(self))]
-    pub async fn record_deposit(
+    pub async fn record_deposit<C: Currency>(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-        amount: UsdCents,
+        amount: MinorUnits<C>,
         reference: Option<String>,
     ) -> Result<Deposit, CoreDepositError> {
         let deposit_account_id = deposit_account_id.into();
@@ -376,9 +391,11 @@ where
                 CoreDepositAction::DEPOSIT_CREATE,
             )
             .await?;
-        self.check_account_active(deposit_account_id).await?;
         let deposit_id = DepositId::new();
         let mut op = self.deposits.begin_op().await?;
+        let ledger_account_id = self
+            .find_active_ledger_account_id_in_op(&mut op, deposit_account_id, amount.currency())
+            .await?;
         let public_id = self
             .public_ids
             .create_in_op(&mut op, DEPOSIT_REF_TARGET, deposit_id)
@@ -388,13 +405,14 @@ where
             .id(deposit_id)
             .ledger_transaction_id(deposit_id)
             .deposit_account_id(deposit_account_id)
-            .amount(amount)
+            .ledger_account_id(ledger_account_id)
+            .amount(amount.to_untyped())
             .public_id(public_id.id)
             .reference(reference)
             .build()?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
         self.ledger
-            .record_deposit_in_op(&mut op, deposit_id, amount, deposit_account_id, sub)
+            .record_deposit_in_op(&mut op, deposit_id, amount, ledger_account_id, sub)
             .await?;
         op.commit().await?;
         Ok(deposit)
@@ -402,11 +420,11 @@ where
 
     #[record_error_severity]
     #[instrument(name = "deposit.initiate_withdrawal", skip(self))]
-    pub async fn initiate_withdrawal(
+    pub async fn initiate_withdrawal<C: Currency>(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-        amount: UsdCents,
+        amount: MinorUnits<C>,
         reference: Option<String>,
     ) -> Result<Withdrawal, CoreDepositError> {
         let deposit_account_id = deposit_account_id.into();
@@ -417,9 +435,11 @@ where
                 CoreDepositAction::WITHDRAWAL_INITIATE,
             )
             .await?;
-        self.check_account_active(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
         let mut op = self.withdrawals.begin_op().await?;
+        let ledger_account_id = self
+            .find_active_ledger_account_id_in_op(&mut op, deposit_account_id, amount.currency())
+            .await?;
         let public_id = self
             .public_ids
             .create_in_op(&mut op, WITHDRAWAL_REF_TARGET, withdrawal_id)
@@ -428,7 +448,8 @@ where
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
             .deposit_account_id(deposit_account_id)
-            .amount(amount)
+            .ledger_account_id(ledger_account_id)
+            .amount(amount.to_untyped())
             .approval_process_id(withdrawal_id)
             .public_id(public_id.id)
             .reference(reference)
@@ -448,7 +469,7 @@ where
             .await?;
 
         self.ledger
-            .initiate_withdrawal_in_op(&mut op, withdrawal_id, amount, deposit_account_id, sub)
+            .initiate_withdrawal_in_op(&mut op, withdrawal_id, amount, ledger_account_id, sub)
             .await?;
 
         op.commit().await?;
@@ -556,7 +577,7 @@ where
                 tx_id,
                 withdrawal.id.to_string(),
                 withdrawal.amount,
-                withdrawal.deposit_account_id,
+                withdrawal.ledger_account_id,
                 format!("lana:withdraw:{}:confirm", withdrawal.id),
                 sub,
             )
@@ -599,7 +620,7 @@ where
                 id,
                 tx_id,
                 withdrawal.amount,
-                withdrawal.deposit_account_id,
+                withdrawal.ledger_account_id,
                 sub,
             )
             .await?;
@@ -790,24 +811,24 @@ where
                 CoreDepositAction::DEPOSIT_ACCOUNT_CLOSE,
             )
             .await?;
-        let balance = self.ledger.balance(account_id).await?;
-        if !balance.is_zero() {
-            return Err(DepositAccountError::BalanceIsNotZero.into());
-        }
-
         let mut op = self.deposit_accounts.begin_op().await?;
         let mut account = self
             .deposit_accounts
             .find_by_id_in_op(&mut op, account_id)
             .await?;
 
+        let balances = self.ledger.balance(&account.account_ids).await?;
+        if !balances.iter().all(|(_, bal)| bal.is_zero()) {
+            return Err(DepositAccountError::BalanceIsNotZero.into());
+        }
+
         if account.close()?.did_execute() {
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
-            self.ledger
-                .lock_account_in_op(&mut op, account_id.into())
-                .await?;
+            for (_, pair) in account.account_ids.iter() {
+                self.ledger.lock_account_in_op(&mut op, pair.active).await?;
+            }
 
             op.commit().await?;
         }
@@ -821,7 +842,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-    ) -> Result<DepositAccountBalance, CoreDepositError> {
+    ) -> Result<DepositAccountBalances, CoreDepositError> {
         let account_id = account_id.into();
         let _ = self
             .authz
@@ -832,7 +853,8 @@ where
             )
             .await?;
 
-        let balance = self.ledger.balance(account_id).await?;
+        let account = self.deposit_accounts.find_by_id(account_id).await?;
+        let balance = self.ledger.balance(&account.account_ids).await?;
         Ok(balance)
     }
 
@@ -1276,10 +1298,35 @@ where
         deposit_account_id: DepositAccountId,
     ) -> Result<(), CoreDepositError> {
         let account = self.deposit_accounts.find_by_id(deposit_account_id).await?;
+        self.ensure_account_active(&account)
+    }
+
+    fn ensure_account_active(&self, account: &DepositAccount) -> Result<(), CoreDepositError> {
         match account.status {
             DepositAccountStatus::Frozen => Err(CoreDepositError::DepositAccountFrozen),
             DepositAccountStatus::Closed => Err(CoreDepositError::DepositAccountClosed),
             DepositAccountStatus::Active => Ok(()),
+        }
+    }
+
+    async fn find_active_ledger_account_id_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        deposit_account_id: DepositAccountId,
+        currency: CurrencyCode,
+    ) -> Result<CalaAccountId, CoreDepositError> {
+        let account = self
+            .deposit_accounts
+            .find_by_id_in_op(op, deposit_account_id)
+            .await?;
+        self.ensure_account_active(&account)?;
+        match account.account_ids.get(&currency) {
+            Ok(Some(pair)) => Ok(pair.active),
+            Ok(None) => Err(DepositAccountError::MissingLedgerAccountForCurrency(
+                account.id, currency,
+            )
+            .into()),
+            Err(_) => Err(DepositAccountError::CurrencyNotAllowed(account.id, currency).into()),
         }
     }
 }

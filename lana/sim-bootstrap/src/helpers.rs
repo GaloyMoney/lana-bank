@@ -6,7 +6,7 @@ use lana_app::{
     app::LanaApp,
     custody::{CustodiansSortBy, custodian::CustodianConfig},
     customer::{CustomerId, CustomerType},
-    primitives::{CustodianId, DepositAccountId, Subject, UsdCents},
+    primitives::{CurrencyCode, CustodianId, DepositAccountId, Subject, UsdCents},
     terms::{DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, TermValues},
 };
 
@@ -47,7 +47,10 @@ pub async fn create_customer(
                 .customers()
                 .create_customer_bypassing_kyc(sub, customer_email.clone(), telegram, customer_type)
                 .await?;
-            let deposit_account = app.deposits().create_account(sub, customer.id).await?;
+            let deposit_account = app
+                .deposits()
+                .create_account(sub, customer.id, [CurrencyCode::USD])
+                .await?;
             Ok((customer.id, deposit_account.id))
         }
     }

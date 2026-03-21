@@ -1,17 +1,19 @@
-use money::UsdCents;
+use money::UntypedAmount;
 
+use crate::primitives::RestrictedCurrencyMap;
+
+/// Balance for a single currency within a deposit account.
+#[derive(Debug, Clone, Copy)]
 pub struct DepositAccountBalance {
-    pub settled: UsdCents,
-    pub pending: UsdCents,
+    pub settled: UntypedAmount,
+    pub pending: UntypedAmount,
 }
 
 impl DepositAccountBalance {
-    pub const ZERO: Self = DepositAccountBalance {
-        settled: UsdCents::ZERO,
-        pending: UsdCents::ZERO,
-    };
-
     pub fn is_zero(&self) -> bool {
         self.settled.is_zero() && self.pending.is_zero()
     }
 }
+
+/// Per-currency balances for a deposit account, restricted to the account's currency scope.
+pub type DepositAccountBalances = RestrictedCurrencyMap<DepositAccountBalance>;

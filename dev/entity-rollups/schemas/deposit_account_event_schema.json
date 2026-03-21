@@ -8,29 +8,55 @@
       ],
       "type": "string"
     },
-    "DepositAccountLedgerAccountIds": {
-      "properties": {
-        "deposit_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "frozen_deposit_account_id": {
-          "format": "uuid",
-          "type": "string"
-        }
-      },
-      "required": [
-        "deposit_account_id",
-        "frozen_deposit_account_id"
-      ],
-      "type": "object"
-    },
     "DepositAccountStatus": {
       "enum": [
         "active",
         "frozen",
         "closed"
       ],
+      "type": "string"
+    },
+    "LedgerAccountPair": {
+      "description": "A pair of CALA ledger accounts for a single currency: one active, one frozen.",
+      "properties": {
+        "active": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "frozen": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "active",
+        "frozen"
+      ],
+      "type": "object"
+    },
+    "RestrictedCurrencyMap": {
+      "properties": {
+        "allowed": {
+          "items": {
+            "$ref": "#/$defs/string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "inner": {
+          "additionalProperties": {
+            "$ref": "#/$defs/LedgerAccountPair"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "allowed",
+        "inner"
+      ],
+      "type": "object"
+    },
+    "string": {
       "type": "string"
     }
   },
@@ -43,7 +69,7 @@
           "type": "string"
         },
         "account_ids": {
-          "$ref": "#/$defs/DepositAccountLedgerAccountIds"
+          "$ref": "#/$defs/RestrictedCurrencyMap"
         },
         "activity": {
           "$ref": "#/$defs/Activity",

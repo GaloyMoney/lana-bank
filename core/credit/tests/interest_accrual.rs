@@ -222,7 +222,7 @@ async fn create_active_facility_with_clock(
 
     let deposit_account = ctx
         .deposit
-        .create_account(&DummySubject, customer.id)
+        .create_account(&DummySubject, customer.id, [money::CurrencyCode::USD])
         .await?;
 
     let amount = UsdCents::from(1_000_000);
@@ -302,6 +302,11 @@ async fn create_active_facility_with_clock(
         facility_id,
         collateral_id: pending_facility.collateral_id,
         deposit_account_id: deposit_account.id,
+        deposit_ledger_account_id: deposit_account
+            .account_ids
+            .get(&money::CurrencyCode::USD)?
+            .expect("USD ledger account must exist for USD deposit account")
+            .active,
         customer_id: customer.id,
         amount,
     })

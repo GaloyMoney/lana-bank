@@ -6,6 +6,7 @@ use super::repo::{
     DepositAccountCreateError, DepositAccountFindError, DepositAccountModifyError,
     DepositAccountQueryError,
 };
+use crate::CurrencyCode;
 
 #[derive(Error, Debug)]
 pub enum DepositAccountError {
@@ -23,6 +24,10 @@ pub enum DepositAccountError {
     CannotUpdateClosedAccount(crate::DepositAccountId),
     #[error("DepositAccountError - CannotUpdateFrozenAccount")]
     CannotUpdateFrozenAccount(crate::DepositAccountId),
+    #[error("DepositAccountError - CurrencyNotAllowed(account_id={0}, currency={1})")]
+    CurrencyNotAllowed(crate::DepositAccountId, CurrencyCode),
+    #[error("DepositAccountError - MissingLedgerAccountForCurrency(account_id={0}, currency={1})")]
+    MissingLedgerAccountForCurrency(crate::DepositAccountId, CurrencyCode),
     #[error("DepositAccountError - BalanceIsNotZero")]
     BalanceIsNotZero,
 }
@@ -37,6 +42,8 @@ impl ErrorSeverity for DepositAccountError {
             Self::Query(_) => Level::ERROR,
             Self::CannotUpdateClosedAccount(_) => Level::WARN,
             Self::CannotUpdateFrozenAccount(_) => Level::WARN,
+            Self::CurrencyNotAllowed(_, _) => Level::WARN,
+            Self::MissingLedgerAccountForCurrency(_, _) => Level::ERROR,
             Self::BalanceIsNotZero => Level::WARN,
         }
     }

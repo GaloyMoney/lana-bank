@@ -11,6 +11,7 @@ use super::code::CurrencyCode;
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(transparent)]
 pub struct CurrencySet {
     inner: HashSet<CurrencyCode>,
@@ -55,6 +56,7 @@ pub enum CurrencyMapError {
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(transparent)]
 pub struct CurrencyMap<V> {
     inner: HashMap<CurrencyCode, V>,
@@ -181,6 +183,7 @@ impl<V> From<HashMap<CurrencyCode, V>> for CurrencyMap<V> {
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct RestrictedCurrencyMap<V> {
     allowed: CurrencySet,
     inner: CurrencyMap<V>,

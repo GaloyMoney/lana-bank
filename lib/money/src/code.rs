@@ -8,8 +8,19 @@ use thiserror::Error;
 // CurrencyCode — runtime currency identifier
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CurrencyCode(&'static str);
+
+#[cfg(feature = "json-schema")]
+impl schemars::JsonSchema for CurrencyCode {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        String::schema_name()
+    }
+
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        String::json_schema(generator)
+    }
+}
 
 impl CurrencyCode {
     pub const USD: Self = Self("USD");
@@ -62,7 +73,7 @@ impl Serialize for CurrencyCode {
 
 impl<'de> Deserialize<'de> for CurrencyCode {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let s = <&str>::deserialize(deserializer)?;
+        let s = String::deserialize(deserializer)?;
         s.parse().map_err(serde::de::Error::custom)
     }
 }

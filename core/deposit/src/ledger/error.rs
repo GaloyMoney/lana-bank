@@ -26,6 +26,8 @@ pub enum DepositLedgerError {
     CalaVelocity(#[from] cala_ledger::velocity::error::VelocityError),
     #[error("DepositLedgerError - ConversionError: {0}")]
     ConversionError(#[from] money::ConversionError),
+    #[error("DepositLedgerError - CurrencyMapError: {0}")]
+    CurrencyMapError(#[from] money::CurrencyMapError),
     #[error("DepositLedgerError - MissingTxMetadata")]
     MissingTxMetadata,
     #[error("DepositLedgerError - MismatchedTxMetadata: {0}")]
@@ -36,6 +38,10 @@ pub enum DepositLedgerError {
     NonAccountMemberFoundInAccountSet(String),
     #[error("DepositLedgerError - JournalIdMismatch: Account sets have wrong JournalId")]
     JournalIdMismatch,
+    #[error("DepositLedgerError - ParseCurrencyError: {0}")]
+    ParseCurrencyError(#[from] cala_ledger::ParseCurrencyError),
+    #[error("DepositLedgerError - UnsupportedCurrency: {0}")]
+    UnsupportedCurrency(String),
 }
 
 impl ErrorSeverity for DepositLedgerError {
@@ -58,10 +64,13 @@ impl ErrorSeverity for DepositLedgerError {
             }
             Self::CalaVelocity(_) => Level::ERROR,
             Self::ConversionError(e) => e.severity(),
+            Self::CurrencyMapError(_) => Level::ERROR,
             Self::MissingTxMetadata => Level::WARN,
             Self::MismatchedTxMetadata(_) => Level::WARN,
             Self::NonAccountMemberFoundInAccountSet(_) => Level::ERROR,
             Self::JournalIdMismatch => Level::ERROR,
+            Self::ParseCurrencyError(_) => Level::ERROR,
+            Self::UnsupportedCurrency(_) => Level::ERROR,
         }
     }
 }

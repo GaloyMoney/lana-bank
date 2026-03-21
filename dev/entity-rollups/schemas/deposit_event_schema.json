@@ -1,10 +1,36 @@
 {
   "$defs": {
+    "Amount": {
+      "properties": {
+        "currency": {
+          "$ref": "#/$defs/string"
+        },
+        "minor_units": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minor_units_per_major": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "currency",
+        "minor_units",
+        "minor_units_per_major"
+      ],
+      "type": "object"
+    },
     "DepositStatus": {
       "enum": [
         "Confirmed",
         "Reverted"
       ],
+      "type": "string"
+    },
+    "string": {
       "type": "string"
     }
   },
@@ -13,15 +39,17 @@
     {
       "properties": {
         "amount": {
-          "format": "uint64",
-          "minimum": 0,
-          "type": "integer"
+          "$ref": "#/$defs/Amount"
         },
         "deposit_account_id": {
           "format": "uuid",
           "type": "string"
         },
         "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_account_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -48,6 +76,7 @@
         "id",
         "ledger_tx_id",
         "deposit_account_id",
+        "ledger_account_id",
         "amount",
         "reference",
         "status",

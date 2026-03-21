@@ -42,7 +42,10 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
             account_id: withdraw.deposit_account_id.into(),
             withdrawal_id: UUID::from(withdraw.id),
             approval_process_id: UUID::from(withdraw.approval_process_id),
-            amount: withdraw.amount,
+            amount: withdraw
+                .amount
+                .to_typed::<Usd>()
+                .expect("withdrawal amount is USD"),
             status: withdraw.status(),
             entity: Arc::new(withdraw),
         }

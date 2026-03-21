@@ -10,7 +10,7 @@
         "Varchar",
         "Varchar",
         "Varchar",
-        "Int8",
+        "Jsonb",
         "Timestamptz"
       ]
     },
