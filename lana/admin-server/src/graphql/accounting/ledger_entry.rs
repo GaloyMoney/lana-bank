@@ -1,8 +1,8 @@
 use async_graphql::*;
 
-pub use lana_app::accounting::journal::JournalEntryCursor;
+pub use lana_app::accounting::journal::LedgerEntryCursor;
 use lana_app::accounting::journal::{
-    JournalEntry as DomainJournalEntry, JournalEntryAmount as DomainJournalEntryAmount,
+    LedgerEntry as DomainLedgerEntry, LedgerEntryAmount as DomainLedgerEntryAmount,
 };
 use lana_app::primitives::{DebitOrCredit, Layer};
 
@@ -13,24 +13,24 @@ use crate::{graphql::loader::LanaDataLoader, primitives::*};
 #[derive(SimpleObject)]
 #[graphql(
     complex,
-    directive = crate::graphql::entity_key::entity_key::apply("journalEntryId".to_string())
+    directive = crate::graphql::entity_key::entity_key::apply("ledgerEntryId".to_string())
 )]
-pub struct JournalEntry {
-    journal_entry_id: UUID,
+pub struct LedgerEntry {
+    ledger_entry_id: UUID,
     tx_id: UUID,
-    amount: JournalEntryAmount,
+    amount: LedgerEntryAmount,
     direction: DebitOrCredit,
     layer: Layer,
     created_at: Timestamp,
 
     #[graphql(skip)]
-    pub entity: Arc<DomainJournalEntry>,
+    pub entity: Arc<DomainLedgerEntry>,
 }
 
-impl From<DomainJournalEntry> for JournalEntry {
-    fn from(entry: DomainJournalEntry) -> Self {
+impl From<DomainLedgerEntry> for LedgerEntry {
+    fn from(entry: DomainLedgerEntry) -> Self {
         Self {
-            journal_entry_id: entry.entry_id.into(),
+            ledger_entry_id: entry.entry_id.into(),
             tx_id: entry.ledger_transaction_id.into(),
             amount: entry.amount.into(),
             direction: entry.direction,
@@ -42,7 +42,7 @@ impl From<DomainJournalEntry> for JournalEntry {
 }
 
 #[ComplexObject]
-impl JournalEntry {
+impl LedgerEntry {
     pub async fn entry_type(&self) -> &str {
         &self.entity.entry_type
     }
@@ -74,7 +74,7 @@ impl JournalEntry {
 }
 
 #[derive(Union)]
-pub enum JournalEntryAmount {
+pub enum LedgerEntryAmount {
     Usd(UsdAmount),
     Btc(BtcAmount),
 }
@@ -89,11 +89,11 @@ pub struct BtcAmount {
     btc: Satoshis,
 }
 
-impl From<DomainJournalEntryAmount> for JournalEntryAmount {
-    fn from(amount: DomainJournalEntryAmount) -> Self {
+impl From<DomainLedgerEntryAmount> for LedgerEntryAmount {
+    fn from(amount: DomainLedgerEntryAmount) -> Self {
         match amount {
-            DomainJournalEntryAmount::Usd(usd) => JournalEntryAmount::Usd(UsdAmount { usd }),
-            DomainJournalEntryAmount::Btc(btc) => JournalEntryAmount::Btc(BtcAmount { btc }),
+            DomainLedgerEntryAmount::Usd(usd) => LedgerEntryAmount::Usd(UsdAmount { usd }),
+            DomainLedgerEntryAmount::Btc(btc) => LedgerEntryAmount::Btc(BtcAmount { btc }),
         }
     }
 }

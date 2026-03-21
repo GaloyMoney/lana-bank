@@ -55,7 +55,7 @@ gql`
         }
       }
       entries {
-        journalEntryId
+        ledgerEntryId
         entryType
         amount {
           __typename

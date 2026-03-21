@@ -3119,7 +3119,7 @@
     "noEntries": "No hay asientos contables para esta partida. Por favor, añada uno.",
     "addEntryBtn": "Añadir",
     "execute": "Crear",
-    "placeholdersJournalEntry": {
+    "placeholdersLedgerEntry": {
       "accountRef": "Introduce la referencia de cuenta",
       "currency": "Seleccione moneda",
       "amount": "Ingrese el monto",

@@ -6,7 +6,7 @@ use std::sync::Arc;
 use lana_app::{
     accounting::{
         AccountCode as DomainAccountCode, AccountCodeSection as DomainAccountCodeSection,
-        journal::JournalEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
+        journal::LedgerEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
     },
     credit::{COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE},
     deposit::DEPOSIT_ACCOUNT_ENTITY_TYPE,
@@ -22,7 +22,7 @@ use crate::{
     primitives::*,
 };
 
-use super::JournalEntry;
+use super::LedgerEntry;
 
 #[derive(Union)]
 pub enum LedgerAccountEntity {
@@ -154,7 +154,7 @@ impl LedgerAccount {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<JournalEntryCursor, JournalEntry, EmptyFields, EmptyFields>>
+    ) -> async_graphql::Result<Connection<LedgerEntryCursor, LedgerEntry, EmptyFields, EmptyFields>>
     {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
@@ -176,8 +176,8 @@ impl LedgerAccount {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = JournalEntryCursor::from(&entry);
-                        Edge::new(cursor, JournalEntry::from(entry))
+                        let cursor = LedgerEntryCursor::from(&entry);
+                        Edge::new(cursor, LedgerEntry::from(entry))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
             },

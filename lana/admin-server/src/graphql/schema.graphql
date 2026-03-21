@@ -1714,50 +1714,6 @@ enum InterestInterval {
 	END_OF_MONTH
 }
 
-type JournalEntry @entity_key(field: "journalEntryId") {
-	amount: JournalEntryAmount!
-	createdAt: Timestamp!
-	description: String
-	direction: DebitOrCredit!
-	entryType: String!
-	journalEntryId: UUID!
-	layer: Layer!
-	ledgerAccount: LedgerAccount!
-	ledgerTransaction: LedgerTransaction!
-	txId: UUID!
-}
-
-union JournalEntryAmount = UsdAmount | BtcAmount
-
-type JournalEntryConnection {
-	"""
-	A list of edges.
-	"""
-	edges: [JournalEntryEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [JournalEntry!]!
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-}
-
-"""
-An edge in a connection.
-"""
-type JournalEntryEdge {
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
-	"""
-	The item at the end of the edge
-	"""
-	node: JournalEntry!
-}
-
 scalar Json
 
 input KomainuConfig {
@@ -1797,7 +1753,7 @@ type LedgerAccount @entity_key(field: "ledgerAccountId") {
 	closestAccountWithCode: LedgerAccount
 	code: AccountCode
 	entity: LedgerAccountEntity
-	history(after: String, first: Int!): JournalEntryConnection!
+	history(after: String, first: Int!): LedgerEntryConnection!
 	isRootAccount: Boolean!
 	ledgerAccountId: UUID!
 	name: String!
@@ -1851,12 +1807,56 @@ type LedgerAccountCsvExportUploadedPayload {
 
 union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
 
+type LedgerEntry @entity_key(field: "ledgerEntryId") {
+	amount: LedgerEntryAmount!
+	createdAt: Timestamp!
+	description: String
+	direction: DebitOrCredit!
+	entryType: String!
+	layer: Layer!
+	ledgerAccount: LedgerAccount!
+	ledgerEntryId: UUID!
+	ledgerTransaction: LedgerTransaction!
+	txId: UUID!
+}
+
+union LedgerEntryAmount = UsdAmount | BtcAmount
+
+type LedgerEntryConnection {
+	"""
+	A list of edges.
+	"""
+	edges: [LedgerEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [LedgerEntry!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+}
+
+"""
+An edge in a connection.
+"""
+type LedgerEntryEdge {
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: LedgerEntry!
+}
+
 type LedgerTransaction @entity_key(field: "ledgerTransactionId") {
 	createdAt: Timestamp!
 	description: String
 	effective: Date!
 	entity: LedgerTransactionEntity
-	entries: [JournalEntry!]!
+	entries: [LedgerEntry!]!
 	initiatedBy: LedgerTransactionInitiator!
 	ledgerTransactionId: UUID!
 }
@@ -2540,10 +2540,10 @@ type Query {
 	fiscalYear(id: UUID!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
 	fiscalYears(after: String, first: Int!, sort: FiscalYearsSort = {by: CREATED_AT, direction: DESC}): FiscalYearConnection!
-	journalEntries(after: String, first: Int!): JournalEntryConnection!
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
 	ledgerAccountCsv(ledgerAccountId: UUID!): LedgerAccountCsvDocument
+	ledgerEntries(after: String, first: Int!): LedgerEntryConnection!
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(after: String, first: Int!, templateCode: String!): LedgerTransactionConnection!
 	liquidation(id: UUID!): Liquidation

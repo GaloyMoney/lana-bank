@@ -40,7 +40,7 @@ export const queryPaginationPolicies = {
   disbursals: { ...relayStylePagination(), keyArgs: ["filter", "sort"] },
   domainConfigs: relayStylePagination(),
   fiscalYears: { ...relayStylePagination(), keyArgs: ["sort"] },
-  journalEntries: relayStylePagination(),
+  ledgerEntries: relayStylePagination(),
   ledgerTransactionsForTemplateCode: { ...relayStylePagination(), keyArgs: ["templateCode"] },
   liquidations: { ...relayStylePagination(), keyArgs: ["sort"] },
   pendingCreditFacilities: { ...relayStylePagination(), keyArgs: ["filter", "sort"] },

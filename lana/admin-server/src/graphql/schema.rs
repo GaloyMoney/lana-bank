@@ -943,12 +943,12 @@ impl Query {
         )
     }
 
-    async fn journal_entries(
+    async fn ledger_entries(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<JournalEntryCursor, JournalEntry, EmptyFields, EmptyFields>>
+    ) -> async_graphql::Result<Connection<LedgerEntryCursor, LedgerEntry, EmptyFields, EmptyFields>>
     {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
@@ -966,8 +966,8 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = JournalEntryCursor::from(&entry);
-                        Edge::new(cursor, JournalEntry::from(entry))
+                        let cursor = LedgerEntryCursor::from(&entry);
+                        Edge::new(cursor, LedgerEntry::from(entry))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
             },

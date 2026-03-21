@@ -43,8 +43,8 @@ where
     pub async fn entries(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        args: es_entity::PaginatedQueryArgs<JournalEntryCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<JournalEntry, JournalEntryCursor>, JournalError> {
+        args: es_entity::PaginatedQueryArgs<LedgerEntryCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<LedgerEntry, LedgerEntryCursor>, JournalError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -73,13 +73,13 @@ where
         let entities = ret
             .entities
             .into_iter()
-            .map(JournalEntry::try_from)
+            .map(LedgerEntry::try_from)
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(es_entity::PaginatedQueryRet {
             entities,
             has_next_page: ret.has_next_page,
-            end_cursor: ret.end_cursor.map(JournalEntryCursor::from),
+            end_cursor: ret.end_cursor.map(LedgerEntryCursor::from),
         })
     }
 }
