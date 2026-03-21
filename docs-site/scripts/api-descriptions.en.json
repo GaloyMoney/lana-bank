@@ -56,7 +56,6 @@
       "transactionTemplates": "Returns a paginated list of all ledger transaction templates",
       "ledgerTransaction": "Fetches a specific ledger transaction by its unique identifier",
       "ledgerTransactionsForTemplateCode": "Returns a paginated list of ledger transactions for a specific template code",
-      "journalEntries": "Returns a paginated list of all journal entries",
       "ledgerEntries": "Returns a paginated list of all ledger entries",
       "trialBalance": "Generates a trial balance report for the specified date range",
       "chartOfAccounts": "Returns the chart of accounts structure",
