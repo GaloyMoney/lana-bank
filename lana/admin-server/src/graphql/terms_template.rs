@@ -10,7 +10,10 @@ use super::{
 use lana_app::terms_template::TermsTemplate as DomainTermsTemplate;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("termsTemplateId".to_string())
+)]
 pub struct TermsTemplate {
     terms_template_id: UUID,
     values: TermValues,

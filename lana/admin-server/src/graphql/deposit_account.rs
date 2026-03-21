@@ -21,7 +21,10 @@ use super::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("depositAccountId".to_string())
+)]
 pub struct DepositAccount {
     deposit_account_id: UUID,
     customer_id: UUID,

@@ -15,7 +15,10 @@ pub use lana_app::governance::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("committeeId".to_string())
+)]
 pub struct Committee {
     committee_id: UUID,
     created_at: Timestamp,

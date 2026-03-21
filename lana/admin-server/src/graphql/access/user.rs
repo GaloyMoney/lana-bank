@@ -13,7 +13,10 @@ use crate::graphql::event_timeline::{self, EventTimelineCursor, EventTimelineEnt
 use crate::graphql::primitives::SortDirection;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("userId".to_string())
+)]
 pub struct User {
     user_id: UUID,
     created_at: Timestamp,

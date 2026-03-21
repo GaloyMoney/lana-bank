@@ -20,7 +20,10 @@ pub use lana_app::credit::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("creditFacilityProposalId".to_string())
+)]
 pub struct CreditFacilityProposal {
     credit_facility_proposal_id: UUID,
     approval_process_id: Option<UUID>,

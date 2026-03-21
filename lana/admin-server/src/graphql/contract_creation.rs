@@ -25,6 +25,7 @@ impl From<lana_app::contract_creation::CreditFacilityAgreementStatus>
 }
 
 #[derive(SimpleObject, Clone)]
+#[graphql(directive = crate::graphql::entity_key::entity_key::apply("creditFacilityAgreementId".to_string()))]
 pub struct CreditFacilityAgreement {
     credit_facility_agreement_id: UUID,
     status: CreditFacilityAgreementStatus,

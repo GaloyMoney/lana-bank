@@ -7,7 +7,10 @@ pub use lana_app::custody::{Wallet as DomainWallet, WalletNetwork};
 use super::Custodian;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(
+    complex,
+    directive = crate::graphql::entity_key::entity_key::apply("walletId".to_string())
+)]
 pub struct Wallet {
     wallet_id: UUID,
 

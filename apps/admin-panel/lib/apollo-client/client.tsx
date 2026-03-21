@@ -10,11 +10,17 @@ import {
   FetchResult,
   Operation,
 } from "@apollo/client"
-import { relayStylePagination, getMainDefinition } from "@apollo/client/utilities"
+import { getMainDefinition } from "@apollo/client/utilities"
 import { setContext } from "@apollo/client/link/context"
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs"
 import { createClient } from "graphql-sse"
 import { print } from "graphql"
+
+import { entityKeyPolicies } from "@/lib/graphql/generated/entity-keys"
+import {
+  entityPaginationPolicies,
+  queryPaginationPolicies,
+} from "@/lib/graphql/generated/pagination"
 
 import { getToken } from "@/app/auth/keycloak"
 
@@ -101,241 +107,18 @@ export const makeClient = ({
     httpLink,
   )
 
+  const mergedTypePolicies: Record<string, Record<string, unknown>> = {}
+  for (const [type, policy] of Object.entries(entityKeyPolicies)) {
+    mergedTypePolicies[type] = { ...policy }
+  }
+  for (const [type, policy] of Object.entries(entityPaginationPolicies)) {
+    mergedTypePolicies[type] = { ...mergedTypePolicies[type], ...policy }
+  }
+
   const cache = new InMemoryCache({
     typePolicies: {
-      AccountSetAndSubAccounts: {
-        fields: {
-          subAccounts: relayStylePagination(),
-        },
-      },
-      LedgerAccount: {
-        keyFields: ["ledgerAccountId"],
-        fields: {
-          history: relayStylePagination(),
-        },
-      },
-      DepositAccount: {
-        keyFields: ["depositAccountId"],
-        fields: {
-          history: relayStylePagination(),
-          eventHistory: relayStylePagination(),
-        },
-      },
-      User: {
-        keyFields: ["userId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      Customer: {
-        keyFields: ["customerId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      Prospect: {
-        keyFields: ["prospectId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      CreditFacility: {
-        keyFields: ["creditFacilityId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      CreditFacilityProposal: {
-        keyFields: ["creditFacilityProposalId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      CreditFacilityDisbursal: {
-        keyFields: ["creditFacilityDisbursalId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      Committee: {
-        keyFields: ["committeeId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      Policy: {
-        keyFields: ["policyId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      TermsTemplate: {
-        keyFields: ["termsTemplateId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      Liquidation: {
-        keyFields: ["liquidationId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      Deposit: {
-        keyFields: ["depositId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      Withdrawal: {
-        keyFields: ["withdrawalId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      Role: {
-        keyFields: ["roleId"],
-        fields: {
-          eventHistory: relayStylePagination(),
-        },
-      },
-      ReportDefinition: {
-        keyFields: ["reportDefinitionId"],
-      },
-      ApprovalProcess: {
-        keyFields: ["approvalProcessId"],
-      },
-      AuditEntry: {
-        keyFields: ["auditEntryId"],
-      },
-      Collateral: {
-        keyFields: ["collateralId"],
-      },
-      CreditFacilityPaymentAllocation: {
-        keyFields: ["creditFacilityPaymentAllocationId"],
-      },
-      CustomerDocument: {
-        keyFields: ["customerDocumentId"],
-      },
-      Custodian: {
-        keyFields: ["custodianId"],
-      },
-      Wallet: {
-        keyFields: ["walletId"],
-      },
-      LedgerTransaction: {
-        keyFields: ["ledgerTransactionId"],
-      },
-      FiscalYear: {
-        keyFields: ["fiscalYearId"],
-      },
-      ChartOfAccounts: {
-        keyFields: ["chartOfAccountsId"],
-      },
-      TransactionTemplate: {
-        keyFields: ["transactionTemplateId"],
-      },
-      LedgerAccountCsvDocument: {
-        keyFields: ["ledgerAccountCsvDocumentId"],
-      },
-      Report: {
-        keyFields: ["reportId"],
-      },
-      ReportRun: {
-        keyFields: ["reportRunId"],
-      },
-      PermissionSet: {
-        keyFields: ["permissionSetId"],
-      },
-      PriceProvider: {
-        keyFields: ["priceProviderId"],
-      },
-      DomainConfig: {
-        keyFields: ["domainConfigId"],
-      },
-      PendingCreditFacility: {
-        keyFields: ["pendingCreditFacilityId"],
-      },
-      CreditFacilityAgreement: {
-        keyFields: false,
-      },
-      JournalEntry: {
-        keyFields: ["journalEntryId"],
-      },
-      Query: {
-        fields: {
-          users: {
-            ...relayStylePagination(),
-            keyArgs: ["sort"],
-          },
-          roles: {
-            ...relayStylePagination(),
-            keyArgs: ["sort"],
-          },
-          customers: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
-          prospects: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
-          creditFacilities: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
-          creditFacilityProposals: {
-            ...relayStylePagination(),
-            keyArgs: ["sort", "filter"],
-          },
-          pendingCreditFacilities: {
-            ...relayStylePagination(),
-            keyArgs: ["sort", "filter"],
-          },
-          disbursals: {
-            ...relayStylePagination(),
-            keyArgs: ["sort", "filter"],
-          },
-          liquidations: {
-            ...relayStylePagination(),
-            keyArgs: ["sort"],
-          },
-          deposits: {
-            ...relayStylePagination(),
-            keyArgs: ["sort", "filter"],
-          },
-          withdrawals: {
-            ...relayStylePagination(),
-            keyArgs: ["sort", "filter"],
-          },
-          depositAccounts: {
-            ...relayStylePagination(),
-            keyArgs: ["sort", "filter"],
-          },
-          custodians: {
-            ...relayStylePagination(),
-            keyArgs: ["sort"],
-          },
-          priceProviders: {
-            ...relayStylePagination(),
-            keyArgs: ["sort"],
-          },
-          committees: {
-            ...relayStylePagination(),
-            keyArgs: ["sort"],
-          },
-          policies: relayStylePagination(),
-          fiscalYears: {
-            ...relayStylePagination(),
-            keyArgs: ["sort"],
-          },
-          audit: {
-            ...relayStylePagination(),
-            keyArgs: ["subject", "authorized", "object", "action"],
-          },
-          journalEntries: relayStylePagination(),
-          transactionTemplates: relayStylePagination(),
-          ledgerTransactionsForTemplateCode: {
-            ...relayStylePagination(),
-            keyArgs: ["templateCode"],
-          },
-          reportRuns: {
-            ...relayStylePagination(),
-            keyArgs: ["sort"],
-          },
-        },
-      },
+      ...mergedTypePolicies,
+      Query: { fields: queryPaginationPolicies },
     },
   })
 

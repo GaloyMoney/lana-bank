@@ -46,7 +46,7 @@ enum Activity {
 
 scalar AnnualRatePct
 
-type ApprovalProcess {
+type ApprovalProcess @entity_key(field: "approvalProcessId") {
 	approvalProcessId: UUID!
 	approvalProcessType: ApprovalProcessType!
 	createdAt: Timestamp!
@@ -131,7 +131,7 @@ type ApprovalProcessVoter {
 
 union ApprovalRules = AutoApproval | CommitteeApproval
 
-type AuditEntry {
+type AuditEntry @entity_key(field: "auditEntryId") {
 	action: String!
 	auditEntryId: AuditEntryId!
 	authorized: Boolean!
@@ -254,7 +254,7 @@ type ChartNode {
 	name: String!
 }
 
-type ChartOfAccounts {
+type ChartOfAccounts @entity_key(field: "chartOfAccountsId") {
 	accountingBaseConfig: AccountingBaseConfigOutput
 	chartOfAccountsId: UUID!
 	children: [ChartNode!]!
@@ -288,7 +288,7 @@ type ChartOfAccountsCsvImportWithBaseConfigPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
-type Collateral {
+type Collateral @entity_key(field: "collateralId") {
 	account: LedgerAccount!
 	accountId: UUID!
 	collateralId: UUID!
@@ -342,7 +342,7 @@ enum CollateralizationState {
 	UNDER_MARGIN_CALL_THRESHOLD
 }
 
-type Committee {
+type Committee @entity_key(field: "committeeId") {
 	committeeId: UUID!
 	createdAt: Timestamp!
 	currentMembers: [User!]!
@@ -451,7 +451,7 @@ enum CreditFacilitiesSortBy {
 	CVL
 }
 
-type CreditFacility {
+type CreditFacility @entity_key(field: "creditFacilityId") {
 	activatedAt: Timestamp!
 	balance: CreditFacilityBalance!
 	canBeCompleted: Boolean!
@@ -480,7 +480,7 @@ type CreditFacility {
 	wallet: Wallet
 }
 
-type CreditFacilityAgreement {
+type CreditFacilityAgreement @entity_key(field: "creditFacilityAgreementId") {
 	createdAt: Timestamp!
 	creditFacilityAgreementId: UUID!
 	status: CreditFacilityAgreementStatus!
@@ -575,7 +575,7 @@ type CreditFacilityConnection {
 	pageInfo: PageInfo!
 }
 
-type CreditFacilityDisbursal {
+type CreditFacilityDisbursal @entity_key(field: "creditFacilityDisbursalId") {
 	amount: UsdCents!
 	approvalProcess: ApprovalProcess!
 	createdAt: Timestamp!
@@ -773,7 +773,7 @@ input CreditFacilityPartialPaymentWithDateRecordInput {
 	effective: Date!
 }
 
-type CreditFacilityPaymentAllocation {
+type CreditFacilityPaymentAllocation @entity_key(field: "creditFacilityPaymentAllocationId") {
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
@@ -781,7 +781,7 @@ type CreditFacilityPaymentAllocation {
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 }
 
-type CreditFacilityProposal {
+type CreditFacilityProposal @entity_key(field: "creditFacilityProposalId") {
 	approvalProcess: ApprovalProcess
 	approvalProcessId: UUID
 	createdAt: Timestamp!
@@ -957,7 +957,7 @@ type CreditModuleConfig {
 	chartOfAccountsId: UUID
 }
 
-type Custodian {
+type Custodian @entity_key(field: "custodianId") {
 	createdAt: Timestamp!
 	custodianId: UUID!
 	name: String!
@@ -1029,7 +1029,7 @@ enum CustodiansSortBy {
 	NAME
 }
 
-type Customer {
+type Customer @entity_key(field: "customerId") {
 	applicantId: String
 	conversionReason: ConversionReason!
 	createdAt: Timestamp!
@@ -1073,7 +1073,7 @@ type CustomerConnection {
 	pageInfo: PageInfo!
 }
 
-type CustomerDocument {
+type CustomerDocument @entity_key(field: "customerDocumentId") {
 	customerDocumentId: UUID!
 	customerId: UUID!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
@@ -1214,7 +1214,7 @@ enum DebitOrCredit {
 
 scalar Decimal
 
-type Deposit {
+type Deposit @entity_key(field: "depositId") {
 	account: DepositAccount!
 	accountId: UUID!
 	amount: UsdCents!
@@ -1227,7 +1227,7 @@ type Deposit {
 	status: DepositStatus!
 }
 
-type DepositAccount {
+type DepositAccount @entity_key(field: "depositAccountId") {
 	activity: Activity!
 	balance: DepositAccountBalance!
 	createdAt: Timestamp!
@@ -1522,7 +1522,7 @@ enum DocumentStatus {
 	NEW
 }
 
-type DomainConfig {
+type DomainConfig @entity_key(field: "domainConfigId") {
 	configType: ConfigType!
 	domainConfigId: UUID!
 	encrypted: Boolean!
@@ -1630,7 +1630,7 @@ type FiscalMonthClosure {
 	closedAt: Timestamp!
 }
 
-type FiscalYear {
+type FiscalYear @entity_key(field: "fiscalYearId") {
 	chartId: UUID!
 	closedAsOf: Date
 	createdAt: Timestamp!
@@ -1743,7 +1743,7 @@ enum InterestInterval {
 	END_OF_MONTH
 }
 
-type JournalEntry {
+type JournalEntry @entity_key(field: "journalEntryId") {
 	amount: JournalEntryAmount!
 	createdAt: Timestamp!
 	description: String
@@ -1819,7 +1819,7 @@ enum Layer {
 	SETTLED
 }
 
-type LedgerAccount {
+type LedgerAccount @entity_key(field: "ledgerAccountId") {
 	ancestors: [LedgerAccount!]!
 	balanceRange: LedgerAccountBalanceRange!
 	children: [LedgerAccount!]!
@@ -1853,7 +1853,7 @@ type LedgerAccountCsvCreatePayload {
 	ledgerAccountCsvDocument: LedgerAccountCsvDocument!
 }
 
-type LedgerAccountCsvDocument {
+type LedgerAccountCsvDocument @entity_key(field: "ledgerAccountCsvDocumentId") {
 	createdAt: Timestamp!
 	filename: String!
 	ledgerAccountCsvDocumentId: UUID!
@@ -1880,7 +1880,7 @@ type LedgerAccountCsvExportUploadedPayload {
 
 union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
 
-type LedgerTransaction {
+type LedgerTransaction @entity_key(field: "ledgerTransactionId") {
 	createdAt: Timestamp!
 	description: String
 	effective: Date!
@@ -1923,7 +1923,7 @@ union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
 
 union LedgerTransactionInitiator = User | System
 
-type Liquidation {
+type Liquidation @entity_key(field: "liquidationId") {
 	amountReceived: UsdCents!
 	collateral: Collateral!
 	collateralId: UUID!
@@ -2169,7 +2169,7 @@ enum PendingCreditFacilitiesSortBy {
 	FACILITY_AMOUNT
 }
 
-type PendingCreditFacility {
+type PendingCreditFacility @entity_key(field: "pendingCreditFacilityId") {
 	approvalProcess: ApprovalProcess!
 	approvalProcessId: UUID!
 	collateral: CollateralBalance!
@@ -2245,7 +2245,7 @@ enum Period {
 	MONTHS
 }
 
-type PermissionSet {
+type PermissionSet @entity_key(field: "permissionSetId") {
 	description: String!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	name: String!
@@ -2290,7 +2290,7 @@ type PersonalInfo {
 	nationality: String
 }
 
-type Policy {
+type Policy @entity_key(field: "policyId") {
 	approvalProcessType: ApprovalProcessType!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	policyId: UUID!
@@ -2335,7 +2335,7 @@ type PolicyEdge {
 	node: Policy!
 }
 
-type PriceProvider {
+type PriceProvider @entity_key(field: "priceProviderId") {
 	active: Boolean!
 	createdAt: Timestamp!
 	latestPrice: UsdCents
@@ -2419,7 +2419,7 @@ type ProfitAndLossStatement {
 	total: LedgerAccountBalanceRangeByCurrency!
 }
 
-type Prospect {
+type Prospect @entity_key(field: "prospectId") {
 	applicantId: String
 	createdAt: Timestamp!
 	customer: Customer
@@ -2615,7 +2615,7 @@ type RealtimePrice {
 	usdCentsPerBtc: UsdCents!
 }
 
-type Report {
+type Report @entity_key(field: "reportId") {
 	createdAt: Timestamp!
 	externalId: String!
 	files: [ReportFile!]!
@@ -2626,7 +2626,7 @@ type Report {
 	runId: UUID!
 }
 
-type ReportDefinition {
+type ReportDefinition @entity_key(field: "reportDefinitionId") {
 	friendlyName: String!
 	id: String!
 	norm: String!
@@ -2659,7 +2659,7 @@ enum ReportOutputFormat {
 	XML
 }
 
-type ReportRun {
+type ReportRun @entity_key(field: "reportRunId") {
 	reportRunId: UUID!
 	reports: [Report!]!
 	requestedAsOfDate: Date
@@ -2738,7 +2738,7 @@ type RequestedReport {
 	reportDefinitionId: String!
 }
 
-type Role {
+type Role @entity_key(field: "roleId") {
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	name: String!
@@ -2880,7 +2880,7 @@ input TermsInput {
 	oneTimeFeeRate: OneTimeFeeRatePct!
 }
 
-type TermsTemplate {
+type TermsTemplate @entity_key(field: "termsTemplateId") {
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	name: String!
@@ -2947,7 +2947,7 @@ type Total {
 	usdBalance: UsdCents!
 }
 
-type TransactionTemplate {
+type TransactionTemplate @entity_key(field: "transactionTemplateId") {
 	code: String!
 	transactionTemplateId: UUID!
 }
@@ -3029,7 +3029,7 @@ type UsdLedgerAccountBalanceRange {
 	periodActivity: UsdLedgerAccountBalance!
 }
 
-type User {
+type User @entity_key(field: "userId") {
 	createdAt: Timestamp!
 	email: String!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
@@ -3107,7 +3107,7 @@ type VisibleNavigationItems {
 	withdraw: Boolean!
 }
 
-type Wallet {
+type Wallet @entity_key(field: "walletId") {
 	address: String!
 	custodian: Custodian!
 	network: WalletNetwork!
@@ -3121,7 +3121,7 @@ enum WalletNetwork {
 	TESTNET4
 }
 
-type Withdrawal {
+type Withdrawal @entity_key(field: "withdrawalId") {
 	account: DepositAccount!
 	accountId: UUID!
 	amount: UsdCents!
@@ -3228,6 +3228,7 @@ enum WithdrawalsSortBy {
 	PUBLIC_ID
 }
 
+directive @entity_key(field: String!) on OBJECT
 """
 Directs the executor to include this field or fragment only when the `if` argument is true.
 """

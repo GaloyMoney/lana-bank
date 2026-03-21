@@ -37,6 +37,7 @@ impl From<DomainReportDefinitionOutput> for ReportDefinitionOutput {
 }
 
 #[derive(SimpleObject, Clone)]
+#[graphql(directive = crate::graphql::entity_key::entity_key::apply("reportDefinitionId".to_string()))]
 pub struct ReportDefinition {
     report_definition_id: String,
     norm: String,
