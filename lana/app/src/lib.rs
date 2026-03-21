@@ -271,6 +271,7 @@ pub mod time_events {
 
 pub mod eod {
     pub type CoreEod = core_eod::CoreEod<lana_events::LanaEvent>;
+    pub use core_eod::CoreEodEvent;
     pub use core_eod::EodProcessStatus;
     pub use core_eod::eod_process;
     pub use core_eod::error;

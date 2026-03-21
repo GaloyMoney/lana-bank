@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::primitives::{Date, Timestamp};
+use crate::primitives::{Date, Timestamp, UUID};
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum EodProcessStatus {
@@ -32,6 +32,13 @@ impl From<lana_app::eod::EodProcessStatus> for EodProcessStatus {
             lana_app::eod::EodProcessStatus::Failed => Self::Failed,
         }
     }
+}
+
+#[derive(SimpleObject, Clone)]
+pub struct EndOfDayEvent {
+    pub id: UUID,
+    pub date: Date,
+    pub status: EodProcessStatus,
 }
 
 #[derive(SimpleObject, Clone)]

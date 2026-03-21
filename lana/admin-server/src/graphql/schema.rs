@@ -12,6 +12,7 @@ use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
 use lana_app::customer::{CoreCustomerEvent, prospect_cursor::ProspectsCursor};
 use lana_app::deposit::CoreDepositEvent;
+use lana_app::eod::CoreEodEvent;
 use lana_app::price::CorePriceEvent;
 use lana_app::report::CoreReportEvent;
 use lana_app::{
@@ -3021,6 +3022,30 @@ impl Subscription {
                         report_run_id: UUID::from(entity.id),
                     })
                 }
+            }
+        });
+
+        Ok(filtered_stream)
+    }
+
+    async fn end_of_day_completed(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<impl Stream<Item = EndOfDayEvent>> {
+        let app = ctx.data_unchecked::<LanaApp>();
+
+        let outbox_stream = app.outbox().listen_persisted(None);
+        let filtered_stream = outbox_stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let eod_event: &CoreEodEvent = payload.as_event()?;
+            match eod_event {
+                CoreEodEvent::EodProcessCompleted { entity }
+                | CoreEodEvent::EodProcessFailed { entity } => Some(EndOfDayEvent {
+                    id: UUID::from(entity.id),
+                    date: entity.date.into(),
+                    status: EodProcessStatus::from(entity.status),
+                }),
+                _ => None,
             }
         });
 
