@@ -62,12 +62,12 @@ pub struct Time {
 impl From<lana_app::time_events::TimeState> for Time {
     fn from(value: lana_app::time_events::TimeState) -> Self {
         Self {
-            current_date: value.current_date.into(),
-            current_time: value.current_time.into(),
-            next_end_of_day_at: value.next_end_of_day_at.into(),
-            timezone: value.timezone.to_string(),
-            end_of_day_time: value.end_of_day_time.format("%H:%M:%S").to_string(),
-            can_advance_to_next_end_of_day: value.can_advance_to_next_end_of_day,
+            current_date: value.core.current_date.into(),
+            current_time: value.core.current_time.into(),
+            next_end_of_day_at: value.core.next_end_of_day_at.into(),
+            timezone: value.core.timezone.to_string(),
+            end_of_day_time: value.core.end_of_day_time.format("%H:%M:%S").to_string(),
+            can_advance_to_next_end_of_day: value.core.can_advance_to_next_end_of_day,
             eod_status: value.eod_status.map(EodProcessStatus::from),
         }
     }

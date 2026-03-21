@@ -256,15 +256,10 @@ pub mod time_events {
     pub type TimeEvents = core_time_events::TimeEvents<crate::authorization::Authorization>;
     pub use core_time_events::error;
 
-    /// Application-level time state that includes EOD status from core-eod.
+    /// Application-level time state that wraps the core struct and adds EOD status.
     #[derive(Clone, Debug)]
     pub struct TimeState {
-        pub current_date: chrono::NaiveDate,
-        pub current_time: chrono::DateTime<chrono::Utc>,
-        pub next_end_of_day_at: chrono::DateTime<chrono::Utc>,
-        pub timezone: chrono_tz::Tz,
-        pub end_of_day_time: chrono::NaiveTime,
-        pub can_advance_to_next_end_of_day: bool,
+        pub core: core_time_events::TimeState,
         pub eod_status: Option<core_eod::EodProcessStatus>,
     }
 }

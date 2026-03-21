@@ -3039,13 +3039,13 @@ impl Subscription {
             let payload = event.payload.as_ref()?;
             let eod_event: &CoreEodEvent = payload.as_event()?;
             match eod_event {
-                CoreEodEvent::EodProcessCompleted { entity }
+                CoreEodEvent::EodProcessStarted { entity }
+                | CoreEodEvent::EodProcessCompleted { entity }
                 | CoreEodEvent::EodProcessFailed { entity } => Some(EodProcess {
                     id: UUID::from(entity.id),
                     date: entity.date.into(),
                     status: EodProcessStatus::from(entity.status),
                 }),
-                _ => None,
             }
         });
 

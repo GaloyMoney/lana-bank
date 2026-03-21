@@ -480,12 +480,7 @@ impl LanaApp {
         let core_state = self.time_events.state(sub).await?;
         let eod_status = self.core_eod.latest_eod_status().await?;
         Ok(crate::time_events::TimeState {
-            current_date: core_state.current_date,
-            current_time: core_state.current_time,
-            next_end_of_day_at: core_state.next_end_of_day_at,
-            timezone: core_state.timezone,
-            end_of_day_time: core_state.end_of_day_time,
-            can_advance_to_next_end_of_day: core_state.can_advance_to_next_end_of_day,
+            core: core_state,
             eod_status,
         })
     }
@@ -496,7 +491,10 @@ impl LanaApp {
         &self,
         sub: &Subject,
     ) -> Result<crate::time_events::TimeState, ApplicationError> {
-        // Reject advance if an EOD process is still running
+        // Best-effort guard: reject advance if an EOD process is still running.
+        // A TOCTOU race is possible here, but benign — the downstream EodProcess
+        // entity is created with a unique process ID per EndOfDay event, and the
+        // process-manager job handles already-existing entities idempotently.
         if let Some(latest) = self.core_eod.find_latest_process().await?
             && latest.status().is_in_progress()
         {
@@ -506,12 +504,7 @@ impl LanaApp {
         let core_state = self.time_events.advance_to_next_end_of_day(sub).await?;
         let eod_status = self.core_eod.latest_eod_status().await?;
         Ok(crate::time_events::TimeState {
-            current_date: core_state.current_date,
-            current_time: core_state.current_time,
-            next_end_of_day_at: core_state.next_end_of_day_at,
-            timezone: core_state.timezone,
-            end_of_day_time: core_state.end_of_day_time,
-            can_advance_to_next_end_of_day: core_state.can_advance_to_next_end_of_day,
+            core: core_state,
             eod_status,
         })
     }
