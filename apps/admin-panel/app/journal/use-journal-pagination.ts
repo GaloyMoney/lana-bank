@@ -1,33 +1,33 @@
 import { useState, useMemo, useCallback } from "react"
 
-import { useJournalEntriesQuery } from "@/lib/graphql/generated"
+import { useLedgerEntriesQuery } from "@/lib/graphql/generated"
 
 const PAGE_SIZE = 50
 
 export const useJournalPagination = () => {
   const [currentPage, setCurrentPage] = useState(1)
 
-  const { data, loading, error, fetchMore } = useJournalEntriesQuery({
+  const { data, loading, error, fetchMore } = useLedgerEntriesQuery({
     variables: { first: PAGE_SIZE },
   })
 
   const displayData = useMemo(() => {
-    if (!data?.journalEntries?.edges) return []
+    if (!data?.ledgerEntries?.edges) return []
     const startIdx = (currentPage - 1) * PAGE_SIZE
     const endIdx = startIdx + PAGE_SIZE
-    return data.journalEntries.edges.slice(startIdx, endIdx).map((edge) => edge.node)
+    return data.ledgerEntries.edges.slice(startIdx, endIdx).map((edge) => edge.node)
   }, [data, currentPage])
 
   const handleNextPage = useCallback(async () => {
     const nextPage = currentPage + 1
     const requiredDataLength = nextPage * PAGE_SIZE
-    const currentDataLength = data?.journalEntries?.edges.length || 0
+    const currentDataLength = data?.ledgerEntries?.edges.length || 0
 
     if (
       currentDataLength < requiredDataLength &&
-      data?.journalEntries?.pageInfo.hasNextPage
+      data?.ledgerEntries?.pageInfo.hasNextPage
     ) {
-      await fetchMore({ variables: { after: data.journalEntries.pageInfo.endCursor } })
+      await fetchMore({ variables: { after: data.ledgerEntries.pageInfo.endCursor } })
     }
     setCurrentPage(nextPage)
   }, [data, currentPage, fetchMore])
@@ -42,8 +42,8 @@ export const useJournalPagination = () => {
     displayData,
     currentPage,
     hasNextPage:
-      data?.journalEntries?.pageInfo.hasNextPage ||
-      (data?.journalEntries?.edges.length || 0) > currentPage * PAGE_SIZE,
+      data?.ledgerEntries?.pageInfo.hasNextPage ||
+      (data?.ledgerEntries?.edges.length || 0) > currentPage * PAGE_SIZE,
     handleNextPage,
     handlePreviousPage,
     pageSize: PAGE_SIZE,

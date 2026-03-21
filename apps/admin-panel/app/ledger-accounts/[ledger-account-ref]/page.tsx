@@ -28,7 +28,7 @@ import { ExportCsvDialog } from "./export"
 import {
   useLedgerAccountByCodeQuery,
   useLedgerAccountQuery,
-  JournalEntry,
+  LedgerEntry,
   DebitOrCredit,
   LedgerAccountByCodeQuery,
   LedgerAccountDetailsFragment,
@@ -106,7 +106,7 @@ gql`
       edges {
         cursor
         node {
-          journalEntryId
+          ledgerEntryId
           txId
           entryType
           amount {
@@ -203,7 +203,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
     }
   }, [ledgerAccount, setLedgerAccount])
 
-  const columns: Column<JournalEntry>[] = [
+  const columns: Column<LedgerEntry>[] = [
     {
       key: "createdAt",
       label: t("table.columns.recordedAt"),
@@ -394,9 +394,9 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <PaginatedTable<JournalEntry>
+          <PaginatedTable<LedgerEntry>
             columns={columns}
-            data={ledgerAccount?.history as PaginatedData<JournalEntry>}
+            data={ledgerAccount?.history as PaginatedData<LedgerEntry>}
             pageSize={DEFAULT_PAGESIZE}
             fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
             loading={loading}

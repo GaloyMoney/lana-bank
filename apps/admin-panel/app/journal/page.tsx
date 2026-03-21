@@ -32,17 +32,17 @@ import Balance from "@/components/balance/balance"
 import { TableLoadingSkeleton } from "@/components/table-loading-skeleton"
 import { TruncatedTextCell } from "@/app/components/truncated-text-cell"
 import LayerLabel from "@/app/journal/layer-label"
-import { DebitOrCredit, JournalEntriesQuery } from "@/lib/graphql/generated"
+import { DebitOrCredit, LedgerEntriesQuery } from "@/lib/graphql/generated"
 
-type JournalEntry = JournalEntriesQuery["journalEntries"]["edges"][number]["node"]
+type LedgerEntry = LedgerEntriesQuery["ledgerEntries"]["edges"][number]["node"]
 
 gql`
-  query JournalEntries($first: Int!, $after: String) {
-    journalEntries(first: $first, after: $after) {
+  query LedgerEntries($first: Int!, $after: String) {
+    ledgerEntries(first: $first, after: $after) {
       edges {
         cursor
         node {
-          journalEntryId
+          ledgerEntryId
           entryType
           description
           direction
@@ -91,7 +91,7 @@ const getColumns = (
     label: t("table.effective"),
     width: "w-[10%]",
     align: "left",
-    render: (entry: JournalEntry) =>
+    render: (entry: LedgerEntry) =>
       formatDate(entry.ledgerTransaction.effective, { includeTime: false }),
   },
   {
@@ -99,14 +99,14 @@ const getColumns = (
     label: t("table.createdAt"),
     width: "w-[10%]",
     align: "left",
-    render: (entry: JournalEntry) => <DateWithTooltip value={entry.createdAt} />,
+    render: (entry: LedgerEntry) => <DateWithTooltip value={entry.createdAt} />,
   },
   {
     key: "description",
     label: t("table.description"),
     width: "w-[15%]",
     align: "left",
-    render: (entry: JournalEntry) => {
+    render: (entry: LedgerEntry) => {
       const raw = entry.ledgerTransaction.description || "-"
       const content = tDesc.has(raw) ? tDesc(raw) : raw
       return <TruncatedTextCell tooltipText={content}>{content}</TruncatedTextCell>
@@ -117,7 +117,7 @@ const getColumns = (
     label: "TxID",
     width: "w-[10%]",
     align: "left",
-    render: (entry: JournalEntry) => {
+    render: (entry: LedgerEntry) => {
       const txid = entry.ledgerTransaction.ledgerTransactionId
       const truncated = `${txid.slice(0, 5)}...${txid.slice(-5)}`
       return (
@@ -142,7 +142,7 @@ const getColumns = (
     label: t("table.entryType"),
     width: "w-[24%]",
     align: "left",
-    render: (entry: JournalEntry) => (
+    render: (entry: LedgerEntry) => (
       <TruncatedTextCell tooltipText={entry.entryType}>
         <span className="text-sm">{entry.entryType}</span>
       </TruncatedTextCell>
@@ -154,7 +154,7 @@ const getColumns = (
     label: t("table.name"),
     width: "w-[15%]",
     align: "left",
-    render: (entry: JournalEntry) => {
+    render: (entry: LedgerEntry) => {
       const content = entry.ledgerAccount.name
       return (
         <TruncatedTextCell tooltipText={content}>
@@ -185,7 +185,7 @@ const getColumns = (
     ),
     width: "w-[10%]",
     align: "left",
-    render: (entry: JournalEntry) => {
+    render: (entry: LedgerEntry) => {
       const code = entry.ledgerAccount.closestAccountWithCode?.code
       if (!code) return null
       return (
@@ -202,7 +202,7 @@ const getColumns = (
     label: t("table.layer"),
     width: "w-[6%]",
     align: "left",
-    render: (entry: JournalEntry) => <LayerLabel value={entry.layer} />,
+    render: (entry: LedgerEntry) => <LayerLabel value={entry.layer} />,
   },
   {
     key: "debit",
@@ -213,7 +213,7 @@ const getColumns = (
       "sticky right-[140px] z-10 bg-card group-hover:bg-muted transition-colors shadow-[inset_1px_0_0_0_hsl(var(--border))] border-b",
     headerClassName:
       "sticky right-[140px] z-30 bg-secondary shadow-[inset_1px_0_0_0_hsl(var(--border))]",
-    render: (entry: JournalEntry) => {
+    render: (entry: LedgerEntry) => {
       if (entry.direction !== DebitOrCredit.Debit) return null
       return entry.amount.__typename === "UsdAmount" ? (
         <Balance amount={entry.amount.usd} currency="usd" align="end" />
@@ -230,7 +230,7 @@ const getColumns = (
     className:
       "sticky right-0 z-10 bg-card group-hover:bg-muted transition-colors border-b pr-6",
     headerClassName: "sticky right-0 z-30 bg-secondary pr-6",
-    render: (entry: JournalEntry) => {
+    render: (entry: LedgerEntry) => {
       if (entry.direction !== DebitOrCredit.Credit) return null
       return entry.amount.__typename === "UsdAmount" ? (
         <Balance amount={entry.amount.usd} currency="usd" align="end" />
@@ -341,7 +341,7 @@ const JournalPage: React.FC = () => {
                 {displayData.map((entry, index) => {
                   const isFirst = isFirstInGroup(displayData, index)
                   return (
-                    <React.Fragment key={entry.journalEntryId}>
+                    <React.Fragment key={entry.ledgerEntryId}>
                       {isFirst && index > 0 && (
                         <TableRow className="h-3">
                           <TableCell
@@ -396,7 +396,7 @@ const JournalPage: React.FC = () => {
 
 export default JournalPage
 
-const isFirstInGroup = (entries: JournalEntry[], index: number): boolean => {
+const isFirstInGroup = (entries: LedgerEntry[], index: number): boolean => {
   if (index === 0) return true
   return (
     entries[index - 1]?.ledgerTransaction.ledgerTransactionId !==

@@ -3,13 +3,13 @@ use std::str::FromStr;
 use chrono::{DateTime, Utc};
 
 use crate::{
-    journal::JournalEntry,
+    journal::LedgerEntry,
     primitives::{EntityRef, LedgerTransactionId},
 };
 
 pub struct LedgerTransaction<S> {
     pub id: LedgerTransactionId,
-    pub entries: Vec<JournalEntry>,
+    pub entries: Vec<LedgerEntry>,
     pub created_at: DateTime<Utc>,
     pub description: Option<String>,
     pub effective: chrono::NaiveDate,
@@ -42,7 +42,7 @@ where
     ) -> Result<Self, Self::Error> {
         let entries = entries
             .into_iter()
-            .map(JournalEntry::try_from)
+            .map(LedgerEntry::try_from)
             .collect::<Result<_, _>>()?;
 
         let ExtractMetadata {

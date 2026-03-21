@@ -6,7 +6,7 @@ mutation ExecuteManualTransaction($input: LedgerManualTransactionExecuteInput!) 
       effective
       description
       entries {
-        journalEntryId
+        ledgerEntryId
         txId
       }
     }

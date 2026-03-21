@@ -142,14 +142,14 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
     reset()
   }
 
-  const addJournalEntryRow = () => {
+  const addLedgerEntryRow = () => {
     setFormValues((prevValues) => ({
       ...prevValues,
       entries: [...prevValues.entries, defaultEntry],
     }))
   }
 
-  const deleteJournalEntryRow = (index: number) => {
+  const deleteLedgerEntryRow = (index: number) => {
     setFormValues((prevValues) => ({
       ...prevValues,
       entries: prevValues.entries.filter((_, i) => i !== index),
@@ -222,7 +222,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                 size="sm"
                 type="button"
                 variant="outline"
-                onClick={addJournalEntryRow}
+                onClick={addLedgerEntryRow}
                 disabled={isLoading}
                 data-testid="execute-manual-transaction-entry-input-button"
               >
@@ -241,7 +241,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                     <Input
                       type="text"
                       required
-                      placeholder={t("placeholdersJournalEntry.accountRef")}
+                      placeholder={t("placeholdersLedgerEntry.accountRef")}
                       value={formValues.entries[index].accountRef}
                       onChange={(e) => {
                         const value = e.target.value
@@ -264,7 +264,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                     <Input
                       type="number"
                       required
-                      placeholder={t("placeholdersJournalEntry.amount")}
+                      placeholder={t("placeholdersLedgerEntry.amount")}
                       value={formValues.entries[index].amount}
                       onChange={(e) => {
                         const value = e.target.value
@@ -302,7 +302,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                         data-testid={`currency${index}`}
                       >
                         <SelectValue
-                          placeholder={t("placeholdersJournalEntry.currency")}
+                          placeholder={t("placeholdersLedgerEntry.currency")}
                         />
                       </SelectTrigger>
                       <SelectContent>
@@ -337,7 +337,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                         data-testid={`direction${index}`}
                       >
                         <SelectValue
-                          placeholder={t("placeholdersJournalEntry.direction")}
+                          placeholder={t("placeholdersLedgerEntry.direction")}
                         />
                       </SelectTrigger>
                       <SelectContent>
@@ -357,7 +357,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                   render: (_, __, index) => (
                     <Input
                       type="text"
-                      placeholder={t("placeholdersJournalEntry.description")}
+                      placeholder={t("placeholdersLedgerEntry.description")}
                       value={formValues.entries[index].description}
                       onChange={(e) => {
                         const value = e.target.value
@@ -383,7 +383,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                       size="icon"
                       disabled={isLoading}
                       className="bg-red-500 hover:bg-red-600 text-white"
-                      onClick={() => deleteJournalEntryRow(index)}
+                      onClick={() => deleteLedgerEntryRow(index)}
                     >
                       <Trash2 />
                     </Button>

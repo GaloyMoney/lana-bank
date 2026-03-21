@@ -11,7 +11,7 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use tracing_macros::record_error_severity;
 
-use crate::journal::{JournalEntry, JournalEntryCursor};
+use crate::journal::{LedgerEntry, LedgerEntryCursor};
 use crate::{
     chart_of_accounts::Chart,
     primitives::{
@@ -52,8 +52,8 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<LedgerAccountId> + std::fmt::Debug,
-        args: es_entity::PaginatedQueryArgs<JournalEntryCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<JournalEntry, JournalEntryCursor>, LedgerAccountError>
+        args: es_entity::PaginatedQueryArgs<LedgerEntryCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<LedgerEntry, LedgerEntryCursor>, LedgerAccountError>
     {
         let id = id.into();
         self.authz
@@ -72,11 +72,11 @@ where
     pub(crate) async fn complete_history(
         &self,
         id: impl Into<LedgerAccountId> + Copy + std::fmt::Debug,
-    ) -> Result<Vec<JournalEntry>, LedgerAccountError> {
+    ) -> Result<Vec<LedgerEntry>, LedgerAccountError> {
         let id = id.into();
 
         let mut all_entries = Vec::new();
-        let mut cursor: Option<JournalEntryCursor> = None;
+        let mut cursor: Option<LedgerEntryCursor> = None;
         let page_size = 100;
 
         loop {
