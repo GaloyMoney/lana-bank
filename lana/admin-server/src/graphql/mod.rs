@@ -47,7 +47,7 @@ pub use time::*;
 use lana_app::app::LanaApp;
 
 #[derive(Clone, Default)]
-pub struct AppConfig(pub String);
+pub struct AppConfig(pub primitives::Yaml);
 
 pub fn schema(
     app: Option<LanaApp>,

@@ -55,7 +55,7 @@ impl Query {
         Ok(app.time_state(sub).await?.into())
     }
 
-    async fn app_config(&self, ctx: &Context<'_>) -> String {
+    async fn app_config(&self, ctx: &Context<'_>) -> super::primitives::Yaml {
         ctx.data_unchecked::<super::AppConfig>().0.clone()
     }
 
