@@ -2351,28 +2351,30 @@ impl Mutation {
     async fn price_provider_activate(
         &self,
         ctx: &Context<'_>,
-        price_provider_id: UUID,
+        input: PriceProviderActivateInput,
     ) -> async_graphql::Result<PriceProviderActivatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
             PriceProviderActivatePayload,
             PriceProvider,
             ctx,
-            app.core_price().activate_provider(sub, price_provider_id)
+            app.core_price()
+                .activate_provider(sub, input.price_provider_id)
         )
     }
 
     async fn price_provider_deactivate(
         &self,
         ctx: &Context<'_>,
-        price_provider_id: UUID,
+        input: PriceProviderDeactivateInput,
     ) -> async_graphql::Result<PriceProviderDeactivatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
             PriceProviderDeactivatePayload,
             PriceProvider,
             ctx,
-            app.core_price().deactivate_provider(sub, price_provider_id)
+            app.core_price()
+                .deactivate_provider(sub, input.price_provider_id)
         )
     }
 

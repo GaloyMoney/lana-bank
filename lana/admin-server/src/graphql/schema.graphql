@@ -2090,9 +2090,9 @@ type Mutation {
 	ledgerAccountCsvDownloadLinkGenerate(input: LedgerAccountCsvDownloadLinkGenerateInput!): LedgerAccountCsvDownloadLinkGeneratePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
-	priceProviderActivate(priceProviderId: UUID!): PriceProviderActivatePayload!
+	priceProviderActivate(input: PriceProviderActivateInput!): PriceProviderActivatePayload!
 	priceProviderConfigUpdate(input: PriceProviderConfigUpdateInput!): PriceProviderConfigUpdatePayload!
-	priceProviderDeactivate(priceProviderId: UUID!): PriceProviderDeactivatePayload!
+	priceProviderDeactivate(input: PriceProviderDeactivateInput!): PriceProviderDeactivatePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
 	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
@@ -2344,6 +2344,10 @@ type PriceProvider @entity_key(field: "priceProviderId") {
 	provider: String!
 }
 
+input PriceProviderActivateInput {
+	priceProviderId: UUID!
+}
+
 type PriceProviderActivatePayload {
 	priceProvider: PriceProvider!
 }
@@ -2375,6 +2379,10 @@ type PriceProviderConnection {
 	Information to aid in pagination.
 	"""
 	pageInfo: PageInfo!
+}
+
+input PriceProviderDeactivateInput {
+	priceProviderId: UUID!
 }
 
 type PriceProviderDeactivatePayload {
