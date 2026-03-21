@@ -221,10 +221,10 @@ wait_for_approval() {
   exec_admin_graphql 'deposit-account-freeze' "$variables"
   echo $(graphql_output)
 
-  status=$(graphql_output '.data.depositAccountFreeze.account.status')
+  status=$(graphql_output '.data.depositAccountFreeze.depositAccount.status')
   [[ "$status" == "FROZEN" ]] || exit 1
 
-  balance=$(graphql_output '.data.depositAccountFreeze.account.balance.settled')
+  balance=$(graphql_output '.data.depositAccountFreeze.depositAccount.balance.settled')
   [[ "$balance" == 0 ]] || exit 1
 }
 
@@ -263,7 +263,7 @@ wait_for_approval() {
   )
   exec_admin_graphql 'deposit-account-unfreeze' "$variables"
 
-  status=$(graphql_output '.data.depositAccountUnfreeze.account.status')
+  status=$(graphql_output '.data.depositAccountUnfreeze.depositAccount.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
 }
 
@@ -392,7 +392,7 @@ wait_for_approval() {
   )
   exec_admin_graphql 'deposit-account-freeze' "$variables"
 
-  status=$(graphql_output '.data.depositAccountFreeze.account.status')
+  status=$(graphql_output '.data.depositAccountFreeze.depositAccount.status')
   [[ "$status" == "FROZEN" ]] || exit 1
 
   # close the frozen account
@@ -426,7 +426,7 @@ wait_for_approval() {
   )
   exec_admin_graphql 'deposit-account-unfreeze' "$variables"
 
-  status=$(graphql_output '.data.depositAccountUnfreeze.account.status')
+  status=$(graphql_output '.data.depositAccountUnfreeze.depositAccount.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
 
   # close the unfrozen(active) account
@@ -441,6 +441,6 @@ wait_for_approval() {
   )
   exec_admin_graphql 'deposit-account-close' "$variables"
 
-  status=$(graphql_output '.data.depositAccountClose.account.status')
+  status=$(graphql_output '.data.depositAccountClose.depositAccount.status')
   [[ "$status" == "CLOSED" ]] || exit 1
 }

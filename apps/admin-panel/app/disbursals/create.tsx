@@ -24,7 +24,7 @@ gql`
     $input: CreditFacilityDisbursalInitiateInput!
   ) {
     creditFacilityDisbursalInitiate(input: $input) {
-      disbursal {
+      creditFacilityDisbursal {
         creditFacilityDisbursalId
         publicId
         amount
@@ -81,7 +81,7 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
         onCompleted: (data) => {
           if (data.creditFacilityDisbursalInitiate) {
             router.push(
-              `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.publicId}`,
+              `/disbursals/${data.creditFacilityDisbursalInitiate.creditFacilityDisbursal.publicId}`,
             )
             toast.success(t("messages.success"))
             handleCloseDialog()

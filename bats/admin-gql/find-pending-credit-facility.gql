@@ -6,8 +6,6 @@ query pendingCreditFacility($id: UUID!) {
     wallet {
       address
     }
-    collateral {
-      btcBalance
-    }
+    collateral
   }
 }

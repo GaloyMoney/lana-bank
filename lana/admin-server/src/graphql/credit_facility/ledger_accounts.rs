@@ -4,8 +4,6 @@ use crate::{graphql::accounting::LedgerAccount, primitives::*};
 
 use super::LanaDataLoader;
 
-#[derive(SimpleObject)]
-#[graphql(complex)]
 pub(super) struct CreditFacilityLedgerAccounts {
     pub facility_account_id: UUID,
     pub disbursed_receivable_not_yet_due_account_id: UUID,
@@ -26,7 +24,7 @@ pub(super) struct CreditFacilityLedgerAccounts {
     pub uncovered_outstanding_account_id: UUID,
 }
 
-#[ComplexObject]
+#[Object]
 impl CreditFacilityLedgerAccounts {
     async fn facility_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();

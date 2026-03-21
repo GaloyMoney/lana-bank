@@ -20,7 +20,7 @@ import { useDepositAccountCloseMutation } from "@/lib/graphql/generated"
 gql`
   mutation DepositAccountClose($input: DepositAccountCloseInput!) {
     depositAccountClose(input: $input) {
-      account {
+      depositAccount {
         ...DepositAccountDetailsFragment
       }
     }

@@ -27,7 +27,6 @@ gql`
     $input: CreditFacilityAgreementDownloadLinksGenerateInput!
   ) {
     creditFacilityAgreementDownloadLinkGenerate(input: $input) {
-      creditFacilityAgreementId
       link
     }
   }

@@ -42,7 +42,7 @@ export const CustomerPendingCreditFacilitiesTable: React.FC<
       key: "collateral",
       header: t("table.headers.collateral"),
       render: (_, pending) => (
-        <Balance amount={pending.collateral.btcBalance} currency="btc" />
+        <Balance amount={pending.collateral} currency="btc" />
       ),
     },
     {

@@ -26,14 +26,14 @@ export const PendingCreditFacilityCollateral: React.FC<
   })
 
   const collateralInUsd = priceInfo
-    ? (pending.collateral.btcBalance / SATS_PER_BTC) *
+    ? (pending.collateral / SATS_PER_BTC) *
       (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
     : 0
 
   const collateralDependentDetails: DetailItemProps[] = [
     {
       label: t("details.collateralBalance"),
-      value: <Balance amount={pending.collateral.btcBalance} currency="btc" />,
+      value: <Balance amount={pending.collateral} currency="btc" />,
     },
     {
       label: t("details.currentPrice"),

@@ -21,7 +21,7 @@ import { useCreateContext } from "@/app/create"
 gql`
   mutation DepositAccountCreate($input: DepositAccountCreateInput!) {
     depositAccountCreate(input: $input) {
-      account {
+      depositAccount {
         depositAccountId
         customer {
           ...CustomerDetailsFragment

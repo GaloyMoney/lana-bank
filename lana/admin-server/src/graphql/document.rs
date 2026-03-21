@@ -53,7 +53,7 @@ pub struct CustomerDocumentCreateInput {
     pub file: Upload,
     pub customer_id: UUID,
 }
-crate::mutation_payload! { CustomerDocumentCreatePayload, document: CustomerDocument }
+crate::mutation_payload! { CustomerDocumentCreatePayload, customer_document: CustomerDocument }
 
 #[derive(InputObject)]
 pub struct CustomerDocumentDownloadLinksGenerateInput {
@@ -62,7 +62,6 @@ pub struct CustomerDocumentDownloadLinksGenerateInput {
 
 #[derive(SimpleObject)]
 pub struct CustomerDocumentDownloadLinksGeneratePayload {
-    document_id: UUID,
     link: String,
 }
 
@@ -70,10 +69,7 @@ impl From<lana_app::document::GeneratedDocumentDownloadLink>
     for CustomerDocumentDownloadLinksGeneratePayload
 {
     fn from(value: lana_app::document::GeneratedDocumentDownloadLink) -> Self {
-        Self {
-            document_id: UUID::from(value.document_id),
-            link: value.link,
-        }
+        Self { link: value.link }
     }
 }
 
@@ -90,4 +86,4 @@ pub struct CustomerDocumentDeletePayload {
 pub struct CustomerDocumentArchiveInput {
     pub document_id: UUID,
 }
-crate::mutation_payload! { CustomerDocumentArchivePayload, document: CustomerDocument }
+crate::mutation_payload! { CustomerDocumentArchivePayload, customer_document: CustomerDocument }

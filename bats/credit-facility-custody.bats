@@ -39,7 +39,7 @@ wait_for_collateral() {
   )
   exec_admin_graphql 'find-pending-credit-facility' "$variables"
   echo $(graphql_output) | jq .
-  collateral=$(graphql_output '.data.pendingCreditFacility.collateral.btcBalance')
+  collateral=$(graphql_output '.data.pendingCreditFacility.collateral')
   [[ "$collateral" -eq 1000 ]] || exit 1
 }
 
@@ -148,7 +148,7 @@ wait_for_collateral() {
       '{ id: $pending_credit_facility_id }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
-  collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
+  collateral=$(graphql_output '.data.creditFacility.balance.collateral')
   [[ "$collateral" -eq 0 ]] || exit 1
 
   # external wallet ID 123 is hard coded in mock custodian

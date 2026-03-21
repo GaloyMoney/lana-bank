@@ -30,9 +30,7 @@ gql`
         creditFacility {
           creditFacilityId
           balance {
-            collateral {
-              btcBalance
-            }
+            collateral
           }
           ...CreditFacilityHistoryFragment
           ...CreditFacilityLayoutFragment

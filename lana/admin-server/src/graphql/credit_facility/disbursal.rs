@@ -103,7 +103,7 @@ pub struct CreditFacilityDisbursalInitiateInput {
     pub credit_facility_id: UUID,
     pub amount: UsdCents,
 }
-crate::mutation_payload! { CreditFacilityDisbursalInitiatePayload, disbursal: CreditFacilityDisbursal }
+crate::mutation_payload! { CreditFacilityDisbursalInitiatePayload, credit_facility_disbursal: CreditFacilityDisbursal }
 
 #[derive(InputObject)]
 pub struct DisbursalsFilter {

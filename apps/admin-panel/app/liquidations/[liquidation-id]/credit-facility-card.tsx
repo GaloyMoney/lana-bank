@@ -58,13 +58,13 @@ export const LiquidationCreditFacilityCard: React.FC<
     {
       label: t("FacilityCard.details.totalOutstanding"),
       value: (
-        <Balance amount={creditFacility.balance.outstanding.usdBalance} currency="usd" />
+        <Balance amount={creditFacility.balance.outstanding} currency="usd" />
       ),
     },
     {
       label: t("CollateralCard.details.collateralBalance"),
       value: (
-        <Balance amount={creditFacility.balance.collateral.btcBalance} currency="btc" />
+        <Balance amount={creditFacility.balance.collateral} currency="btc" />
       ),
     },
     {

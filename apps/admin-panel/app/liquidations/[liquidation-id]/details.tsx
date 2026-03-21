@@ -101,7 +101,7 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
         open={calculatorOpen}
         onClose={() => setCalculatorOpen(false)}
         liquidationId={liquidation.liquidationId}
-        outstanding={liquidation.collateral.creditFacility?.balance?.outstanding?.usdBalance ?? 0 as UsdCents}
+        outstanding={liquidation.collateral.creditFacility?.balance?.outstanding ?? 0 as UsdCents}
         defaultToReceive={liquidation.expectedToReceive}
         defaultToLiquidate={liquidation.initiallyEstimatedToLiquidate}
       />

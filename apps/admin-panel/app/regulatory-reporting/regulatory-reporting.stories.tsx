@@ -25,14 +25,12 @@ const availableReportDefinitionsMock = {
         mockReportDefinition({
           reportDefinitionId: "nrp_51/01_saldo_cuenta",
           norm: "nrp_51",
-          id: "01_saldo_cuenta",
           friendlyName: "saldo_cuenta",
           supportsAsOf: true,
         }),
         mockReportDefinition({
           reportDefinitionId: "other/calculo_de_riesgo_neto",
           norm: "other",
-          id: "calculo_de_riesgo_neto",
           friendlyName: "calculo_de_riesgo_neto",
           supportsAsOf: false,
         }),

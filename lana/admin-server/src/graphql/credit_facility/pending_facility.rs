@@ -11,9 +11,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{
-    ApprovalProcess, CollateralBalance, CreditFacilityRepaymentPlanEntry, Sort, SortDirection,
-};
+use super::{ApprovalProcess, CreditFacilityRepaymentPlanEntry, Sort, SortDirection};
 
 pub use lana_app::credit::{
     PendingCreditFacilitiesCursor,
@@ -60,7 +58,7 @@ impl PendingCreditFacility {
         }
     }
 
-    async fn collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<CollateralBalance> {
+    async fn collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<Satoshis> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let collateral = app
@@ -69,9 +67,7 @@ impl PendingCreditFacility {
             .collateral(sub, self.entity.id)
             .await?;
 
-        Ok(CollateralBalance {
-            btc_balance: collateral,
-        })
+        Ok(collateral)
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {

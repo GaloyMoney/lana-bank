@@ -20,7 +20,7 @@ function calculateTotalCostInCents(
   const facilityAmountCentsBN = new BigNumber(creditFacility.facilityAmount ?? 0)
   const oneTimeFeeCentsBN = facilityAmountCentsBN.multipliedBy(feeRateBN)
   const totalInterestCentsBN = new BigNumber(
-    creditFacility.balance.interest.total.usdBalance ?? 0,
+    creditFacility.balance.interest.total ?? 0,
   )
   const totalCostCentsBN = totalInterestCentsBN.plus(oneTimeFeeCentsBN)
   return totalCostCentsBN.toNumber()
@@ -45,7 +45,7 @@ function FacilityCard({
       label: t("details.facilityRemaining"),
       value: (
         <Balance
-          amount={creditFacility.balance.facilityRemaining.usdBalance}
+          amount={creditFacility.balance.facilityRemaining}
           currency="usd"
         />
       ),
@@ -54,7 +54,7 @@ function FacilityCard({
       label: t("details.disbursedOutstanding"),
       value: (
         <Balance
-          amount={creditFacility.balance.disbursed.outstanding.usdBalance}
+          amount={creditFacility.balance.disbursed.outstanding}
           currency="usd"
         />
       ),
@@ -63,7 +63,7 @@ function FacilityCard({
       label: t("details.disbursedOutstandingPayable"),
       value: (
         <Balance
-          amount={creditFacility.balance.disbursed.outstandingPayable.usdBalance}
+          amount={creditFacility.balance.disbursed.outstandingPayable}
           currency="usd"
         />
       ),
@@ -72,7 +72,7 @@ function FacilityCard({
       label: t("details.interestOutstanding"),
       value: (
         <Balance
-          amount={creditFacility.balance.interest.outstanding.usdBalance}
+          amount={creditFacility.balance.interest.outstanding}
           currency="usd"
         />
       ),
@@ -80,14 +80,14 @@ function FacilityCard({
     {
       label: t("details.totalOutstanding"),
       value: (
-        <Balance amount={creditFacility.balance.outstanding.usdBalance} currency="usd" />
+        <Balance amount={creditFacility.balance.outstanding} currency="usd" />
       ),
     },
     {
       label: t("details.totalInterest"),
       value: (
         <Balance
-          amount={creditFacility.balance.interest.total.usdBalance}
+          amount={creditFacility.balance.interest.total}
           currency="usd"
         />
       ),
@@ -96,7 +96,7 @@ function FacilityCard({
       label: t("details.totalDisbursed"),
       value: (
         <Balance
-          amount={creditFacility.balance.disbursed.total.usdBalance}
+          amount={creditFacility.balance.disbursed.total}
           currency="usd"
         />
       ),

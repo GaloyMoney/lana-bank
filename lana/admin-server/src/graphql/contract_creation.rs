@@ -72,7 +72,6 @@ pub struct CreditFacilityAgreementDownloadLinksGenerateInput {
 
 #[derive(SimpleObject)]
 pub struct CreditFacilityAgreementDownloadLinksGeneratePayload {
-    pub credit_facility_agreement_id: UUID,
     pub link: String,
 }
 
@@ -80,9 +79,6 @@ impl From<lana_app::document::GeneratedDocumentDownloadLink>
     for CreditFacilityAgreementDownloadLinksGeneratePayload
 {
     fn from(value: lana_app::document::GeneratedDocumentDownloadLink) -> Self {
-        Self {
-            credit_facility_agreement_id: UUID::from(value.document_id),
-            link: value.link,
-        }
+        Self { link: value.link }
     }
 }

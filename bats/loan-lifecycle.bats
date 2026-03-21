@@ -63,7 +63,7 @@ wait_for_interest_accrued() {
   variables=$(jq -n --arg creditFacilityId "$credit_facility_id" '{ id: $creditFacilityId }')
   exec_admin_graphql 'find-credit-facility' "$variables"
   echo "loan-lifecycle interest check | $(graphql_output '.data.creditFacility.balance')" >> $RUN_LOG_FILE
-  interest=$(graphql_output '.data.creditFacility.balance.interest.total.usdBalance')
+  interest=$(graphql_output '.data.creditFacility.balance.interest.total')
   [[ "$interest" != "null" && "$interest" -gt "$min_interest" ]] || return 1
 }
 
@@ -72,7 +72,7 @@ wait_for_interest_cleared() {
 
   variables=$(jq -n --arg creditFacilityId "$credit_facility_id" '{ id: $creditFacilityId }')
   exec_admin_graphql 'find-credit-facility' "$variables"
-  interest_outstanding=$(graphql_output '.data.creditFacility.balance.interest.outstanding.usdBalance')
+  interest_outstanding=$(graphql_output '.data.creditFacility.balance.interest.outstanding')
   [[ "$interest_outstanding" -eq 0 ]] || return 1
 }
 
@@ -90,7 +90,7 @@ wait_for_outstanding_zero() {
 
   variables=$(jq -n --arg creditFacilityId "$credit_facility_id" '{ id: $creditFacilityId }')
   exec_admin_graphql 'find-credit-facility' "$variables"
-  outstanding=$(graphql_output '.data.creditFacility.balance.outstanding.usdBalance')
+  outstanding=$(graphql_output '.data.creditFacility.balance.outstanding')
   [[ "$outstanding" -eq 0 ]] || return 1
 }
 
@@ -225,11 +225,9 @@ wait_for_credit_facility_agreement_completion() {
   exec_admin_graphql 'credit-facility-agreement-download-link-generate' "$variables"
 
   download_link=$(graphql_output '.data.creditFacilityAgreementDownloadLinkGenerate.link')
-  returned_agreement_id=$(graphql_output '.data.creditFacilityAgreementDownloadLinkGenerate.creditFacilityAgreementId')
 
   [[ "$download_link" != "null" ]] || exit 1
   [[ "$download_link" != "" ]] || exit 1
-  [[ "$returned_agreement_id" == "$agreement_id" ]] || exit 1
 
   temp_pdf="/tmp/credit_facility_agreement_${agreement_id}.pdf"
   temp_txt="/tmp/credit_facility_agreement_${agreement_id}.txt"
@@ -262,7 +260,7 @@ wait_for_credit_facility_agreement_completion() {
     --arg creditFacilityId "$credit_facility_id" \
     '{ input: { creditFacilityId: $creditFacilityId, amount: 100000 } }')
   exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
-  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.creditFacilityDisbursalId')
+  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.creditFacilityDisbursal.creditFacilityDisbursalId')
   [[ "$disbursal_id" != "null" ]] || exit 1
 
   retry 30 2 wait_for_lc_disbursal "$credit_facility_id" "$disbursal_id"
@@ -270,7 +268,7 @@ wait_for_credit_facility_agreement_completion() {
   # Verify disbursed balance
   variables=$(jq -n --arg creditFacilityId "$credit_facility_id" '{ id: $creditFacilityId }')
   exec_admin_graphql 'find-credit-facility' "$variables"
-  disbursed=$(graphql_output '.data.creditFacility.balance.disbursed.total.usdBalance')
+  disbursed=$(graphql_output '.data.creditFacility.balance.disbursed.total')
   [[ "$disbursed" -eq 100000 ]] || exit 1
 }
 
@@ -290,7 +288,7 @@ wait_for_credit_facility_agreement_completion() {
 
   variables=$(jq -n --arg creditFacilityId "$credit_facility_id" '{ id: $creditFacilityId }')
   exec_admin_graphql 'find-credit-facility' "$variables"
-  interest=$(graphql_output '.data.creditFacility.balance.interest.total.usdBalance')
+  interest=$(graphql_output '.data.creditFacility.balance.interest.total')
   echo "Accrued interest after ~1 month: $interest cents" >> $RUN_LOG_FILE
   [[ "$interest" -lt 1500 ]] || exit 1
 }
@@ -302,7 +300,7 @@ wait_for_credit_facility_agreement_completion() {
   # Get current outstanding interest
   variables=$(jq -n --arg creditFacilityId "$credit_facility_id" '{ id: $creditFacilityId }')
   exec_admin_graphql 'find-credit-facility' "$variables"
-  interest_outstanding=$(graphql_output '.data.creditFacility.balance.interest.outstanding.usdBalance')
+  interest_outstanding=$(graphql_output '.data.creditFacility.balance.interest.outstanding')
   echo "Interest outstanding to pay: $interest_outstanding" >> $RUN_LOG_FILE
 
   # Pay the interest
@@ -337,7 +335,7 @@ wait_for_credit_facility_agreement_completion() {
   # Get total outstanding (principal + any remaining interest)
   variables=$(jq -n --arg creditFacilityId "$credit_facility_id" '{ id: $creditFacilityId }')
   exec_admin_graphql 'find-credit-facility' "$variables"
-  total_outstanding=$(graphql_output '.data.creditFacility.balance.outstanding.usdBalance')
+  total_outstanding=$(graphql_output '.data.creditFacility.balance.outstanding')
   echo "Total outstanding at maturity: $total_outstanding" >> $RUN_LOG_FILE
   [[ "$total_outstanding" -gt 0 ]] || exit 1
 

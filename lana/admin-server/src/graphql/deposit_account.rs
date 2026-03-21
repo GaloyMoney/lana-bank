@@ -65,14 +65,12 @@ impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
     }
 }
 
-#[derive(SimpleObject)]
-#[graphql(complex)]
 pub struct DepositAccountLedgerAccounts {
     deposit_account_id: UUID,
     frozen_deposit_account_id: UUID,
 }
 
-#[ComplexObject]
+#[Object]
 impl DepositAccountLedgerAccounts {
     async fn deposit_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
