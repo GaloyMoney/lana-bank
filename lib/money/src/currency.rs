@@ -57,15 +57,11 @@ pub struct Untyped {
 }
 
 impl Untyped {
-    pub(crate) fn from_raw(code: CurrencyCode, minor_units_per_major: u64) -> Self {
+    pub(super) fn from_raw(code: CurrencyCode, minor_units_per_major: u64) -> Self {
         Self {
             code,
             minor_units_per_major,
         }
-    }
-
-    pub(crate) fn of<C: StaticCurrency>() -> Self {
-        Self::from_raw(C::CODE, C::MINOR_UNITS_PER_MAJOR)
     }
 }
 
