@@ -21,7 +21,7 @@ pub struct Wallet {
 impl From<DomainWallet> for Wallet {
     fn from(wallet: DomainWallet) -> Self {
         Self {
-            wallet_id: wallet.id.into(),
+            wallet_id: wallet.id,
             entity: Arc::new(wallet),
         }
     }

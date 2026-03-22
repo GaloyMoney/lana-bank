@@ -700,7 +700,7 @@ impl Query {
             .collaterals()
             .calculate_liquidation_payment(
                 sub,
-                input.liquidation_id.into(),
+                input.liquidation_id,
                 input.outstanding,
                 input.to_receive,
                 input.to_liquidate,
@@ -1380,10 +1380,7 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let permalink = app
             .customer_kyc()
-            .create_verification_link(
-                sub,
-                lana_app::primitives::ProspectId::from(input.prospect_id),
-            )
+            .create_verification_link(sub, input.prospect_id)
             .await?;
         Ok(ProspectKycLinkCreatePayload { url: permalink.url })
     }
@@ -1901,11 +1898,8 @@ impl Mutation {
             TermsTemplateUpdatePayload,
             TermsTemplate,
             ctx,
-            app.terms_templates().update_term_values(
-                sub,
-                TermsTemplateId::from(input.terms_template_id),
-                term_values
-            )
+            app.terms_templates()
+                .update_term_values(sub, input.terms_template_id, term_values)
         )
     }
 
@@ -2198,7 +2192,7 @@ impl Mutation {
             ctx,
             app.credit().collaterals().update_collateral_by_id(
                 sub,
-                collateral_id.into(),
+                collateral_id,
                 collateral,
                 effective.into()
             )
@@ -2249,7 +2243,7 @@ impl Mutation {
             CreditFacilityDisbursal,
             ctx,
             app.credit()
-                .initiate_disbursal(sub, input.credit_facility_id.into(), input.amount)
+                .initiate_disbursal(sub, input.credit_facility_id, input.amount)
         )
     }
 
@@ -2280,11 +2274,7 @@ impl Mutation {
             ctx,
             app.credit()
                 .collaterals()
-                .record_collateral_update_via_liquidation(
-                    sub,
-                    input.collateral_id.into(),
-                    input.amount
-                )
+                .record_collateral_update_via_liquidation(sub, input.collateral_id, input.amount)
         )
     }
 
@@ -2302,7 +2292,7 @@ impl Mutation {
                 .collaterals()
                 .record_proceeds_received_and_liquidation_completed(
                     sub,
-                    input.collateral_id.into(),
+                    input.collateral_id,
                     input.amount
                 )
         )

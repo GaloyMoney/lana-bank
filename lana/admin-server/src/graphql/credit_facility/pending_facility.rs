@@ -52,7 +52,7 @@ impl PendingCreditFacility {
             .ok_or_else(|| Error::new("Collateral not found"))?;
 
         if let Some(wallet_id) = collateral.wallet_id {
-            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
+            Ok(loader.load_one(wallet_id).await?)
         } else {
             Ok(None)
         }

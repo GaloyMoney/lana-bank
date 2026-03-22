@@ -28,7 +28,7 @@ pub struct DepositAccountModuleConfig {
 impl From<DomainChartOfAccountsIntegrationConfig> for DepositAccountModuleConfig {
     fn from(values: DomainChartOfAccountsIntegrationConfig) -> Self {
         Self {
-            chart_of_accounts_id: Some(values.chart_of_accounts_id.into()),
+            chart_of_accounts_id: Some(values.chart_of_accounts_id),
             chart_of_accounts_omnibus_parent_code: Some(
                 values.chart_of_accounts_omnibus_parent_code.to_string(),
             ),

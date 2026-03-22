@@ -51,7 +51,7 @@ impl From<DomainCollateral> for Collateral {
     fn from(collateral: DomainCollateral) -> Self {
         Self {
             collateral_id: collateral.id,
-            wallet_id: collateral.custody_wallet_id.map(|id| id.into()),
+            wallet_id: collateral.custody_wallet_id,
             account_id: collateral.account_ids.collateral_account_id.into(),
             entity: Arc::new(collateral),
         }
