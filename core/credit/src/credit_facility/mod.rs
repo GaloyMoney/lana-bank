@@ -138,6 +138,7 @@ where
         outbox: &Outbox<E>,
         clock: ClockHandle,
         collaterals: Arc<core_credit_collateral::Collaterals<Perms, E>>,
+        domain_configs: domain_config::ExposedDomainConfigsReadOnly,
     ) -> Result<Self, CreditFacilityError>
     where
         E: OutboxEventMarker<core_time_events::CoreTimeEvent>,
@@ -187,6 +188,7 @@ where
                 repo.clone(),
                 collaterals.clone(),
                 authz.clone(),
+                domain_configs,
             ));
 
         let collect_facilities_for_accrual_spawner = jobs.add_initializer(

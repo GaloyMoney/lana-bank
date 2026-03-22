@@ -97,6 +97,16 @@ pub enum CreditFacilityError {
     CollateralError(#[from] core_credit_collateral::error::CollateralError),
     #[error("CreditFacilityError - NoAccrualCycleInProgress")]
     NoAccrualCycleInProgress,
+    #[error(
+        "CreditFacilityError - AccrualPrecisionNotConfigured: admin must set 'credit-accrual-precision-dp'"
+    )]
+    AccrualPrecisionNotConfigured,
+    #[error(
+        "CreditFacilityError - AccrualRoundingStrategyNotConfigured: admin must set 'credit-accrual-rounding-strategy'"
+    )]
+    AccrualRoundingStrategyNotConfigured,
+    #[error("CreditFacilityError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::DomainConfigError),
     #[error("CreditFacilityError - DisbursalOnInactiveFacility")]
     DisbursalOnInactiveFacility,
     #[error("CreditFacilityError - PaymentOnClosedFacility")]
@@ -163,6 +173,9 @@ impl ErrorSeverity for CreditFacilityError {
             Self::CreditFacilityProposalError(e) => e.severity(),
             Self::CollateralError(e) => e.severity(),
             Self::NoAccrualCycleInProgress => Level::WARN,
+            Self::AccrualPrecisionNotConfigured => Level::ERROR,
+            Self::AccrualRoundingStrategyNotConfigured => Level::ERROR,
+            Self::DomainConfigError(e) => e.severity(),
             Self::DisbursalOnInactiveFacility => Level::WARN,
             Self::PaymentOnClosedFacility => Level::WARN,
         }

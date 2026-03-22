@@ -2,7 +2,7 @@ use rust_decimal::{Decimal, RoundingStrategy};
 
 use core_credit_terms::CVLPct;
 use core_price::PriceOfOneBTC;
-use money::{Satoshis, UsdCents};
+use money::{CalculationAmount, Currency, Satoshis, Usd, UsdCents};
 
 #[derive(Debug, Clone)]
 pub struct LiquidationPaymentAmounts {
@@ -82,15 +82,14 @@ impl LiquidationPaymentAmounts {
             return Self::ZERO;
         }
 
-        let collateral_usd = price.sats_to_cents_round_down(collateral).to_usd();
-        let new_outstanding = outstanding - to_receive;
+        let collateral_usd = price.sats_to_cents_round_down(collateral).to_major();
+        let new_outstanding_usd = (outstanding - to_receive).to_major();
 
-        let to_liquidate_usd = (collateral_usd - target_ratio * new_outstanding.to_usd())
-            .max(Decimal::ZERO)
-            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
-
-        let to_liquidate_cents = UsdCents::try_from_usd(to_liquidate_usd)
-            .expect("liquidate amount must be in whole cents");
+        let to_liquidate_usd =
+            (collateral_usd - new_outstanding_usd * target_ratio).max(Decimal::ZERO);
+        let to_liquidate_cents =
+            CalculationAmount::<Usd>::from_major(to_liquidate_usd, Usd::NATURAL_PRECISION)
+                .round_to_minor_units(RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_liquidate_cents);
 
         Self {
@@ -103,24 +102,24 @@ impl LiquidationPaymentAmounts {
 
     /// Calculates the effective liquidation price from `to_liquidate` and `to_receive`.
     ///
-    /// Effective price is the USD cents per BTC that was actually applied,
-    /// calculated as `to_receive / to_liquidate` (in BTC units).
-    ///
     /// Returns `None` if `to_liquidate` is zero to avoid division by zero.
     pub fn effective_liquidation_price(&self) -> Option<PriceOfOneBTC> {
         if self.to_liquidate == Satoshis::ZERO {
-            None
-        } else {
-            let effective_price_cents = (self.to_receive.to_usd() / self.to_liquidate.to_btc())
-                .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
-
-            UsdCents::try_from_usd(effective_price_cents)
-                .ok()
-                .map(PriceOfOneBTC::new)
+            return None;
         }
+
+        let effective_price_usd = self.to_receive.to_major() / self.to_liquidate.to_major();
+        let effective_price_cents =
+            CalculationAmount::<Usd>::from_major(effective_price_usd, Usd::NATURAL_PRECISION)
+                .round_to_minor_units(RoundingStrategy::AwayFromZero);
+
+        Some(PriceOfOneBTC::new(effective_price_cents))
     }
 
     /// Calculates the liquidation premium percentage.
+    ///
+    /// Effective price is the USD cents per BTC that was actually applied,
+    /// calculated as `to_receive / to_liquidate` (in BTC units).
     ///
     /// Returns `None` if effective price cannot be calculated (e.g.,
     /// zero `to_liquidate`) or if `price` is zero.
@@ -151,14 +150,13 @@ impl LiquidationPaymentAmounts {
 
         let new_collateral_usd = price
             .sats_to_cents_round_down(collateral - to_liquidate)
-            .to_usd();
+            .to_major();
 
-        let repay_usd = (outstanding.to_usd() - new_collateral_usd / target_ratio)
-            .max(Decimal::ZERO)
-            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
-
+        let to_receive_usd =
+            (outstanding.to_major() - new_collateral_usd / target_ratio).max(Decimal::ZERO);
         let to_receive =
-            UsdCents::try_from_usd(repay_usd).expect("repay amount must be in whole cents");
+            CalculationAmount::<Usd>::from_major(to_receive_usd, Usd::NATURAL_PRECISION)
+                .round_to_minor_units(RoundingStrategy::AwayFromZero);
 
         Self {
             to_liquidate,
@@ -184,16 +182,15 @@ impl LiquidationPaymentAmounts {
             }
         };
 
-        let outstanding_usd = outstanding.to_usd();
-        let collateral_usd = price.sats_to_cents_round_down(collateral).to_usd();
+        let outstanding_usd = outstanding.to_major();
+        let collateral_usd = price.sats_to_cents_round_down(collateral).to_major();
 
-        let repay_usd = ((outstanding_usd * target_ratio - collateral_usd)
+        let to_receive_usd = ((outstanding_usd * target_ratio - collateral_usd)
             / (target_ratio - Self::UNIT_FEE_FACTOR))
-            .max(Decimal::ZERO)
-            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
-
+            .max(Decimal::ZERO);
         let to_receive =
-            UsdCents::try_from_usd(repay_usd).expect("repay amount must be in whole cents");
+            CalculationAmount::<Usd>::from_major(to_receive_usd, Usd::NATURAL_PRECISION)
+                .round_to_minor_units(RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_receive);
 
         Self {
@@ -385,13 +382,13 @@ mod test {
 
     #[test]
     fn calculate_target_cvl_effective_price_and_premium() {
-        let price = PriceOfOneBTC::new(UsdCents::from(6_250_000));
-
         // Use values that intentionally create a premium with clean division:
         // to_liquidate = 25,000,000 sats = 0.25 BTC
         // to_receive = 2,000,000 cents
         // effective_price = 2,000,000 / 0.25 = 8,000,000 cents/BTC (exact)
         // premium = (8,000,000 / 6,250,000 - 1) * 100 = 28%
+        let price = PriceOfOneBTC::new(UsdCents::from(6_250_000));
+
         let to_liquidate = Satoshis::from(25_000_000);
         let to_receive = UsdCents::from(2_000_000);
 
@@ -435,6 +432,7 @@ mod test {
     #[test]
     fn effective_price_returns_none_for_zero_to_liquidate() {
         // Create a payment with zero to_liquidate
+        // Should return None to avoid division by zero
         let payment = LiquidationPaymentAmounts {
             to_liquidate: Satoshis::ZERO,
             to_receive: UsdCents::from(100_000),
@@ -442,14 +440,12 @@ mod test {
             price: PriceOfOneBTC::new(UsdCents::from(6_250_000)),
         };
 
-        // Should return None to avoid division by zero
         assert!(payment.effective_liquidation_price().is_none());
         assert!(payment.liquidation_premium_pct().is_none());
     }
 
     #[test]
     fn premium_returns_none_for_zero_price() {
-        // Create a payment with zero price
         let payment = LiquidationPaymentAmounts {
             to_liquidate: Satoshis::from(100_000),
             to_receive: UsdCents::from(100_000),
@@ -457,10 +453,7 @@ mod test {
             price: PriceOfOneBTC::ZERO,
         };
 
-        // effective_liquidation_price should still work (calculated from to_liquidate/to_receive)
         assert!(payment.effective_liquidation_price().is_some());
-
-        // But premium should return None due to zero price (division by zero)
         assert!(payment.liquidation_premium_pct().is_none());
     }
 }

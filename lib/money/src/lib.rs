@@ -1,9 +1,12 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod calculation_amount;
 mod code;
 mod error;
 mod map;
+mod precision;
+mod rounding_mode;
 
 use std::{fmt, marker::PhantomData};
 
@@ -13,9 +16,13 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
+pub use calculation_amount::CalculationAmount;
 pub use code::*;
 pub use error::ConversionError;
 pub use map::*;
+pub use precision::Precision;
+pub use rounding_mode::RoundingMode;
+pub use rust_decimal::RoundingStrategy;
 
 // ---------------------------------------------------------------------------
 // Currency trait + marker types
@@ -26,6 +33,7 @@ pub trait Currency:
 {
     const CODE: CurrencyCode;
     const MINOR_UNITS_PER_MAJOR: u64;
+    const NATURAL_PRECISION: Precision;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -34,6 +42,7 @@ pub struct Usd;
 impl Currency for Usd {
     const CODE: CurrencyCode = CurrencyCode::USD;
     const MINOR_UNITS_PER_MAJOR: u64 = 100;
+    const NATURAL_PRECISION: Precision = Precision::new_const(2);
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -42,6 +51,7 @@ pub struct Btc;
 impl Currency for Btc {
     const CODE: CurrencyCode = CurrencyCode::BTC;
     const MINOR_UNITS_PER_MAJOR: u64 = 100_000_000;
+    const NATURAL_PRECISION: Precision = Precision::new_const(8);
 }
 
 // ---------------------------------------------------------------------------
@@ -186,6 +196,18 @@ impl std::ops::Mul<u64> for MinorUnits<Usd> {
     type Output = Self;
     fn mul(self, rhs: u64) -> Self {
         Self(self.0 * rhs, PhantomData)
+    }
+}
+
+impl<C: Currency> std::iter::Sum for MinorUnits<C> {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Self::ZERO, |acc, x| acc + x)
+    }
+}
+
+impl<'a, C: Currency> std::iter::Sum<&'a MinorUnits<C>> for MinorUnits<C> {
+    fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+        iter.fold(Self::ZERO, |acc, x| acc + *x)
     }
 }
 

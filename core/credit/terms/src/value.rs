@@ -1,6 +1,6 @@
 use chrono::{DateTime, Datelike, TimeZone, Utc};
 use derive_builder::{Builder, UninitializedFieldError};
-use rust_decimal::{Decimal, prelude::*};
+use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +10,7 @@ use schemars::JsonSchema;
 use crate::{collateralization::*, cvl::CVLPct, effective_date::*};
 
 use core_price::PriceOfOneBTC;
-use money::{Satoshis, UsdCents};
+use money::{CalculationAmount, Currency, Precision, RoundingStrategy, Satoshis, Usd, UsdCents};
 
 use super::error::TermsError;
 
@@ -25,16 +25,14 @@ pub struct AnnualRatePct(Decimal);
 async_graphql::scalar!(AnnualRatePct);
 
 impl AnnualRatePct {
-    pub fn interest_for_time_period(&self, principal: UsdCents, days: u32) -> UsdCents {
-        let cents = principal.to_usd() * Decimal::from(days) * self.0
-            / Decimal::from(NUMBER_OF_DAYS_IN_YEAR);
-
-        UsdCents::from(
-            cents
-                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
-                .to_u64()
-                .expect("should return a valid integer"),
-        )
+    pub fn interest_for_period(
+        &self,
+        principal: UsdCents,
+        days: u32,
+        precision: Precision,
+    ) -> CalculationAmount<Usd> {
+        CalculationAmount::from_minor(principal, precision)
+            * (self.0 / dec!(100) * Decimal::from(days) / Decimal::from(NUMBER_OF_DAYS_IN_YEAR))
     }
 }
 
@@ -59,10 +57,11 @@ impl OneTimeFeeRatePct {
     }
 
     pub fn apply(&self, amount: UsdCents) -> UsdCents {
-        let fee_as_decimal = (amount.to_usd() * (self.0 / dec!(100)))
-            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
-
-        UsdCents::try_from_usd(fee_as_decimal).expect("Unexpected negative number")
+        CalculationAmount::<Usd>::from_major(
+            amount.to_major() * self.0 / dec!(100),
+            Usd::NATURAL_PRECISION,
+        )
+        .round_to_minor_units(RoundingStrategy::AwayFromZero)
     }
 }
 
@@ -553,12 +552,19 @@ mod test {
         let terms = terms();
         let principal = UsdCents::try_from_usd(dec!(100)).unwrap();
         let days = 365;
-        let interest = terms.annual_rate.interest_for_time_period(principal, days);
+        let precision = Precision::try_new(2).unwrap();
+        let interest = terms
+            .annual_rate
+            .interest_for_period(principal, days, precision)
+            .round_to_minor_units(RoundingStrategy::AwayFromZero);
         assert_eq!(interest, UsdCents::from(1200));
 
         let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
         let days = 23;
-        let interest = terms.annual_rate.interest_for_time_period(principal, days);
+        let interest = terms
+            .annual_rate
+            .interest_for_period(principal, days, precision)
+            .round_to_minor_units(RoundingStrategy::AwayFromZero);
         assert_eq!(interest, UsdCents::from(757));
     }
 

@@ -48,6 +48,8 @@ use core_credit_collateral::{
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 
+use domain_config::ExposedDomainConfigsReadOnly;
+
 use crate::{
     AccrualOutcome, CompletedAccrualCycle, ConfirmedAccrual, CoreCreditAction,
     CoreCreditCollectionAction, CoreCreditCollectionEvent, CoreCreditCollectionObject,
@@ -58,6 +60,7 @@ use crate::{
         interest_accrual_cycle::{NewInterestAccrualCycleData, error::InterestAccrualCycleError},
     },
     ledger::*,
+    rounding_policy::{AccrualPrecisionDp, AccrualRoundingStrategy},
 };
 
 use core_credit_collection::CoreCreditCollection;
@@ -111,6 +114,7 @@ where
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
     authz: Arc<Perms>,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 impl<Perms, E> ProcessAccrualCycleJobInit<Perms, E>
@@ -139,6 +143,7 @@ where
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         collaterals: Arc<Collaterals<Perms, E>>,
         authz: Arc<Perms>,
+        domain_configs: ExposedDomainConfigsReadOnly,
     ) -> Self {
         Self {
             ledger,
@@ -146,6 +151,7 @@ where
             credit_facility_repo,
             collaterals,
             authz,
+            domain_configs,
         }
     }
 }
@@ -189,6 +195,7 @@ where
             collaterals: self.collaterals.clone(),
             ledger: self.ledger.clone(),
             authz: self.authz.clone(),
+            domain_configs: self.domain_configs.clone(),
         }))
     }
 }
@@ -209,6 +216,7 @@ where
     collaterals: Arc<Collaterals<Perms, E>>,
     ledger: Arc<CreditLedger>,
     authz: Arc<Perms>,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 #[async_trait]
@@ -287,10 +295,42 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        // Load configs before opening transaction to avoid holding it open across async reads
+        let dp_config = self
+            .domain_configs
+            .get_without_audit::<AccrualPrecisionDp>()
+            .await?;
+        let accrual_precision_dp = dp_config
+            .maybe_value()
+            .ok_or(CreditFacilityError::AccrualPrecisionNotConfigured)?;
+
+        let strategy_config = self
+            .domain_configs
+            .get_without_audit::<AccrualRoundingStrategy>()
+            .await?;
+        let accrual_rounding_strategy_str = strategy_config
+            .maybe_value()
+            .ok_or(CreditFacilityError::AccrualRoundingStrategyNotConfigured)?;
+        let accrual_rounding_strategy: rust_decimal::RoundingStrategy =
+            money::RoundingMode::try_from_str(&accrual_rounding_strategy_str)
+                .expect("accrual rounding strategy validated at config write-time")
+                .into();
+
+        let precision = money::Precision::try_new(
+            u32::try_from(accrual_precision_dp)
+                .expect("accrual_precision_dp validated to be <= 28"),
+        )
+        .expect("accrual_precision_dp validated by domain config");
+
         let mut db = self.credit_facility_repo.begin_op().await?;
 
         let outcome = self
-            .confirm_interest_accrual_in_op(&mut db, self.config.credit_facility_id)
+            .confirm_interest_accrual_in_op(
+                &mut db,
+                self.config.credit_facility_id,
+                precision,
+                accrual_rounding_strategy,
+            )
             .await?;
 
         match outcome {
@@ -365,6 +405,8 @@ where
         &self,
         op: &mut impl es_entity::AtomicOperation,
         credit_facility_id: CreditFacilityId,
+        precision: money::Precision,
+        strategy: rust_decimal::RoundingStrategy,
     ) -> Result<AccrualOutcome, CreditFacilityError> {
         self.authz
             .audit()
@@ -393,9 +435,11 @@ where
             .get_credit_facility_balance_in_op(op, account_ids, collateral_account_id)
             .await?;
 
-        let result = match credit_facility
-            .record_accrual_on_in_progress_cycle(balances.disbursed_outstanding())
-        {
+        let result = match credit_facility.record_accrual_on_in_progress_cycle(
+            balances.disbursed_outstanding(),
+            precision,
+            strategy,
+        ) {
             Ok(recorded) => {
                 let recorded = recorded.expect("record_accrual always returns Executed");
                 AccrualOutcome::Accrued(ConfirmedAccrual {

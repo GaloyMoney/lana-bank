@@ -12,7 +12,12 @@ use es_entity::clock::{ClockController, ClockHandle};
 use rust_decimal_macros::dec;
 use tracing::{Instrument, Span, info, instrument};
 
-use lana_app::{app::LanaApp, customer::AllowManualConversion, primitives::*};
+use lana_app::{
+    app::LanaApp,
+    credit::{AccrualPrecisionDp, AccrualRoundingStrategy},
+    customer::AllowManualConversion,
+    primitives::*,
+};
 
 pub use config::*;
 
@@ -33,6 +38,14 @@ pub async fn run(
     // Enable manual conversion to allow creating customers without SumSub KYC
     app.exposed_domain_configs()
         .update::<AllowManualConversion>(&sub, true)
+        .await?;
+
+    // Set accrual precision configs required for interest accrual
+    app.exposed_domain_configs()
+        .update::<AccrualPrecisionDp>(&sub, 6)
+        .await?;
+    app.exposed_domain_configs()
+        .update::<AccrualRoundingStrategy>(&sub, "midpoint_away_from_zero".to_string())
         .await?;
 
     match create_term_templates(&sub, app).await {

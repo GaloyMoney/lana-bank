@@ -14,6 +14,7 @@ mod primitives;
 pub mod public;
 mod publisher;
 mod repayment_plan;
+pub mod rounding_policy;
 
 use std::sync::Arc;
 
@@ -288,6 +289,7 @@ where
             outbox,
             clock.clone(),
             collaterals_arc.clone(),
+            domain_configs.clone(),
         )
         .await?;
         let facilities_arc = Arc::new(credit_facilities);

@@ -1,11 +1,11 @@
-use rust_decimal::{Decimal, prelude::*};
+use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use money::UsdCents;
+use money::{CalculationAmount, Currency, Usd, UsdCents};
 
 use std::fmt;
 
@@ -64,15 +64,11 @@ impl CVLPct {
 
     pub fn scale(&self, value: UsdCents) -> UsdCents {
         match self {
-            Self::Finite(pct) => {
-                let cents = value.to_usd() * dec!(100) * (pct / dec!(100));
-                UsdCents::from(
-                    cents
-                        .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
-                        .to_u64()
-                        .expect("should return a valid integer"),
-                )
-            }
+            Self::Finite(pct) => CalculationAmount::<Usd>::from_major(
+                value.to_major() * *pct / dec!(100),
+                Usd::NATURAL_PRECISION,
+            )
+            .round_to_minor_units(RoundingStrategy::AwayFromZero),
             Self::Infinite => unreachable!("Cannot scale with infinite CVL percentage"),
         }
     }
@@ -84,15 +80,11 @@ impl CVLPct {
     #[cfg(test)]
     pub fn target_value_given_outstanding(&self, outstanding: UsdCents) -> UsdCents {
         match self {
-            Self::Finite(pct) => {
-                let target_in_usd = pct / dec!(100) * outstanding.to_usd();
-                UsdCents::from(
-                    (target_in_usd * dec!(100))
-                        .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
-                        .to_u64()
-                        .expect("should return a valid integer"),
-                )
-            }
+            Self::Finite(pct) => CalculationAmount::<Usd>::from_major(
+                outstanding.to_major() * *pct / dec!(100),
+                Usd::NATURAL_PRECISION,
+            )
+            .round_to_minor_units(RoundingStrategy::AwayFromZero),
             Self::Infinite => {
                 unreachable!("Cannot calculate target value for infinite CVL percentage")
             }

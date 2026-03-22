@@ -17,6 +17,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use error::CreditFacilityRepaymentPlanError;
 use jobs::credit_facility_repayment_plan;
+use money::Currency as _;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -134,7 +135,12 @@ impl CreditFacilityRepaymentPlan {
         while let Some(period) = next_interest_period {
             let interest = terms
                 .annual_rate
-                .interest_for_time_period(disbursed_outstanding, period.days());
+                .interest_for_period(
+                    disbursed_outstanding,
+                    period.days(),
+                    money::Usd::NATURAL_PRECISION,
+                )
+                .round_to_minor_units(rust_decimal::RoundingStrategy::AwayFromZero);
 
             planned_interest_entries.push(CreditFacilityRepaymentPlanEntry {
                 repayment_type: RepaymentType::Interest,

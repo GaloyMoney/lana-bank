@@ -12,6 +12,10 @@ pub enum ConversionError {
     Overflow,
     #[error("ConversionError - PrecisionLoss: {0} has fractional minor units")]
     PrecisionLoss(rust_decimal::Decimal),
+    #[error("ConversionError - InvalidPrecision: {0} decimal places (must be 2-28)")]
+    InvalidPrecision(u32),
+    #[error("ConversionError - InvalidRoundingMode: '{0}' is not a supported rounding mode")]
+    InvalidRoundingMode(String),
 }
 
 impl ErrorSeverity for ConversionError {
@@ -21,6 +25,8 @@ impl ErrorSeverity for ConversionError {
             Self::UnexpectedNegativeNumber(_) => Level::WARN,
             Self::Overflow => Level::ERROR,
             Self::PrecisionLoss(_) => Level::WARN,
+            Self::InvalidPrecision(_) => Level::ERROR,
+            Self::InvalidRoundingMode(_) => Level::ERROR,
         }
     }
 }
