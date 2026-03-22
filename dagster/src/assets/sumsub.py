@@ -92,7 +92,7 @@ def sumsub_protoasset() -> Protoasset:
             RESOURCE_KEY_DW_BQ,
             RESOURCE_KEY_SUMSUB,
         },
-        deps=[dg.AssetKey([LANA_SYSTEM_NAME, "inbox_events"])],
+        deps=[dg.AssetKey([LANA_SYSTEM_NAME, "core_party_events_rollup"])],
         tags={"system": SUMSUB_SYSTEM_NAME, "asset_type": "el_target_asset"},
         automation_condition=COLD_START_CONDITION,
     )
