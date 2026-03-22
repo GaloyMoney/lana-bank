@@ -44,6 +44,12 @@ es-entity
 
 Each crate's `Cargo.toml` has workspace-level dependency declarations. Check the `[workspace.dependencies]` section for the current version pins.
 
+## Conventions
+
+- **Commit messages:** Always use conventional commits (e.g., `chore(deps): bump es-entity to 0.10.30`)
+- **Merge strategy:** Always squash merge (`--squash`)
+- **Branch protection:** Repos may have branch protection. If `gh pr merge --squash` fails due to branch protection, ask the user for confirmation before retrying with `--admin` flag
+
 ## Per-Crate Release Flow
 
 For each crate in the chain, follow these steps in order:
@@ -58,7 +64,8 @@ If the crate already has an open PR with the changes (e.g., a version bump PR), 
 4. Commit, push, create a draft PR with `gh pr create --draft`
 5. Wait for GitHub Actions CI to pass: `gh pr checks <PR> --watch --fail-fast` (use 30m timeout)
 6. If checks fail, read the logs with `gh run view <run-id> --log-failed`, fix, and push again
-7. Once checks pass, mark ready and merge: `gh pr ready <PR> && gh pr merge <PR> --merge`
+7. Once checks pass, mark ready and squash merge: `gh pr ready <PR> && gh pr merge <PR> --squash`
+8. If merge fails due to branch protection, ask the user: "Branch protection is blocking the merge. Should I retry with `--admin`?" Only use `--admin` after explicit confirmation
 
 ### Step 2: Wait for Concourse release pipeline
 
