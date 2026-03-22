@@ -13,7 +13,7 @@ pub use lana_app::credit::Collateral as DomainCollateral;
 
 #[derive(InputObject)]
 pub struct CollateralUpdateInput {
-    pub collateral_id: UUID,
+    pub collateral_id: CollateralId,
     pub collateral: Satoshis,
     pub effective: Date,
 }
@@ -21,14 +21,14 @@ crate::mutation_payload! { CollateralUpdatePayload, collateral: Collateral }
 
 #[derive(InputObject)]
 pub struct CollateralRecordSentToLiquidationInput {
-    pub collateral_id: UUID,
+    pub collateral_id: CollateralId,
     pub amount: Satoshis,
 }
 crate::mutation_payload! { CollateralRecordSentToLiquidationPayload, collateral: Collateral }
 
 #[derive(InputObject)]
 pub struct CollateralRecordProceedsFromLiquidationInput {
-    pub collateral_id: UUID,
+    pub collateral_id: CollateralId,
     pub amount: UsdCents,
 }
 crate::mutation_payload! { CollateralRecordProceedsFromLiquidationPayload, collateral: Collateral }
@@ -39,9 +39,9 @@ crate::mutation_payload! { CollateralRecordProceedsFromLiquidationPayload, colla
     directive = crate::graphql::entity_key::entity_key::apply("collateralId".to_string())
 )]
 pub struct Collateral {
-    collateral_id: UUID,
-    pub(crate) wallet_id: Option<UUID>,
-    account_id: UUID,
+    collateral_id: CollateralId,
+    pub(crate) wallet_id: Option<WalletId>,
+    account_id: LedgerAccountId,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainCollateral>,
@@ -50,7 +50,7 @@ pub struct Collateral {
 impl From<DomainCollateral> for Collateral {
     fn from(collateral: DomainCollateral) -> Self {
         Self {
-            collateral_id: collateral.id.into(),
+            collateral_id: collateral.id,
             wallet_id: collateral.custody_wallet_id.map(|id| id.into()),
             account_id: collateral.account_ids.collateral_account_id.into(),
             entity: Arc::new(collateral),
@@ -63,7 +63,7 @@ impl Collateral {
     async fn account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let collateral = loader
-            .load_one(LedgerAccountId::from(self.account_id))
+            .load_one(self.account_id)
             .await?
             .ok_or_else(|| Error::new("Collateral account not found"))?;
         Ok(collateral)

@@ -12,7 +12,7 @@ use super::Custodian;
     directive = crate::graphql::entity_key::entity_key::apply("walletId".to_string())
 )]
 pub struct Wallet {
-    wallet_id: UUID,
+    wallet_id: WalletId,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainWallet>,

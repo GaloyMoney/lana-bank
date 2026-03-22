@@ -16,7 +16,7 @@ pub use lana_app::governance::{Policy as DomainPolicy, policy_cursor::PoliciesBy
     directive = crate::graphql::entity_key::entity_key::apply("policyId".to_string())
 )]
 pub struct Policy {
-    policy_id: UUID,
+    policy_id: PolicyId,
     approval_process_type: ApprovalProcessType,
 
     #[graphql(skip)]
@@ -26,7 +26,7 @@ pub struct Policy {
 impl From<DomainPolicy> for Policy {
     fn from(policy: DomainPolicy) -> Self {
         Self {
-            policy_id: policy.id.into(),
+            policy_id: policy.id,
             approval_process_type: ApprovalProcessType::from(&policy.process_type),
             entity: Arc::new(policy),
         }
@@ -53,8 +53,8 @@ impl Policy {
 
 #[derive(InputObject)]
 pub struct PolicyCommitteeAssignInput {
-    pub policy_id: UUID,
-    pub committee_id: UUID,
+    pub policy_id: PolicyId,
+    pub committee_id: CommitteeId,
 }
 
 crate::mutation_payload! { PolicyCommitteeAssignPayload, policy: Policy }

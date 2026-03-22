@@ -18,8 +18,8 @@ use crate::graphql::primitives::SortDirection;
     directive = crate::graphql::entity_key::entity_key::apply("fiscalYearId".to_string())
 )]
 pub struct FiscalYear {
-    fiscal_year_id: UUID,
-    chart_id: UUID,
+    fiscal_year_id: FiscalYearId,
+    chart_id: ChartId,
     is_open: bool,
     opened_as_of: Date,
     closed_as_of: Option<Date>,
@@ -30,8 +30,8 @@ pub struct FiscalYear {
 impl From<DomainFiscalYear> for FiscalYear {
     fn from(fiscal_year: DomainFiscalYear) -> Self {
         FiscalYear {
-            fiscal_year_id: UUID::from(fiscal_year.id),
-            chart_id: UUID::from(fiscal_year.chart_id),
+            fiscal_year_id: fiscal_year.id,
+            chart_id: fiscal_year.chart_id,
             is_open: fiscal_year.closed_as_of.is_none(),
             opened_as_of: fiscal_year.opened_as_of.into(),
             closed_as_of: fiscal_year.closed_as_of.map(|date| date.into()),
@@ -96,7 +96,7 @@ impl From<DomainFiscalMonthClosure> for FiscalMonthClosure {
 
 #[derive(InputObject)]
 pub struct FiscalYearCloseMonthInput {
-    pub fiscal_year_id: UUID,
+    pub fiscal_year_id: FiscalYearId,
 }
 
 crate::mutation_payload! { FiscalYearCloseMonthPayload, fiscal_year: FiscalYear }
@@ -110,14 +110,14 @@ crate::mutation_payload! { FiscalYearInitPayload, fiscal_year: FiscalYear }
 
 #[derive(InputObject)]
 pub struct FiscalYearCloseInput {
-    pub fiscal_year_id: UUID,
+    pub fiscal_year_id: FiscalYearId,
 }
 
 crate::mutation_payload! { FiscalYearClosePayload, fiscal_year: FiscalYear }
 
 #[derive(InputObject)]
 pub struct FiscalYearOpenNextInput {
-    pub fiscal_year_id: UUID,
+    pub fiscal_year_id: FiscalYearId,
 }
 
 crate::mutation_payload! { FiscalYearOpenNextPayload, fiscal_year: FiscalYear }

@@ -13,7 +13,7 @@ pub use lana_app::access::permission_set::PermissionSetsByIdCursor;
     directive = crate::graphql::entity_key::entity_key::apply("permissionSetId".to_string())
 )]
 pub struct PermissionSet {
-    permission_set_id: UUID,
+    permission_set_id: PermissionSetId,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainPermissionSet>,
@@ -46,7 +46,7 @@ impl PermissionSet {
 impl From<DomainPermissionSet> for PermissionSet {
     fn from(permission_set: DomainPermissionSet) -> Self {
         Self {
-            permission_set_id: UUID::from(permission_set.id),
+            permission_set_id: permission_set.id,
             entity: Arc::new(permission_set),
         }
     }

@@ -8,7 +8,7 @@ import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useTermsTemplateEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
-  query TermsTemplateEventHistory($id: UUID!, $first: Int!, $after: String) {
+  query TermsTemplateEventHistory($id: TermsTemplateId!, $first: Int!, $after: String) {
     termsTemplate(id: $id) {
       termsTemplateId
       eventHistory(first: $first, after: $after) {

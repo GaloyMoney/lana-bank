@@ -14,7 +14,7 @@ use lana_app::primitives::AccountingBaseConfig;
     directive = crate::graphql::entity_key::entity_key::apply("chartOfAccountsId".to_string())
 )]
 pub struct ChartOfAccounts {
-    chart_of_accounts_id: UUID,
+    chart_of_accounts_id: ChartId,
     name: String,
 
     #[graphql(skip)]
@@ -24,7 +24,7 @@ pub struct ChartOfAccounts {
 impl From<DomainChart> for ChartOfAccounts {
     fn from(chart: DomainChart) -> Self {
         ChartOfAccounts {
-            chart_of_accounts_id: UUID::from(chart.id),
+            chart_of_accounts_id: chart.id,
             name: chart.name.to_string(),
             entity: Arc::new(chart),
         }
@@ -151,7 +151,7 @@ crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: C
 
 #[derive(SimpleObject, Clone)]
 pub struct AccountInfo {
-    pub account_set_id: UUID,
+    pub account_set_id: ChartId,
     pub code: AccountCode,
     pub name: String,
 }
@@ -159,7 +159,7 @@ pub struct AccountInfo {
 impl From<DomainAccountInfo> for AccountInfo {
     fn from(member: DomainAccountInfo) -> Self {
         Self {
-            account_set_id: UUID::from(member.account_set_id),
+            account_set_id: member.account_set_id.into(),
             code: AccountCode::from(&member.code),
             name: member.name.to_string(),
         }

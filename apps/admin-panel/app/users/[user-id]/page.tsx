@@ -14,7 +14,7 @@ import { useGetUserDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
-  query GetUserDetails($id: UUID!) {
+  query GetUserDetails($id: UserId!) {
     user(id: $id) {
       ...UserFields
     }

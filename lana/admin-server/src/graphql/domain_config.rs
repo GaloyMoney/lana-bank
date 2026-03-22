@@ -39,7 +39,7 @@ impl From<DomainConfigType> for ConfigType {
     directive = crate::graphql::entity_key::entity_key::apply("domainConfigId".to_string())
 )]
 pub struct DomainConfig {
-    domain_config_id: UUID,
+    domain_config_id: DomainConfigId,
     config_type: ConfigType,
     encrypted: bool,
 
@@ -50,7 +50,7 @@ pub struct DomainConfig {
 impl From<DomainConfigEntity> for DomainConfig {
     fn from(config: DomainConfigEntity) -> Self {
         Self {
-            domain_config_id: UUID::from(config.id),
+            domain_config_id: config.id,
             config_type: config.config_type.into(),
             encrypted: config.encrypted,
             entity: Arc::new(config),
@@ -78,7 +78,7 @@ impl DomainConfig {
 
 #[derive(InputObject)]
 pub struct DomainConfigUpdateInput {
-    pub domain_config_id: UUID,
+    pub domain_config_id: DomainConfigId,
     pub value: Json,
 }
 crate::mutation_payload! { DomainConfigUpdatePayload, domain_config: DomainConfig }

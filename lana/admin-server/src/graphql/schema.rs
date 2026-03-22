@@ -73,7 +73,7 @@ impl Query {
         Ok(Dashboard::from(dashboard))
     }
 
-    async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
+    async fn user(&self, ctx: &Context<'_>, id: UserId) -> async_graphql::Result<Option<User>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(User, ctx, app.access().users().find_by_id(sub, id))
     }
@@ -98,7 +98,7 @@ impl Query {
         )
     }
 
-    async fn role(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Role>> {
+    async fn role(&self, ctx: &Context<'_>, id: RoleId) -> async_graphql::Result<Option<Role>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Role, ctx, app.access().find_role_by_id(sub, id))
     }
@@ -202,7 +202,7 @@ impl Query {
     async fn prospect(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: ProspectId,
     ) -> async_graphql::Result<Option<Prospect>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -258,7 +258,7 @@ impl Query {
     async fn withdrawal(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: WithdrawalId,
     ) -> async_graphql::Result<Option<Withdrawal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -419,7 +419,7 @@ impl Query {
     async fn terms_template(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: TermsTemplateId,
     ) -> async_graphql::Result<Option<TermsTemplate>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -444,7 +444,7 @@ impl Query {
     async fn credit_facility(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: CreditFacilityId,
     ) -> async_graphql::Result<Option<CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -457,7 +457,7 @@ impl Query {
     async fn credit_facility_proposal(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: CreditFacilityProposalId,
     ) -> async_graphql::Result<Option<CreditFacilityProposal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
@@ -503,7 +503,7 @@ impl Query {
     async fn pending_credit_facility(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: PendingCreditFacilityId,
     ) -> async_graphql::Result<Option<PendingCreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
@@ -594,7 +594,7 @@ impl Query {
     async fn disbursal(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: DisbursalId,
     ) -> async_graphql::Result<Option<CreditFacilityDisbursal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -652,7 +652,7 @@ impl Query {
     async fn liquidation(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: LiquidationId,
     ) -> async_graphql::Result<Option<Liquidation>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -761,7 +761,7 @@ impl Query {
     async fn committee(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: CommitteeId,
     ) -> async_graphql::Result<Option<Committee>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -794,7 +794,11 @@ impl Query {
         )
     }
 
-    async fn policy(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Policy>> {
+    async fn policy(
+        &self,
+        ctx: &Context<'_>,
+        id: PolicyId,
+    ) -> async_graphql::Result<Option<Policy>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Policy, ctx, app.governance().find_policy(sub, id))
     }
@@ -821,7 +825,7 @@ impl Query {
     async fn approval_process(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: ApprovalProcessId,
     ) -> async_graphql::Result<Option<ApprovalProcess>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -853,7 +857,7 @@ impl Query {
     async fn customer_document(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: CustomerDocumentId,
     ) -> async_graphql::Result<Option<CustomerDocument>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -867,7 +871,7 @@ impl Query {
     async fn ledger_account(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: LedgerAccountId,
     ) -> async_graphql::Result<Option<LedgerAccount>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -914,7 +918,7 @@ impl Query {
     async fn ledger_transaction(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: LedgerTransactionId,
     ) -> async_graphql::Result<Option<LedgerTransaction>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -1026,7 +1030,7 @@ impl Query {
     async fn fiscal_year(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: FiscalYearId,
     ) -> async_graphql::Result<Option<FiscalYear>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -1280,7 +1284,7 @@ impl Query {
     async fn ledger_account_csv(
         &self,
         ctx: &Context<'_>,
-        ledger_account_id: UUID,
+        ledger_account_id: LedgerAccountId,
     ) -> async_graphql::Result<Option<LedgerAccountCsvDocument>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
@@ -1319,7 +1323,7 @@ impl Query {
     async fn report_run(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: ReportRunId,
     ) -> async_graphql::Result<Option<ReportRun>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(ReportRun, ctx, app.reports().find_report_run_by_id(sub, id))
@@ -2773,10 +2777,10 @@ impl Subscription {
     async fn prospect_updated(
         &self,
         ctx: &Context<'_>,
-        prospect_id: UUID,
+        prospect_id: ProspectId,
     ) -> async_graphql::Result<impl Stream<Item = Prospect>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let id = ProspectId::from(prospect_id);
+        let id = prospect_id;
 
         app.customers()
             .find_prospect_by_id(sub, id)
@@ -2809,10 +2813,10 @@ impl Subscription {
     async fn pending_credit_facility_updated(
         &self,
         ctx: &Context<'_>,
-        pending_credit_facility_id: UUID,
+        pending_credit_facility_id: PendingCreditFacilityId,
     ) -> async_graphql::Result<impl Stream<Item = PendingCreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let id = PendingCreditFacilityId::from(pending_credit_facility_id);
+        let id = pending_credit_facility_id;
 
         app.credit()
             .pending_credit_facilities()
@@ -2842,10 +2846,10 @@ impl Subscription {
     async fn credit_facility_proposal_updated(
         &self,
         ctx: &Context<'_>,
-        credit_facility_proposal_id: UUID,
+        credit_facility_proposal_id: CreditFacilityProposalId,
     ) -> async_graphql::Result<impl Stream<Item = CreditFacilityProposal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let id = CreditFacilityProposalId::from(credit_facility_proposal_id);
+        let id = credit_facility_proposal_id;
 
         app.credit()
             .proposals()
@@ -2875,10 +2879,10 @@ impl Subscription {
     async fn withdrawal_updated(
         &self,
         ctx: &Context<'_>,
-        withdrawal_id: UUID,
+        withdrawal_id: WithdrawalId,
     ) -> async_graphql::Result<impl Stream<Item = Withdrawal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let id = WithdrawalId::from(withdrawal_id);
+        let id = withdrawal_id;
 
         app.deposits()
             .find_withdrawal_by_id(sub, id)
@@ -2907,10 +2911,10 @@ impl Subscription {
     async fn disbursal_updated(
         &self,
         ctx: &Context<'_>,
-        disbursal_id: UUID,
+        disbursal_id: DisbursalId,
     ) -> async_graphql::Result<impl Stream<Item = CreditFacilityDisbursal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let id = DisbursalId::from(disbursal_id);
+        let id = disbursal_id;
 
         app.credit()
             .disbursals()
@@ -2940,10 +2944,10 @@ impl Subscription {
     async fn credit_facility_updated(
         &self,
         ctx: &Context<'_>,
-        credit_facility_id: UUID,
+        credit_facility_id: CreditFacilityId,
     ) -> async_graphql::Result<impl Stream<Item = CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let id = CreditFacilityId::from(credit_facility_id);
+        let id = credit_facility_id;
 
         app.credit()
             .facilities()
@@ -2980,10 +2984,9 @@ impl Subscription {
     async fn ledger_account_csv_export_uploaded(
         &self,
         ctx: &Context<'_>,
-        ledger_account_id: UUID,
+        ledger_account_id: LedgerAccountId,
     ) -> async_graphql::Result<impl Stream<Item = LedgerAccountCsvExportUploadedPayload>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let ledger_account_id = LedgerAccountId::from(ledger_account_id);
 
         app.accounting()
             .find_ledger_account_by_id(sub, CHART_REF.0, ledger_account_id)
@@ -2999,7 +3002,7 @@ impl Subscription {
                     ledger_account_id: event_ledger_account_id,
                 } if *event_ledger_account_id == ledger_account_id => {
                     Some(LedgerAccountCsvExportUploadedPayload {
-                        document_id: UUID::from(*id),
+                        document_id: AccountingCsvDocumentId::from(uuid::Uuid::from(*id)),
                     })
                 }
                 _ => None,
@@ -3039,7 +3042,7 @@ impl Subscription {
                 CoreReportEvent::ReportRunCreated { entity }
                 | CoreReportEvent::ReportRunStateUpdated { entity } => {
                     Some(ReportRunUpdatedPayload {
-                        report_run_id: UUID::from(entity.id),
+                        report_run_id: entity.id,
                     })
                 }
             }

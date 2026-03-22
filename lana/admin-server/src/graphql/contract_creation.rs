@@ -60,7 +60,7 @@ impl From<lana_app::contract_creation::CreditFacilityAgreement> for CreditFacili
 
 #[derive(InputObject)]
 pub struct CreditFacilityAgreementGenerateInput {
-    pub credit_facility_id: UUID,
+    pub credit_facility_id: CreditFacilityId,
 }
 
 crate::mutation_payload! { CreditFacilityAgreementGeneratePayload, credit_facility_agreement: CreditFacilityAgreement }

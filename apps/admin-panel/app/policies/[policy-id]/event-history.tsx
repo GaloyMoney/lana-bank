@@ -8,7 +8,7 @@ import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { usePolicyEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
-  query PolicyEventHistory($id: UUID!, $first: Int!, $after: String) {
+  query PolicyEventHistory($id: PolicyId!, $first: Int!, $after: String) {
     policy(id: $id) {
       policyId
       eventHistory(first: $first, after: $after) {

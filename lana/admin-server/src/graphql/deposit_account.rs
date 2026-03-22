@@ -66,8 +66,8 @@ impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
 }
 
 pub struct DepositAccountLedgerAccounts {
-    deposit_account_id: UUID,
-    frozen_deposit_account_id: UUID,
+    deposit_account_id: LedgerAccountId,
+    frozen_deposit_account_id: LedgerAccountId,
 }
 
 #[Object]
@@ -75,7 +75,7 @@ impl DepositAccountLedgerAccounts {
     async fn deposit_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
-            .load_one(LedgerAccountId::from(self.deposit_account_id))
+            .load_one(self.deposit_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(account)
@@ -84,7 +84,7 @@ impl DepositAccountLedgerAccounts {
     async fn frozen_deposit_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
-            .load_one(LedgerAccountId::from(self.frozen_deposit_account_id))
+            .load_one(self.frozen_deposit_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(account)

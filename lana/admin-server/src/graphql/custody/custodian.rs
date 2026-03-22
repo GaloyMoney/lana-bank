@@ -21,7 +21,7 @@ pub use lana_app::custody::{
     directive = crate::graphql::entity_key::entity_key::apply("custodianId".to_string())
 )]
 pub struct Custodian {
-    custodian_id: UUID,
+    custodian_id: CustodianId,
     created_at: Timestamp,
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainCustodian>,
@@ -30,7 +30,7 @@ pub struct Custodian {
 impl From<DomainCustodian> for Custodian {
     fn from(custodian: DomainCustodian) -> Self {
         Self {
-            custodian_id: custodian.id.into(),
+            custodian_id: custodian.id,
             created_at: custodian.created_at().into(),
             entity: Arc::new(custodian),
         }
@@ -200,7 +200,7 @@ impl From<CustodianConfigInput> for DomainCustodianConfig {
 
 #[derive(InputObject)]
 pub struct CustodianConfigUpdateInput {
-    pub custodian_id: UUID,
+    pub custodian_id: CustodianId,
     pub config: CustodianConfigInput,
 }
 

@@ -12,7 +12,7 @@ pub use lana_app::report::{Report as DomainReport, ReportFile as DomainReportFil
     directive = crate::graphql::entity_key::entity_key::apply("reportId".to_string())
 )]
 pub struct Report {
-    report_id: UUID,
+    report_id: ReportId,
     external_id: String,
     name: String,
     norm: String,
@@ -26,7 +26,7 @@ impl From<lana_app::report::Report> for Report {
     fn from(report: lana_app::report::Report) -> Self {
         Report {
             created_at: report.created_at().into(),
-            report_id: UUID::from(report.id),
+            report_id: report.id,
             external_id: report.external_id.clone(),
             name: report.name.clone(),
             norm: report.norm.clone(),
@@ -50,8 +50,8 @@ impl From<DomainReportFile> for ReportFile {
 
 #[ComplexObject]
 impl Report {
-    async fn run_id(&self) -> UUID {
-        UUID::from(self.entity.run_id)
+    async fn run_id(&self) -> ReportRunId {
+        self.entity.run_id
     }
 
     async fn files(&self) -> Vec<ReportFile> {
@@ -82,6 +82,6 @@ pub struct ReportFileDownloadLinkGeneratePayload {
 
 #[derive(InputObject)]
 pub struct ReportFileDownloadLinkGenerateInput {
-    pub report_id: UUID,
+    pub report_id: ReportId,
     pub extension: String,
 }

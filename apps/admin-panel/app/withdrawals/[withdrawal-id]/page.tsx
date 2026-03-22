@@ -72,7 +72,7 @@ gql`
     }
   }
 
-  subscription withdrawalUpdated($withdrawalId: UUID!) {
+  subscription withdrawalUpdated($withdrawalId: WithdrawalId!) {
     withdrawalUpdated(withdrawalId: $withdrawalId) {
       ...WithdrawDetailsPageFragment
     }

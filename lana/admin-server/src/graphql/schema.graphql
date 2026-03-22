@@ -11,7 +11,7 @@ enum AccountCategory {
 scalar AccountCode
 
 type AccountInfo {
-	accountSetId: UUID!
+	accountSetId: ChartId!
 	code: AccountCode!
 	name: String!
 }
@@ -38,6 +38,8 @@ type AccountingBaseConfigOutput {
 	revenueCode: String!
 }
 
+scalar AccountingCsvDocumentId
+
 enum Activity {
 	ACTIVE
 	ESCHEATABLE
@@ -47,7 +49,7 @@ enum Activity {
 scalar AnnualRatePct
 
 type ApprovalProcess @entity_key(field: "approvalProcessId") {
-	approvalProcessId: UUID!
+	approvalProcessId: ApprovalProcessId!
 	approvalProcessType: ApprovalProcessType!
 	createdAt: Timestamp!
 	deniedReason: String
@@ -61,7 +63,7 @@ type ApprovalProcess @entity_key(field: "approvalProcessId") {
 }
 
 input ApprovalProcessApproveInput {
-	approvalProcessId: UUID!
+	approvalProcessId: ApprovalProcessId!
 }
 
 type ApprovalProcessApprovePayload {
@@ -84,7 +86,7 @@ type ApprovalProcessConnection {
 }
 
 input ApprovalProcessDenyInput {
-	approvalProcessId: UUID!
+	approvalProcessId: ApprovalProcessId!
 	reason: String!
 }
 
@@ -105,6 +107,8 @@ type ApprovalProcessEdge {
 	"""
 	node: ApprovalProcess!
 }
+
+scalar ApprovalProcessId
 
 enum ApprovalProcessStatus {
 	APPROVED
@@ -194,7 +198,7 @@ type BalanceSheetAccount {
 	balance: LedgerAccountBalanceByCurrency!
 	children: [BalanceSheetAccount!]!
 	code: AccountCode
-	ledgerAccountId: UUID!
+	ledgerAccountId: LedgerAccountId!
 	name: String!
 }
 
@@ -248,6 +252,8 @@ type CancelledWithdrawalEntry {
 	withdrawal: Withdrawal!
 }
 
+scalar ChartId
+
 type ChartNode {
 	accountCode: AccountCode!
 	children: [ChartNode!]!
@@ -256,7 +262,7 @@ type ChartNode {
 
 type ChartOfAccounts @entity_key(field: "chartOfAccountsId") {
 	accountingBaseConfig: AccountingBaseConfigOutput
-	chartOfAccountsId: UUID!
+	chartOfAccountsId: ChartId!
 	children: [ChartNode!]!
 	name: String!
 }
@@ -290,11 +296,11 @@ type ChartOfAccountsCsvImportWithBaseConfigPayload {
 
 type Collateral @entity_key(field: "collateralId") {
 	account: LedgerAccount!
-	accountId: UUID!
-	collateralId: UUID!
+	accountId: LedgerAccountId!
+	collateralId: CollateralId!
 	creditFacility: CreditFacility
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	walletId: UUID
+	walletId: WalletId
 }
 
 enum CollateralDirection {
@@ -302,9 +308,11 @@ enum CollateralDirection {
 	REMOVE
 }
 
+scalar CollateralId
+
 input CollateralRecordProceedsFromLiquidationInput {
 	amount: UsdCents!
-	collateralId: UUID!
+	collateralId: CollateralId!
 }
 
 type CollateralRecordProceedsFromLiquidationPayload {
@@ -313,7 +321,7 @@ type CollateralRecordProceedsFromLiquidationPayload {
 
 input CollateralRecordSentToLiquidationInput {
 	amount: Satoshis!
-	collateralId: UUID!
+	collateralId: CollateralId!
 }
 
 type CollateralRecordSentToLiquidationPayload {
@@ -322,7 +330,7 @@ type CollateralRecordSentToLiquidationPayload {
 
 input CollateralUpdateInput {
 	collateral: Satoshis!
-	collateralId: UUID!
+	collateralId: CollateralId!
 	effective: Date!
 }
 
@@ -339,7 +347,7 @@ enum CollateralizationState {
 }
 
 type Committee @entity_key(field: "committeeId") {
-	committeeId: UUID!
+	committeeId: CommitteeId!
 	createdAt: Timestamp!
 	currentMembers: [User!]!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
@@ -366,7 +374,7 @@ type CommitteeConnection {
 }
 
 input CommitteeCreateInput {
-	memberUserIds: [UUID!]!
+	memberUserIds: [UserId!]!
 	name: String!
 }
 
@@ -388,9 +396,11 @@ type CommitteeEdge {
 	node: Committee!
 }
 
+scalar CommitteeId
+
 input CommitteeUserAddInput {
-	committeeId: UUID!
-	userId: UUID!
+	committeeId: CommitteeId!
+	userId: UserId!
 }
 
 type CommitteeUserAddPayload {
@@ -398,8 +408,8 @@ type CommitteeUserAddPayload {
 }
 
 input CommitteeUserRemoveInput {
-	committeeId: UUID!
-	userId: UUID!
+	committeeId: CommitteeId!
+	userId: UserId!
 }
 
 type CommitteeUserRemovePayload {
@@ -451,10 +461,10 @@ type CreditFacility @entity_key(field: "creditFacilityId") {
 	activatedAt: Timestamp!
 	balance: CreditFacilityBalance!
 	canBeCompleted: Boolean!
-	collateralId: UUID!
+	collateralId: CollateralId!
 	collateralizationState: CollateralizationState!
 	createdAt: Timestamp!
-	creditFacilityId: UUID!
+	creditFacilityId: CreditFacilityId!
 	creditFacilityTerms: TermValues!
 	currentCvl: CvlPct!
 	customer: Customer!
@@ -491,7 +501,7 @@ type CreditFacilityAgreementDownloadLinksGeneratePayload {
 }
 
 input CreditFacilityAgreementGenerateInput {
-	creditFacilityId: UUID!
+	creditFacilityId: CreditFacilityId!
 }
 
 type CreditFacilityAgreementGeneratePayload {
@@ -507,8 +517,8 @@ enum CreditFacilityAgreementStatus {
 type CreditFacilityApproved {
 	cents: UsdCents!
 	effective: Date!
-	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
+	txId: TransactionId!
 }
 
 type CreditFacilityBalance {
@@ -525,16 +535,16 @@ type CreditFacilityBalance {
 type CreditFacilityCollateralSentOut {
 	amount: Satoshis!
 	effective: Date!
-	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
+	txId: TransactionId!
 }
 
 type CreditFacilityCollateralUpdated {
 	direction: CollateralDirection!
 	effective: Date!
-	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
 	satoshis: Satoshis!
+	txId: TransactionId!
 }
 
 type CreditFacilityCollateralizationUpdated {
@@ -548,7 +558,7 @@ type CreditFacilityCollateralizationUpdated {
 }
 
 input CreditFacilityCompleteInput {
-	creditFacilityId: UUID!
+	creditFacilityId: CreditFacilityId!
 }
 
 type CreditFacilityCompletePayload {
@@ -575,7 +585,7 @@ type CreditFacilityDisbursal @entity_key(field: "creditFacilityDisbursalId") {
 	approvalProcess: ApprovalProcess!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
-	creditFacilityDisbursalId: UUID!
+	creditFacilityDisbursalId: DisbursalId!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	ledgerTransactions: [LedgerTransaction!]!
 	publicId: PublicId!
@@ -614,13 +624,13 @@ type CreditFacilityDisbursalEdge {
 type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
 	effective: Date!
-	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
+	txId: TransactionId!
 }
 
 input CreditFacilityDisbursalInitiateInput {
 	amount: UsdCents!
-	creditFacilityId: UUID!
+	creditFacilityId: CreditFacilityId!
 }
 
 type CreditFacilityDisbursalInitiatePayload {
@@ -643,19 +653,21 @@ type CreditFacilityEdge {
 
 union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityCollateralSentOut | CreditFacilityRepaymentAmountReceived
 
+scalar CreditFacilityId
+
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
 	effective: Date!
-	paymentId: UUID!
 	recordedAt: Timestamp!
+	txId: TransactionId!
 }
 
 type CreditFacilityInterestAccrued {
 	cents: UsdCents!
 	days: Int!
 	effective: Date!
-	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
+	txId: TransactionId!
 }
 
 type CreditFacilityLedgerAccounts {
@@ -738,7 +750,7 @@ type CreditFacilityModuleConfigurePayload {
 
 input CreditFacilityPartialPaymentRecordInput {
 	amount: UsdCents!
-	creditFacilityId: UUID!
+	creditFacilityId: CreditFacilityId!
 }
 
 type CreditFacilityPartialPaymentRecordPayload {
@@ -747,7 +759,7 @@ type CreditFacilityPartialPaymentRecordPayload {
 
 input CreditFacilityPartialPaymentWithDateRecordInput {
 	amount: UsdCents!
-	creditFacilityId: UUID!
+	creditFacilityId: CreditFacilityId!
 	effective: Date!
 }
 
@@ -761,9 +773,9 @@ type CreditFacilityPaymentAllocation @entity_key(field: "creditFacilityPaymentAl
 
 type CreditFacilityProposal @entity_key(field: "creditFacilityProposalId") {
 	approvalProcess: ApprovalProcess
-	approvalProcessId: UUID
+	approvalProcessId: ApprovalProcessId
 	createdAt: Timestamp!
-	creditFacilityProposalId: UUID!
+	creditFacilityProposalId: CreditFacilityProposalId!
 	creditFacilityTerms: TermValues!
 	custodian: Custodian!
 	customer: Customer!
@@ -789,8 +801,8 @@ type CreditFacilityProposalConnection {
 }
 
 input CreditFacilityProposalCreateInput {
-	custodianId: UUID!
-	customerId: UUID!
+	custodianId: CustodianId!
+	customerId: CustomerId!
 	facility: UsdCents!
 	terms: TermsInput!
 }
@@ -801,7 +813,7 @@ type CreditFacilityProposalCreatePayload {
 
 input CreditFacilityProposalCustomerApprovalConcludeInput {
 	approved: Boolean!
-	creditFacilityProposalId: UUID!
+	creditFacilityProposalId: CreditFacilityProposalId!
 }
 
 type CreditFacilityProposalCustomerApprovalConcludePayload {
@@ -821,6 +833,8 @@ type CreditFacilityProposalEdge {
 	"""
 	node: CreditFacilityProposal!
 }
+
+scalar CreditFacilityProposalId
 
 enum CreditFacilityProposalStatus {
 	APPROVED
@@ -847,8 +861,8 @@ enum CreditFacilityProposalsSortBy {
 type CreditFacilityRepaymentAmountReceived {
 	cents: UsdCents!
 	effective: Date!
-	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
+	txId: TransactionId!
 }
 
 type CreditFacilityRepaymentPlanEntry {
@@ -932,12 +946,12 @@ type CreditModuleConfig {
 	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String
 	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String
 	chartOfAccountUncoveredOutstandingParentCode: String
-	chartOfAccountsId: UUID
+	chartOfAccountsId: ChartId
 }
 
 type Custodian @entity_key(field: "custodianId") {
 	createdAt: Timestamp!
-	custodianId: UUID!
+	custodianId: CustodianId!
 	name: String!
 	provider: String!
 }
@@ -950,7 +964,7 @@ input CustodianConfigInput @oneOf {
 
 input CustodianConfigUpdateInput {
 	config: CustodianConfigInput!
-	custodianId: UUID!
+	custodianId: CustodianId!
 }
 
 type CustodianConfigUpdatePayload {
@@ -996,6 +1010,8 @@ type CustodianEdge {
 	"""
 	node: Custodian!
 }
+
+scalar CustodianId
 
 input CustodiansSort {
 	by: CustodiansSortBy! = CREATED_AT
@@ -1052,15 +1068,15 @@ type CustomerConnection {
 }
 
 type CustomerDocument @entity_key(field: "customerDocumentId") {
-	customerDocumentId: UUID!
-	customerId: UUID!
+	customerDocumentId: CustomerDocumentId!
+	customerId: CustomerId!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	filename: String!
 	status: DocumentStatus!
 }
 
 input CustomerDocumentArchiveInput {
-	customerDocumentId: UUID!
+	customerDocumentId: CustomerDocumentId!
 }
 
 type CustomerDocumentArchivePayload {
@@ -1068,7 +1084,7 @@ type CustomerDocumentArchivePayload {
 }
 
 input CustomerDocumentCreateInput {
-	customerId: UUID!
+	customerId: CustomerId!
 	file: Upload!
 }
 
@@ -1077,20 +1093,22 @@ type CustomerDocumentCreatePayload {
 }
 
 input CustomerDocumentDeleteInput {
-	customerDocumentId: UUID!
+	customerDocumentId: CustomerDocumentId!
 }
 
 type CustomerDocumentDeletePayload {
-	deletedDocumentId: UUID!
+	deletedDocumentId: CustomerDocumentId!
 }
 
 input CustomerDocumentDownloadLinksGenerateInput {
-	customerDocumentId: UUID!
+	customerDocumentId: CustomerDocumentId!
 }
 
 type CustomerDocumentDownloadLinksGeneratePayload {
 	link: String!
 }
+
+scalar CustomerDocumentId
 
 """
 An edge in a connection.
@@ -1413,7 +1431,7 @@ type DepositModuleConfig {
 	chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode: String
 	chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode: String
 	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String
-	chartOfAccountsId: UUID
+	chartOfAccountsId: ChartId
 	chartOfAccountsIndividualDepositAccountsParentCode: String
 	chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: String
 	chartOfAccountsOmnibusParentCode: String
@@ -1463,6 +1481,8 @@ type DisbursalEntry {
 	recordedAt: Timestamp!
 }
 
+scalar DisbursalId
+
 enum DisbursalPolicy {
 	MULTIPLE_DISBURSAL
 	SINGLE_DISBURSAL
@@ -1505,7 +1525,7 @@ enum DocumentStatus {
 
 type DomainConfig @entity_key(field: "domainConfigId") {
 	configType: ConfigType!
-	domainConfigId: UUID!
+	domainConfigId: DomainConfigId!
 	encrypted: Boolean!
 	isSet: Boolean!
 	key: String!
@@ -1541,8 +1561,10 @@ type DomainConfigEdge {
 	node: DomainConfig!
 }
 
+scalar DomainConfigId
+
 input DomainConfigUpdateInput {
-	domainConfigId: UUID!
+	domainConfigId: DomainConfigId!
 	value: Json!
 }
 
@@ -1608,11 +1630,11 @@ type FiscalMonthClosure {
 }
 
 type FiscalYear @entity_key(field: "fiscalYearId") {
-	chartId: UUID!
+	chartId: ChartId!
 	closedAsOf: Date
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	fiscalYearId: UUID!
+	fiscalYearId: FiscalYearId!
 	isLastMonthOfYearClosed: Boolean!
 	isOpen: Boolean!
 	monthClosures: [FiscalMonthClosure!]!
@@ -1623,11 +1645,11 @@ type FiscalYear @entity_key(field: "fiscalYearId") {
 }
 
 input FiscalYearCloseInput {
-	fiscalYearId: UUID!
+	fiscalYearId: FiscalYearId!
 }
 
 input FiscalYearCloseMonthInput {
-	fiscalYearId: UUID!
+	fiscalYearId: FiscalYearId!
 }
 
 type FiscalYearCloseMonthPayload {
@@ -1667,6 +1689,8 @@ type FiscalYearEdge {
 	node: FiscalYear!
 }
 
+scalar FiscalYearId
+
 input FiscalYearInitInput {
 	openedAsOf: Date!
 }
@@ -1676,7 +1700,7 @@ type FiscalYearInitPayload {
 }
 
 input FiscalYearOpenNextInput {
-	fiscalYearId: UUID!
+	fiscalYearId: FiscalYearId!
 }
 
 type FiscalYearOpenNextPayload {
@@ -1695,8 +1719,8 @@ enum FiscalYearsSortBy {
 
 type FreezeEntry {
 	amount: UsdCents!
-	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
+	txId: TransactionId!
 }
 
 type GovernanceNavigationItems {
@@ -1805,7 +1829,7 @@ type LedgerAccount @entity_key(field: "ledgerAccountId") {
 	entity: LedgerAccountEntity
 	history(after: String, first: Int!): JournalEntryConnection!
 	isRootAccount: Boolean!
-	ledgerAccountId: UUID!
+	ledgerAccountId: LedgerAccountId!
 	name: String!
 	normalBalanceType: DebitOrCredit!
 }
@@ -1823,7 +1847,7 @@ type LedgerAccountBalanceRangeByCurrency {
 }
 
 input LedgerAccountCsvCreateInput {
-	ledgerAccountId: UUID!
+	ledgerAccountId: LedgerAccountId!
 }
 
 type LedgerAccountCsvCreatePayload {
@@ -1833,18 +1857,18 @@ type LedgerAccountCsvCreatePayload {
 type LedgerAccountCsvDocument @entity_key(field: "ledgerAccountCsvDocumentId") {
 	createdAt: Timestamp!
 	filename: String!
-	ledgerAccountCsvDocumentId: UUID!
-	ledgerAccountId: UUID!
+	ledgerAccountCsvDocumentId: AccountingCsvDocumentId!
+	ledgerAccountId: LedgerAccountId!
 	status: DocumentStatus!
 }
 
 type LedgerAccountCsvDownloadLink {
-	csvId: UUID!
+	csvId: AccountingCsvDocumentId!
 	url: String!
 }
 
 input LedgerAccountCsvDownloadLinkGenerateInput {
-	ledgerAccountCsvDocumentId: UUID!
+	ledgerAccountCsvDocumentId: AccountingCsvDocumentId!
 }
 
 type LedgerAccountCsvDownloadLinkGeneratePayload {
@@ -1852,10 +1876,12 @@ type LedgerAccountCsvDownloadLinkGeneratePayload {
 }
 
 type LedgerAccountCsvExportUploadedPayload {
-	documentId: UUID!
+	documentId: AccountingCsvDocumentId!
 }
 
 union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
+
+scalar LedgerAccountId
 
 input LedgerManualTransactionExecuteInput {
 	description: String!
@@ -1875,7 +1901,7 @@ type LedgerTransaction @entity_key(field: "ledgerTransactionId") {
 	entity: LedgerTransactionEntity
 	entries: [JournalEntry!]!
 	initiatedBy: LedgerTransactionInitiator!
-	ledgerTransactionId: UUID!
+	ledgerTransactionId: TransactionId!
 }
 
 type LedgerTransactionConnection {
@@ -1914,13 +1940,13 @@ union LedgerTransactionInitiator = User | System
 type Liquidation @entity_key(field: "liquidationId") {
 	amountReceived: UsdCents!
 	collateral: Collateral!
-	collateralId: UUID!
+	collateralId: CollateralId!
 	completed: Boolean!
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	expectedToReceive: UsdCents!
 	initiallyEstimatedToLiquidate: Satoshis!
-	liquidationId: UUID!
+	liquidationId: LiquidationId!
 	receivedProceeds: [LiquidationProceedsReceived!]!
 	sentCollateral: [LiquidationCollateralSent!]!
 	sentTotal: Satoshis!
@@ -1928,7 +1954,7 @@ type Liquidation @entity_key(field: "liquidationId") {
 
 type LiquidationCollateralSent {
 	amount: Satoshis!
-	ledgerTxId: UUID!
+	ledgerTxId: TransactionId!
 }
 
 type LiquidationConnection {
@@ -1960,6 +1986,8 @@ type LiquidationEdge {
 	node: Liquidation!
 }
 
+scalar LiquidationId
+
 type LiquidationPayment {
 	effectiveLiquidationPrice: UsdCents!
 	liquidationPremiumPct: Decimal!
@@ -1970,7 +1998,7 @@ type LiquidationPayment {
 }
 
 input LiquidationPaymentCalculateInput {
-	liquidationId: UUID!
+	liquidationId: LiquidationId!
 	outstanding: UsdCents!
 	targetCvl: CVLPctValue
 	toLiquidate: Satoshis
@@ -1979,7 +2007,7 @@ input LiquidationPaymentCalculateInput {
 
 type LiquidationProceedsReceived {
 	amount: UsdCents!
-	ledgerTxId: UUID!
+	ledgerTxId: TransactionId!
 }
 
 input LiquidationsSort {
@@ -2140,9 +2168,9 @@ enum PendingCreditFacilitiesSortBy {
 
 type PendingCreditFacility @entity_key(field: "pendingCreditFacilityId") {
 	approvalProcess: ApprovalProcess!
-	approvalProcessId: UUID!
+	approvalProcessId: ApprovalProcessId!
 	collateral: Satoshis!
-	collateralId: UUID!
+	collateralId: CollateralId!
 	collateralizationState: PendingCreditFacilityCollateralizationState!
 	createdAt: Timestamp!
 	"""
@@ -2150,12 +2178,12 @@ type PendingCreditFacility @entity_key(field: "pendingCreditFacilityId") {
 	Today this matches `pendingCreditFacilityId`, but clients should use
 	this field when they need the active facility reference.
 	"""
-	creditFacilityId: UUID!
+	creditFacilityId: CreditFacilityId!
 	creditFacilityTerms: TermValues!
 	customer: Customer!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	facilityAmount: UsdCents!
-	pendingCreditFacilityId: UUID!
+	pendingCreditFacilityId: PendingCreditFacilityId!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	status: PendingCreditFacilityStatus!
 	wallet: Wallet
@@ -2204,6 +2232,8 @@ type PendingCreditFacilityEdge {
 	node: PendingCreditFacility!
 }
 
+scalar PendingCreditFacilityId
+
 enum PendingCreditFacilityStatus {
 	COMPLETED
 	PENDING_COLLATERALIZATION
@@ -2218,7 +2248,7 @@ type PermissionSet @entity_key(field: "permissionSetId") {
 	description: String!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	name: String!
-	permissionSetId: UUID!
+	permissionSetId: PermissionSetId!
 }
 
 type PermissionSetConnection {
@@ -2250,6 +2280,8 @@ type PermissionSetEdge {
 	node: PermissionSet!
 }
 
+scalar PermissionSetId
+
 type PersonalInfo {
 	address: String
 	companyName: String
@@ -2262,13 +2294,13 @@ type PersonalInfo {
 type Policy @entity_key(field: "policyId") {
 	approvalProcessType: ApprovalProcessType!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
-	policyId: UUID!
+	policyId: PolicyId!
 	rules: ApprovalRules!
 }
 
 input PolicyCommitteeAssignInput {
-	committeeId: UUID!
-	policyId: UUID!
+	committeeId: CommitteeId!
+	policyId: PolicyId!
 }
 
 type PolicyCommitteeAssignPayload {
@@ -2304,17 +2336,19 @@ type PolicyEdge {
 	node: Policy!
 }
 
+scalar PolicyId
+
 type PriceProvider @entity_key(field: "priceProviderId") {
 	active: Boolean!
 	createdAt: Timestamp!
 	latestPrice: UsdCents
 	name: String!
-	priceProviderId: UUID!
+	priceProviderId: PriceProviderId!
 	provider: String!
 }
 
 input PriceProviderActivateInput {
-	priceProviderId: UUID!
+	priceProviderId: PriceProviderId!
 }
 
 type PriceProviderActivatePayload {
@@ -2328,7 +2362,7 @@ input PriceProviderConfigInput @oneOf {
 
 input PriceProviderConfigUpdateInput {
 	config: PriceProviderConfigInput!
-	priceProviderId: UUID!
+	priceProviderId: PriceProviderId!
 }
 
 type PriceProviderConfigUpdatePayload {
@@ -2351,7 +2385,7 @@ type PriceProviderConnection {
 }
 
 input PriceProviderDeactivateInput {
-	priceProviderId: UUID!
+	priceProviderId: PriceProviderId!
 }
 
 type PriceProviderDeactivatePayload {
@@ -2372,6 +2406,8 @@ type PriceProviderEdge {
 	node: PriceProvider!
 }
 
+scalar PriceProviderId
+
 input PriceProvidersSort {
 	by: PriceProvidersSortBy! = CREATED_AT
 	direction: SortDirection! = DESC
@@ -2386,7 +2422,7 @@ type ProfitAndLossAccount {
 	balanceRange: LedgerAccountBalanceRangeByCurrency!
 	children: [ProfitAndLossAccount!]!
 	code: AccountCode
-	ledgerAccountId: UUID!
+	ledgerAccountId: LedgerAccountId!
 	name: String!
 }
 
@@ -2406,7 +2442,7 @@ type Prospect @entity_key(field: "prospectId") {
 	kycStatus: KycStatus!
 	level: KycLevel!
 	personalInfo: PersonalInfo
-	prospectId: UUID!
+	prospectId: ProspectId!
 	publicId: PublicId!
 	stage: ProspectStage!
 	telegramHandle: String!
@@ -2415,7 +2451,7 @@ type Prospect @entity_key(field: "prospectId") {
 }
 
 input ProspectCloseInput {
-	prospectId: UUID!
+	prospectId: ProspectId!
 }
 
 type ProspectClosePayload {
@@ -2438,7 +2474,7 @@ type ProspectConnection {
 }
 
 input ProspectConvertInput {
-	prospectId: UUID!
+	prospectId: ProspectId!
 }
 
 type ProspectConvertPayload {
@@ -2469,8 +2505,10 @@ type ProspectEdge {
 	node: Prospect!
 }
 
+scalar ProspectId
+
 input ProspectKycLinkCreateInput {
-	prospectId: UUID!
+	prospectId: ProspectId!
 }
 
 type ProspectKycLinkCreatePayload {
@@ -2507,7 +2545,7 @@ union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdraw
 
 type Query {
 	appConfig: Yaml!
-	approvalProcess(id: UUID!): ApprovalProcess
+	approvalProcess(id: ApprovalProcessId!): ApprovalProcess
 	approvalProcesses(after: String, first: Int!): ApprovalProcessConnection!
 	audit(action: String, after: String, authorized: Boolean, first: Int!, object: String, subject: AuditSubjectId): AuditEntryConnection!
 	auditSubjects: [AuditSubjectId!]!
@@ -2515,20 +2553,20 @@ type Query {
 	balanceSheet(asOf: Date!): BalanceSheet!
 	buildInfo: BuildInfo!
 	chartOfAccounts: ChartOfAccounts!
-	committee(id: UUID!): Committee
+	committee(id: CommitteeId!): Committee
 	committees(after: String, first: Int!, sort: CommitteesSort = {by: CREATED_AT, direction: DESC}): CommitteeConnection!
 	creditConfig: CreditModuleConfig
 	creditFacilities(after: String, filter: CreditFacilitiesFilter, first: Int!, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): CreditFacilityConnection!
-	creditFacility(id: UUID!): CreditFacility
+	creditFacility(id: CreditFacilityId!): CreditFacility
 	creditFacilityAgreement(id: UUID!): CreditFacilityAgreement
 	creditFacilityByPublicId(id: PublicId!): CreditFacility
-	creditFacilityProposal(id: UUID!): CreditFacilityProposal
+	creditFacilityProposal(id: CreditFacilityProposalId!): CreditFacilityProposal
 	creditFacilityProposals(after: String, filter: CreditFacilityProposalsFilter, first: Int!, sort: CreditFacilityProposalsSort = {by: CREATED_AT, direction: DESC}): CreditFacilityProposalConnection!
 	custodians(after: String, first: Int!, sort: CustodiansSort = {by: CREATED_AT, direction: DESC}): CustodianConnection!
 	customer(id: CustomerId!): Customer
 	customerByEmail(email: String!): Customer
 	customerByPublicId(id: PublicId!): Customer
-	customerDocument(id: UUID!): CustomerDocument
+	customerDocument(id: CustomerDocumentId!): CustomerDocument
 	customers(after: String, filter: CustomersFilter, first: Int!, sort: CustomersSort = {by: CREATED_AT, direction: DESC}): CustomerConnection!
 	dashboard: Dashboard!
 	deposit(id: DepositId!): Deposit
@@ -2539,40 +2577,40 @@ type Query {
 	depositConfig: DepositModuleConfig
 	deposits(after: String, filter: DepositsFilter, first: Int!, sort: DepositsSort = {by: CREATED_AT, direction: DESC}): DepositConnection!
 	descendantAccountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
-	disbursal(id: UUID!): CreditFacilityDisbursal
+	disbursal(id: DisbursalId!): CreditFacilityDisbursal
 	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
 	disbursals(after: String, filter: DisbursalsFilter, first: Int!, sort: DisbursalsSort = {by: CREATED_AT, direction: DESC}): CreditFacilityDisbursalConnection!
 	domainConfigs(after: String, first: Int!): DomainConfigConnection!
-	fiscalYear(id: UUID!): FiscalYear
+	fiscalYear(id: FiscalYearId!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
 	fiscalYears(after: String, first: Int!, sort: FiscalYearsSort = {by: CREATED_AT, direction: DESC}): FiscalYearConnection!
 	journalEntries(after: String, first: Int!): JournalEntryConnection!
-	ledgerAccount(id: UUID!): LedgerAccount
+	ledgerAccount(id: LedgerAccountId!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
-	ledgerAccountCsv(ledgerAccountId: UUID!): LedgerAccountCsvDocument
-	ledgerTransaction(id: UUID!): LedgerTransaction
+	ledgerAccountCsv(ledgerAccountId: LedgerAccountId!): LedgerAccountCsvDocument
+	ledgerTransaction(id: TransactionId!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(after: String, first: Int!, templateCode: String!): LedgerTransactionConnection!
-	liquidation(id: UUID!): Liquidation
+	liquidation(id: LiquidationId!): Liquidation
 	liquidationPaymentCalculate(input: LiquidationPaymentCalculateInput!): LiquidationPayment!
 	liquidations(after: String, first: Int!, sort: LiquidationsSort = {by: CREATED_AT, direction: DESC}): LiquidationConnection!
 	me: Me!
 	pendingCreditFacilities(after: String, filter: PendingCreditFacilitiesFilter, first: Int!, sort: PendingCreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): PendingCreditFacilityConnection!
-	pendingCreditFacility(id: UUID!): PendingCreditFacility
+	pendingCreditFacility(id: PendingCreditFacilityId!): PendingCreditFacility
 	permissionSets(after: String, first: Int!): PermissionSetConnection!
 	policies(after: String, first: Int!): PolicyConnection!
-	policy(id: UUID!): Policy
+	policy(id: PolicyId!): Policy
 	priceProviders(after: String, first: Int!, sort: PriceProvidersSort = {by: CREATED_AT, direction: DESC}): PriceProviderConnection!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
-	prospect(id: UUID!): Prospect
+	prospect(id: ProspectId!): Prospect
 	prospectByPublicId(id: PublicId!): Prospect
 	prospects(after: String, filter: ProspectsFilter, first: Int!, sort: ProspectsSort = {by: CREATED_AT, direction: DESC}): ProspectConnection!
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	realtimePrice: RealtimePrice!
-	reportRun(id: UUID!): ReportRun
+	reportRun(id: ReportRunId!): ReportRun
 	reportRuns(after: String, first: Int!, sort: ReportRunsSort = {by: START_TIME, direction: DESC}): ReportRunConnection!
-	role(id: UUID!): Role
+	role(id: RoleId!): Role
 	roles(after: String, first: Int!, sort: RolesSort = {by: CREATED_AT, direction: DESC}): RoleConnection!
-	termsTemplate(id: UUID!): TermsTemplate
+	termsTemplate(id: TermsTemplateId!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	"""
 	Returns the current environment clock state, including the next
@@ -2581,9 +2619,9 @@ type Query {
 	time: Time!
 	transactionTemplates(after: String, first: Int!): TransactionTemplateConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
-	user(id: UUID!): User
+	user(id: UserId!): User
 	users(after: String, first: Int!, sort: UsersSort = {by: CREATED_AT, direction: DESC}): UserConnection!
-	withdrawal(id: UUID!): Withdrawal
+	withdrawal(id: WithdrawalId!): Withdrawal
 	withdrawalByPublicId(id: PublicId!): Withdrawal
 	withdrawals(after: String, filter: WithdrawalsFilter, first: Int!, sort: WithdrawalsSort = {by: CREATED_AT, direction: DESC}): WithdrawalConnection!
 }
@@ -2598,9 +2636,9 @@ type Report @entity_key(field: "reportId") {
 	files: [ReportFile!]!
 	name: String!
 	norm: String!
-	reportId: UUID!
+	reportId: ReportId!
 	reportRun: ReportRun!
-	runId: UUID!
+	runId: ReportRunId!
 }
 
 type ReportDefinition @entity_key(field: "reportDefinitionId") {
@@ -2624,12 +2662,14 @@ type ReportFile {
 
 input ReportFileDownloadLinkGenerateInput {
 	extension: String!
-	reportId: UUID!
+	reportId: ReportId!
 }
 
 type ReportFileDownloadLinkGeneratePayload {
 	url: String!
 }
+
+scalar ReportId
 
 enum ReportOutputFormat {
 	CSV
@@ -2638,7 +2678,7 @@ enum ReportOutputFormat {
 }
 
 type ReportRun @entity_key(field: "reportRunId") {
-	reportRunId: UUID!
+	reportRunId: ReportRunId!
 	reports: [Report!]!
 	requestedAsOfDate: Date
 	requestedReport: RequestedReport
@@ -2676,6 +2716,8 @@ type ReportRunEdge {
 	node: ReportRun!
 }
 
+scalar ReportRunId
+
 enum ReportRunState {
 	FAILED
 	QUEUED
@@ -2698,7 +2740,7 @@ enum ReportRunType {
 }
 
 type ReportRunUpdatedPayload {
-	reportRunId: UUID!
+	reportRunId: ReportRunId!
 }
 
 input ReportRunsSort {
@@ -2721,7 +2763,7 @@ type Role @entity_key(field: "roleId") {
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	name: String!
 	permissionSets: [PermissionSet!]!
-	roleId: UUID!
+	roleId: RoleId!
 }
 
 type RoleConnection {
@@ -2741,7 +2783,7 @@ type RoleConnection {
 
 input RoleCreateInput {
 	name: String!
-	permissionSetIds: [UUID!]!
+	permissionSetIds: [PermissionSetId!]!
 }
 
 type RoleCreatePayload {
@@ -2762,9 +2804,11 @@ type RoleEdge {
 	node: Role!
 }
 
+scalar RoleId
+
 input RolePermissionSetsAddInput {
-	permissionSetIds: [UUID!]!
-	roleId: UUID!
+	permissionSetIds: [PermissionSetId!]!
+	roleId: RoleId!
 }
 
 type RolePermissionSetsAddPayload {
@@ -2772,8 +2816,8 @@ type RolePermissionSetsAddPayload {
 }
 
 input RolePermissionSetsRemoveInput {
-	permissionSetIds: [UUID!]!
-	roleId: UUID!
+	permissionSetIds: [PermissionSetId!]!
+	roleId: RoleId!
 }
 
 type RolePermissionSetsRemovePayload {
@@ -2815,15 +2859,15 @@ enum SortDirection {
 }
 
 type Subscription {
-	creditFacilityProposalUpdated(creditFacilityProposalId: UUID!): CreditFacilityProposal!
-	creditFacilityUpdated(creditFacilityId: UUID!): CreditFacility!
-	disbursalUpdated(disbursalId: UUID!): CreditFacilityDisbursal!
-	ledgerAccountCsvExportUploaded(ledgerAccountId: UUID!): LedgerAccountCsvExportUploadedPayload!
-	pendingCreditFacilityUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacility!
-	prospectUpdated(prospectId: UUID!): Prospect!
+	creditFacilityProposalUpdated(creditFacilityProposalId: CreditFacilityProposalId!): CreditFacilityProposal!
+	creditFacilityUpdated(creditFacilityId: CreditFacilityId!): CreditFacility!
+	disbursalUpdated(disbursalId: DisbursalId!): CreditFacilityDisbursal!
+	ledgerAccountCsvExportUploaded(ledgerAccountId: LedgerAccountId!): LedgerAccountCsvExportUploadedPayload!
+	pendingCreditFacilityUpdated(pendingCreditFacilityId: PendingCreditFacilityId!): PendingCreditFacility!
+	prospectUpdated(prospectId: ProspectId!): Prospect!
 	realtimePriceUpdated: RealtimePrice!
 	reportRunUpdated: ReportRunUpdatedPayload!
-	withdrawalUpdated(withdrawalId: UUID!): Withdrawal!
+	withdrawalUpdated(withdrawalId: WithdrawalId!): Withdrawal!
 }
 
 type System {
@@ -2862,7 +2906,7 @@ type TermsTemplate @entity_key(field: "termsTemplateId") {
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	name: String!
-	termsTemplateId: UUID!
+	termsTemplateId: TermsTemplateId!
 	userCanUpdateTermsTemplate: Boolean!
 	values: TermValues!
 }
@@ -2876,9 +2920,11 @@ type TermsTemplateCreatePayload {
 	termsTemplate: TermsTemplate!
 }
 
+scalar TermsTemplateId
+
 input TermsTemplateUpdateInput {
 	terms: TermsInput!
-	termsTemplateId: UUID!
+	termsTemplateId: TermsTemplateId!
 }
 
 type TermsTemplateUpdatePayload {
@@ -2920,6 +2966,8 @@ type TimeAdvanceToNextEndOfDayPayload {
 An ISO 8601 UTC timestamp (e.g., 2024-01-15T09:30:00Z). Always in UTC.
 """
 scalar Timestamp
+
+scalar TransactionId
 
 type TransactionTemplate @entity_key(field: "transactionTemplateId") {
 	code: String!
@@ -2965,13 +3013,13 @@ scalar UUID
 
 type UnfreezeEntry {
 	amount: UsdCents!
-	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
+	txId: TransactionId!
 }
 
 type UnknownEntry {
-	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
+	txId: TransactionId!
 }
 
 """
@@ -3009,7 +3057,7 @@ type User @entity_key(field: "userId") {
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	role: Role!
 	userCanUpdateRoleOfUser: Boolean!
-	userId: UUID!
+	userId: UserId!
 }
 
 type UserConnection {
@@ -3029,7 +3077,7 @@ type UserConnection {
 
 input UserCreateInput {
 	email: String!
-	roleId: UUID!
+	roleId: RoleId!
 }
 
 type UserCreatePayload {
@@ -3050,9 +3098,11 @@ type UserEdge {
 	node: User!
 }
 
+scalar UserId
+
 input UserRoleUpdateInput {
-	roleId: UUID!
-	userId: UUID!
+	roleId: RoleId!
+	userId: UserId!
 }
 
 type UserRoleUpdatePayload {
@@ -3085,8 +3135,10 @@ type Wallet @entity_key(field: "walletId") {
 	address: String!
 	custodian: Custodian!
 	network: WalletNetwork!
-	walletId: UUID!
+	walletId: WalletId!
 }
+
+scalar WalletId
 
 enum WalletNetwork {
 	MAINNET
@@ -3097,21 +3149,21 @@ enum WalletNetwork {
 
 type Withdrawal @entity_key(field: "withdrawalId") {
 	account: DepositAccount!
-	accountId: UUID!
+	accountId: DepositAccountId!
 	amount: UsdCents!
 	approvalProcess: ApprovalProcess!
-	approvalProcessId: UUID!
+	approvalProcessId: ApprovalProcessId!
 	createdAt: Timestamp!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	ledgerTransactions: [LedgerTransaction!]!
 	publicId: PublicId!
 	reference: String!
 	status: WithdrawalStatus!
-	withdrawalId: UUID!
+	withdrawalId: WithdrawalId!
 }
 
 input WithdrawalCancelInput {
-	withdrawalId: UUID!
+	withdrawalId: WithdrawalId!
 }
 
 type WithdrawalCancelPayload {
@@ -3119,7 +3171,7 @@ type WithdrawalCancelPayload {
 }
 
 input WithdrawalConfirmInput {
-	withdrawalId: UUID!
+	withdrawalId: WithdrawalId!
 }
 
 type WithdrawalConfirmPayload {
@@ -3160,9 +3212,11 @@ type WithdrawalEntry {
 	withdrawal: Withdrawal!
 }
 
+scalar WithdrawalId
+
 input WithdrawalInitiateInput {
 	amount: UsdCents!
-	depositAccountId: UUID!
+	depositAccountId: DepositAccountId!
 	reference: String
 }
 
@@ -3171,7 +3225,7 @@ type WithdrawalInitiatePayload {
 }
 
 input WithdrawalRevertInput {
-	withdrawalId: UUID!
+	withdrawalId: WithdrawalId!
 }
 
 type WithdrawalRevertPayload {

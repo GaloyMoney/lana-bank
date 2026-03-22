@@ -5,7 +5,7 @@ import { gql } from "@apollo/client"
 import { useGetCreditFacilityPublicIdQuery } from "@/lib/graphql/generated"
 
 gql`
-  query GetCreditFacilityPublicId($id: UUID!) {
+  query GetCreditFacilityPublicId($id: CreditFacilityId!) {
     creditFacility(id: $id) {
       creditFacilityId
       publicId

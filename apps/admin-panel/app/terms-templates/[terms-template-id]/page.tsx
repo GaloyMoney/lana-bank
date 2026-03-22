@@ -15,7 +15,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useCreateContext } from "@/app/create"
 
 gql`
-  query TermsTemplate($id: UUID!) {
+  query TermsTemplate($id: TermsTemplateId!) {
     termsTemplate(id: $id) {
       ...TermsTemplateFields
     }

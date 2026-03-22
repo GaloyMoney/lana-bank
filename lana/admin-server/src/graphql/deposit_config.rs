@@ -6,7 +6,7 @@ pub use lana_app::deposit::ChartOfAccountsIntegrationConfig as DomainChartOfAcco
 
 #[derive(SimpleObject, Clone)]
 pub struct DepositAccountModuleConfig {
-    chart_of_accounts_id: Option<UUID>,
+    chart_of_accounts_id: Option<ChartId>,
     chart_of_accounts_omnibus_parent_code: Option<String>,
     chart_of_accounts_individual_deposit_accounts_parent_code: Option<String>,
     chart_of_accounts_government_entity_deposit_accounts_parent_code: Option<String>,

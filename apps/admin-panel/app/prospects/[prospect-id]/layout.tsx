@@ -53,7 +53,7 @@ gql`
     }
   }
 
-  subscription ProspectUpdated($prospectId: UUID!) {
+  subscription ProspectUpdated($prospectId: ProspectId!) {
     prospectUpdated(prospectId: $prospectId) {
       ...ProspectDetailsFragment
     }

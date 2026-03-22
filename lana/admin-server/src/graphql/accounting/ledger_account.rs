@@ -37,7 +37,7 @@ pub enum LedgerAccountEntity {
     directive = crate::graphql::entity_key::entity_key::apply("ledgerAccountId".to_string())
 )]
 pub struct LedgerAccount {
-    ledger_account_id: UUID,
+    ledger_account_id: LedgerAccountId,
     code: Option<AccountCode>,
 
     #[graphql(skip)]
@@ -47,7 +47,7 @@ pub struct LedgerAccount {
 impl From<DomainLedgerAccount> for LedgerAccount {
     fn from(account: DomainLedgerAccount) -> Self {
         LedgerAccount {
-            ledger_account_id: UUID::from(account.id),
+            ledger_account_id: account.id,
             code: account.code.as_ref().map(|code| code.into()),
             entity: Arc::new(account),
         }

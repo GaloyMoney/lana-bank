@@ -23,8 +23,8 @@ use super::{Collateral, SortDirection};
     directive = crate::graphql::entity_key::entity_key::apply("liquidationId".to_string())
 )]
 pub struct Liquidation {
-    liquidation_id: UUID,
-    collateral_id: UUID,
+    liquidation_id: LiquidationId,
+    collateral_id: CollateralId,
     expected_to_receive: UsdCents,
     initially_estimated_to_liquidate: Satoshis,
     sent_total: Satoshis,
@@ -39,8 +39,8 @@ pub struct Liquidation {
 impl From<DomainLiquidation> for Liquidation {
     fn from(liquidation: DomainLiquidation) -> Self {
         Self {
-            liquidation_id: UUID::from(liquidation.id),
-            collateral_id: UUID::from(liquidation.collateral_id),
+            liquidation_id: liquidation.id,
+            collateral_id: liquidation.collateral_id,
             expected_to_receive: liquidation.expected_to_receive,
             initially_estimated_to_liquidate: liquidation.initially_estimated_to_liquidate,
             sent_total: liquidation.sent_total,
@@ -55,13 +55,13 @@ impl From<DomainLiquidation> for Liquidation {
 #[derive(SimpleObject)]
 pub struct LiquidationCollateralSent {
     amount: Satoshis,
-    ledger_tx_id: UUID,
+    ledger_tx_id: LedgerTransactionId,
 }
 
 #[derive(SimpleObject)]
 pub struct LiquidationProceedsReceived {
     amount: UsdCents,
-    ledger_tx_id: UUID,
+    ledger_tx_id: LedgerTransactionId,
 }
 
 #[ComplexObject]
@@ -72,7 +72,7 @@ impl Liquidation {
             .into_iter()
             .map(|(amount, ledger_tx_id)| LiquidationCollateralSent {
                 amount,
-                ledger_tx_id: ledger_tx_id.into(),
+                ledger_tx_id,
             })
             .collect()
     }
@@ -83,7 +83,7 @@ impl Liquidation {
             .into_iter()
             .map(|(amount, ledger_tx_id)| LiquidationProceedsReceived {
                 amount,
-                ledger_tx_id: ledger_tx_id.into(),
+                ledger_tx_id,
             })
             .collect()
     }
@@ -111,7 +111,7 @@ impl Liquidation {
 
 #[derive(InputObject)]
 pub struct LiquidationPaymentCalculateInput {
-    pub liquidation_id: UUID,
+    pub liquidation_id: LiquidationId,
     pub outstanding: UsdCents,
     pub to_receive: Option<UsdCents>,
     pub to_liquidate: Option<Satoshis>,

@@ -96,13 +96,13 @@ gql`
     }
   }
 
-  query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: UUID!) {
+  query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: PendingCreditFacilityId!) {
     pendingCreditFacility(id: $pendingCreditFacilityId) {
       ...PendingCreditFacilityLayoutFragment
     }
   }
 
-  subscription pendingCreditFacilityUpdated($pendingCreditFacilityId: UUID!) {
+  subscription pendingCreditFacilityUpdated($pendingCreditFacilityId: PendingCreditFacilityId!) {
     pendingCreditFacilityUpdated(pendingCreditFacilityId: $pendingCreditFacilityId) {
       ...PendingCreditFacilityLayoutFragment
     }

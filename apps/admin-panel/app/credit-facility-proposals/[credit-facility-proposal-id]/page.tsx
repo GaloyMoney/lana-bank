@@ -13,7 +13,7 @@ interface CreditFacilityProposalDetailsPageProps {
 }
 
 gql`
-  query GetCreditFacilityProposalRepaymentPlan($id: UUID!) {
+  query GetCreditFacilityProposalRepaymentPlan($id: CreditFacilityProposalId!) {
     creditFacilityProposal(id: $id) {
       creditFacilityProposalId
       repaymentPlan {

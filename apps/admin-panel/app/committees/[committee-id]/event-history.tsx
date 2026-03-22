@@ -8,7 +8,7 @@ import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useCommitteeEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
-  query CommitteeEventHistory($id: UUID!, $first: Int!, $after: String) {
+  query CommitteeEventHistory($id: CommitteeId!, $first: Int!, $after: String) {
     committee(id: $id) {
       committeeId
       eventHistory(first: $first, after: $after) {

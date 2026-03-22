@@ -20,7 +20,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useCreateContext } from "@/app/create"
 
 gql`
-  query GetPolicyDetails($id: UUID!) {
+  query GetPolicyDetails($id: PolicyId!) {
     policy(id: $id) {
       policyId
       approvalProcessType

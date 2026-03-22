@@ -82,13 +82,13 @@ gql`
     }
   }
 
-  query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: UUID!) {
+  query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: CreditFacilityProposalId!) {
     creditFacilityProposal(id: $creditFacilityProposalId) {
       ...CreditFacilityProposalLayoutFragment
     }
   }
 
-  subscription creditFacilityProposalUpdated($creditFacilityProposalId: UUID!) {
+  subscription creditFacilityProposalUpdated($creditFacilityProposalId: CreditFacilityProposalId!) {
     creditFacilityProposalUpdated(creditFacilityProposalId: $creditFacilityProposalId) {
       ...CreditFacilityProposalLayoutFragment
     }
