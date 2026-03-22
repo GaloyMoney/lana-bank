@@ -14,6 +14,11 @@ es_entity::entity_id! {
 pub const COLLATERAL_ENTITY_TYPE: chart_primitives::EntityType =
     chart_primitives::EntityType::new("Collateral");
 
+permission_sets_macro::permission_sets! {
+    CreditWriter("Can create and manage credit facilities, update collateral, initiate and settle disbursals, record interest, and process obligations"),
+    CreditViewer("Can view credit facilities, disbursals, obligations, and related loan information"),
+}
+
 pub type CollateralAllOrOne = AllOrOne<CollateralId>;
 pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;
 
@@ -158,7 +163,7 @@ pub enum CollateralAction {
 
 impl ActionPermission for CollateralAction {
     fn permission_set(&self) -> &'static str {
-        "CreditWriter"
+        PERMISSION_SET_CREDIT_WRITER
     }
 }
 
@@ -177,10 +182,7 @@ pub enum LiquidationAction {
 
 impl ActionPermission for LiquidationAction {
     fn permission_set(&self) -> &'static str {
-        match self {
-            Self::Read => "CreditViewer",
-            Self::List => "CreditViewer",
-        }
+        PERMISSION_SET_CREDIT_VIEWER
     }
 }
 
