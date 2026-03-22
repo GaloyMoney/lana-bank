@@ -403,4 +403,4 @@ pub struct CreditFacilityModuleConfigureInput {
         String,
     pub chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code: String,
 }
-crate::mutation_payload! { CreditFacilityModuleConfigurePayload, credit_config: CreditModuleConfig }
+crate::mutation_payload! { CreditFacilityModuleConfigurePayload, credit_facility_config: CreditModuleConfig }

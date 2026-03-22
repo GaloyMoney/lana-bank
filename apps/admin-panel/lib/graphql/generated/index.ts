@@ -796,7 +796,7 @@ export type CreditFacilityModuleConfigureInput = {
 
 export type CreditFacilityModuleConfigurePayload = {
   __typename?: 'CreditFacilityModuleConfigurePayload';
-  creditConfig: CreditModuleConfig;
+  creditFacilityConfig: CreditModuleConfig;
 };
 
 export type CreditFacilityPartialPaymentRecordInput = {
@@ -1410,7 +1410,7 @@ export type DepositAccountModuleConfigureInput = {
 
 export type DepositAccountModuleConfigurePayload = {
   __typename?: 'DepositAccountModuleConfigurePayload';
-  depositConfig: DepositModuleConfig;
+  depositAccountConfig: DepositModuleConfig;
 };
 
 export enum DepositAccountStatus {
@@ -2895,11 +2895,11 @@ export type Query = {
   chartOfAccounts: ChartOfAccounts;
   committee?: Maybe<Committee>;
   committees: CommitteeConnection;
-  creditConfig?: Maybe<CreditModuleConfig>;
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
   creditFacilityAgreement?: Maybe<CreditFacilityAgreement>;
   creditFacilityByPublicId?: Maybe<CreditFacility>;
+  creditFacilityConfig?: Maybe<CreditModuleConfig>;
   creditFacilityProposal?: Maybe<CreditFacilityProposal>;
   creditFacilityProposals: CreditFacilityProposalConnection;
   custodians: CustodianConnection;
@@ -2912,9 +2912,9 @@ export type Query = {
   deposit?: Maybe<Deposit>;
   depositAccount?: Maybe<DepositAccount>;
   depositAccountByPublicId?: Maybe<DepositAccount>;
+  depositAccountConfig?: Maybe<DepositModuleConfig>;
   depositAccounts: DepositAccountConnection;
   depositByPublicId?: Maybe<Deposit>;
-  depositConfig?: Maybe<DepositModuleConfig>;
   deposits: DepositConnection;
   descendantAccountSetsByCategory: Array<AccountInfo>;
   disbursal?: Maybe<CreditFacilityDisbursal>;
@@ -5154,24 +5154,24 @@ export type CreditFacilityModuleConfigureMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityModuleConfigureMutation = { __typename?: 'Mutation', creditFacilityModuleConfigure: { __typename?: 'CreditFacilityModuleConfigurePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountPaymentsMadeOmnibusParentCode?: string | null, chartOfAccountInterestAddedToObligationsOmnibusParentCode?: string | null, chartOfAccountUncoveredOutstandingParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountLiquidatedCollateralParentCode?: string | null, chartOfAccountProceedsFromLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountDisbursedDefaultedParentCode?: string | null, chartOfAccountInterestDefaultedParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } } };
+export type CreditFacilityModuleConfigureMutation = { __typename?: 'Mutation', creditFacilityModuleConfigure: { __typename?: 'CreditFacilityModuleConfigurePayload', creditFacilityConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountPaymentsMadeOmnibusParentCode?: string | null, chartOfAccountInterestAddedToObligationsOmnibusParentCode?: string | null, chartOfAccountUncoveredOutstandingParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountLiquidatedCollateralParentCode?: string | null, chartOfAccountProceedsFromLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountDisbursedDefaultedParentCode?: string | null, chartOfAccountInterestDefaultedParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } } };
 
 export type DepositAccountModuleConfigureMutationVariables = Exact<{
   input: DepositAccountModuleConfigureInput;
 }>;
 
 
-export type DepositAccountModuleConfigureMutation = { __typename?: 'Mutation', depositAccountModuleConfigure: { __typename?: 'DepositAccountModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsBankDepositAccountsParentCode?: string | null, chartOfAccountsFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode?: string | null } } };
+export type DepositAccountModuleConfigureMutation = { __typename?: 'Mutation', depositAccountModuleConfigure: { __typename?: 'DepositAccountModuleConfigurePayload', depositAccountConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsBankDepositAccountsParentCode?: string | null, chartOfAccountsFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode?: string | null } } };
 
-export type DepositConfigQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsBankDepositAccountsParentCode?: string | null, chartOfAccountsFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode?: string | null } | null };
-
-export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
+export type DepositAccountConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountPaymentsMadeOmnibusParentCode?: string | null, chartOfAccountInterestAddedToObligationsOmnibusParentCode?: string | null, chartOfAccountUncoveredOutstandingParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountLiquidatedCollateralParentCode?: string | null, chartOfAccountProceedsFromLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountDisbursedDefaultedParentCode?: string | null, chartOfAccountInterestDefaultedParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } | null };
+export type DepositAccountConfigQuery = { __typename?: 'Query', depositAccountConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsBankDepositAccountsParentCode?: string | null, chartOfAccountsFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode?: string | null } | null };
+
+export type CreditFacilityConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CreditFacilityConfigQuery = { __typename?: 'Query', creditFacilityConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountPaymentsMadeOmnibusParentCode?: string | null, chartOfAccountInterestAddedToObligationsOmnibusParentCode?: string | null, chartOfAccountUncoveredOutstandingParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountLiquidatedCollateralParentCode?: string | null, chartOfAccountProceedsFromLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountDisbursedDefaultedParentCode?: string | null, chartOfAccountInterestDefaultedParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } | null };
 
 export type ChartAccountingBaseConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -11745,7 +11745,7 @@ export type LiquidationsQueryResult = Apollo.QueryResult<LiquidationsQuery, Liqu
 export const CreditFacilityModuleConfigureDocument = gql`
     mutation CreditFacilityModuleConfigure($input: CreditFacilityModuleConfigureInput!) {
   creditFacilityModuleConfigure(input: $input) {
-    creditConfig {
+    creditFacilityConfig {
       chartOfAccountsId
       chartOfAccountFacilityOmnibusParentCode
       chartOfAccountCollateralOmnibusParentCode
@@ -11831,7 +11831,7 @@ export type CreditFacilityModuleConfigureMutationOptions = Apollo.BaseMutationOp
 export const DepositAccountModuleConfigureDocument = gql`
     mutation DepositAccountModuleConfigure($input: DepositAccountModuleConfigureInput!) {
   depositAccountModuleConfigure(input: $input) {
-    depositConfig {
+    depositAccountConfig {
       chartOfAccountsId
       chartOfAccountsOmnibusParentCode
       chartOfAccountsIndividualDepositAccountsParentCode
@@ -11876,9 +11876,9 @@ export function useDepositAccountModuleConfigureMutation(baseOptions?: Apollo.Mu
 export type DepositAccountModuleConfigureMutationHookResult = ReturnType<typeof useDepositAccountModuleConfigureMutation>;
 export type DepositAccountModuleConfigureMutationResult = Apollo.MutationResult<DepositAccountModuleConfigureMutation>;
 export type DepositAccountModuleConfigureMutationOptions = Apollo.BaseMutationOptions<DepositAccountModuleConfigureMutation, DepositAccountModuleConfigureMutationVariables>;
-export const DepositConfigDocument = gql`
-    query depositConfig {
-  depositConfig {
+export const DepositAccountConfigDocument = gql`
+    query depositAccountConfig {
+  depositAccountConfig {
     chartOfAccountsOmnibusParentCode
     chartOfAccountsIndividualDepositAccountsParentCode
     chartOfAccountsGovernmentEntityDepositAccountsParentCode
@@ -11897,42 +11897,42 @@ export const DepositConfigDocument = gql`
     `;
 
 /**
- * __useDepositConfigQuery__
+ * __useDepositAccountConfigQuery__
  *
- * To run a query within a React component, call `useDepositConfigQuery` and pass it any options that fit your needs.
- * When your component renders, `useDepositConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useDepositAccountConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDepositAccountConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useDepositConfigQuery({
+ * const { data, loading, error } = useDepositAccountConfigQuery({
  *   variables: {
  *   },
  * });
  */
-export function useDepositConfigQuery(baseOptions?: Apollo.QueryHookOptions<DepositConfigQuery, DepositConfigQueryVariables>) {
+export function useDepositAccountConfigQuery(baseOptions?: Apollo.QueryHookOptions<DepositAccountConfigQuery, DepositAccountConfigQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<DepositConfigQuery, DepositConfigQueryVariables>(DepositConfigDocument, options);
+        return Apollo.useQuery<DepositAccountConfigQuery, DepositAccountConfigQueryVariables>(DepositAccountConfigDocument, options);
       }
-export function useDepositConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DepositConfigQuery, DepositConfigQueryVariables>) {
+export function useDepositAccountConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DepositAccountConfigQuery, DepositAccountConfigQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<DepositConfigQuery, DepositConfigQueryVariables>(DepositConfigDocument, options);
+          return Apollo.useLazyQuery<DepositAccountConfigQuery, DepositAccountConfigQueryVariables>(DepositAccountConfigDocument, options);
         }
 // @ts-ignore
-export function useDepositConfigSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DepositConfigQuery, DepositConfigQueryVariables>): Apollo.UseSuspenseQueryResult<DepositConfigQuery, DepositConfigQueryVariables>;
-export function useDepositConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DepositConfigQuery, DepositConfigQueryVariables>): Apollo.UseSuspenseQueryResult<DepositConfigQuery | undefined, DepositConfigQueryVariables>;
-export function useDepositConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DepositConfigQuery, DepositConfigQueryVariables>) {
+export function useDepositAccountConfigSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DepositAccountConfigQuery, DepositAccountConfigQueryVariables>): Apollo.UseSuspenseQueryResult<DepositAccountConfigQuery, DepositAccountConfigQueryVariables>;
+export function useDepositAccountConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DepositAccountConfigQuery, DepositAccountConfigQueryVariables>): Apollo.UseSuspenseQueryResult<DepositAccountConfigQuery | undefined, DepositAccountConfigQueryVariables>;
+export function useDepositAccountConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DepositAccountConfigQuery, DepositAccountConfigQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<DepositConfigQuery, DepositConfigQueryVariables>(DepositConfigDocument, options);
+          return Apollo.useSuspenseQuery<DepositAccountConfigQuery, DepositAccountConfigQueryVariables>(DepositAccountConfigDocument, options);
         }
-export type DepositConfigQueryHookResult = ReturnType<typeof useDepositConfigQuery>;
-export type DepositConfigLazyQueryHookResult = ReturnType<typeof useDepositConfigLazyQuery>;
-export type DepositConfigSuspenseQueryHookResult = ReturnType<typeof useDepositConfigSuspenseQuery>;
-export type DepositConfigQueryResult = Apollo.QueryResult<DepositConfigQuery, DepositConfigQueryVariables>;
-export const CreditConfigDocument = gql`
-    query creditConfig {
-  creditConfig {
+export type DepositAccountConfigQueryHookResult = ReturnType<typeof useDepositAccountConfigQuery>;
+export type DepositAccountConfigLazyQueryHookResult = ReturnType<typeof useDepositAccountConfigLazyQuery>;
+export type DepositAccountConfigSuspenseQueryHookResult = ReturnType<typeof useDepositAccountConfigSuspenseQuery>;
+export type DepositAccountConfigQueryResult = Apollo.QueryResult<DepositAccountConfigQuery, DepositAccountConfigQueryVariables>;
+export const CreditFacilityConfigDocument = gql`
+    query creditFacilityConfig {
+  creditFacilityConfig {
     chartOfAccountFacilityOmnibusParentCode
     chartOfAccountCollateralOmnibusParentCode
     chartOfAccountLiquidationProceedsOmnibusParentCode
@@ -11989,39 +11989,39 @@ export const CreditConfigDocument = gql`
     `;
 
 /**
- * __useCreditConfigQuery__
+ * __useCreditFacilityConfigQuery__
  *
- * To run a query within a React component, call `useCreditConfigQuery` and pass it any options that fit your needs.
- * When your component renders, `useCreditConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useCreditFacilityConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useCreditConfigQuery({
+ * const { data, loading, error } = useCreditFacilityConfigQuery({
  *   variables: {
  *   },
  * });
  */
-export function useCreditConfigQuery(baseOptions?: Apollo.QueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>) {
+export function useCreditFacilityConfigQuery(baseOptions?: Apollo.QueryHookOptions<CreditFacilityConfigQuery, CreditFacilityConfigQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<CreditConfigQuery, CreditConfigQueryVariables>(CreditConfigDocument, options);
+        return Apollo.useQuery<CreditFacilityConfigQuery, CreditFacilityConfigQueryVariables>(CreditFacilityConfigDocument, options);
       }
-export function useCreditConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>) {
+export function useCreditFacilityConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditFacilityConfigQuery, CreditFacilityConfigQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<CreditConfigQuery, CreditConfigQueryVariables>(CreditConfigDocument, options);
+          return Apollo.useLazyQuery<CreditFacilityConfigQuery, CreditFacilityConfigQueryVariables>(CreditFacilityConfigDocument, options);
         }
 // @ts-ignore
-export function useCreditConfigSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>): Apollo.UseSuspenseQueryResult<CreditConfigQuery, CreditConfigQueryVariables>;
-export function useCreditConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>): Apollo.UseSuspenseQueryResult<CreditConfigQuery | undefined, CreditConfigQueryVariables>;
-export function useCreditConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>) {
+export function useCreditFacilityConfigSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CreditFacilityConfigQuery, CreditFacilityConfigQueryVariables>): Apollo.UseSuspenseQueryResult<CreditFacilityConfigQuery, CreditFacilityConfigQueryVariables>;
+export function useCreditFacilityConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditFacilityConfigQuery, CreditFacilityConfigQueryVariables>): Apollo.UseSuspenseQueryResult<CreditFacilityConfigQuery | undefined, CreditFacilityConfigQueryVariables>;
+export function useCreditFacilityConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditFacilityConfigQuery, CreditFacilityConfigQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<CreditConfigQuery, CreditConfigQueryVariables>(CreditConfigDocument, options);
+          return Apollo.useSuspenseQuery<CreditFacilityConfigQuery, CreditFacilityConfigQueryVariables>(CreditFacilityConfigDocument, options);
         }
-export type CreditConfigQueryHookResult = ReturnType<typeof useCreditConfigQuery>;
-export type CreditConfigLazyQueryHookResult = ReturnType<typeof useCreditConfigLazyQuery>;
-export type CreditConfigSuspenseQueryHookResult = ReturnType<typeof useCreditConfigSuspenseQuery>;
-export type CreditConfigQueryResult = Apollo.QueryResult<CreditConfigQuery, CreditConfigQueryVariables>;
+export type CreditFacilityConfigQueryHookResult = ReturnType<typeof useCreditFacilityConfigQuery>;
+export type CreditFacilityConfigLazyQueryHookResult = ReturnType<typeof useCreditFacilityConfigLazyQuery>;
+export type CreditFacilityConfigSuspenseQueryHookResult = ReturnType<typeof useCreditFacilityConfigSuspenseQuery>;
+export type CreditFacilityConfigQueryResult = Apollo.QueryResult<CreditFacilityConfigQuery, CreditFacilityConfigQueryVariables>;
 export const ChartAccountingBaseConfigDocument = gql`
     query ChartAccountingBaseConfig {
   chartOfAccounts {

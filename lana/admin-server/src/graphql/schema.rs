@@ -1174,7 +1174,7 @@ impl Query {
             .collect())
     }
 
-    async fn deposit_config(
+    async fn deposit_account_config(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<DepositModuleConfig>> {
@@ -1206,7 +1206,7 @@ impl Query {
         )
     }
 
-    async fn credit_config(
+    async fn credit_facility_config(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<CreditModuleConfig>> {

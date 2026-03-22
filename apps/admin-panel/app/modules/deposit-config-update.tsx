@@ -15,7 +15,7 @@ import {
 import { ModuleConfigUpdateDialog } from "./module-config-update-dialog"
 
 import {
-  DepositConfigDocument,
+  DepositAccountConfigDocument,
   DepositModuleConfig,
   DepositAccountModuleConfigureInput,
   useDepositAccountModuleConfigureMutation,
@@ -27,7 +27,7 @@ import {
 gql`
   mutation DepositAccountModuleConfigure($input: DepositAccountModuleConfigureInput!) {
     depositAccountModuleConfigure(input: $input) {
-      depositConfig {
+      depositAccountConfig {
         chartOfAccountsId
         chartOfAccountsOmnibusParentCode
         chartOfAccountsIndividualDepositAccountsParentCode
@@ -70,7 +70,7 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
 
   const [updateDepositConfig, { loading, error, reset }] =
     useDepositAccountModuleConfigureMutation({
-      refetchQueries: [DepositConfigDocument],
+      refetchQueries: [DepositAccountConfigDocument],
     })
   const handleSave = async (input: DepositAccountModuleConfigureInput) => {
     await updateDepositConfig({ variables: { input } })

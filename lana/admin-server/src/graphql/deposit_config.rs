@@ -114,4 +114,4 @@ pub struct DepositAccountModuleConfigureInput {
     pub chart_of_accounts_frozen_financial_institution_deposit_accounts_parent_code: String,
     pub chart_of_accounts_frozen_non_domiciled_company_deposit_accounts_parent_code: String,
 }
-crate::mutation_payload! { DepositAccountModuleConfigurePayload, deposit_config: DepositModuleConfig }
+crate::mutation_payload! { DepositAccountModuleConfigurePayload, deposit_account_config: DepositModuleConfig }

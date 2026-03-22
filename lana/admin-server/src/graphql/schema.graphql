@@ -733,7 +733,7 @@ input CreditFacilityModuleConfigureInput {
 }
 
 type CreditFacilityModuleConfigurePayload {
-	creditConfig: CreditModuleConfig!
+	creditFacilityConfig: CreditModuleConfig!
 }
 
 input CreditFacilityPartialPaymentRecordInput {
@@ -1331,7 +1331,7 @@ input DepositAccountModuleConfigureInput {
 }
 
 type DepositAccountModuleConfigurePayload {
-	depositConfig: DepositModuleConfig!
+	depositAccountConfig: DepositModuleConfig!
 }
 
 enum DepositAccountStatus {
@@ -2511,11 +2511,11 @@ type Query {
 	chartOfAccounts: ChartOfAccounts!
 	committee(id: UUID!): Committee
 	committees(after: String, first: Int!, sort: CommitteesSort = {by: CREATED_AT, direction: DESC}): CommitteeConnection!
-	creditConfig: CreditModuleConfig
 	creditFacilities(after: String, filter: CreditFacilitiesFilter, first: Int!, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): CreditFacilityConnection!
 	creditFacility(id: UUID!): CreditFacility
 	creditFacilityAgreement(id: UUID!): CreditFacilityAgreement
 	creditFacilityByPublicId(id: PublicId!): CreditFacility
+	creditFacilityConfig: CreditModuleConfig
 	creditFacilityProposal(id: UUID!): CreditFacilityProposal
 	creditFacilityProposals(after: String, filter: CreditFacilityProposalsFilter, first: Int!, sort: CreditFacilityProposalsSort = {by: CREATED_AT, direction: DESC}): CreditFacilityProposalConnection!
 	custodians(after: String, first: Int!, sort: CustodiansSort = {by: CREATED_AT, direction: DESC}): CustodianConnection!
@@ -2528,9 +2528,9 @@ type Query {
 	deposit(id: UUID!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	depositAccountByPublicId(id: PublicId!): DepositAccount
+	depositAccountConfig: DepositModuleConfig
 	depositAccounts(after: String, filter: DepositAccountsFilter, first: Int!, sort: DepositAccountsSort = {by: CREATED_AT, direction: DESC}): DepositAccountConnection!
 	depositByPublicId(id: PublicId!): Deposit
-	depositConfig: DepositModuleConfig
 	deposits(after: String, filter: DepositsFilter, first: Int!, sort: DepositsSort = {by: CREATED_AT, direction: DESC}): DepositConnection!
 	descendantAccountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
 	disbursal(id: UUID!): CreditFacilityDisbursal
