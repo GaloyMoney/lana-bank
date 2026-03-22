@@ -294,8 +294,8 @@ type FiniteCvlPct {
 
 type FreezeEntry {
 	amount: UsdCents!
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 type InfiniteCvlPct {
@@ -419,13 +419,13 @@ scalar UUID
 
 type UnfreezeEntry {
 	amount: UsdCents!
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 type UnknownEntry {
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 scalar UsdCents

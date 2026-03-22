@@ -61,21 +61,21 @@ pub struct PaymentEntry {
 
 #[derive(SimpleObject)]
 pub struct FreezeEntry {
-    pub tx_id: UUID,
+    pub ledger_transaction_id: UUID,
     pub recorded_at: Timestamp,
     pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]
 pub struct UnfreezeEntry {
-    pub tx_id: UUID,
+    pub ledger_transaction_id: UUID,
     pub recorded_at: Timestamp,
     pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]
 pub struct UnknownEntry {
-    pub tx_id: UUID,
+    pub ledger_transaction_id: UUID,
     pub recorded_at: Timestamp,
 }
 
@@ -192,21 +192,21 @@ impl From<lana_app::deposit::DepositAccountHistoryEntry> for DepositAccountHisto
             }
             lana_app::deposit::DepositAccountHistoryEntry::Freeze(entry) => {
                 Self::Freeze(FreezeEntry {
-                    tx_id: UUID::from(entry.tx_id),
+                    ledger_transaction_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                     amount: entry.amount,
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Unfreeze(entry) => {
                 Self::Unfreeze(UnfreezeEntry {
-                    tx_id: UUID::from(entry.tx_id),
+                    ledger_transaction_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                     amount: entry.amount,
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Unknown(entry) => {
                 Self::Unknown(UnknownEntry {
-                    tx_id: UUID::from(entry.tx_id),
+                    ledger_transaction_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                 })
             }

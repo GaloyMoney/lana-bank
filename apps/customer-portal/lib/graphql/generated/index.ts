@@ -338,8 +338,8 @@ export type FiniteCvlPct = {
 export type FreezeEntry = {
   __typename?: 'FreezeEntry';
   amount: Scalars['UsdCents']['output'];
+  ledgerTransactionId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type InfiniteCvlPct = {
@@ -460,14 +460,14 @@ export type Total = {
 export type UnfreezeEntry = {
   __typename?: 'UnfreezeEntry';
   amount: Scalars['UsdCents']['output'];
+  ledgerTransactionId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type UnknownEntry = {
   __typename?: 'UnknownEntry';
+  ledgerTransactionId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type Withdrawal = {
