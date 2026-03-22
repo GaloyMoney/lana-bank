@@ -1060,7 +1060,7 @@ type CustomerDocument @entity_key(field: "customerDocumentId") {
 }
 
 input CustomerDocumentArchiveInput {
-	documentId: UUID!
+	customerDocumentId: UUID!
 }
 
 type CustomerDocumentArchivePayload {
@@ -1077,7 +1077,7 @@ type CustomerDocumentCreatePayload {
 }
 
 input CustomerDocumentDeleteInput {
-	documentId: UUID!
+	customerDocumentId: UUID!
 }
 
 type CustomerDocumentDeletePayload {
@@ -1085,7 +1085,7 @@ type CustomerDocumentDeletePayload {
 }
 
 input CustomerDocumentDownloadLinksGenerateInput {
-	documentId: UUID!
+	customerDocumentId: UUID!
 }
 
 type CustomerDocumentDownloadLinksGeneratePayload {
@@ -1838,7 +1838,7 @@ type LedgerAccountCsvDownloadLink {
 }
 
 input LedgerAccountCsvDownloadLinkGenerateInput {
-	documentId: UUID!
+	ledgerAccountCsvDocumentId: UUID!
 }
 
 type LedgerAccountCsvDownloadLinkGeneratePayload {
