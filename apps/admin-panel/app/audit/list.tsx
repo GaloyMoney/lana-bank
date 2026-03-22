@@ -25,8 +25,8 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 
 gql`
-  query AuditLogs($first: Int!, $after: String, $subject: AuditSubjectId, $authorized: Boolean, $object: String, $action: String) {
-    audit(first: $first, after: $after, subject: $subject, authorized: $authorized, object: $object, action: $action) {
+  query AuditLogs($first: Int!, $after: String, $auditEntryId: AuditEntryId, $subject: AuditSubjectId, $authorized: Boolean, $object: String, $action: String) {
+    audit(first: $first, after: $after, auditEntryId: $auditEntryId, subject: $subject, authorized: $authorized, object: $object, action: $action) {
       edges {
         cursor
         node {
@@ -69,6 +69,7 @@ gql`
 const AuditLogsList = () => {
   const t = useTranslations("AuditLogs.table")
 
+  const [idFilter, setIdFilter] = useState<string | undefined>(undefined)
   const [subjectFilter, setSubjectFilter] = useState<string | undefined>(undefined)
   const [authorizedFilter, setAuthorizedFilter] = useState<boolean | undefined>(
     undefined,
@@ -76,9 +77,14 @@ const AuditLogsList = () => {
   const [objectFilter, setObjectFilter] = useState<string | undefined>(undefined)
   const [actionFilter, setActionFilter] = useState<string | undefined>(undefined)
 
+  const parsedIdFilter = idFilter ? parseInt(idFilter, 10) : null
+  const auditEntryIdVar =
+    parsedIdFilter !== null && !isNaN(parsedIdFilter) ? parsedIdFilter : null
+
   const { data, loading, error, fetchMore } = useAuditLogsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      auditEntryId: auditEntryIdVar,
       subject: subjectFilter ?? null,
       authorized: authorizedFilter ?? null,
       object: objectFilter ?? null,
@@ -143,6 +149,12 @@ const AuditLogsList = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <div className="flex gap-2 mb-4">
+        <Input
+          placeholder={t("filters.idPlaceholder")}
+          value={idFilter ?? ""}
+          onChange={(e) => setIdFilter(e.target.value || undefined)}
+          className="w-[140px]"
+        />
         <Select
           value={subjectFilter ?? "all"}
           onValueChange={(val) => setSubjectFilter(val === "all" ? undefined : val)}
@@ -186,7 +198,7 @@ const AuditLogsList = () => {
         />
       </div>
       <PaginatedTable<AuditEntry>
-        key={`${subjectFilter}-${authorizedFilter}-${objectFilter}-${actionFilter}`}
+        key={`${idFilter}-${subjectFilter}-${authorizedFilter}-${objectFilter}-${actionFilter}`}
         columns={columns}
         data={data?.audit as PaginatedData<AuditEntry>}
         loading={loading}
@@ -194,7 +206,8 @@ const AuditLogsList = () => {
         fetchMore={async (cursor) =>
           fetchMore({
             variables: {
-              after: cursor,
+              after: auditEntryIdVar ? null : cursor,
+              auditEntryId: auditEntryIdVar,
               subject: subjectFilter ?? null,
               authorized: authorizedFilter ?? null,
               object: objectFilter ?? null,

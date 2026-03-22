@@ -367,6 +367,7 @@ impl LanaApp {
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<AuditCursor>,
+        id_filter: Option<audit::AuditEntryId>,
         subject_filter: Option<String>,
         authorized_filter: Option<bool>,
         object_filter: Option<String>,
@@ -385,6 +386,7 @@ impl LanaApp {
         self.audit
             .list(
                 query,
+                id_filter,
                 subject_filter,
                 authorized_filter,
                 object_filter,
