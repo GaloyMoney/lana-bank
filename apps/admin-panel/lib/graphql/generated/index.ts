@@ -32,7 +32,7 @@ export type Scalars = {
   Json: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   PublicId: { input: any; output: any; }
-  ReportDefinitionId: { input: any; output: any; }
+  ReportDefinitionId: { input: string; output: string; }
   Satoshis: { input: Satoshis; output: Satoshis; }
   SignedSatoshis: { input: SignedSatoshis; output: SignedSatoshis; }
   SignedUsdCents: { input: SignedUsdCents; output: SignedUsdCents; }
@@ -5433,7 +5433,7 @@ export type ReportRunByIdQueryVariables = Exact<{
 }>;
 
 
-export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', reportRunId: string, state: ReportRunState, runType: ReportRunType, startTime?: string | null, requestedAsOfDate?: string | null, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: any, norm: string, name: string } | null, reports: Array<{ __typename?: 'Report', reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
+export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', reportRunId: string, state: ReportRunState, runType: ReportRunType, startTime?: string | null, requestedAsOfDate?: string | null, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: string, norm: string, name: string } | null, reports: Array<{ __typename?: 'Report', reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
 
 export type ReportFileDownloadLinkGenerateMutationVariables = Exact<{
   input: ReportFileDownloadLinkGenerateInput;
@@ -5445,7 +5445,7 @@ export type ReportFileDownloadLinkGenerateMutation = { __typename?: 'Mutation', 
 export type AvailableReportDefinitionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AvailableReportDefinitionsQuery = { __typename?: 'Query', availableReportDefinitions: Array<{ __typename?: 'ReportDefinition', reportDefinitionId: any, norm: string, friendlyName: string, supportsAsOf: boolean, outputs: Array<{ __typename?: 'ReportDefinitionOutput', format: ReportOutputFormat }> }> };
+export type AvailableReportDefinitionsQuery = { __typename?: 'Query', availableReportDefinitions: Array<{ __typename?: 'ReportDefinition', reportDefinitionId: string, norm: string, friendlyName: string, supportsAsOf: boolean, outputs: Array<{ __typename?: 'ReportDefinitionOutput', format: ReportOutputFormat }> }> };
 
 export type ReportGenerateMutationVariables = Exact<{
   input: ReportRunTriggerInput;
@@ -5461,7 +5461,7 @@ export type ReportRunsQueryVariables = Exact<{
 }>;
 
 
-export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', reportRunId: string, startTime?: string | null, requestedAsOfDate?: string | null, runType: ReportRunType, state: ReportRunState, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: any, norm: string, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', reportRunId: string, startTime?: string | null, requestedAsOfDate?: string | null, runType: ReportRunType, state: ReportRunState, requestedReport?: { __typename?: 'RequestedReport', reportDefinitionId: string, norm: string, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ReportRunUpdatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
