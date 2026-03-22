@@ -155,9 +155,9 @@ export const DepositAccountTransactionsTable: React.FC<{
       case "DisbursalEntry":
         return `/disbursals/${entry.disbursal.publicId}`
       case "FreezeEntry":
-        return `/ledger-transactions/${entry.txId}`
+        return `/ledger-transactions/${entry.ledgerTransactionId}`
       case "UnfreezeEntry":
-        return `/ledger-transactions/${entry.txId}`
+        return `/ledger-transactions/${entry.ledgerTransactionId}`
       case "PaymentEntry":
         return ""
       default:

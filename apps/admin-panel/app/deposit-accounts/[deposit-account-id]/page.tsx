@@ -119,13 +119,13 @@ gql`
             }
             ... on FreezeEntry {
               __typename
-              txId
+              ledgerTransactionId
               recordedAt
               amount
             }
             ... on UnfreezeEntry {
               __typename
-              txId
+              ledgerTransactionId
               recordedAt
               amount
             }

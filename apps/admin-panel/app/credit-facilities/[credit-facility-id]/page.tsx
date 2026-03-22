@@ -14,20 +14,20 @@ gql`
       ... on CreditFacilityIncrementalPayment {
         cents
         recordedAt
-        txId
+        paymentId
         effective
       }
       ... on CreditFacilityCollateralUpdated {
         satoshis
         recordedAt
         direction
-        txId
+        ledgerTransactionId
         effective
       }
       ... on CreditFacilityApproved {
         cents
         recordedAt
-        txId
+        ledgerTransactionId
         effective
       }
       ... on CreditFacilityCollateralizationUpdated {
@@ -42,26 +42,26 @@ gql`
       ... on CreditFacilityDisbursalExecuted {
         cents
         recordedAt
-        txId
+        ledgerTransactionId
         effective
       }
       ... on CreditFacilityInterestAccrued {
         cents
         recordedAt
-        txId
+        ledgerTransactionId
         days
         effective
       }
       ... on CreditFacilityRepaymentAmountReceived {
         cents
         recordedAt
-        txId
+        ledgerTransactionId
         effective
       }
       ... on CreditFacilityCollateralSentOut {
         amount
         recordedAt
-        txId
+        ledgerTransactionId
         effective
       }
       ... on PendingCreditFacilityCollateralizationUpdated {
