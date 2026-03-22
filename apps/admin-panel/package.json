@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "next dev --port 3001 --turbopack",
     "validate-translations": "node ./i18n/validate-translations.mjs",
-    "build": "npm run validate-translations && next build",
+    "check-translation-keys": "node ./i18n/check-translation-keys.mjs",
+    "build": "npm run validate-translations && npm run check-translation-keys && next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0 --ext .ts,.tsx .",
     "tsc-check": "tsc --noEmit",
