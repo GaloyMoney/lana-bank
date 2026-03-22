@@ -114,28 +114,6 @@ impl<C: Currency> fmt::Display for CalculationAmount<C> {
     }
 }
 
-// ─── Ordering (compares value only) ─────────────────────────────────
-
-impl<C: Currency> PartialEq for CalculationAmount<C> {
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
-    }
-}
-
-impl<C: Currency> Eq for CalculationAmount<C> {}
-
-impl<C: Currency> PartialOrd for CalculationAmount<C> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl<C: Currency> Ord for CalculationAmount<C> {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.value.cmp(&other.value)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use rust_decimal::RoundingStrategy;
@@ -219,15 +197,6 @@ mod tests {
     fn display_format() {
         let a = CalcUsd::from_major(dec!(1.23), p6());
         assert_eq!(format!("{}", a), "~1.23 USD");
-    }
-
-    #[test]
-    fn ordering() {
-        let a = CalcUsd::from_major(dec!(1.00), p6());
-        let b = CalcUsd::from_major(dec!(2.00), p6());
-        assert!(a < b);
-        assert!(b > a);
-        assert_eq!(a, CalcUsd::from_major(dec!(1.00), p6()));
     }
 
     #[test]
