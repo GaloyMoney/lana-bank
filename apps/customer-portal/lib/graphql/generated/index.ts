@@ -74,8 +74,8 @@ export type CreditFacilityApproved = {
   __typename?: 'CreditFacilityApproved';
   cents: Scalars['UsdCents']['output'];
   effective: Scalars['Date']['output'];
+  ledgerTransactionId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityBalance = {
@@ -92,17 +92,17 @@ export type CreditFacilityCollateralSentOut = {
   __typename?: 'CreditFacilityCollateralSentOut';
   amount: Scalars['Satoshis']['output'];
   effective: Scalars['Date']['output'];
+  ledgerTransactionId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityCollateralUpdated = {
   __typename?: 'CreditFacilityCollateralUpdated';
   direction: CollateralDirection;
   effective: Scalars['Date']['output'];
+  ledgerTransactionId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   satoshis: Scalars['Satoshis']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityCollateralizationUpdated = {
@@ -129,8 +129,8 @@ export type CreditFacilityDisbursalExecuted = {
   __typename?: 'CreditFacilityDisbursalExecuted';
   cents: Scalars['UsdCents']['output'];
   effective: Scalars['Date']['output'];
+  ledgerTransactionId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralSentOut | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityRepaymentAmountReceived | PendingCreditFacilityCollateralizationUpdated;
@@ -139,8 +139,8 @@ export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
   cents: Scalars['UsdCents']['output'];
   effective: Scalars['Date']['output'];
+  paymentId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityInterestAccrued = {
@@ -148,8 +148,8 @@ export type CreditFacilityInterestAccrued = {
   cents: Scalars['UsdCents']['output'];
   days: Scalars['Int']['output'];
   effective: Scalars['Date']['output'];
+  ledgerTransactionId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityPaymentAllocation = {
@@ -165,8 +165,8 @@ export type CreditFacilityRepaymentAmountReceived = {
   __typename?: 'CreditFacilityRepaymentAmountReceived';
   cents: Scalars['UsdCents']['output'];
   effective: Scalars['Date']['output'];
+  ledgerTransactionId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityRepaymentPlanEntry = {
@@ -523,14 +523,14 @@ export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { 
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
     , repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: string, dueAt: string }>, history: Array<
-      | { __typename?: 'CreditFacilityApproved', cents: any, recordedAt: string, txId: any, effective: string }
-      | { __typename?: 'CreditFacilityCollateralSentOut', amount: any, recordedAt: string, txId: any, effective: string }
-      | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: string, direction: CollateralDirection, txId: any, effective: string }
+      | { __typename?: 'CreditFacilityApproved', cents: any, recordedAt: string, ledgerTransactionId: any, effective: string }
+      | { __typename?: 'CreditFacilityCollateralSentOut', amount: any, recordedAt: string, ledgerTransactionId: any, effective: string }
+      | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: string, direction: CollateralDirection, ledgerTransactionId: any, effective: string }
       | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: string, price: any, effective: string }
-      | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: string, txId: any, effective: string }
-      | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: string, txId: any, effective: string }
-      | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: string, txId: any, days: number, effective: string }
-      | { __typename?: 'CreditFacilityRepaymentAmountReceived', cents: any, recordedAt: string, txId: any, effective: string }
+      | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: string, ledgerTransactionId: any, effective: string }
+      | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: string, paymentId: any, effective: string }
+      | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: string, ledgerTransactionId: any, days: number, effective: string }
+      | { __typename?: 'CreditFacilityRepaymentAmountReceived', cents: any, recordedAt: string, ledgerTransactionId: any, effective: string }
       | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: any, price: any, recordedAt: string, effective: string, pendingState: PendingCreditFacilityCollateralizationState }
     > } | null };
 
@@ -659,20 +659,20 @@ export const GetCreditFacilityDocument = gql`
       ... on CreditFacilityIncrementalPayment {
         cents
         recordedAt
-        txId
+        paymentId
         effective
       }
       ... on CreditFacilityCollateralUpdated {
         satoshis
         recordedAt
         direction
-        txId
+        ledgerTransactionId
         effective
       }
       ... on CreditFacilityApproved {
         cents
         recordedAt
-        txId
+        ledgerTransactionId
         effective
       }
       ... on CreditFacilityCollateralizationUpdated {
@@ -687,26 +687,26 @@ export const GetCreditFacilityDocument = gql`
       ... on CreditFacilityDisbursalExecuted {
         cents
         recordedAt
-        txId
+        ledgerTransactionId
         effective
       }
       ... on CreditFacilityInterestAccrued {
         cents
         recordedAt
-        txId
+        ledgerTransactionId
         days
         effective
       }
       ... on CreditFacilityRepaymentAmountReceived {
         cents
         recordedAt
-        txId
+        ledgerTransactionId
         effective
       }
       ... on CreditFacilityCollateralSentOut {
         amount
         recordedAt
-        txId
+        ledgerTransactionId
         effective
       }
       ... on PendingCreditFacilityCollateralizationUpdated {

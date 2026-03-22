@@ -15,7 +15,7 @@ query creditFacility($id: UUID!) {
       ... on CreditFacilityInterestAccrued {
         cents
         recordedAt
-        txId
+        ledgerTransactionId
         days
       }
       ... on CreditFacilityCollateralizationUpdated {
