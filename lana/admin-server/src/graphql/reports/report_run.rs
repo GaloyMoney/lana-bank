@@ -60,7 +60,7 @@ impl From<DomainReportRunType> for ReportRunType {
 
 #[derive(SimpleObject, Clone)]
 pub struct RequestedReport {
-    report_definition_id: String,
+    report_definition_id: ReportDefinitionId,
     norm: String,
     name: String,
 }
@@ -68,7 +68,7 @@ pub struct RequestedReport {
 impl From<DomainRequestedReport> for RequestedReport {
     fn from(requested_report: DomainRequestedReport) -> Self {
         Self {
-            report_definition_id: requested_report.report_definition_id.to_string(),
+            report_definition_id: ReportDefinitionId::from(requested_report.report_definition_id),
             norm: requested_report.norm,
             name: requested_report.name,
         }
@@ -133,7 +133,7 @@ pub struct ReportRunTriggerPayload {
 
 #[derive(InputObject)]
 pub struct ReportRunTriggerInput {
-    pub report_definition_id: String,
+    pub report_definition_id: ReportDefinitionId,
     pub as_of_date: Option<Date>,
 }
 

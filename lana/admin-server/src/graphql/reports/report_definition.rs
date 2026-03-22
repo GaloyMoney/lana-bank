@@ -1,5 +1,7 @@
 use async_graphql::*;
 
+use crate::primitives::ReportDefinitionId;
+
 pub use lana_app::report::{
     ReportDefinition as DomainReportDefinition,
     ReportDefinitionOutput as DomainReportDefinitionOutput,
@@ -39,7 +41,7 @@ impl From<DomainReportDefinitionOutput> for ReportDefinitionOutput {
 #[derive(SimpleObject, Clone)]
 #[graphql(directive = crate::graphql::entity_key::entity_key::apply("reportDefinitionId".to_string()))]
 pub struct ReportDefinition {
-    report_definition_id: String,
+    report_definition_id: ReportDefinitionId,
     norm: String,
     friendly_name: String,
     source_table: String,
@@ -50,7 +52,9 @@ pub struct ReportDefinition {
 impl From<DomainReportDefinition> for ReportDefinition {
     fn from(report_definition: DomainReportDefinition) -> Self {
         Self {
-            report_definition_id: report_definition.report_definition_id().to_string(),
+            report_definition_id: ReportDefinitionId::from(
+                report_definition.report_definition_id(),
+            ),
             norm: report_definition.norm,
             friendly_name: report_definition.friendly_name,
             source_table: report_definition.source_table,

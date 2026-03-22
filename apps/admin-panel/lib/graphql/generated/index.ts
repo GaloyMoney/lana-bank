@@ -32,6 +32,7 @@ export type Scalars = {
   Json: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   PublicId: { input: any; output: any; }
+  ReportDefinitionId: { input: string; output: string; }
   Satoshis: { input: Satoshis; output: Satoshis; }
   SignedSatoshis: { input: SignedSatoshis; output: SignedSatoshis; }
   SignedUsdCents: { input: SignedUsdCents; output: SignedUsdCents; }
@@ -3365,7 +3366,7 @@ export type ReportDefinition = {
   friendlyName: Scalars['String']['output'];
   norm: Scalars['String']['output'];
   outputs: Array<ReportDefinitionOutput>;
-  reportDefinitionId: Scalars['String']['output'];
+  reportDefinitionId: Scalars['ReportDefinitionId']['output'];
   sourceTable: Scalars['String']['output'];
   supportsAsOf: Scalars['Boolean']['output'];
 };
@@ -3435,7 +3436,7 @@ export enum ReportRunState {
 
 export type ReportRunTriggerInput = {
   asOfDate?: InputMaybe<Scalars['Date']['input']>;
-  reportDefinitionId: Scalars['String']['input'];
+  reportDefinitionId: Scalars['ReportDefinitionId']['input'];
 };
 
 export type ReportRunTriggerPayload = {
@@ -3466,7 +3467,7 @@ export type RequestedReport = {
   __typename?: 'RequestedReport';
   name: Scalars['String']['output'];
   norm: Scalars['String']['output'];
-  reportDefinitionId: Scalars['String']['output'];
+  reportDefinitionId: Scalars['ReportDefinitionId']['output'];
 };
 
 export type Role = {

@@ -3198,7 +3198,7 @@ export const mockReportDefinition = (overrides?: Partial<ReportDefinition>, _rel
         friendlyName: overrides && overrides.hasOwnProperty('friendlyName') ? overrides.friendlyName! : faker.lorem.word(),
         norm: overrides && overrides.hasOwnProperty('norm') ? overrides.norm! : faker.lorem.word(),
         outputs: overrides && overrides.hasOwnProperty('outputs') ? overrides.outputs! : [relationshipsToOmit.has('ReportDefinitionOutput') ? {} as ReportDefinitionOutput : mockReportDefinitionOutput({}, relationshipsToOmit)],
-        reportDefinitionId: overrides && overrides.hasOwnProperty('reportDefinitionId') ? overrides.reportDefinitionId! : faker.lorem.word(),
+        reportDefinitionId: overrides && overrides.hasOwnProperty('reportDefinitionId') ? overrides.reportDefinitionId! : 'nrp_91/01_saldo_cuenta',
         sourceTable: overrides && overrides.hasOwnProperty('sourceTable') ? overrides.sourceTable! : faker.lorem.word(),
         supportsAsOf: overrides && overrides.hasOwnProperty('supportsAsOf') ? overrides.supportsAsOf! : faker.datatype.boolean(),
     };
@@ -3281,7 +3281,7 @@ export const mockReportRunTriggerInput = (overrides?: Partial<ReportRunTriggerIn
     relationshipsToOmit.add('ReportRunTriggerInput');
     return {
         asOfDate: overrides && overrides.hasOwnProperty('asOfDate') ? overrides.asOfDate! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
-        reportDefinitionId: overrides && overrides.hasOwnProperty('reportDefinitionId') ? overrides.reportDefinitionId! : faker.lorem.word(),
+        reportDefinitionId: overrides && overrides.hasOwnProperty('reportDefinitionId') ? overrides.reportDefinitionId! : 'nrp_91/01_saldo_cuenta',
     };
 };
 
@@ -3319,7 +3319,7 @@ export const mockRequestedReport = (overrides?: Partial<RequestedReport>, _relat
         __typename: 'RequestedReport',
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         norm: overrides && overrides.hasOwnProperty('norm') ? overrides.norm! : faker.lorem.word(),
-        reportDefinitionId: overrides && overrides.hasOwnProperty('reportDefinitionId') ? overrides.reportDefinitionId! : faker.lorem.word(),
+        reportDefinitionId: overrides && overrides.hasOwnProperty('reportDefinitionId') ? overrides.reportDefinitionId! : 'nrp_91/01_saldo_cuenta',
     };
 };
 

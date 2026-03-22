@@ -28,6 +28,7 @@ generates:
         SignedUsdCents: "types#SignedUsdCents"
         SignedSatoshis: "types#SignedSatoshis"
         AuditSubjectId: string
+        ReportDefinitionId: string
         AccountCode: string
   ./lib/graphql/generated/entity-keys.ts:
     plugins:
@@ -114,6 +115,7 @@ generates:
             CVLPct: "generateMockValue.int()"
             DisbursalIdx: "generateMockValue.int()"
             AuditSubjectId: "generateMockValue.uuid()"
+            ReportDefinitionId: "'nrp_91/01_saldo_cuenta'"
           fieldGeneration:
             _all:
               email: "generateMockValue.email()"

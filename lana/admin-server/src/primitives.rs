@@ -110,3 +110,34 @@ impl From<AuditSubjectId> for String {
         value.0
     }
 }
+
+#[derive(Clone, Serialize)]
+#[serde(transparent)]
+pub struct ReportDefinitionId(lana_app::report::ReportDefinitionId);
+scalar!(ReportDefinitionId);
+impl From<lana_app::report::ReportDefinitionId> for ReportDefinitionId {
+    fn from(value: lana_app::report::ReportDefinitionId) -> Self {
+        Self(value)
+    }
+}
+impl From<ReportDefinitionId> for lana_app::report::ReportDefinitionId {
+    fn from(value: ReportDefinitionId) -> Self {
+        value.0
+    }
+}
+impl std::fmt::Display for ReportDefinitionId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl<'de> Deserialize<'de> for ReportDefinitionId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        lana_app::report::ReportDefinitionId::try_new(s)
+            .map(Self)
+            .map_err(serde::de::Error::custom)
+    }
+}
