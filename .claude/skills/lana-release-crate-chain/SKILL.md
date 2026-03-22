@@ -50,6 +50,16 @@ Each crate's `Cargo.toml` has workspace-level dependency declarations. Check the
 - **Merge strategy:** Always squash merge (`--squash`)
 - **Branch protection:** Repos may have branch protection. If `gh pr merge --squash` fails due to branch protection, ask the user for confirmation before retrying with `--admin` flag
 
+## Preflight Check
+
+Before starting the release chain, verify Concourse authentication:
+
+```bash
+fly -t galoy status
+```
+
+If this returns an auth error, stop and ask the user to run `fly -t galoy login` in their terminal (it requires browser-based login). Do not proceed until `fly -t galoy status` succeeds.
+
 ## Per-Crate Release Flow
 
 For each crate in the chain, follow these steps in order:
@@ -71,12 +81,11 @@ If the crate already has an open PR with the changes (e.g., a version bump PR), 
 
 After merging to main, the Concourse pipeline automatically runs tests and then releases:
 
-1. **Authenticate if needed:** `fly -t galoy login` (browser-based login)
-2. **Trigger the release job** (if it doesn't auto-trigger):
+1. **Trigger the release job** (if it doesn't auto-trigger):
    ```
    fly -t galoy trigger-job -j <pipeline>/release
    ```
-3. **Watch the release job:**
+2. **Watch the release job:**
    ```
    fly -t galoy watch -j <pipeline>/release
    ```
@@ -87,7 +96,7 @@ After merging to main, the Concourse pipeline automatically runs tests and then 
    - Creates a git tag and GitHub release
    - The subsequent `set-dev-version` job bumps to the next `-dev` version
 
-4. **If the release job is not yet triggered** (waiting for `check-code` and `tests` to pass first):
+3. **If the release job is not yet triggered** (waiting for `check-code` and `tests` to pass first):
    ```
    fly -t galoy watch -j <pipeline>/check-code
    fly -t galoy watch -j <pipeline>/tests
