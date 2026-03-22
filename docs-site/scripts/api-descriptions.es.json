@@ -56,7 +56,7 @@
       "transactionTemplates": "Devuelve una lista paginada de todas las plantillas de transacciones contables",
       "ledgerTransaction": "Obtiene una transaccion contable especifica por su identificador unico",
       "ledgerTransactionsForTemplateCode": "Devuelve una lista paginada de transacciones contables para un codigo de plantilla especifico",
-      "journalEntries": "Devuelve una lista paginada de todos los asientos contables",
+      "ledgerEntries": "Devuelve una lista paginada de todas las entradas del libro mayor",
       "trialBalance": "Genera un reporte de balance de comprobacion para el rango de fechas especificado",
       "chartOfAccounts": "Devuelve la estructura del catalogo de cuentas",
       "descendantAccountSetsByCategory": "Devuelve los grupos de cuentas descendientes (cuentas no terminales) bajo una categoria contable especificada (activo, pasivo, capital, ingresos, costo de ventas, gastos, o fuera de balance)",

@@ -3119,7 +3119,7 @@
     "noEntries": "No journal entry for this transaction. Please add one.",
     "addEntryBtn": "Add",
     "execute": "Create",
-    "placeholdersJournalEntry": {
+    "placeholdersLedgerEntry": {
       "accountRef": "Enter account ref",
       "currency": "Select currency",
       "amount": "Enter amount",

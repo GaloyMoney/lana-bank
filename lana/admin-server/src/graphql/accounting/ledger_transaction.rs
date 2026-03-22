@@ -18,7 +18,7 @@ use crate::{
     primitives::*,
 };
 
-use super::JournalEntry;
+use super::LedgerEntry;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(
@@ -107,13 +107,13 @@ impl LedgerTransaction {
         }
     }
 
-    async fn entries(&self) -> Vec<JournalEntry> {
+    async fn entries(&self) -> Vec<LedgerEntry> {
         self.entity
             .entries
             .iter()
             .map(|e| {
                 let entry = e.clone();
-                JournalEntry::from(entry)
+                LedgerEntry::from(entry)
             })
             .collect()
     }

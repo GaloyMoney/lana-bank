@@ -1942,11 +1942,11 @@ checksums:
     ManualTransactions/noEntries: b5cb1e87c57993a1088d73aae3b829ee
     ManualTransactions/addEntryBtn: 87c4a663507f2bcbbf79934af8164e13
     ManualTransactions/execute: 757ccd28dd533ff3a933355273c1e32a
-    ManualTransactions/placeholdersJournalEntry/accountRef: 325591742b9f337a39e5f58b29383948
-    ManualTransactions/placeholdersJournalEntry/currency: a7604892fc4bfe50ead2ba5d5dd95c9c
-    ManualTransactions/placeholdersJournalEntry/amount: 2bf76cb0b75e87e3e635259f97ae8089
-    ManualTransactions/placeholdersJournalEntry/direction: 67e3f528b0603c8381f6e7249ace3c21
-    ManualTransactions/placeholdersJournalEntry/description: 24e46064cac64ba5b70ad916903c0561
+    ManualTransactions/placeholdersLedgerEntry/accountRef: 325591742b9f337a39e5f58b29383948
+    ManualTransactions/placeholdersLedgerEntry/currency: a7604892fc4bfe50ead2ba5d5dd95c9c
+    ManualTransactions/placeholdersLedgerEntry/amount: 2bf76cb0b75e87e3e635259f97ae8089
+    ManualTransactions/placeholdersLedgerEntry/direction: 67e3f528b0603c8381f6e7249ace3c21
+    ManualTransactions/placeholdersLedgerEntry/description: 24e46064cac64ba5b70ad916903c0561
     ManualTransactions/table/accountRef: 01215c12fb1cdb93bd0c84c1382bef56
     ManualTransactions/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
     ManualTransactions/table/currency: d2ba9a9cea418ea653e3ca6785617a3f
