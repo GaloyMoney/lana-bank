@@ -145,7 +145,7 @@ impl Query {
     async fn customer(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: CustomerId,
     ) -> async_graphql::Result<Option<Customer>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Customer, ctx, app.customers().find_by_id(sub, id))
@@ -309,7 +309,11 @@ impl Query {
         )
     }
 
-    async fn deposit(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Deposit>> {
+    async fn deposit(
+        &self,
+        ctx: &Context<'_>,
+        id: DepositId,
+    ) -> async_graphql::Result<Option<Deposit>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Deposit, ctx, app.deposits().find_deposit_by_id(sub, id))
     }
@@ -330,7 +334,7 @@ impl Query {
     async fn deposit_account(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        id: DepositAccountId,
     ) -> async_graphql::Result<Option<DepositAccount>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(

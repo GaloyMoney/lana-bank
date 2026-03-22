@@ -27,8 +27,8 @@ pub use lana_app::{
     directive = crate::graphql::entity_key::entity_key::apply("depositId".to_string())
 )]
 pub struct Deposit {
-    deposit_id: UUID,
-    account_id: UUID,
+    deposit_id: DepositId,
+    account_id: DepositAccountId,
     amount: UsdCents,
     created_at: Timestamp,
 
@@ -39,8 +39,8 @@ pub struct Deposit {
 impl From<DomainDeposit> for Deposit {
     fn from(deposit: DomainDeposit) -> Self {
         Deposit {
-            deposit_id: UUID::from(deposit.id),
-            account_id: UUID::from(deposit.deposit_account_id),
+            deposit_id: deposit.id,
+            account_id: deposit.deposit_account_id,
             amount: deposit.amount,
             created_at: deposit.created_at().into(),
 
@@ -97,7 +97,7 @@ impl Deposit {
 
 #[derive(InputObject)]
 pub struct DepositRecordInput {
-    pub deposit_account_id: UUID,
+    pub deposit_account_id: DepositAccountId,
     pub amount: UsdCents,
     pub reference: Option<String>,
 }
@@ -105,31 +105,31 @@ crate::mutation_payload! { DepositRecordPayload, deposit: Deposit }
 
 #[derive(InputObject)]
 pub struct DepositAccountCreateInput {
-    pub customer_id: UUID,
+    pub customer_id: CustomerId,
 }
 crate::mutation_payload! { DepositAccountCreatePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositRevertInput {
-    pub deposit_id: UUID,
+    pub deposit_id: DepositId,
 }
 crate::mutation_payload! { DepositRevertPayload, deposit: Deposit }
 
 #[derive(InputObject)]
 pub struct DepositAccountFreezeInput {
-    pub deposit_account_id: UUID,
+    pub deposit_account_id: DepositAccountId,
 }
 crate::mutation_payload! { DepositAccountFreezePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositAccountUnfreezeInput {
-    pub deposit_account_id: UUID,
+    pub deposit_account_id: DepositAccountId,
 }
 crate::mutation_payload! { DepositAccountUnfreezePayload, deposit_account: DepositAccount }
 
 #[derive(InputObject)]
 pub struct DepositAccountCloseInput {
-    pub deposit_account_id: UUID,
+    pub deposit_account_id: DepositAccountId,
 }
 crate::mutation_payload! { DepositAccountClosePayload, deposit_account: DepositAccount }
 

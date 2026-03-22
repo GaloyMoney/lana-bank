@@ -29,6 +29,9 @@ generates:
         SignedSatoshis: "types#SignedSatoshis"
         AuditSubjectId: string
         ReportDefinitionId: string
+        CustomerId: string
+        DepositAccountId: string
+        DepositId: string
         AccountCode: string
   ./lib/graphql/generated/entity-keys.ts:
     plugins:
@@ -116,6 +119,9 @@ generates:
             DisbursalIdx: "generateMockValue.int()"
             AuditSubjectId: "generateMockValue.uuid()"
             ReportDefinitionId: "'nrp_91/01_saldo_cuenta'"
+            CustomerId: "generateMockValue.uuid()"
+            DepositAccountId: "generateMockValue.uuid()"
+            DepositId: "generateMockValue.uuid()"
           fieldGeneration:
             _all:
               email: "generateMockValue.email()"

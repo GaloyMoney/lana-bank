@@ -26,8 +26,8 @@ use super::{
     directive = crate::graphql::entity_key::entity_key::apply("depositAccountId".to_string())
 )]
 pub struct DepositAccount {
-    deposit_account_id: UUID,
-    customer_id: UUID,
+    deposit_account_id: DepositAccountId,
+    customer_id: CustomerId,
     created_at: Timestamp,
     status: DepositAccountStatus,
     activity: Activity,
@@ -39,7 +39,7 @@ pub struct DepositAccount {
 impl From<DomainDepositAccount> for DepositAccount {
     fn from(account: DomainDepositAccount) -> Self {
         DepositAccount {
-            deposit_account_id: account.id.into(),
+            deposit_account_id: account.id,
             customer_id: account.account_holder_id.into(),
             created_at: account.created_at().into(),
             status: account.status,

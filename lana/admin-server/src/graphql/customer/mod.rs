@@ -41,7 +41,7 @@ impl From<&CustomerConversion> for ConversionReason {
     directive = crate::graphql::entity_key::entity_key::apply("customerId".to_string())
 )]
 pub struct Customer {
-    customer_id: UUID,
+    customer_id: CustomerId,
     status: CustomerStatus,
     level: KycLevel,
     created_at: Timestamp,
@@ -53,7 +53,7 @@ pub struct Customer {
 impl From<DomainCustomer> for Customer {
     fn from(customer: DomainCustomer) -> Self {
         Customer {
-            customer_id: UUID::from(customer.id),
+            customer_id: customer.id,
             status: customer.status,
             level: customer.level,
             created_at: customer.created_at().into(),
@@ -233,33 +233,33 @@ impl Customer {
 
 #[derive(InputObject)]
 pub struct CustomerTelegramHandleUpdateInput {
-    pub customer_id: UUID,
+    pub customer_id: CustomerId,
     pub telegram_handle: String,
 }
 crate::mutation_payload! { CustomerTelegramHandleUpdatePayload, customer: Customer }
 
 #[derive(InputObject)]
 pub struct CustomerEmailUpdateInput {
-    pub customer_id: UUID,
+    pub customer_id: CustomerId,
     pub email: String,
 }
 crate::mutation_payload! { CustomerEmailUpdatePayload, customer: Customer }
 
 #[derive(InputObject)]
 pub struct CustomerFreezeInput {
-    pub customer_id: UUID,
+    pub customer_id: CustomerId,
 }
 crate::mutation_payload! { CustomerFreezePayload, customer: Customer }
 
 #[derive(InputObject)]
 pub struct CustomerUnfreezeInput {
-    pub customer_id: UUID,
+    pub customer_id: CustomerId,
 }
 crate::mutation_payload! { CustomerUnfreezePayload, customer: Customer }
 
 #[derive(InputObject)]
 pub struct CustomerCloseInput {
-    pub customer_id: UUID,
+    pub customer_id: CustomerId,
 }
 crate::mutation_payload! { CustomerClosePayload, customer: Customer }
 

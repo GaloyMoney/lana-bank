@@ -678,61 +678,6 @@ type CreditFacilityLedgerAccounts {
 	uncoveredOutstandingAccount: LedgerAccount!
 }
 
-type CreditFacilityModuleConfig {
-	chartOfAccountCollateralInLiquidationParentCode: String
-	chartOfAccountCollateralOmnibusParentCode: String
-	chartOfAccountCollateralParentCode: String
-	chartOfAccountDisbursedDefaultedParentCode: String
-	chartOfAccountFacilityOmnibusParentCode: String
-	chartOfAccountFacilityParentCode: String
-	chartOfAccountFeeIncomeParentCode: String
-	chartOfAccountInterestAddedToObligationsOmnibusParentCode: String
-	chartOfAccountInterestDefaultedParentCode: String
-	chartOfAccountInterestIncomeParentCode: String
-	chartOfAccountLiquidatedCollateralParentCode: String
-	chartOfAccountLiquidationProceedsOmnibusParentCode: String
-	chartOfAccountLongTermBankDisbursedReceivableParentCode: String
-	chartOfAccountLongTermBankInterestReceivableParentCode: String
-	chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: String
-	chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: String
-	chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
-	chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String
-	chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: String
-	chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: String
-	chartOfAccountLongTermIndividualDisbursedReceivableParentCode: String
-	chartOfAccountLongTermIndividualInterestReceivableParentCode: String
-	chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: String
-	chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: String
-	chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: String
-	chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: String
-	chartOfAccountOverdueBankDisbursedReceivableParentCode: String
-	chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: String
-	chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
-	chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: String
-	chartOfAccountOverdueIndividualDisbursedReceivableParentCode: String
-	chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: String
-	chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: String
-	chartOfAccountPaymentHoldingParentCode: String
-	chartOfAccountPaymentsMadeOmnibusParentCode: String
-	chartOfAccountProceedsFromLiquidationParentCode: String
-	chartOfAccountShortTermBankDisbursedReceivableParentCode: String
-	chartOfAccountShortTermBankInterestReceivableParentCode: String
-	chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: String
-	chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: String
-	chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
-	chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String
-	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String
-	chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: String
-	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String
-	chartOfAccountShortTermIndividualInterestReceivableParentCode: String
-	chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: String
-	chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: String
-	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String
-	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String
-	chartOfAccountUncoveredOutstandingParentCode: String
-	chartOfAccountsId: UUID
-}
-
 input CreditFacilityModuleConfigureInput {
 	chartOfAccountCollateralInLiquidationParentCode: String!
 	chartOfAccountCollateralOmnibusParentCode: String!
@@ -788,7 +733,7 @@ input CreditFacilityModuleConfigureInput {
 }
 
 type CreditFacilityModuleConfigurePayload {
-	creditFacilityConfig: CreditFacilityModuleConfig!
+	creditConfig: CreditModuleConfig!
 }
 
 input CreditFacilityPartialPaymentRecordInput {
@@ -935,6 +880,61 @@ enum CreditFacilityStatus {
 	MATURED
 }
 
+type CreditModuleConfig {
+	chartOfAccountCollateralInLiquidationParentCode: String
+	chartOfAccountCollateralOmnibusParentCode: String
+	chartOfAccountCollateralParentCode: String
+	chartOfAccountDisbursedDefaultedParentCode: String
+	chartOfAccountFacilityOmnibusParentCode: String
+	chartOfAccountFacilityParentCode: String
+	chartOfAccountFeeIncomeParentCode: String
+	chartOfAccountInterestAddedToObligationsOmnibusParentCode: String
+	chartOfAccountInterestDefaultedParentCode: String
+	chartOfAccountInterestIncomeParentCode: String
+	chartOfAccountLiquidatedCollateralParentCode: String
+	chartOfAccountLiquidationProceedsOmnibusParentCode: String
+	chartOfAccountLongTermBankDisbursedReceivableParentCode: String
+	chartOfAccountLongTermBankInterestReceivableParentCode: String
+	chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: String
+	chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: String
+	chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
+	chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String
+	chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: String
+	chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: String
+	chartOfAccountLongTermIndividualDisbursedReceivableParentCode: String
+	chartOfAccountLongTermIndividualInterestReceivableParentCode: String
+	chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: String
+	chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: String
+	chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: String
+	chartOfAccountOverdueBankDisbursedReceivableParentCode: String
+	chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: String
+	chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
+	chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: String
+	chartOfAccountOverdueIndividualDisbursedReceivableParentCode: String
+	chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: String
+	chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountPaymentHoldingParentCode: String
+	chartOfAccountPaymentsMadeOmnibusParentCode: String
+	chartOfAccountProceedsFromLiquidationParentCode: String
+	chartOfAccountShortTermBankDisbursedReceivableParentCode: String
+	chartOfAccountShortTermBankInterestReceivableParentCode: String
+	chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: String
+	chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: String
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String
+	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String
+	chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: String
+	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String
+	chartOfAccountShortTermIndividualInterestReceivableParentCode: String
+	chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: String
+	chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: String
+	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String
+	chartOfAccountUncoveredOutstandingParentCode: String
+	chartOfAccountsId: UUID
+}
+
 type Custodian @entity_key(field: "custodianId") {
 	createdAt: Timestamp!
 	custodianId: UUID!
@@ -1013,7 +1013,7 @@ type Customer @entity_key(field: "customerId") {
 	createdAt: Timestamp!
 	creditFacilities: [CreditFacility!]!
 	creditFacilityProposals: [CreditFacilityProposal!]!
-	customerId: UUID!
+	customerId: CustomerId!
 	customerType: CustomerType!
 	depositAccount: DepositAccount
 	documents: [CustomerDocument!]!
@@ -1029,7 +1029,7 @@ type Customer @entity_key(field: "customerId") {
 }
 
 input CustomerCloseInput {
-	customerId: UUID!
+	customerId: CustomerId!
 }
 
 type CustomerClosePayload {
@@ -1107,7 +1107,7 @@ type CustomerEdge {
 }
 
 input CustomerEmailUpdateInput {
-	customerId: UUID!
+	customerId: CustomerId!
 	email: String!
 }
 
@@ -1116,12 +1116,14 @@ type CustomerEmailUpdatePayload {
 }
 
 input CustomerFreezeInput {
-	customerId: UUID!
+	customerId: CustomerId!
 }
 
 type CustomerFreezePayload {
 	customer: Customer!
 }
+
+scalar CustomerId
 
 enum CustomerStatus {
 	ACTIVE
@@ -1130,7 +1132,7 @@ enum CustomerStatus {
 }
 
 input CustomerTelegramHandleUpdateInput {
-	customerId: UUID!
+	customerId: CustomerId!
 	telegramHandle: String!
 }
 
@@ -1149,7 +1151,7 @@ enum CustomerType {
 }
 
 input CustomerUnfreezeInput {
-	customerId: UUID!
+	customerId: CustomerId!
 }
 
 type CustomerUnfreezePayload {
@@ -1193,10 +1195,10 @@ scalar Decimal
 
 type Deposit @entity_key(field: "depositId") {
 	account: DepositAccount!
-	accountId: UUID!
+	accountId: DepositAccountId!
 	amount: UsdCents!
 	createdAt: Timestamp!
-	depositId: UUID!
+	depositId: DepositId!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	ledgerTransactions: [LedgerTransaction!]!
 	publicId: PublicId!
@@ -1209,8 +1211,8 @@ type DepositAccount @entity_key(field: "depositAccountId") {
 	balance: DepositAccountBalance!
 	createdAt: Timestamp!
 	customer: Customer!
-	customerId: UUID!
-	depositAccountId: UUID!
+	customerId: CustomerId!
+	depositAccountId: DepositAccountId!
 	deposits: [Deposit!]!
 	eventHistory(after: String, first: Int!): EventTimelineEntryConnection!
 	history(after: String, first: Int!): DepositAccountHistoryEntryConnection!
@@ -1226,7 +1228,7 @@ type DepositAccountBalance {
 }
 
 input DepositAccountCloseInput {
-	depositAccountId: UUID!
+	depositAccountId: DepositAccountId!
 }
 
 type DepositAccountClosePayload {
@@ -1249,7 +1251,7 @@ type DepositAccountConnection {
 }
 
 input DepositAccountCreateInput {
-	customerId: UUID!
+	customerId: CustomerId!
 }
 
 type DepositAccountCreatePayload {
@@ -1271,7 +1273,7 @@ type DepositAccountEdge {
 }
 
 input DepositAccountFreezeInput {
-	depositAccountId: UUID!
+	depositAccountId: DepositAccountId!
 }
 
 type DepositAccountFreezePayload {
@@ -1309,26 +1311,11 @@ type DepositAccountHistoryEntryEdge {
 	node: DepositAccountHistoryEntry!
 }
 
+scalar DepositAccountId
+
 type DepositAccountLedgerAccounts {
 	depositAccount: LedgerAccount!
 	frozenDepositAccount: LedgerAccount!
-}
-
-type DepositAccountModuleConfig {
-	chartOfAccountsBankDepositAccountsParentCode: String
-	chartOfAccountsFinancialInstitutionDepositAccountsParentCode: String
-	chartOfAccountsFrozenBankDepositAccountsParentCode: String
-	chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode: String
-	chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: String
-	chartOfAccountsFrozenIndividualDepositAccountsParentCode: String
-	chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode: String
-	chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode: String
-	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String
-	chartOfAccountsId: UUID
-	chartOfAccountsIndividualDepositAccountsParentCode: String
-	chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: String
-	chartOfAccountsOmnibusParentCode: String
-	chartOfAccountsPrivateCompanyDepositAccountsParentCode: String
 }
 
 input DepositAccountModuleConfigureInput {
@@ -1348,7 +1335,7 @@ input DepositAccountModuleConfigureInput {
 }
 
 type DepositAccountModuleConfigurePayload {
-	depositAccountConfig: DepositAccountModuleConfig!
+	depositConfig: DepositModuleConfig!
 }
 
 enum DepositAccountStatus {
@@ -1358,7 +1345,7 @@ enum DepositAccountStatus {
 }
 
 input DepositAccountUnfreezeInput {
-	depositAccountId: UUID!
+	depositAccountId: DepositAccountId!
 }
 
 type DepositAccountUnfreezePayload {
@@ -1414,9 +1401,28 @@ type DepositEntry {
 	recordedAt: Timestamp!
 }
 
+scalar DepositId
+
+type DepositModuleConfig {
+	chartOfAccountsBankDepositAccountsParentCode: String
+	chartOfAccountsFinancialInstitutionDepositAccountsParentCode: String
+	chartOfAccountsFrozenBankDepositAccountsParentCode: String
+	chartOfAccountsFrozenFinancialInstitutionDepositAccountsParentCode: String
+	chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: String
+	chartOfAccountsFrozenIndividualDepositAccountsParentCode: String
+	chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode: String
+	chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode: String
+	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String
+	chartOfAccountsId: UUID
+	chartOfAccountsIndividualDepositAccountsParentCode: String
+	chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode: String
+	chartOfAccountsOmnibusParentCode: String
+	chartOfAccountsPrivateCompanyDepositAccountsParentCode: String
+}
+
 input DepositRecordInput {
 	amount: UsdCents!
-	depositAccountId: UUID!
+	depositAccountId: DepositAccountId!
 	reference: String
 }
 
@@ -1425,7 +1431,7 @@ type DepositRecordPayload {
 }
 
 input DepositRevertInput {
-	depositId: UUID!
+	depositId: DepositId!
 }
 
 type DepositRevertPayload {
@@ -1714,6 +1720,50 @@ enum InterestInterval {
 	END_OF_MONTH
 }
 
+type JournalEntry @entity_key(field: "journalEntryId") {
+	amount: JournalEntryAmount!
+	createdAt: Timestamp!
+	description: String
+	direction: DebitOrCredit!
+	entryType: String!
+	journalEntryId: UUID!
+	layer: Layer!
+	ledgerAccount: LedgerAccount!
+	ledgerTransaction: LedgerTransaction!
+	txId: UUID!
+}
+
+union JournalEntryAmount = UsdAmount | BtcAmount
+
+type JournalEntryConnection {
+	"""
+	A list of edges.
+	"""
+	edges: [JournalEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [JournalEntry!]!
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+}
+
+"""
+An edge in a connection.
+"""
+type JournalEntryEdge {
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+	"""
+	The item at the end of the edge
+	"""
+	node: JournalEntry!
+}
+
 scalar Json
 
 input KomainuConfigInput {
@@ -1753,7 +1803,7 @@ type LedgerAccount @entity_key(field: "ledgerAccountId") {
 	closestAccountWithCode: LedgerAccount
 	code: AccountCode
 	entity: LedgerAccountEntity
-	history(after: String, first: Int!): LedgerEntryConnection!
+	history(after: String, first: Int!): JournalEntryConnection!
 	isRootAccount: Boolean!
 	ledgerAccountId: UUID!
 	name: String!
@@ -1807,52 +1857,9 @@ type LedgerAccountCsvExportUploadedPayload {
 
 union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
 
-type LedgerEntry @entity_key(field: "ledgerEntryId") {
-	amount: LedgerEntryAmount!
-	createdAt: Timestamp!
-	description: String
-	direction: DebitOrCredit!
-	entryType: String!
-	layer: Layer!
-	ledgerAccount: LedgerAccount!
-	ledgerEntryId: UUID!
-	ledgerTransaction: LedgerTransaction!
-}
-
-union LedgerEntryAmount = UsdAmount | BtcAmount
-
-type LedgerEntryConnection {
-	"""
-	A list of edges.
-	"""
-	edges: [LedgerEntryEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [LedgerEntry!]!
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-}
-
-"""
-An edge in a connection.
-"""
-type LedgerEntryEdge {
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
-	"""
-	The item at the end of the edge
-	"""
-	node: LedgerEntry!
-}
-
 input LedgerManualTransactionExecuteInput {
 	description: String!
-	effective: Date!
+	effective: Date
 	entries: [ManualTransactionEntryInput!]!
 	reference: String
 }
@@ -1866,7 +1873,7 @@ type LedgerTransaction @entity_key(field: "ledgerTransactionId") {
 	description: String
 	effective: Date!
 	entity: LedgerTransactionEntity
-	entries: [LedgerEntry!]!
+	entries: [JournalEntry!]!
 	initiatedBy: LedgerTransactionInitiator!
 	ledgerTransactionId: UUID!
 }
@@ -2510,26 +2517,26 @@ type Query {
 	chartOfAccounts: ChartOfAccounts!
 	committee(id: UUID!): Committee
 	committees(after: String, first: Int!, sort: CommitteesSort = {by: CREATED_AT, direction: DESC}): CommitteeConnection!
+	creditConfig: CreditModuleConfig
 	creditFacilities(after: String, filter: CreditFacilitiesFilter, first: Int!, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: DESC}): CreditFacilityConnection!
 	creditFacility(id: UUID!): CreditFacility
 	creditFacilityAgreement(id: UUID!): CreditFacilityAgreement
 	creditFacilityByPublicId(id: PublicId!): CreditFacility
-	creditFacilityConfig: CreditFacilityModuleConfig
 	creditFacilityProposal(id: UUID!): CreditFacilityProposal
 	creditFacilityProposals(after: String, filter: CreditFacilityProposalsFilter, first: Int!, sort: CreditFacilityProposalsSort = {by: CREATED_AT, direction: DESC}): CreditFacilityProposalConnection!
 	custodians(after: String, first: Int!, sort: CustodiansSort = {by: CREATED_AT, direction: DESC}): CustodianConnection!
-	customer(id: UUID!): Customer
+	customer(id: CustomerId!): Customer
 	customerByEmail(email: String!): Customer
 	customerByPublicId(id: PublicId!): Customer
 	customerDocument(id: UUID!): CustomerDocument
 	customers(after: String, filter: CustomersFilter, first: Int!, sort: CustomersSort = {by: CREATED_AT, direction: DESC}): CustomerConnection!
 	dashboard: Dashboard!
-	deposit(id: UUID!): Deposit
-	depositAccount(id: UUID!): DepositAccount
+	deposit(id: DepositId!): Deposit
+	depositAccount(id: DepositAccountId!): DepositAccount
 	depositAccountByPublicId(id: PublicId!): DepositAccount
-	depositAccountConfig: DepositAccountModuleConfig
 	depositAccounts(after: String, filter: DepositAccountsFilter, first: Int!, sort: DepositAccountsSort = {by: CREATED_AT, direction: DESC}): DepositAccountConnection!
 	depositByPublicId(id: PublicId!): Deposit
+	depositConfig: DepositModuleConfig
 	deposits(after: String, filter: DepositsFilter, first: Int!, sort: DepositsSort = {by: CREATED_AT, direction: DESC}): DepositConnection!
 	descendantAccountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
 	disbursal(id: UUID!): CreditFacilityDisbursal
@@ -2539,10 +2546,10 @@ type Query {
 	fiscalYear(id: UUID!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
 	fiscalYears(after: String, first: Int!, sort: FiscalYearsSort = {by: CREATED_AT, direction: DESC}): FiscalYearConnection!
+	journalEntries(after: String, first: Int!): JournalEntryConnection!
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
 	ledgerAccountCsv(ledgerAccountId: UUID!): LedgerAccountCsvDocument
-	ledgerEntries(after: String, first: Int!): LedgerEntryConnection!
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(after: String, first: Int!, templateCode: String!): LedgerTransactionConnection!
 	liquidation(id: UUID!): Liquidation
@@ -2555,7 +2562,7 @@ type Query {
 	policies(after: String, first: Int!): PolicyConnection!
 	policy(id: UUID!): Policy
 	priceProviders(after: String, first: Int!, sort: PriceProvidersSort = {by: CREATED_AT, direction: DESC}): PriceProviderConnection!
-	profitAndLossStatement(from: Date!, until: Date!): ProfitAndLossStatement!
+	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	prospect(id: UUID!): Prospect
 	prospectByPublicId(id: PublicId!): Prospect
 	prospects(after: String, filter: ProspectsFilter, first: Int!, sort: ProspectsSort = {by: CREATED_AT, direction: DESC}): ProspectConnection!
