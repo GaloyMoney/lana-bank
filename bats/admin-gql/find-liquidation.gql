@@ -1,4 +1,4 @@
-query liquidation($id: UUID!) {
+query liquidation($id: LiquidationId!) {
   liquidation(id: $id) {
     liquidationId
     amountReceived

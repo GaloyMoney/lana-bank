@@ -1,4 +1,4 @@
-query Customer($id: UUID!) {
+query Customer($id: CustomerId!) {
   customer(id: $id) {
     customerId
     applicantId

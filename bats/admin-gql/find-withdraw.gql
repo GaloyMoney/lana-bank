@@ -1,4 +1,4 @@
-query withdraw($id: UUID!) {
+query withdraw($id: WithdrawalId!) {
   withdrawal(id: $id) {
     withdrawalId
     status

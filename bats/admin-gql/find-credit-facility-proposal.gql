@@ -1,4 +1,4 @@
-query creditFacilityProposal($id: UUID!) {
+query creditFacilityProposal($id: CreditFacilityProposalId!) {
   creditFacilityProposal(id: $id) {
     creditFacilityProposalId
     status
