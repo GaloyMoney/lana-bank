@@ -42,6 +42,6 @@ impl Wallet {
         Ok(loader
             .load_one(self.entity.custodian_id)
             .await?
-            .expect("wallet must have a custodian"))
+            .ok_or_else(|| Error::new("Custodian not found"))?)
     }
 }

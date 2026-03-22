@@ -59,7 +59,7 @@ impl CreditFacilityDisbursal {
         let facility = loader
             .load_one(self.entity.facility_id)
             .await?
-            .expect("committee not found");
+            .ok_or_else(|| Error::new("Credit facility not found"))?;
         Ok(facility)
     }
 
@@ -68,7 +68,7 @@ impl CreditFacilityDisbursal {
         let process = loader
             .load_one(self.entity.approval_process_id)
             .await?
-            .expect("process not found");
+            .ok_or_else(|| Error::new("Approval process not found"))?;
         Ok(process)
     }
 

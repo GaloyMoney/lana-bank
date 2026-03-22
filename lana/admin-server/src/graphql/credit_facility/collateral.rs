@@ -65,7 +65,7 @@ impl Collateral {
         let collateral = loader
             .load_one(LedgerAccountId::from(self.account_id))
             .await?
-            .expect("Collateral account not found");
+            .ok_or_else(|| Error::new("Collateral account not found"))?;
         Ok(collateral)
     }
     async fn event_history(

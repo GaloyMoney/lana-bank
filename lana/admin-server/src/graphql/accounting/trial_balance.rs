@@ -59,10 +59,7 @@ impl From<lana_app::trial_balance::TrialBalanceRoot> for TrialBalance {
         TrialBalance {
             name: trial_balance.name.to_string(),
             from: trial_balance.from.into(),
-            until: trial_balance
-                .until
-                .expect("Mandatory 'until' value missing")
-                .into(),
+            until: trial_balance.until.unwrap_or(trial_balance.from).into(),
             entity: Arc::new(trial_balance),
         }
     }

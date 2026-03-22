@@ -67,7 +67,7 @@ impl Withdrawal {
         let process = loader
             .load_one(self.entity.approval_process_id)
             .await?
-            .expect("process not found");
+            .ok_or_else(|| Error::new("Approval process not found"))?;
         Ok(process)
     }
 
@@ -76,7 +76,7 @@ impl Withdrawal {
         let account = loader
             .load_one(self.entity.deposit_account_id)
             .await?
-            .expect("account not found");
+            .ok_or_else(|| Error::new("Deposit account not found"))?;
         Ok(account)
     }
 

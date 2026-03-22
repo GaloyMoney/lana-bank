@@ -68,7 +68,7 @@ impl Deposit {
         let account = loader
             .load_one(self.entity.deposit_account_id)
             .await?
-            .expect("process not found");
+            .ok_or_else(|| Error::new("Deposit account not found"))?;
         Ok(account)
     }
 

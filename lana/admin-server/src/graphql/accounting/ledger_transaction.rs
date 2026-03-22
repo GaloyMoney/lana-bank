@@ -64,21 +64,21 @@ impl LedgerTransaction {
                 let deposit = loader
                     .load_one(DepositId::from(entity_ref.entity_id))
                     .await?
-                    .expect("Could not find deposit entity");
+                    .ok_or_else(|| Error::new("Deposit not found"))?;
                 Some(LedgerTransactionEntity::Deposit(deposit))
             }
             entity_type if entity_type == &WITHDRAWAL_TRANSACTION_ENTITY_TYPE => {
                 let withdrawal = loader
                     .load_one(WithdrawalId::from(entity_ref.entity_id))
                     .await?
-                    .expect("Could not find withdrawal entity");
+                    .ok_or_else(|| Error::new("Withdrawal not found"))?;
                 Some(LedgerTransactionEntity::Withdrawal(withdrawal))
             }
             entity_type if entity_type == &DISBURSAL_TRANSACTION_ENTITY_TYPE => {
                 let disbursal = loader
                     .load_one(DisbursalId::from(entity_ref.entity_id))
                     .await?
-                    .expect("Could not find disbursal entity");
+                    .ok_or_else(|| Error::new("Disbursal not found"))?;
                 Some(LedgerTransactionEntity::Disbursal(disbursal))
             }
             _ => None,

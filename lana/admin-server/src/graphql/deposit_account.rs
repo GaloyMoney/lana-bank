@@ -77,7 +77,7 @@ impl DepositAccountLedgerAccounts {
         let account = loader
             .load_one(LedgerAccountId::from(self.deposit_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(account)
     }
 
@@ -86,7 +86,7 @@ impl DepositAccountLedgerAccounts {
         let account = loader
             .load_one(LedgerAccountId::from(self.frozen_deposit_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(account)
     }
 }
@@ -171,7 +171,7 @@ impl DepositAccount {
             .customers()
             .find_by_id(sub, self.entity.account_holder_id)
             .await?
-            .expect("customer not found");
+            .ok_or_else(|| async_graphql::Error::new("Customer not found"))?;
 
         Ok(Customer::from(customer))
     }
