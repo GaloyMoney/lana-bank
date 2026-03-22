@@ -384,7 +384,7 @@ where
         chart_ref: &str,
         ids: &[LedgerAccountId],
         from: chrono::NaiveDate,
-        until: Option<chrono::NaiveDate>,
+        until: chrono::NaiveDate,
     ) -> Result<HashMap<LedgerAccountId, T>, CoreAccountingError> {
         let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
         Ok(self
@@ -400,7 +400,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         from: chrono::NaiveDate,
-        until: Option<chrono::NaiveDate>,
+        until: chrono::NaiveDate,
     ) -> Result<Vec<LedgerAccount>, CoreAccountingError> {
         let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
 

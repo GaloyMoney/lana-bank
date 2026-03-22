@@ -154,12 +154,12 @@ impl ProfitAndLossStatementLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "pl_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), from = %from, until = ?until))]
+    #[instrument(name = "pl_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), from = %from, until = %until))]
     async fn get_balances_by_id(
         &self,
         all_account_set_ids: Vec<AccountSetId>,
         from: NaiveDate,
-        until: Option<NaiveDate>,
+        until: NaiveDate,
     ) -> Result<HashMap<BalanceId, CalaBalanceRange>, ProfitAndLossStatementLedgerError> {
         let balance_ids = all_account_set_ids
             .iter()
@@ -174,7 +174,7 @@ impl ProfitAndLossStatementLedger {
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&balance_ids, from, until)
+            .find_all_in_range(&balance_ids, from, Some(until))
             .await?;
 
         Ok(res)
@@ -252,12 +252,12 @@ impl ProfitAndLossStatementLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "pl_ledger.get_pl_statement", skip(self), fields(reference = %reference, from = %from, until = ?until))]
+    #[instrument(name = "pl_ledger.get_pl_statement", skip(self), fields(reference = %reference, from = %from, until = %until))]
     pub async fn get_pl_statement(
         &self,
         reference: String,
         from: NaiveDate,
-        until: Option<NaiveDate>,
+        until: NaiveDate,
     ) -> Result<ProfitAndLossStatement, ProfitAndLossStatementLedgerError> {
         let ids = self.get_ids_from_reference(reference).await?;
         let all_account_set_ids = vec![ids.id, ids.revenue, ids.cost_of_revenue, ids.expenses];
