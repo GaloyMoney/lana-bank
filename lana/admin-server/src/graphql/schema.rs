@@ -2480,7 +2480,7 @@ impl Mutation {
         // not using macro here because DocumentDownloadLinksGeneratePayload is non standard
         let doc = app
             .customers()
-            .generate_document_download_link(sub, input.document_id)
+            .generate_document_download_link(sub, input.customer_document_id)
             .await?;
         Ok(CustomerDocumentDownloadLinksGeneratePayload::from(doc))
     }
@@ -2493,10 +2493,10 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         // not using macro here because DocumentDeletePayload is non standard
         app.customers()
-            .delete_document(sub, input.document_id)
+            .delete_document(sub, input.customer_document_id)
             .await?;
         Ok(CustomerDocumentDeletePayload {
-            deleted_document_id: input.document_id,
+            deleted_document_id: input.customer_document_id,
         })
     }
 
@@ -2511,7 +2511,8 @@ impl Mutation {
             CustomerDocument,
             CustomerDocumentId,
             ctx,
-            app.customers().archive_document(sub, input.document_id)
+            app.customers()
+                .archive_document(sub, input.customer_document_id)
         )
     }
 
@@ -2678,7 +2679,7 @@ impl Mutation {
         let result = app
             .accounting()
             .csvs()
-            .generate_download_link(sub, input.document_id.into())
+            .generate_download_link(sub, input.ledger_account_csv_document_id.into())
             .await?;
 
         let link = LedgerAccountCsvDownloadLink::from(result);

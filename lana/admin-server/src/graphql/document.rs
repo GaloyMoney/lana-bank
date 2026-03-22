@@ -57,7 +57,7 @@ crate::mutation_payload! { CustomerDocumentCreatePayload, customer_document: Cus
 
 #[derive(InputObject)]
 pub struct CustomerDocumentDownloadLinksGenerateInput {
-    pub document_id: UUID,
+    pub customer_document_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -75,7 +75,7 @@ impl From<lana_app::document::GeneratedDocumentDownloadLink>
 
 #[derive(InputObject)]
 pub struct CustomerDocumentDeleteInput {
-    pub document_id: UUID,
+    pub customer_document_id: UUID,
 }
 #[derive(SimpleObject)]
 pub struct CustomerDocumentDeletePayload {
@@ -84,6 +84,6 @@ pub struct CustomerDocumentDeletePayload {
 
 #[derive(InputObject)]
 pub struct CustomerDocumentArchiveInput {
-    pub document_id: UUID,
+    pub customer_document_id: UUID,
 }
 crate::mutation_payload! { CustomerDocumentArchivePayload, customer_document: CustomerDocument }

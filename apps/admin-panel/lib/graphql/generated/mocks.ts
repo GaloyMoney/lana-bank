@@ -1368,7 +1368,7 @@ export const mockCustomerDocumentArchiveInput = (overrides?: Partial<CustomerDoc
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomerDocumentArchiveInput');
     return {
-        documentId: overrides && overrides.hasOwnProperty('documentId') ? overrides.documentId! : generateMockValue.uuid(),
+        customerDocumentId: overrides && overrides.hasOwnProperty('customerDocumentId') ? overrides.customerDocumentId! : generateMockValue.uuid(),
     };
 };
 
@@ -1403,7 +1403,7 @@ export const mockCustomerDocumentDeleteInput = (overrides?: Partial<CustomerDocu
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomerDocumentDeleteInput');
     return {
-        documentId: overrides && overrides.hasOwnProperty('documentId') ? overrides.documentId! : generateMockValue.uuid(),
+        customerDocumentId: overrides && overrides.hasOwnProperty('customerDocumentId') ? overrides.customerDocumentId! : generateMockValue.uuid(),
     };
 };
 
@@ -1420,7 +1420,7 @@ export const mockCustomerDocumentDownloadLinksGenerateInput = (overrides?: Parti
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomerDocumentDownloadLinksGenerateInput');
     return {
-        documentId: overrides && overrides.hasOwnProperty('documentId') ? overrides.documentId! : generateMockValue.uuid(),
+        customerDocumentId: overrides && overrides.hasOwnProperty('customerDocumentId') ? overrides.customerDocumentId! : generateMockValue.uuid(),
     };
 };
 
@@ -2324,7 +2324,7 @@ export const mockLedgerAccountCsvDownloadLinkGenerateInput = (overrides?: Partia
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('LedgerAccountCsvDownloadLinkGenerateInput');
     return {
-        documentId: overrides && overrides.hasOwnProperty('documentId') ? overrides.documentId! : generateMockValue.uuid(),
+        ledgerAccountCsvDocumentId: overrides && overrides.hasOwnProperty('ledgerAccountCsvDocumentId') ? overrides.ledgerAccountCsvDocumentId! : generateMockValue.uuid(),
     };
 };
 

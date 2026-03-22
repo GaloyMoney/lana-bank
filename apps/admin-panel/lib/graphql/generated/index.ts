@@ -1136,7 +1136,7 @@ export type CustomerDocumentEventHistoryArgs = {
 };
 
 export type CustomerDocumentArchiveInput = {
-  documentId: Scalars['UUID']['input'];
+  customerDocumentId: Scalars['UUID']['input'];
 };
 
 export type CustomerDocumentArchivePayload = {
@@ -1155,7 +1155,7 @@ export type CustomerDocumentCreatePayload = {
 };
 
 export type CustomerDocumentDeleteInput = {
-  documentId: Scalars['UUID']['input'];
+  customerDocumentId: Scalars['UUID']['input'];
 };
 
 export type CustomerDocumentDeletePayload = {
@@ -1164,7 +1164,7 @@ export type CustomerDocumentDeletePayload = {
 };
 
 export type CustomerDocumentDownloadLinksGenerateInput = {
-  documentId: Scalars['UUID']['input'];
+  customerDocumentId: Scalars['UUID']['input'];
 };
 
 export type CustomerDocumentDownloadLinksGeneratePayload = {
@@ -1906,7 +1906,7 @@ export type LedgerAccountCsvDownloadLink = {
 };
 
 export type LedgerAccountCsvDownloadLinkGenerateInput = {
-  documentId: Scalars['UUID']['input'];
+  ledgerAccountCsvDocumentId: Scalars['UUID']['input'];
 };
 
 export type LedgerAccountCsvDownloadLinkGeneratePayload = {

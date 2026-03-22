@@ -63,10 +63,10 @@ wait_for_csv_export_completion() {
 
   variables=$(
     jq -n \
-      --arg documentId "$document_id" \
+      --arg ledgerAccountCsvDocumentId "$document_id" \
       '{
         input: {
-          documentId: $documentId
+          ledgerAccountCsvDocumentId: $ledgerAccountCsvDocumentId
         }
       }'
   )

@@ -69,10 +69,10 @@ teardown_file() {
 
   # Generate download link for the document
   variables=$(jq -n \
-    --arg documentId "$document_id" \
+    --arg customerDocumentId "$document_id" \
     '{
       input: {
-        documentId: $documentId
+        customerDocumentId: $customerDocumentId
       }
     }')
 
@@ -97,10 +97,10 @@ teardown_file() {
 
   # archive the document
   variables=$(jq -n \
-    --arg documentId "$document_id" \
+    --arg customerDocumentId "$document_id" \
     '{
       input: {
-        documentId: $documentId
+        customerDocumentId: $customerDocumentId
       }
     }')
 
@@ -111,10 +111,10 @@ teardown_file() {
 
   # Delete the document
   variables=$(jq -n \
-    --arg documentId "$document_id" \
+    --arg customerDocumentId "$document_id" \
     '{
       input: {
-        documentId: $documentId
+        customerDocumentId: $customerDocumentId
       }
     }')
 

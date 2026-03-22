@@ -86,7 +86,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
       setLinkLoading((prev) => ({ ...prev, [id]: true }))
 
       const { data } = await customerDocumentDownloadLinkGenerate({
-        variables: { input: { documentId: id } },
+        variables: { input: { customerDocumentId: id } },
       }).finally(() => setLinkLoading((prev) => ({ ...prev, [id]: false })))
 
       if (!data?.customerDocumentDownloadLinkGenerate?.link) {
@@ -105,7 +105,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
 
       try {
         await customerDocumentDelete({
-          variables: { input: { documentId: id } },
+          variables: { input: { customerDocumentId: id } },
         })
         toast.success(t("messages.deleteSuccess"))
         refetch()
