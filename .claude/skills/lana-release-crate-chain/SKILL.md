@@ -79,11 +79,12 @@ If the crate already has an open PR with the changes (e.g., a version bump PR), 
 
 ### Step 2: Wait for Concourse release pipeline
 
-After merging to main, the Concourse pipeline automatically runs tests and then releases:
+After merging to main, Concourse automatically picks up the change (via git polling — may take up to 60 seconds), runs `check-code` and `tests`, then triggers `release`.
 
-1. **Trigger the release job** (if it doesn't auto-trigger):
+1. **Wait for check-code and tests to complete:**
    ```
-   fly -t galoy trigger-job -j <pipeline>/release
+   fly -t galoy watch -j <pipeline>/check-code
+   fly -t galoy watch -j <pipeline>/tests
    ```
 2. **Watch the release job:**
    ```
@@ -95,13 +96,6 @@ After merging to main, the Concourse pipeline automatically runs tests and then 
    - Publishes to crates.io
    - Creates a git tag and GitHub release
    - The subsequent `set-dev-version` job bumps to the next `-dev` version
-
-3. **If the release job is not yet triggered** (waiting for `check-code` and `tests` to pass first):
-   ```
-   fly -t galoy watch -j <pipeline>/check-code
-   fly -t galoy watch -j <pipeline>/tests
-   ```
-   Wait for both to pass, then watch the release job.
 
 ### Step 3: Verify crates.io publication
 
