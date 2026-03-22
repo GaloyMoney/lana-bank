@@ -20,13 +20,17 @@ Optional arguments passed after `/lana-release-crate-chain`:
 
 ## Repository Locations
 
+All repos are siblings of the lana-bank repo. Resolve paths relative to `../` from the lana-bank root (i.e., the parent of the lana-bank working directory).
+
 | Crate | Path | GitHub | Concourse Pipeline |
 |-------|------|--------|--------------------|
-| es-entity | `/Users/n/Code/es-entity` | `GaloyMoney/es-entity` | `es-entity` |
-| job | `/Users/n/Code/job` | `GaloyMoney/job` | `job` |
-| obix | `/Users/n/Code/obix` | `GaloyMoney/obix` | `obix` |
-| cala | `/Users/n/Code/cala` | `GaloyMoney/cala` | `cala` |
-| lana-bank | `/Users/n/Code/lana-bank` | `GaloyMoney/lana-bank` | `lana-bank` |
+| es-entity | `../es-entity` | `GaloyMoney/es-entity` | `es-entity` |
+| job | `../job` | `GaloyMoney/job` | `job` |
+| obix | `../obix` | `GaloyMoney/obix` | `obix` |
+| cala | `../cala` | `GaloyMoney/cala` | `cala` |
+| lana-bank | `.` (current repo) | `GaloyMoney/lana-bank` | `lana-bank` |
+
+**Important:** If running from a git worktree, resolve `../` relative to the **original repo root** (not the worktree path). Find it with: `git -C "$(git rev-parse --show-toplevel)" rev-parse --path-format=absolute --git-common-dir | sed 's|/\.git$||'`
 
 ## Dependency Chain
 
