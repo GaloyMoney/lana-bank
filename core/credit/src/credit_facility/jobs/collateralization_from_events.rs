@@ -22,7 +22,7 @@ use core_price::CorePriceEvent;
 use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent,
     credit_facility::{
-        CreditFacilitiesByCollateralizationRatioCursor, CreditFacilityRepo, CreditFacilityStatus,
+        CreditFacilitiesByNormalizedCollateralizationRatioCursor, CreditFacilityRepo,
     },
     ledger::*,
     primitives::*,
@@ -32,6 +32,8 @@ use super::update_collateralization::UpdateCollateralizationConfig;
 
 pub const CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("outbox.credit-facility-collateralization");
+
+const PAGE_SIZE: usize = 10;
 
 pub struct CreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
@@ -198,20 +200,20 @@ where
         price: PriceOfOneBTC,
     ) -> Result<(), crate::credit_facility::error::CreditFacilityError> {
         let mut has_next_page = true;
-        let mut after: Option<CreditFacilitiesByCollateralizationRatioCursor> = None;
+        let mut after: Option<CreditFacilitiesByNormalizedCollateralizationRatioCursor> = None;
         while has_next_page {
-            let credit_facilities =
-                self.repo
-                    .list_by_collateralization_ratio(
-                        es_entity::PaginatedQueryArgs::<
-                            CreditFacilitiesByCollateralizationRatioCursor,
-                        > {
-                            first: 10,
-                            after,
-                        },
-                        es_entity::ListDirection::Ascending,
-                    )
-                    .await?;
+            let credit_facilities = self
+                .repo
+                .list_by_normalized_collateralization_ratio(
+                    es_entity::PaginatedQueryArgs::<
+                        CreditFacilitiesByNormalizedCollateralizationRatioCursor,
+                    > {
+                        first: PAGE_SIZE,
+                        after,
+                    },
+                    es_entity::ListDirection::Ascending,
+                )
+                .await?;
             (after, has_next_page) = (
                 credit_facilities.end_cursor,
                 credit_facilities.has_next_page,
@@ -228,10 +230,12 @@ where
                 .await?;
 
             let mut updated = Vec::new();
+            let mut all_fully_collateralized = true;
             for mut facility in credit_facilities.entities {
                 tracing::Span::current().record("credit_facility_id", facility.id.to_string());
 
-                if facility.status() == CreditFacilityStatus::Closed {
+                if facility.is_completed() {
+                    all_fully_collateralized = false;
                     continue;
                 }
                 let collateral_account_id = self
@@ -248,10 +252,13 @@ where
                         collateral_account_id,
                     )
                     .await?;
-                if facility
+                let did_execute = facility
                     .update_collateralization(price, CVLPct::UPGRADE_BUFFER, balances)
-                    .did_execute()
-                {
+                    .did_execute();
+                if !facility.is_fully_collateralized() {
+                    all_fully_collateralized = false;
+                }
+                if did_execute {
                     updated.push(facility);
                 }
             }
@@ -260,7 +267,10 @@ where
 
             if n > 0 {
                 op.commit().await?;
-            } else {
+            } else if all_fully_collateralized {
+                // All facilities in this batch are FullyCollateralized with no state changes.
+                // Since we sort ascending by normalized ratio, all remaining facilities are
+                // even more collateralized — no further processing needed.
                 break;
             }
         }

@@ -482,52 +482,6 @@ where
             .await?)
     }
 
-    pub(super) async fn list_by_collateralization_ratio_without_audit(
-        &self,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<
-            CreditFacility,
-            CreditFacilitiesByCollateralizationRatioCursor,
-        >,
-        CreditFacilityError,
-    > {
-        Ok(self
-            .repo
-            .list_by_collateralization_ratio(query, direction.into())
-            .await?)
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.list_by_collateralization_ratio",
-        skip(self)
-    )]
-    pub async fn list_by_collateralization_ratio(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<
-            CreditFacility,
-            CreditFacilitiesByCollateralizationRatioCursor,
-        >,
-        CreditFacilityError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-
-        self.list_by_collateralization_ratio_without_audit(query, direction.into())
-            .await
-    }
-
     #[record_error_severity]
     #[instrument(name = "credit.credit_facility.find_all", skip(self))]
     pub async fn find_all<T: From<CreditFacility>>(

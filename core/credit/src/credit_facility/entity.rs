@@ -690,6 +690,10 @@ impl CreditFacility {
         self.last_collateralization().state
     }
 
+    pub fn is_fully_collateralized(&self) -> bool {
+        self.last_collateralization_state() == CollateralizationState::FullyCollateralized
+    }
+
     pub fn last_collateralization_ratio(&self) -> CollateralizationRatio {
         self.events
             .iter_all()
@@ -702,6 +706,11 @@ impl CreditFacility {
                 _ => None,
             })
             .unwrap_or_default()
+    }
+
+    pub fn normalized_collateralization_ratio(&self) -> CollateralizationRatio {
+        self.terms
+            .normalize_collateralization_ratio(self.last_collateralization_ratio())
     }
 
     pub(crate) fn update_collateralization(

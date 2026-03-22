@@ -26,8 +26,8 @@ use crate::{
     CoreCreditEvent,
     ledger::*,
     pending_credit_facility::{
-        PendingCreditFacilitiesByCollateralizationRatioCursor, PendingCreditFacilityError,
-        PendingCreditFacilityRepo,
+        PendingCreditFacilitiesByNormalizedCollateralizationRatioCursor,
+        PendingCreditFacilityError, PendingCreditFacilityRepo,
     },
     primitives::*,
 };
@@ -36,6 +36,8 @@ use super::update_pending_collateralization::UpdatePendingCollateralizationConfi
 
 pub const PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("outbox.pending-credit-facility-collateralization-from-events");
+
+const PAGE_SIZE: usize = 10;
 
 pub struct PendingCreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
@@ -166,15 +168,16 @@ where
         price: PriceOfOneBTC,
     ) -> Result<(), PendingCreditFacilityError> {
         let mut has_next_page = true;
-        let mut after: Option<PendingCreditFacilitiesByCollateralizationRatioCursor> = None;
+        let mut after: Option<PendingCreditFacilitiesByNormalizedCollateralizationRatioCursor> =
+            None;
         while has_next_page {
             let pending_credit_facilities = self
                 .repo
-                .list_by_collateralization_ratio(
+                .list_by_normalized_collateralization_ratio(
                     es_entity::PaginatedQueryArgs::<
-                        PendingCreditFacilitiesByCollateralizationRatioCursor,
+                        PendingCreditFacilitiesByNormalizedCollateralizationRatioCursor,
                     > {
-                        first: 10,
+                        first: PAGE_SIZE,
                         after,
                     },
                     Default::default(),
@@ -187,13 +190,15 @@ where
             let mut op = self.repo.begin_op().await?;
 
             let mut updated = Vec::new();
+            let mut all_fully_collateralized = true;
             for mut pending_facility in pending_credit_facilities.entities {
                 tracing::Span::current().record(
                     "pending_credit_facility_id",
                     pending_facility.id.to_string(),
                 );
 
-                if pending_facility.status() == PendingCreditFacilityStatus::Completed {
+                if pending_facility.is_completed() {
+                    all_fully_collateralized = false;
                     continue;
                 }
                 let collateral_account_id = self
@@ -210,10 +215,13 @@ where
                         collateral_account_id,
                     )
                     .await?;
-                if pending_facility
+                let did_execute = pending_facility
                     .update_collateralization(price, balances)
-                    .did_execute()
-                {
+                    .did_execute();
+                if !pending_facility.is_fully_collateralized() {
+                    all_fully_collateralized = false;
+                }
+                if did_execute {
                     updated.push(pending_facility);
                 }
             }
@@ -222,7 +230,10 @@ where
 
             if n > 0 {
                 op.commit().await?;
-            } else {
+            } else if all_fully_collateralized {
+                // All facilities in this batch are FullyCollateralized with no state changes.
+                // Since we sort ascending by normalized ratio, all remaining facilities are
+                // even more collateralized — no further processing needed.
                 break;
             }
         }

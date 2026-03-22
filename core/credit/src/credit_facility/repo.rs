@@ -18,11 +18,11 @@ use super::{entity::*, error::CreditFacilityError, interest_accrual_cycle::*};
         customer_id(ty = "CustomerId", list_for(by(created_at)), update(persist = false)),
         collateral_id(ty = "CollateralId", update(persist = false)),
         pending_credit_facility_id(ty = "PendingCreditFacilityId", update(persist = false)),
-        collateralization_ratio(
+        normalized_collateralization_ratio(
             ty = "CollateralizationRatio",
             list_by,
             create(persist = false),
-            update(accessor = "last_collateralization_ratio()")
+            update(accessor = "normalized_collateralization_ratio()")
         ),
         collateralization_state(
             ty = "CollateralizationState",
@@ -281,8 +281,8 @@ impl From<(CreditFacilitiesSortBy, &CreditFacility)>
                 credit_facility_cursor::CreditFacilitiesByCreatedAtCursor::from(credit_facility)
                     .into()
             }
-            CreditFacilitiesSortBy::CollateralizationRatio => {
-                credit_facility_cursor::CreditFacilitiesByCollateralizationRatioCursor::from(
+            CreditFacilitiesSortBy::NormalizedCollateralizationRatio => {
+                credit_facility_cursor::CreditFacilitiesByNormalizedCollateralizationRatioCursor::from(
                     credit_facility,
                 )
                 .into()

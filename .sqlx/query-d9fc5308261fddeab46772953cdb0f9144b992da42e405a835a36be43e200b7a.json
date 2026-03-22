@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_pending_credit_facilities WHERE collateralization_ratio = $1) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $2 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_pending_credit_facility_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT normalized_collateralization_ratio, id FROM core_pending_credit_facilities WHERE (COALESCE((normalized_collateralization_ratio, id) < ($3, $2), $2 IS NULL)) ORDER BY normalized_collateralization_ratio DESC, id DESC LIMIT $1) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_pending_credit_facility_events e ON i.id = e.id ORDER BY i.normalized_collateralization_ratio desc, i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -31,6 +31,8 @@
     ],
     "parameters": {
       "Left": [
+        "Int8",
+        "Uuid",
         "Numeric",
         "Bool"
       ]
@@ -43,5 +45,5 @@
       false
     ]
   },
-  "hash": "4ab2e33288a7cd91536f5beafeaafd117ad292e8c979e09728664cf9228321b4"
+  "hash": "d9fc5308261fddeab46772953cdb0f9144b992da42e405a835a36be43e200b7a"
 }

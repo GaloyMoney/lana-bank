@@ -19,11 +19,11 @@ use super::entity::*;
         credit_facility_proposal_id(ty = "CreditFacilityProposalId", update(persist = false)),
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         collateral_id(ty = "CollateralId", update(persist = false)),
-        collateralization_ratio(
+        normalized_collateralization_ratio(
             ty = "CollateralizationRatio",
             list_by,
             create(persist = false),
-            update(accessor = "last_collateralization_ratio()")
+            update(accessor = "normalized_collateralization_ratio()")
         ),
         collateralization_state(
             ty = "PendingCreditFacilityCollateralizationState",
@@ -107,8 +107,8 @@ impl From<(PendingCreditFacilitiesSortBy, &PendingCreditFacility)>
                 pending_credit_facility_cursor::PendingCreditFacilitiesByApprovalProcessIdCursor::from(facility)
                     .into()
             }
-            PendingCreditFacilitiesSortBy::CollateralizationRatio => {
-                pending_credit_facility_cursor::PendingCreditFacilitiesByCollateralizationRatioCursor::from(facility)
+            PendingCreditFacilitiesSortBy::NormalizedCollateralizationRatio => {
+                pending_credit_facility_cursor::PendingCreditFacilitiesByNormalizedCollateralizationRatioCursor::from(facility)
                     .into()
             }
             PendingCreditFacilitiesSortBy::Amount => {

@@ -171,8 +171,18 @@ impl PendingCreditFacility {
             .unwrap_or(CollateralizationRatio::default())
     }
 
+    pub fn normalized_collateralization_ratio(&self) -> CollateralizationRatio {
+        self.terms
+            .normalize_collateralization_ratio(self.last_collateralization_ratio())
+    }
+
     pub fn last_collateralization_state(&self) -> PendingCreditFacilityCollateralizationState {
         self.last_collateralization().state
+    }
+
+    pub fn is_fully_collateralized(&self) -> bool {
+        self.last_collateralization_state()
+            == PendingCreditFacilityCollateralizationState::FullyCollateralized
     }
 
     pub fn last_collateralization(&self) -> PendingFacilityCollateralization {
@@ -292,7 +302,7 @@ impl PendingCreditFacility {
         ))
     }
 
-    fn is_completed(&self) -> bool {
+    pub(crate) fn is_completed(&self) -> bool {
         self.events
             .iter_all()
             .any(|event| matches!(event, PendingCreditFacilityEvent::Completed { .. }))
