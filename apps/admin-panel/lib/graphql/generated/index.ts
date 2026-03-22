@@ -26,9 +26,12 @@ export type Scalars = {
   AuditEntryId: { input: any; output: any; }
   AuditSubjectId: { input: string; output: string; }
   CVLPctValue: { input: any; output: any; }
+  CustomerId: { input: string; output: string; }
   /** An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represents a business date; timezone-naive by design. */
   Date: { input: string; output: string; }
   Decimal: { input: any; output: any; }
+  DepositAccountId: { input: string; output: string; }
+  DepositId: { input: string; output: string; }
   Json: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   PublicId: { input: any; output: any; }
@@ -1079,7 +1082,7 @@ export type Customer = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacilities: Array<CreditFacility>;
   creditFacilityProposals: Array<CreditFacilityProposal>;
-  customerId: Scalars['UUID']['output'];
+  customerId: Scalars['CustomerId']['output'];
   customerType: CustomerType;
   depositAccount?: Maybe<DepositAccount>;
   documents: Array<CustomerDocument>;
@@ -1102,7 +1105,7 @@ export type CustomerEventHistoryArgs = {
 };
 
 export type CustomerCloseInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
 };
 
 export type CustomerClosePayload = {
@@ -1182,7 +1185,7 @@ export type CustomerEdge = {
 };
 
 export type CustomerEmailUpdateInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
   email: Scalars['String']['input'];
 };
 
@@ -1192,7 +1195,7 @@ export type CustomerEmailUpdatePayload = {
 };
 
 export type CustomerFreezeInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
 };
 
 export type CustomerFreezePayload = {
@@ -1207,7 +1210,7 @@ export enum CustomerStatus {
 }
 
 export type CustomerTelegramHandleUpdateInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
   telegramHandle: Scalars['String']['input'];
 };
 
@@ -1227,7 +1230,7 @@ export enum CustomerType {
 }
 
 export type CustomerUnfreezeInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
 };
 
 export type CustomerUnfreezePayload = {
@@ -1267,10 +1270,10 @@ export enum DebitOrCredit {
 export type Deposit = {
   __typename?: 'Deposit';
   account: DepositAccount;
-  accountId: Scalars['UUID']['output'];
+  accountId: Scalars['DepositAccountId']['output'];
   amount: Scalars['UsdCents']['output'];
   createdAt: Scalars['Timestamp']['output'];
-  depositId: Scalars['UUID']['output'];
+  depositId: Scalars['DepositId']['output'];
   eventHistory: EventTimelineEntryConnection;
   ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
@@ -1290,8 +1293,8 @@ export type DepositAccount = {
   balance: DepositAccountBalance;
   createdAt: Scalars['Timestamp']['output'];
   customer: Customer;
-  customerId: Scalars['UUID']['output'];
-  depositAccountId: Scalars['UUID']['output'];
+  customerId: Scalars['CustomerId']['output'];
+  depositAccountId: Scalars['DepositAccountId']['output'];
   deposits: Array<Deposit>;
   eventHistory: EventTimelineEntryConnection;
   history: DepositAccountHistoryEntryConnection;
@@ -1320,7 +1323,7 @@ export type DepositAccountBalance = {
 };
 
 export type DepositAccountCloseInput = {
-  depositAccountId: Scalars['UUID']['input'];
+  depositAccountId: Scalars['DepositAccountId']['input'];
 };
 
 export type DepositAccountClosePayload = {
@@ -1339,7 +1342,7 @@ export type DepositAccountConnection = {
 };
 
 export type DepositAccountCreateInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
 };
 
 export type DepositAccountCreatePayload = {
@@ -1357,7 +1360,7 @@ export type DepositAccountEdge = {
 };
 
 export type DepositAccountFreezeInput = {
-  depositAccountId: Scalars['UUID']['input'];
+  depositAccountId: Scalars['DepositAccountId']['input'];
 };
 
 export type DepositAccountFreezePayload = {
@@ -1438,7 +1441,7 @@ export enum DepositAccountStatus {
 }
 
 export type DepositAccountUnfreezeInput = {
-  depositAccountId: Scalars['UUID']['input'];
+  depositAccountId: Scalars['DepositAccountId']['input'];
 };
 
 export type DepositAccountUnfreezePayload = {
@@ -1488,7 +1491,7 @@ export type DepositEntry = {
 
 export type DepositRecordInput = {
   amount: Scalars['UsdCents']['input'];
-  depositAccountId: Scalars['UUID']['input'];
+  depositAccountId: Scalars['DepositAccountId']['input'];
   reference?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1498,7 +1501,7 @@ export type DepositRecordPayload = {
 };
 
 export type DepositRevertInput = {
-  depositId: Scalars['UUID']['input'];
+  depositId: Scalars['DepositId']['input'];
 };
 
 export type DepositRevertPayload = {
@@ -3048,7 +3051,7 @@ export type QueryCustodiansArgs = {
 
 
 export type QueryCustomerArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['CustomerId']['input'];
 };
 
 
@@ -3076,12 +3079,12 @@ export type QueryCustomersArgs = {
 
 
 export type QueryDepositArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['DepositId']['input'];
 };
 
 
 export type QueryDepositAccountArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['DepositAccountId']['input'];
 };
 
 
