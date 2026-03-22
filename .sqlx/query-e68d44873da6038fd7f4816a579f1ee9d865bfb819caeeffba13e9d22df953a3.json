@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id AS \"id: CreditFacilityId\", created_at\n               FROM core_credit_facilities\n               WHERE status != 'Closed'\n                 AND (($1::timestamptz IS NULL) OR (created_at, id) > ($1, $2))\n               ORDER BY created_at, id\n               LIMIT $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: CreditFacilityId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "e68d44873da6038fd7f4816a579f1ee9d865bfb819caeeffba13e9d22df953a3"
+}

@@ -166,9 +166,6 @@ where
                 >::new(
                     update_collateralization_spawner,
                     repo.clone(),
-                    collaterals.clone(),
-                    ledger.clone(),
-                    authz.clone(),
                 ),
             )
             .await?;

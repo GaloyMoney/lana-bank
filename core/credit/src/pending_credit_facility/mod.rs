@@ -150,11 +150,9 @@ where
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(jobs::collateralization_from_events_for_pending_facility::PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB),
-                jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsHandler::new(
+                jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsHandler::<Perms, E>::new(
                     update_pending_collateralization_spawner,
                     repo_arc.clone(),
-                    collaterals.clone(),
-                    ledger.clone(),
                 ),
             )
             .await?;

@@ -74,6 +74,34 @@ where
         }
     }
 
+    pub async fn list_non_completed_pending_facility_ids(
+        &self,
+        after: Option<(chrono::DateTime<chrono::Utc>, PendingCreditFacilityId)>,
+        limit: i64,
+    ) -> Result<
+        Vec<(PendingCreditFacilityId, chrono::DateTime<chrono::Utc>)>,
+        super::error::PendingCreditFacilityError,
+    > {
+        let (after_created_at, after_id) = match after {
+            Some((ts, id)) => (Some(ts), Some(id)),
+            None => (None, None),
+        };
+        let rows = sqlx::query!(
+            r#"SELECT id AS "id: PendingCreditFacilityId", created_at
+               FROM core_pending_credit_facilities
+               WHERE status != 'Completed'
+                 AND (($1::timestamptz IS NULL) OR (created_at, id) > ($1, $2))
+               ORDER BY created_at, id
+               LIMIT $3"#,
+            after_created_at,
+            after_id as Option<PendingCreditFacilityId>,
+            limit,
+        )
+        .fetch_all(self.pool())
+        .await?;
+        Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
+    }
+
     #[tracing::instrument(name = "pending_credit_facility.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,

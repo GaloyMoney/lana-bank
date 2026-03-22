@@ -124,6 +124,31 @@ where
         Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }
 
+    pub async fn list_non_closed_facility_ids(
+        &self,
+        after: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
+        limit: i64,
+    ) -> Result<Vec<(CreditFacilityId, chrono::DateTime<chrono::Utc>)>, CreditFacilityError> {
+        let (after_created_at, after_id) = match after {
+            Some((ts, id)) => (Some(ts), Some(id)),
+            None => (None, None),
+        };
+        let rows = sqlx::query!(
+            r#"SELECT id AS "id: CreditFacilityId", created_at
+               FROM core_credit_facilities
+               WHERE status != 'Closed'
+                 AND (($1::timestamptz IS NULL) OR (created_at, id) > ($1, $2))
+               ORDER BY created_at, id
+               LIMIT $3"#,
+            after_created_at,
+            after_id as Option<CreditFacilityId>,
+            limit,
+        )
+        .fetch_all(self.pool())
+        .await?;
+        Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
+    }
+
     pub async fn list_ids_ready_for_maturity(
         &self,
         day: chrono::NaiveDate,
