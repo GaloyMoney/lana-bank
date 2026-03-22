@@ -10,7 +10,9 @@ async fn test_create_real_applicant() {
     let config = match testing_utils::load_config_from_env() {
         Some(config) => config,
         None => {
-            eprintln!("Skipping test: SUMSUB_KEY and SUMSUB_SECRET must be set");
+            eprintln!(
+                "Skipping test: LANA_DOMAIN_CONFIG_SUMSUB_API_KEY and LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET must be set"
+            );
             return;
         }
     };
@@ -67,7 +69,9 @@ async fn test_create_permalink() {
     let config = match testing_utils::load_config_from_env() {
         Some(config) => config,
         None => {
-            eprintln!("Skipping test: SUMSUB_KEY and SUMSUB_SECRET must be set");
+            eprintln!(
+                "Skipping test: LANA_DOMAIN_CONFIG_SUMSUB_API_KEY and LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET must be set"
+            );
             return;
         }
     };
@@ -93,7 +97,9 @@ async fn test_reject_applicant() {
     let config = match testing_utils::load_config_from_env() {
         Some(config) => config,
         None => {
-            eprintln!("Skipping test: SUMSUB_KEY and SUMSUB_SECRET must be set");
+            eprintln!(
+                "Skipping test: LANA_DOMAIN_CONFIG_SUMSUB_API_KEY and LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET must be set"
+            );
             return;
         }
     };
@@ -139,7 +145,9 @@ async fn test_approve_applicant() {
     let config = match testing_utils::load_config_from_env() {
         Some(config) => config,
         None => {
-            eprintln!("Skipping test: SUMSUB_KEY and SUMSUB_SECRET must be set");
+            eprintln!(
+                "Skipping test: LANA_DOMAIN_CONFIG_SUMSUB_API_KEY and LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET must be set"
+            );
             return;
         }
     };
