@@ -1,6 +1,7 @@
 ---
 name: lana-release-crate-chain
 description: Roll out a new version of a crate (typically es-entity) through the full dependency chain — es-entity, job, obix, cala — then update lana-bank. Handles PRs, CI, Concourse releases, and crates.io publishing for each step.
+disable-model-invocation: true
 ---
 
 # Release Crate Chain
@@ -9,15 +10,13 @@ Roll out a crate update through the dependency chain: **es-entity -> job -> obix
 
 Each crate in the chain must be released sequentially because downstream crates depend on the upstream ones being published to crates.io first.
 
-## Invocation
+## Arguments
 
-This skill is invoked explicitly via `/lana-release-crate-chain`. It is never triggered automatically.
-
-The user may pass arguments after the slash command:
-- `/lana-release-crate-chain` — start from es-entity, roll through the full chain
-- `/lana-release-crate-chain start from obix` — skip es-entity and job, start at obix
-- `/lana-release-crate-chain up to cala` — stop after cala, skip lana-bank
-- `/lana-release-crate-chain es-entity PR #113` — start by merging a specific PR
+Optional arguments passed after `/lana-release-crate-chain`:
+- *(no args)* — start from es-entity, roll through the full chain
+- `start from obix` — skip es-entity and job, start at obix
+- `up to cala` — stop after cala, skip lana-bank
+- `es-entity PR #113` — start by merging a specific PR
 
 ## Repository Locations
 
