@@ -1,4 +1,5 @@
 use domain_config::{DomainConfigError, define_exposed_config};
+use money::Precision;
 use rust_decimal::RoundingStrategy;
 use serde::{Deserialize, Serialize};
 
@@ -9,17 +10,9 @@ define_exposed_config! {
     spec {
         key: "credit-accrual-precision-dp";
         validate: |value: &u64| {
-            if *value < 2 {
-                return Err(DomainConfigError::InvalidState(
-                    "accrual precision must be at least 2 decimal places".to_string(),
-                ));
-            }
-            if *value > 28 {
-                return Err(DomainConfigError::InvalidState(
-                    "accrual precision cannot exceed 28 decimal places".to_string(),
-                ));
-            }
-            Ok(())
+            Precision::try_new(*value as u32)
+                .map(|_| ())
+                .map_err(|e| DomainConfigError::InvalidState(format!("invalid accrual precision: {e}")))
         };
     }
 }

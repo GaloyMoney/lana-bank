@@ -56,7 +56,7 @@ impl CreditFacilityRepaymentPlan {
         let structuring_fee = terms
             .one_time_fee_rate
             .apply(facility_amount)
-            .round_with(rust_decimal::RoundingStrategy::AwayFromZero);
+            .round_to_minor_units(rust_decimal::RoundingStrategy::AwayFromZero);
 
         let activated_at = self.activated_at.unwrap_or(now);
         let maturity_date = terms.maturity_date(activated_at);
@@ -138,7 +138,7 @@ impl CreditFacilityRepaymentPlan {
             let interest = terms
                 .annual_rate
                 .interest_for_period(disbursed_outstanding, period.days())
-                .round_with(rust_decimal::RoundingStrategy::AwayFromZero);
+                .round_to_minor_units(rust_decimal::RoundingStrategy::AwayFromZero);
 
             planned_interest_entries.push(CreditFacilityRepaymentPlanEntry {
                 repayment_type: RepaymentType::Interest,

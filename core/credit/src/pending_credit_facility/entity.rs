@@ -302,7 +302,7 @@ impl PendingCreditFacility {
         self.terms
             .one_time_fee_rate
             .apply(self.amount)
-            .round_with(rust_decimal::RoundingStrategy::AwayFromZero)
+            .round_to_minor_units(rust_decimal::RoundingStrategy::AwayFromZero)
     }
 
     fn is_single_disbursal(&self) -> bool {

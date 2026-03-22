@@ -700,7 +700,7 @@ impl Query {
                 input.outstanding,
                 input.to_receive,
                 input.to_liquidate,
-                input.target_cvl.map(|x| x.into()),
+                input.target_cvl.map(|c| c.into()),
             )
             .await?;
 

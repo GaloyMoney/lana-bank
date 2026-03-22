@@ -1,10 +1,11 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod calculation_amount;
 mod code;
 mod error;
 mod map;
-mod primitives;
+mod precision;
 
 use std::{fmt, marker::PhantomData};
 
@@ -14,10 +15,11 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
+pub use calculation_amount::CalculationAmount;
 pub use code::*;
 pub use error::ConversionError;
 pub use map::*;
-pub use primitives::CalculationAmount;
+pub use precision::Precision;
 pub use rust_decimal::RoundingStrategy;
 
 // ---------------------------------------------------------------------------
@@ -79,10 +81,6 @@ impl<C: Currency> MinorUnits<C> {
 
     pub fn is_zero(self) -> bool {
         self.0 == 0
-    }
-
-    pub fn to_calc(self) -> CalculationAmount<C> {
-        CalculationAmount::from(self)
     }
 }
 

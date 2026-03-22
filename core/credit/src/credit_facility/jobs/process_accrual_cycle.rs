@@ -30,7 +30,6 @@
 //! ```
 
 use async_trait::async_trait;
-use rust_decimal::RoundingStrategy;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -315,14 +314,19 @@ where
         let accrual_rounding_strategy =
             crate::rounding_policy::parse_rounding_strategy(&accrual_rounding_strategy_str)?;
 
+        let precision = money::Precision::try_new(
+            u32::try_from(accrual_precision_dp)
+                .expect("accrual_precision_dp validated to be <= 28"),
+        )
+        .expect("accrual_precision_dp validated by domain config");
+
         let mut db = self.credit_facility_repo.begin_op().await?;
 
         let outcome = self
             .confirm_interest_accrual_in_op(
                 &mut db,
                 self.config.credit_facility_id,
-                u32::try_from(accrual_precision_dp)
-                    .expect("accrual_precision_dp validated to be <= 28"),
+                precision,
                 accrual_rounding_strategy,
             )
             .await?;
@@ -399,8 +403,8 @@ where
         &self,
         op: &mut impl es_entity::AtomicOperation,
         credit_facility_id: CreditFacilityId,
-        accrual_precision_dp: u32,
-        accrual_rounding_strategy: RoundingStrategy,
+        precision: money::Precision,
+        strategy: rust_decimal::RoundingStrategy,
     ) -> Result<AccrualOutcome, CreditFacilityError> {
         self.authz
             .audit()
@@ -431,8 +435,8 @@ where
 
         let result = match credit_facility.record_accrual_on_in_progress_cycle(
             balances.disbursed_outstanding(),
-            accrual_precision_dp,
-            accrual_rounding_strategy,
+            precision,
+            strategy,
         ) {
             Ok(recorded) => {
                 let recorded = recorded.expect("record_accrual always returns Executed");

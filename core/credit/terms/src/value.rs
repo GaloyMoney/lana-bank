@@ -26,7 +26,7 @@ async_graphql::scalar!(AnnualRatePct);
 
 impl AnnualRatePct {
     pub fn interest_for_period(&self, principal: UsdCents, days: u32) -> CalculationAmount<Usd> {
-        principal.to_calc()
+        CalculationAmount::from_minor(principal)
             * (self.0 / dec!(100) * Decimal::from(days) / Decimal::from(NUMBER_OF_DAYS_IN_YEAR))
     }
 }
@@ -52,7 +52,7 @@ impl OneTimeFeeRatePct {
     }
 
     pub fn apply(&self, amount: UsdCents) -> CalculationAmount<Usd> {
-        amount.to_calc() * (self.0 / dec!(100))
+        CalculationAmount::from_minor(amount) * (self.0 / dec!(100))
     }
 }
 
@@ -547,7 +547,7 @@ mod test {
         let interest = terms
             .annual_rate
             .interest_for_period(principal, days)
-            .round_with(RoundingStrategy::AwayFromZero);
+            .round_to_minor_units(RoundingStrategy::AwayFromZero);
         assert_eq!(interest, UsdCents::from(1200));
 
         let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
@@ -555,7 +555,7 @@ mod test {
         let interest = terms
             .annual_rate
             .interest_for_period(principal, days)
-            .round_with(RoundingStrategy::AwayFromZero);
+            .round_to_minor_units(RoundingStrategy::AwayFromZero);
         assert_eq!(interest, UsdCents::from(757));
     }
 
@@ -641,7 +641,7 @@ mod test {
     fn can_apply_one_time_fee() {
         let fee = OneTimeFeeRatePct(dec!(5))
             .apply(UsdCents::from(1000))
-            .round_with(RoundingStrategy::AwayFromZero);
+            .round_to_minor_units(RoundingStrategy::AwayFromZero);
         assert_eq!(fee, UsdCents::from(50));
     }
 
@@ -649,7 +649,7 @@ mod test {
     fn one_time_fee_rounds_up() {
         let fee = OneTimeFeeRatePct(dec!(5.01))
             .apply(UsdCents::from(1000))
-            .round_with(RoundingStrategy::AwayFromZero);
+            .round_to_minor_units(RoundingStrategy::AwayFromZero);
         assert_eq!(fee, UsdCents::from(51));
     }
 

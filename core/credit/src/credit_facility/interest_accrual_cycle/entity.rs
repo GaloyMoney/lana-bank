@@ -6,6 +6,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use es_entity::*;
+use money::Precision;
 
 use crate::{
     credit_facility::interest_accrual_cycle::error::InterestAccrualCycleError,
@@ -157,7 +158,7 @@ impl InterestAccrualCycle {
                 ),
                 _ => None,
             })
-            .sum()
+            .fold(CalculationAmount::zero(), |acc, x| acc + x)
     }
 
     fn last_accrual_period(&self) -> Option<InterestPeriod> {
@@ -234,8 +235,8 @@ impl InterestAccrualCycle {
     pub(crate) fn record_accrual(
         &mut self,
         outstanding: UsdCents,
-        accrual_precision_dp: u32,
-        accrual_rounding_strategy: RoundingStrategy,
+        precision: Precision,
+        strategy: RoundingStrategy,
     ) -> Result<Idempotent<InterestAccrualData>, InterestAccrualCycleError> {
         let accrual_period = self
             .next_accrual_period()
@@ -251,12 +252,10 @@ impl InterestAccrualCycle {
         let cumulative = self.recompute_cumulative_interest() + this_period_interest;
 
         // Round to regulatory precision for storage/data team
-        let accumulated_at_dp = cumulative
-            .to_major()
-            .round_dp_with_strategy(accrual_precision_dp, accrual_rounding_strategy);
+        let accumulated_at_dp = cumulative.round_to_precision(precision, strategy);
 
         // Round to minor units for booking (always lender-favorable)
-        let new_booked_total = cumulative.round_with(RoundingStrategy::AwayFromZero);
+        let new_booked_total = cumulative.round_to_minor_units(RoundingStrategy::AwayFromZero);
         let previous_booked_total = self.total_accrued();
         let accrued_interest = new_booked_total - previous_booked_total;
 
@@ -430,6 +429,14 @@ mod test {
     };
 
     use super::*;
+
+    fn test_precision() -> money::Precision {
+        money::Precision::try_new(6).unwrap()
+    }
+
+    fn test_strategy() -> rust_decimal::RoundingStrategy {
+        rust_decimal::RoundingStrategy::MidpointAwayFromZero
+    }
 
     fn default_terms() -> TermValues {
         TermValues::builder()
@@ -683,7 +690,7 @@ mod test {
         let InterestAccrualData {
             interest, period, ..
         } = accrual
-            .record_accrual(UsdCents::ZERO, 5, RoundingStrategy::AwayFromZero)
+            .record_accrual(UsdCents::ZERO, test_precision(), test_strategy())
             .unwrap()
             .expect("expected Executed");
         assert_eq!(interest, UsdCents::ZERO);
@@ -720,7 +727,7 @@ mod test {
             let InterestAccrualData {
                 interest, period, ..
             } = accrual
-                .record_accrual(UsdCents::ZERO, 5, RoundingStrategy::AwayFromZero)
+                .record_accrual(UsdCents::ZERO, test_precision(), test_strategy())
                 .unwrap()
                 .expect("expected Executed");
             assert_eq!(interest, UsdCents::ZERO);
@@ -756,7 +763,7 @@ mod test {
             .unwrap();
         for _ in start_day..(end_day + 1) {
             let InterestAccrualData { period, .. } = accrual
-                .record_accrual(UsdCents::ONE, 5, RoundingStrategy::AwayFromZero)
+                .record_accrual(UsdCents::ONE, test_precision(), test_strategy())
                 .unwrap()
                 .expect("expected Executed");
             assert_eq!(period.start, expected_start);
@@ -780,7 +787,7 @@ mod test {
         for _ in start_day..(end_day + 1) {
             assert!(accrual_cycle_data.is_none());
 
-            let _ = accrual.record_accrual(UsdCents::ONE, 5, RoundingStrategy::AwayFromZero);
+            let _ = accrual.record_accrual(UsdCents::ONE, test_precision(), test_strategy());
 
             accrual_cycle_data = accrual.accrual_cycle_data();
         }
@@ -803,8 +810,8 @@ mod test {
             accrual
                 .record_accrual(
                     disbursed_outstanding_amount,
-                    5,
-                    RoundingStrategy::AwayFromZero,
+                    test_precision(),
+                    test_strategy(),
                 )
                 .unwrap()
                 .expect("expected Executed");
@@ -817,8 +824,8 @@ mod test {
                     .annual_rate
                     .interest_for_period(disbursed_outstanding_amount, 1)
             })
-            .sum();
-        let expected_accrual_sum = expected.round_with(RoundingStrategy::AwayFromZero);
+            .fold(CalculationAmount::zero(), |acc, x| acc + x);
+        let expected_accrual_sum = expected.round_to_minor_units(RoundingStrategy::AwayFromZero);
         let InterestAccrualCycleData { interest, .. } = accrual.accrual_cycle_data().unwrap();
         assert_eq!(interest, expected_accrual_sum);
     }
@@ -830,13 +837,19 @@ mod test {
         let mut accrual_away = accrual_from(initial_events());
         let mut accrual_midpoint = accrual_from(initial_events());
 
+        let precision_5 = money::Precision::try_new(5).unwrap();
+
         // Record a single accrual with each strategy
         let _ = accrual_away
-            .record_accrual(principal, 5, RoundingStrategy::AwayFromZero)
+            .record_accrual(principal, precision_5, RoundingStrategy::AwayFromZero)
             .unwrap()
             .expect("expected Executed");
         let _ = accrual_midpoint
-            .record_accrual(principal, 5, RoundingStrategy::MidpointAwayFromZero)
+            .record_accrual(
+                principal,
+                precision_5,
+                RoundingStrategy::MidpointAwayFromZero,
+            )
             .unwrap()
             .expect("expected Executed");
 
