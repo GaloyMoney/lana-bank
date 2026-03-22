@@ -61,7 +61,7 @@ impl<C: Currency> CalculationAmount<C> {
     ///
     /// Panics if the value is negative or exceeds `u64::MAX` minor units.
     pub fn round_to_minor_units(&self, strategy: RoundingStrategy) -> MinorUnits<C> {
-        debug_assert!(
+        assert!(
             self.value >= Decimal::ZERO,
             "CalculationAmount::round_to_minor_units called with negative value: {self}",
         );
@@ -80,7 +80,10 @@ impl<C: Currency> CalculationAmount<C> {
 impl<C: Currency> Add for CalculationAmount<C> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        debug_assert_eq!(self.precision, rhs.precision);
+        assert_eq!(
+            self.precision, rhs.precision,
+            "cannot add CalculationAmounts with different precisions"
+        );
         Self {
             value: self.value + rhs.value,
             ..self

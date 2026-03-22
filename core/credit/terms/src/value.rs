@@ -34,14 +34,6 @@ impl AnnualRatePct {
         CalculationAmount::from_minor(principal, precision)
             * (self.0 / dec!(100) * Decimal::from(days) / Decimal::from(NUMBER_OF_DAYS_IN_YEAR))
     }
-
-    pub fn interest_for_period_rounded(&self, principal: UsdCents, days: u32) -> UsdCents {
-        UsdCents::from_major_rounded(
-            principal.to_major() * self.0 / dec!(100) * Decimal::from(days)
-                / Decimal::from(NUMBER_OF_DAYS_IN_YEAR),
-            RoundingStrategy::AwayFromZero,
-        )
-    }
 }
 
 impl From<Decimal> for AnnualRatePct {
@@ -559,16 +551,19 @@ mod test {
         let terms = terms();
         let principal = UsdCents::try_from_usd(dec!(100)).unwrap();
         let days = 365;
+        let precision = Precision::try_new(2).unwrap();
         let interest = terms
             .annual_rate
-            .interest_for_period_rounded(principal, days);
+            .interest_for_period(principal, days, precision)
+            .round_to_minor_units(RoundingStrategy::AwayFromZero);
         assert_eq!(interest, UsdCents::from(1200));
 
         let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
         let days = 23;
         let interest = terms
             .annual_rate
-            .interest_for_period_rounded(principal, days);
+            .interest_for_period(principal, days, precision)
+            .round_to_minor_units(RoundingStrategy::AwayFromZero);
         assert_eq!(interest, UsdCents::from(757));
     }
 

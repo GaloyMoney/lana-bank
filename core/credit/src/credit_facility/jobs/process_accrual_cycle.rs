@@ -312,7 +312,7 @@ where
             .maybe_value()
             .ok_or(CreditFacilityError::AccrualRoundingStrategyNotConfigured)?;
         let accrual_rounding_strategy =
-            crate::rounding_policy::parse_rounding_strategy(&accrual_rounding_strategy_str)?;
+            crate::rounding_policy::parse_rounding_strategy(&accrual_rounding_strategy_str);
 
         let precision = money::Precision::try_new(
             u32::try_from(accrual_precision_dp)

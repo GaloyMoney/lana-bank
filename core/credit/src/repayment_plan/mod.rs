@@ -134,7 +134,12 @@ impl CreditFacilityRepaymentPlan {
         while let Some(period) = next_interest_period {
             let interest = terms
                 .annual_rate
-                .interest_for_period_rounded(disbursed_outstanding, period.days());
+                .interest_for_period(
+                    disbursed_outstanding,
+                    period.days(),
+                    money::Precision::try_new(2).expect("2 is valid"),
+                )
+                .round_to_minor_units(rust_decimal::RoundingStrategy::AwayFromZero);
 
             planned_interest_entries.push(CreditFacilityRepaymentPlanEntry {
                 repayment_type: RepaymentType::Interest,
