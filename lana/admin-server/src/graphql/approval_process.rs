@@ -56,7 +56,7 @@ impl ApprovalProcess {
         let policy = loader
             .load_one(self.entity.policy_id)
             .await?
-            .expect("policy not found");
+            .ok_or_else(|| Error::new("Policy not found"))?;
         Ok(policy)
     }
 
@@ -68,7 +68,7 @@ impl ApprovalProcess {
             let committee = loader
                 .load_one(committee_id)
                 .await?
-                .expect("committee not found");
+                .ok_or_else(|| Error::new("Committee not found"))?;
             Some(committee.entity)
         } else {
             None
@@ -86,7 +86,7 @@ impl ApprovalProcess {
             let committee = loader
                 .load_one(committee_id)
                 .await?
-                .expect("committee not found");
+                .ok_or_else(|| Error::new("Committee not found"))?;
             let mut approvers = self.entity.approvers();
             let mut deniers = self.entity.deniers();
             let mut voters: Vec<_> = committee
@@ -143,41 +143,41 @@ impl ApprovalProcess {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         match self.approval_process_type {
             ApprovalProcessType::WithdrawalApproval => {
+                let id = self
+                    .entity
+                    .target_ref()
+                    .parse::<WithdrawalId>()
+                    .map_err(|_| Error::new("Invalid withdrawal target ref"))?;
                 let withdrawal = loader
-                    .load_one(
-                        self.entity
-                            .target_ref()
-                            .parse::<WithdrawalId>()
-                            .expect("invalid target ref"),
-                    )
+                    .load_one(id)
                     .await?
-                    .expect("withdrawal not found");
+                    .ok_or_else(|| Error::new("Withdrawal not found"))?;
                 Ok(ApprovalProcessTarget::Withdrawal(withdrawal))
             }
             ApprovalProcessType::CreditFacilityProposalApproval => {
+                let id = self
+                    .entity
+                    .target_ref()
+                    .parse::<CreditFacilityProposalId>()
+                    .map_err(|_| Error::new("Invalid credit facility proposal target ref"))?;
                 let credit_facility_proposal = loader
-                    .load_one(
-                        self.entity
-                            .target_ref()
-                            .parse::<CreditFacilityProposalId>()
-                            .expect("invalid target ref"),
-                    )
+                    .load_one(id)
                     .await?
-                    .expect("credit facility proposal not found");
+                    .ok_or_else(|| Error::new("Credit facility proposal not found"))?;
                 Ok(ApprovalProcessTarget::CreditFacilityProposal(
                     credit_facility_proposal,
                 ))
             }
             ApprovalProcessType::DisbursalApproval => {
+                let id = self
+                    .entity
+                    .target_ref()
+                    .parse::<DisbursalId>()
+                    .map_err(|_| Error::new("Invalid disbursal target ref"))?;
                 let disbursal = loader
-                    .load_one(
-                        self.entity
-                            .target_ref()
-                            .parse::<DisbursalId>()
-                            .expect("invalid target ref"),
-                    )
+                    .load_one(id)
                     .await?
-                    .expect("disbursal not found");
+                    .ok_or_else(|| Error::new("Disbursal not found"))?;
                 Ok(ApprovalProcessTarget::CreditFacilityDisbursal(disbursal))
             }
         }
@@ -225,7 +225,7 @@ impl ApprovalProcessVoter {
         let users = loader
             .load_one(self.user_id)
             .await?
-            .expect("user not found");
+            .ok_or_else(|| Error::new("User not found"))?;
 
         Ok(users)
     }

@@ -224,7 +224,7 @@ impl CreditFacility {
         let customer = loader
             .load_one(self.entity.customer_id)
             .await?
-            .expect("customer not found");
+            .ok_or_else(|| Error::new("Customer not found"))?;
         Ok(customer)
     }
 
@@ -243,7 +243,7 @@ impl CreditFacility {
         let collateral = loader
             .load_one(self.entity.collateral_id)
             .await?
-            .expect("credit facility has collateral");
+            .ok_or_else(|| Error::new("Collateral not found"))?;
 
         if let Some(wallet_id) = collateral.wallet_id {
             Ok(loader.load_one(WalletId::from(wallet_id)).await?)
@@ -271,7 +271,7 @@ impl CreditFacility {
         let collateral = loader
             .load_one(self.entity.collateral_id)
             .await?
-            .expect("credit facility has collateral");
+            .ok_or_else(|| Error::new("Collateral not found"))?;
 
         Ok(CreditFacilityLedgerAccounts {
             facility_account_id: self.entity.account_ids.facility_account_id.into(),

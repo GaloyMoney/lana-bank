@@ -43,7 +43,7 @@ impl CreditFacilityProposal {
         let custodian = loader
             .load_one(self.entity.custodian_id)
             .await?
-            .expect("custodian not found");
+            .ok_or_else(|| Error::new("Custodian not found"))?;
 
         Ok(custodian)
     }
@@ -53,7 +53,7 @@ impl CreditFacilityProposal {
         let customer = loader
             .load_one(self.entity.customer_id)
             .await?
-            .expect("customer not found");
+            .ok_or_else(|| Error::new("Customer not found"))?;
         Ok(customer)
     }
 
@@ -89,7 +89,7 @@ impl CreditFacilityProposal {
             let process = loader
                 .load_one(ApprovalProcessId::from(approval_process_id))
                 .await?
-                .expect("process not found");
+                .ok_or_else(|| Error::new("Approval process not found"))?;
             return Ok(Some(process));
         }
         Ok(None)

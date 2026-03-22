@@ -104,7 +104,7 @@ impl Liquidation {
         let collateral = loader
             .load_one(self.entity.collateral_id)
             .await?
-            .expect("Collateral not found");
+            .ok_or_else(|| Error::new("Collateral not found"))?;
         Ok(collateral)
     }
 }

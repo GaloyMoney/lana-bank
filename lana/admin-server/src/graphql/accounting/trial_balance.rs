@@ -54,16 +54,18 @@ impl TrialBalance {
     }
 }
 
-impl From<lana_app::trial_balance::TrialBalanceRoot> for TrialBalance {
-    fn from(trial_balance: lana_app::trial_balance::TrialBalanceRoot) -> Self {
-        TrialBalance {
+impl TryFrom<lana_app::trial_balance::TrialBalanceRoot> for TrialBalance {
+    type Error = async_graphql::Error;
+
+    fn try_from(trial_balance: lana_app::trial_balance::TrialBalanceRoot) -> Result<Self> {
+        let until = trial_balance
+            .until
+            .ok_or_else(|| Error::new("Mandatory 'until' value missing on trial balance"))?;
+        Ok(TrialBalance {
             name: trial_balance.name.to_string(),
             from: trial_balance.from.into(),
-            until: trial_balance
-                .until
-                .expect("Mandatory 'until' value missing")
-                .into(),
+            until: until.into(),
             entity: Arc::new(trial_balance),
-        }
+        })
     }
 }

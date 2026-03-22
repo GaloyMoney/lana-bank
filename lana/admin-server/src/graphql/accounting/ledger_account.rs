@@ -69,21 +69,21 @@ impl LedgerAccount {
                 let deposit_account = loader
                     .load_one(DepositAccountId::from(entity_ref.entity_id))
                     .await?
-                    .expect("Could not find deposit account");
+                    .ok_or_else(|| Error::new("Deposit account not found"))?;
                 Some(LedgerAccountEntity::DepositAccount(deposit_account))
             }
             entity_type if entity_type == &CREDIT_FACILITY_ENTITY_TYPE => {
                 let credit_facility = loader
                     .load_one(CreditFacilityId::from(entity_ref.entity_id))
                     .await?
-                    .expect("Could not find credit facility");
+                    .ok_or_else(|| Error::new("Credit facility not found"))?;
                 Some(LedgerAccountEntity::CreditFacility(credit_facility))
             }
             entity_type if entity_type == &COLLATERAL_ENTITY_TYPE => {
                 let collateral = loader
                     .load_one(CollateralId::from(entity_ref.entity_id))
                     .await?
-                    .expect("Could not find collateral");
+                    .ok_or_else(|| Error::new("Collateral not found"))?;
                 Some(LedgerAccountEntity::Collateral(collateral))
             }
             _ => None,

@@ -42,7 +42,7 @@ impl CommitteeApproval {
         let committee = loader
             .load_one(self.committee_id)
             .await?
-            .expect("committee not found");
+            .ok_or_else(|| Error::new("Committee not found"))?;
         Ok(committee)
     }
 }

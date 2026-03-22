@@ -56,7 +56,7 @@ impl CreditFacilityPaymentAllocation {
             .for_subject(sub)?
             .find_by_id(self.entity.beneficiary_id)
             .await?
-            .expect("facility should exist for a payment");
+            .ok_or_else(|| async_graphql::Error::new("Credit facility not found"))?;
         Ok(super::CreditFacility::from(cf))
     }
 }

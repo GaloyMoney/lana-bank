@@ -31,7 +31,7 @@ impl CreditFacilityLedgerAccounts {
         let facility_account = loader
             .load_one(LedgerAccountId::from(self.facility_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(facility_account)
     }
     async fn disbursed_receivable_not_yet_due_account(
@@ -44,7 +44,7 @@ impl CreditFacilityLedgerAccounts {
                 self.disbursed_receivable_not_yet_due_account_id,
             ))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(disbursed_receivable_not_yet_due_account)
     }
     async fn disbursed_receivable_due_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -54,7 +54,7 @@ impl CreditFacilityLedgerAccounts {
                 self.disbursed_receivable_due_account_id,
             ))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(disbursed_receivable_due_account)
     }
     async fn disbursed_receivable_overdue_account(
@@ -67,7 +67,7 @@ impl CreditFacilityLedgerAccounts {
                 self.disbursed_receivable_overdue_account_id,
             ))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(disbursed_receivable_overdue_account)
     }
     async fn disbursed_defaulted_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -75,7 +75,7 @@ impl CreditFacilityLedgerAccounts {
         let disbursed_defaulted_account = loader
             .load_one(LedgerAccountId::from(self.disbursed_defaulted_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(disbursed_defaulted_account)
     }
     async fn collateral_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -83,7 +83,7 @@ impl CreditFacilityLedgerAccounts {
         let collateral_account = loader
             .load_one(LedgerAccountId::from(self.collateral_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(collateral_account)
     }
     async fn collateral_in_liquidation_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -93,7 +93,7 @@ impl CreditFacilityLedgerAccounts {
                 self.collateral_in_liquidation_account_id,
             ))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(collateral_in_liquidation_account)
     }
     async fn liquidated_collateral_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -101,7 +101,7 @@ impl CreditFacilityLedgerAccounts {
         let liquidated_collateral_account = loader
             .load_one(LedgerAccountId::from(self.liquidated_collateral_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(liquidated_collateral_account)
     }
     async fn proceeds_from_liquidation_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -111,7 +111,7 @@ impl CreditFacilityLedgerAccounts {
                 self.proceeds_from_liquidation_account_id,
             ))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(proceeds_from_liquidation_account)
     }
     async fn interest_receivable_not_yet_due_account(
@@ -124,7 +124,7 @@ impl CreditFacilityLedgerAccounts {
                 self.interest_receivable_not_yet_due_account_id,
             ))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(interest_receivable_not_yet_due_account)
     }
     async fn interest_receivable_due_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -134,7 +134,7 @@ impl CreditFacilityLedgerAccounts {
                 self.interest_receivable_due_account_id,
             ))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(interest_receivable_due_account)
     }
     async fn interest_receivable_overdue_account(
@@ -147,7 +147,7 @@ impl CreditFacilityLedgerAccounts {
                 self.interest_receivable_overdue_account_id,
             ))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(interest_receivable_overdue_account)
     }
     async fn interest_defaulted_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -155,7 +155,7 @@ impl CreditFacilityLedgerAccounts {
         let interest_defaulted_account = loader
             .load_one(LedgerAccountId::from(self.interest_defaulted_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(interest_defaulted_account)
     }
     async fn interest_income_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -163,7 +163,7 @@ impl CreditFacilityLedgerAccounts {
         let interest_income_account = loader
             .load_one(LedgerAccountId::from(self.interest_income_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(interest_income_account)
     }
     async fn fee_income_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -171,7 +171,7 @@ impl CreditFacilityLedgerAccounts {
         let fee_income_account = loader
             .load_one(LedgerAccountId::from(self.fee_income_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(fee_income_account)
     }
     async fn payment_holding_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -179,7 +179,7 @@ impl CreditFacilityLedgerAccounts {
         let payment_holding_account = loader
             .load_one(LedgerAccountId::from(self.payment_holding_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(payment_holding_account)
     }
     async fn uncovered_outstanding_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
@@ -187,7 +187,7 @@ impl CreditFacilityLedgerAccounts {
         let uncovered_outstanding_account = loader
             .load_one(LedgerAccountId::from(self.uncovered_outstanding_account_id))
             .await?
-            .expect("Ledger account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(uncovered_outstanding_account)
     }
 }

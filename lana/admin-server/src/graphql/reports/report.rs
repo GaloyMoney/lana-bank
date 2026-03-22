@@ -70,7 +70,7 @@ impl Report {
         let report_run = loader
             .load_one(self.entity.run_id)
             .await?
-            .expect("report run not found");
+            .ok_or_else(|| Error::new("Report run not found"))?;
         Ok(report_run)
     }
 }

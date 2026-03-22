@@ -56,7 +56,7 @@ impl JournalEntry {
         let account = loader
             .load_one(self.entity.ledger_account_id)
             .await?
-            .expect("account not found");
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(account)
     }
 
@@ -68,7 +68,7 @@ impl JournalEntry {
         let tx = loader
             .load_one(self.entity.ledger_transaction_id)
             .await?
-            .expect("transaction not found");
+            .ok_or_else(|| Error::new("Ledger transaction not found"))?;
         Ok(tx)
     }
 }

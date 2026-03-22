@@ -90,7 +90,7 @@ impl DepositEntry {
             .deposits()
             .find_deposit_by_id(sub, self.tx_id)
             .await?
-            .expect("deposit should exist");
+            .ok_or_else(|| async_graphql::Error::new("Deposit not found"))?;
 
         Ok(Deposit::from(deposit))
     }
@@ -105,7 +105,7 @@ impl WithdrawalEntry {
             .deposits()
             .find_withdrawal_by_id(sub, self.tx_id)
             .await?
-            .expect("withdrawal should exist");
+            .ok_or_else(|| async_graphql::Error::new("Withdrawal not found"))?;
 
         Ok(Withdrawal::from(withdrawal))
     }
