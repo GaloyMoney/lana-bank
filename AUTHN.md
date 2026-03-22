@@ -74,4 +74,8 @@ flowchart LR
 ### Known Issues (Local Development)
 - In local dev, **Brave Browser** blocks the admin-panel login flow because the app makes a cross-site HTTP request to Keycloak.
 This can be fixed by turning off Brave Shields for `admin.localhost`.
-
+- If Admin GraphQL requests return `401 Expired token` immediately after login, check for clock skew between your host and the Podman VM:
+  - `date -u`
+  - `podman machine ssh "date -u"`
+  A large skew causes Keycloak and Oathkeeper to mint tokens that the host-side Rust services reject as already expired.
+  If the clocks differ, restart the Podman machine or wait for `chronyd` inside the VM to resync before retrying.

@@ -22,6 +22,7 @@ type Props = {
 export const Authenticated: React.FC<Props> = ({ children }) => {
   const [initialized, setInitialized] = useState(false)
   const [authenticated, setAuthenticated] = useState(false)
+  const [authError, setAuthError] = useState<Error | null>(null)
   const { stopAppLoadingAnimation } = useAppLoading()
 
   useEffect(() => {
@@ -39,7 +40,9 @@ export const Authenticated: React.FC<Props> = ({ children }) => {
         .catch((err) => {
           if (isMounted) {
             console.error("Failed to initialize Keycloak", err)
+            setAuthError(err instanceof Error ? err : new Error("Authentication failed"))
             setInitialized(true)
+            stopAppLoadingAnimation()
           }
         })
     }
@@ -59,7 +62,28 @@ export const Authenticated: React.FC<Props> = ({ children }) => {
     return null
   }, [initialized, authenticated])
 
-  if (!initialized || !authenticated || !client) {
+  if (!initialized) {
+    return null
+  }
+
+  if (authError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-6">
+        <div className="max-w-lg space-y-3 rounded-lg border bg-card p-6 text-center shadow-sm">
+          <h1 className="text-xl font-semibold">Authentication failed</h1>
+          <p className="text-sm text-muted-foreground">
+            The admin panel could not initialize the local Keycloak login flow.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            If you are using Brave, turn off Shields for <code>admin.localhost</code>,
+            reload the page, and try again.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!authenticated || !client) {
     return null
   }
 
