@@ -7,7 +7,6 @@ mutation ExecuteManualTransaction($input: LedgerManualTransactionExecuteInput!) 
       description
       entries {
         ledgerEntryId
-        txId
       }
     }
   }

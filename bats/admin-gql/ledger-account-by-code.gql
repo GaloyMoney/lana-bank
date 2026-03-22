@@ -3,7 +3,6 @@ query LedgerAccountByCode($code: String!) {
     ledgerAccountId
     history(first: 100) {
       nodes {
-        txId
         amount {
           ... on UsdAmount {
             usd

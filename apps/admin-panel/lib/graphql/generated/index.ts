@@ -1897,7 +1897,6 @@ export type LedgerEntry = {
   ledgerAccount: LedgerAccount;
   ledgerEntryId: Scalars['UUID']['output'];
   ledgerTransaction: LedgerTransaction;
-  txId: Scalars['UUID']['output'];
 };
 
 export type LedgerEntryAmount = BtcAmount | UsdAmount;
@@ -4996,10 +4995,10 @@ export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', ledge
    | null, ancestors: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
     | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-  , history: { __typename?: 'LedgerEntryConnection', edges: Array<{ __typename?: 'LedgerEntryEdge', cursor: string, node: { __typename?: 'LedgerEntry', ledgerEntryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
+  , history: { __typename?: 'LedgerEntryConnection', edges: Array<{ __typename?: 'LedgerEntryEdge', cursor: string, node: { __typename?: 'LedgerEntry', ledgerEntryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
           | { __typename: 'BtcAmount', btc: Satoshis }
           | { __typename: 'UsdAmount', usd: UsdCents }
-        , ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+        , ledgerTransaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string }, ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type LedgerAccountByCodeQueryVariables = Exact<{
   code: Scalars['String']['input'];
@@ -5015,10 +5014,10 @@ export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCo
      | null, ancestors: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-    , history: { __typename?: 'LedgerEntryConnection', edges: Array<{ __typename?: 'LedgerEntryEdge', cursor: string, node: { __typename?: 'LedgerEntry', ledgerEntryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
+    , history: { __typename?: 'LedgerEntryConnection', edges: Array<{ __typename?: 'LedgerEntryEdge', cursor: string, node: { __typename?: 'LedgerEntry', ledgerEntryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
             | { __typename: 'BtcAmount', btc: Satoshis }
             | { __typename: 'UsdAmount', usd: UsdCents }
-          , ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+          , ledgerTransaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string }, ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type LedgerAccountQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -5034,10 +5033,10 @@ export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typ
      | null, ancestors: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-    , history: { __typename?: 'LedgerEntryConnection', edges: Array<{ __typename?: 'LedgerEntryEdge', cursor: string, node: { __typename?: 'LedgerEntry', ledgerEntryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
+    , history: { __typename?: 'LedgerEntryConnection', edges: Array<{ __typename?: 'LedgerEntryEdge', cursor: string, node: { __typename?: 'LedgerEntry', ledgerEntryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: string, amount:
             | { __typename: 'BtcAmount', btc: Satoshis }
             | { __typename: 'UsdAmount', usd: UsdCents }
-          , ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+          , ledgerTransaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string }, ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type LedgerAccountExistsByCodeQueryVariables = Exact<{
   code: Scalars['String']['input'];
@@ -6557,7 +6556,6 @@ export const LedgerAccountDetailsFragmentDoc = gql`
       cursor
       node {
         ledgerEntryId
-        txId
         entryType
         amount {
           __typename
@@ -6572,6 +6570,9 @@ export const LedgerAccountDetailsFragmentDoc = gql`
         direction
         layer
         createdAt
+        ledgerTransaction {
+          ledgerTransactionId
+        }
         ledgerAccount {
           ledgerAccountId
           code

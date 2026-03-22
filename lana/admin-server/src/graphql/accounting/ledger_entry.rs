@@ -17,7 +17,6 @@ use crate::{graphql::loader::LanaDataLoader, primitives::*};
 )]
 pub struct LedgerEntry {
     ledger_entry_id: UUID,
-    tx_id: UUID,
     amount: LedgerEntryAmount,
     direction: DebitOrCredit,
     layer: Layer,
@@ -31,7 +30,6 @@ impl From<DomainLedgerEntry> for LedgerEntry {
     fn from(entry: DomainLedgerEntry) -> Self {
         Self {
             ledger_entry_id: entry.entry_id.into(),
-            tx_id: entry.ledger_transaction_id.into(),
             amount: entry.amount.into(),
             direction: entry.direction,
             layer: entry.layer,

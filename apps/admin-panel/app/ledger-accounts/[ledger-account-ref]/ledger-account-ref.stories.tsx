@@ -35,7 +35,9 @@ const LedgerAccountStory = () => {
                 cursor: faker.string.alpha(10),
                 node: {
                   __typename: "BtcLedgerAccountHistoryEntry",
-                  txId: faker.string.uuid(),
+                  ledgerTransaction: {
+                    ledgerTransactionId: faker.string.uuid(),
+                  },
                   recordedAt: faker.date.past().toISOString(),
                   btcAmount: {
                     settled: {
