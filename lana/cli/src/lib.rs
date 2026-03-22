@@ -54,7 +54,7 @@ struct Cli {
     lana_home: String,
     /// Override values in the YAML config file (lana.yml) using dot-separated paths.
     /// This does not apply to domain config settings (DOMAIN_CONFIG_* env vars).
-    /// Example: --set bootstrap.seed_only=true
+    /// Example: --set admin_server.enabled=false
     #[clap(long = "set", value_name = "KEY=VALUE")]
     config_overrides: Vec<String>,
     #[clap(subcommand)]
@@ -214,8 +214,15 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let app_config_yaml = serde_yaml::to_string(&config)
         .unwrap_or_else(|e| format!("# Failed to serialize config: {e}"));
 
-    check_port_available(config.admin_server.port, "Admin server")?;
-    check_port_available(config.customer_server.port, "Customer server")?;
+    let admin_enabled = config.admin_server.enabled;
+    let customer_enabled = config.customer_server.enabled;
+
+    if admin_enabled {
+        check_port_available(config.admin_server.port, "Admin server")?;
+    }
+    if customer_enabled {
+        check_port_available(config.customer_server.port, "Customer server")?;
+    }
 
     tracing_utils::init_tracer(config.tracing)?;
     store_server_pid(lana_home, std::process::id())?;
@@ -243,60 +250,73 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     .await
     .context("Failed to initialize Lana app")?;
 
+    let mut bootstrap_handle = None;
     if config.bootstrap.active
         && let (Some(ctrl), Some(superuser_email)) = (app_clock.controller, superuser_email)
     {
-        let seed_only = config.bootstrap.seed_only;
-        let _ = sim_bootstrap::run(
-            superuser_email.to_string(),
-            &app,
-            config.bootstrap,
-            app_clock.clock,
-            ctrl,
-        )
-        .await;
-        if seed_only {
-            info!("Seed-only mode: bootstrap complete, shutting down");
-            if let Err(e) = app.shutdown().await {
-                eprintln!("Error shutting down app: {}", e);
-            }
-            eprintln!("shutdown complete");
-            return Ok(());
-        }
+        let bootstrap_app = app.clone();
+        let bootstrap_clock = app_clock.clock;
+        let bootstrap_config = config.bootstrap;
+        bootstrap_handle = Some(tokio::spawn(async move {
+            let _ = sim_bootstrap::run(
+                superuser_email.to_string(),
+                &bootstrap_app,
+                bootstrap_config,
+                bootstrap_clock,
+                ctrl,
+            )
+            .await;
+        }));
     }
 
-    let admin_error_send = error_send.clone();
-    let admin_app = app.clone();
-    let mut admin_shutdown = shutdown_recv.resubscribe();
+    if admin_enabled {
+        let admin_error_send = error_send.clone();
+        let admin_app = app.clone();
+        let mut admin_shutdown = shutdown_recv.resubscribe();
 
-    server_handles.push(tokio::spawn(async move {
-        let _ = admin_error_send.try_send(
-            admin_server::run(
-                config.admin_server,
-                admin_app,
-                BuildInfo::get(),
-                admin_server::graphql::AppConfig(app_config_yaml.into()),
-                async move {
-                    let _ = admin_shutdown.recv().await;
-                },
-            )
-            .await
-            .context("Admin server error"),
-        );
-    }));
+        server_handles.push(tokio::spawn(async move {
+            let _ = admin_error_send.try_send(
+                admin_server::run(
+                    config.admin_server,
+                    admin_app,
+                    BuildInfo::get(),
+                    admin_server::graphql::AppConfig(app_config_yaml.into()),
+                    async move {
+                        let _ = admin_shutdown.recv().await;
+                    },
+                )
+                .await
+                .context("Admin server error"),
+            );
+        }));
+    }
 
-    let customer_error_send = error_send.clone();
-    let customer_app = app.clone();
-    let mut customer_shutdown = shutdown_recv.resubscribe();
-    server_handles.push(tokio::spawn(async move {
-        let _ = customer_error_send.try_send(
-            customer_server::run(config.customer_server, customer_app, async move {
-                let _ = customer_shutdown.recv().await;
-            })
-            .await
-            .context("Customer server error"),
-        );
-    }));
+    if customer_enabled {
+        let customer_error_send = error_send.clone();
+        let customer_app = app.clone();
+        let mut customer_shutdown = shutdown_recv.resubscribe();
+        server_handles.push(tokio::spawn(async move {
+            let _ = customer_error_send.try_send(
+                customer_server::run(config.customer_server, customer_app, async move {
+                    let _ = customer_shutdown.recv().await;
+                })
+                .await
+                .context("Customer server error"),
+            );
+        }));
+    }
+
+    if server_handles.is_empty() {
+        info!("No servers enabled, awaiting bootstrap completion");
+        if let Some(handle) = bootstrap_handle {
+            let _ = handle.await;
+        }
+        if let Err(e) = app.shutdown().await {
+            eprintln!("Error shutting down app: {}", e);
+        }
+        eprintln!("shutdown complete");
+        return Ok(());
+    }
 
     // Setup signal handlers
     let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
