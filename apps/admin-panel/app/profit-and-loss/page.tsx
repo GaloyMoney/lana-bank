@@ -26,7 +26,7 @@ import { ReportFilters } from "@/components/report-filters"
 import { ReportLayer } from "@/components/report-filters/selectors"
 
 gql`
-  query ProfitAndLossStatement($from: Date!, $until: Date) {
+  query ProfitAndLossStatement($from: Date!, $until: Date!) {
     profitAndLossStatement(from: $from, until: $until) {
       name
       total {

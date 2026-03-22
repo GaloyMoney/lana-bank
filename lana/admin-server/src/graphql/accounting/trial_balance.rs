@@ -47,7 +47,7 @@ impl TrialBalance {
                 sub,
                 CHART_REF.0,
                 self.from.into_inner(),
-                Some(self.until.into_inner()),
+                self.until.into_inner(),
             )
             .await?;
         Ok(accounts.into_iter().map(LedgerAccount::from).collect())

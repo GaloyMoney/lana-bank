@@ -13,7 +13,7 @@ use super::ledger_transaction::LedgerTransaction;
 pub struct LedgerManualTransactionExecuteInput {
     pub description: String,
     pub reference: Option<String>,
-    pub effective: Option<Date>,
+    pub effective: Date,
     pub entries: Vec<ManualTransactionEntryInput>,
 }
 crate::mutation_payload! { LedgerManualTransactionExecutePayload, transaction: LedgerTransaction }

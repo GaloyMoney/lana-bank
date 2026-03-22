@@ -97,7 +97,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     let until = test.fiscal_year.closes_as_of();
 
     let profit_and_loss_normal_balance_before_close_tx = test
-        .pl_statement(until, Some(until))
+        .pl_statement(until, until)
         .await?
         .usd_balance_range
         .as_ref()
@@ -107,7 +107,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
         .unwrap();
 
     let profit_and_loss_normal_balance_after_close_tx = test
-        .pl_statement(until, Some(until))
+        .pl_statement(until, until)
         .await?
         .usd_balance_range
         .as_ref()
@@ -192,7 +192,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
 
     let until = test.fiscal_year.closes_as_of();
     let profit_and_loss_normal_balance_before_close_tx = test
-        .pl_statement(until, Some(until))
+        .pl_statement(until, until)
         .await?
         .usd_balance_range
         .as_ref()
@@ -202,7 +202,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
         .unwrap();
 
     let profit_and_loss_normal_balance_after_close_tx = test
-        .pl_statement(until, Some(until))
+        .pl_statement(until, until)
         .await?
         .usd_balance_range
         .as_ref()
@@ -362,7 +362,7 @@ impl Test {
                 &self.chart.reference,
                 None,
                 format!("Transaction {}", self.accounts.len()),
-                Some(effective_tx_date),
+                effective_tx_date,
                 vec![
                     ManualEntryInput::builder()
                         .account_id_or_code(AccountIdOrCode::Code("11.01.0101".parse().unwrap()))
@@ -447,7 +447,7 @@ impl Test {
     pub async fn pl_statement(
         &self,
         from: NaiveDate,
-        until: Option<NaiveDate>,
+        until: NaiveDate,
     ) -> Result<ProfitAndLossStatement> {
         Ok(self
             .accounting

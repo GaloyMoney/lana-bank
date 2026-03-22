@@ -278,7 +278,7 @@ impl LedgerAccountLedger {
         &self,
         ids: &[LedgerAccountId],
         from: NaiveDate,
-        until: Option<NaiveDate>,
+        until: NaiveDate,
     ) -> Result<HashMap<LedgerAccountId, LedgerAccount>, LedgerAccountLedgerError> {
         let account_set_ids = ids.iter().map(|id| (*id).into()).collect::<Vec<_>>();
         let account_ids = ids.iter().map(|id| (*id).into()).collect::<Vec<_>>();
@@ -311,7 +311,7 @@ impl LedgerAccountLedger {
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&balance_ids, from, until)
+            .find_all_in_range(&balance_ids, from, Some(until))
             .await?;
 
         let mut result = HashMap::new();
@@ -345,7 +345,7 @@ impl LedgerAccountLedger {
         &self,
         ids: &[LedgerAccountId],
         from: NaiveDate,
-        until: Option<NaiveDate>,
+        until: NaiveDate,
         filter_non_zero: bool,
     ) -> Result<Vec<LedgerAccount>, LedgerAccountLedgerError> {
         let account_set_ids: Vec<AccountSetId> = ids.iter().map(|id| (*id).into()).collect();
@@ -366,7 +366,7 @@ impl LedgerAccountLedger {
             self.cala
                 .balances()
                 .effective()
-                .find_all_in_range(&balance_ids, from, until)
+                .find_all_in_range(&balance_ids, from, Some(until))
         );
 
         let mut account_sets = account_sets_result?;

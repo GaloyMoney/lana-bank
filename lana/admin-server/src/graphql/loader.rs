@@ -42,7 +42,7 @@ pub struct BalanceSheetAccountKey {
 pub struct ProfitAndLossAccountKey {
     pub id: LedgerAccountId,
     pub from: NaiveDate,
-    pub until: Option<NaiveDate>,
+    pub until: NaiveDate,
 }
 
 pub type LanaDataLoader = DataLoader<LanaLoader>;
@@ -563,7 +563,7 @@ impl Loader<BalanceSheetAccountKey> for LanaLoader {
             let accounts: HashMap<_, lana_app::balance_sheet::BalanceSheetAccountSet> = self
                 .app
                 .accounting()
-                .find_all_ledger_accounts_in_range(CHART_REF.0, &ids, as_of, Some(as_of))
+                .find_all_ledger_accounts_in_range(CHART_REF.0, &ids, as_of, as_of)
                 .await
                 .map_err(Arc::new)?;
 
@@ -592,10 +592,8 @@ impl Loader<ProfitAndLossAccountKey> for LanaLoader {
         &self,
         keys: &[ProfitAndLossAccountKey],
     ) -> Result<HashMap<ProfitAndLossAccountKey, ProfitAndLossAccount>, Self::Error> {
-        let mut keys_by_scope: HashMap<
-            (NaiveDate, Option<NaiveDate>),
-            Vec<ProfitAndLossAccountKey>,
-        > = HashMap::new();
+        let mut keys_by_scope: HashMap<(NaiveDate, NaiveDate), Vec<ProfitAndLossAccountKey>> =
+            HashMap::new();
         for key in keys {
             keys_by_scope
                 .entry((key.from, key.until))

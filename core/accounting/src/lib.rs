@@ -384,7 +384,7 @@ where
         chart_ref: &str,
         ids: &[LedgerAccountId],
         from: chrono::NaiveDate,
-        until: Option<chrono::NaiveDate>,
+        until: chrono::NaiveDate,
     ) -> Result<HashMap<LedgerAccountId, T>, CoreAccountingError> {
         let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
         Ok(self
@@ -400,7 +400,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         from: chrono::NaiveDate,
-        until: Option<chrono::NaiveDate>,
+        until: chrono::NaiveDate,
     ) -> Result<Vec<LedgerAccount>, CoreAccountingError> {
         let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
 
@@ -421,7 +421,7 @@ where
         chart_ref: &str,
         reference: Option<String>,
         description: String,
-        effective: Option<chrono::NaiveDate>,
+        effective: chrono::NaiveDate,
         entries: Vec<ManualEntryInput>,
     ) -> Result<
         LedgerTransaction<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
@@ -429,14 +429,7 @@ where
     > {
         let tx = self
             .manual_transactions
-            .execute(
-                sub,
-                chart_ref,
-                reference,
-                description,
-                effective.unwrap_or_else(|| self.clock.today()),
-                entries,
-            )
+            .execute(sub, chart_ref, reference, description, effective, entries)
             .await?;
 
         let ledger_tx_id = tx.ledger_transaction_id;

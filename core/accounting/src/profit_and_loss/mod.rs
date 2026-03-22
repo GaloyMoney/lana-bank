@@ -112,7 +112,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
         from: NaiveDate,
-        until: Option<NaiveDate>,
+        until: NaiveDate,
     ) -> Result<ProfitAndLossStatement, ProfitAndLossStatementError> {
         self.authz
             .enforce_permission(

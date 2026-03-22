@@ -173,7 +173,7 @@ where
         chart: &Chart,
         ids: &[LedgerAccountId],
         from: chrono::NaiveDate,
-        until: Option<chrono::NaiveDate>,
+        until: chrono::NaiveDate,
     ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
         let accounts = self
             .ledger
@@ -198,7 +198,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart: &Chart,
         from: chrono::NaiveDate,
-        until: Option<chrono::NaiveDate>,
+        until: chrono::NaiveDate,
         filter_non_zero: bool,
     ) -> Result<Vec<LedgerAccount>, LedgerAccountError> {
         self.authz

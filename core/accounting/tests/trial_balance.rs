@@ -86,7 +86,7 @@ async fn atomic_import_adds_accounts_to_trial_balance() -> anyhow::Result<()> {
     let today = clock.today();
     let accounts = accounting
         .ledger_accounts()
-        .list_all_account_flattened(&DummySubject, &chart, today, Some(today), false)
+        .list_all_account_flattened(&DummySubject, &chart, today, today, false)
         .await?;
     // 9 base accounts + 5 additional accounts
     assert_eq!(accounts.len(), 9 + 5);
