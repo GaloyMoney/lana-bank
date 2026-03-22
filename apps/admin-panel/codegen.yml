@@ -46,7 +46,7 @@ generates:
         DomainConfigId: string
         FiscalYearId: string
         LedgerAccountId: string
-        LedgerTransactionId: string
+
         LiquidationId: string
         PendingCreditFacilityId: string
         PermissionSetId: string
@@ -162,7 +162,7 @@ generates:
             DomainConfigId: "generateMockValue.uuid()"
             FiscalYearId: "generateMockValue.uuid()"
             LedgerAccountId: "generateMockValue.uuid()"
-            LedgerTransactionId: "generateMockValue.uuid()"
+
             LiquidationId: "generateMockValue.uuid()"
             PendingCreditFacilityId: "generateMockValue.uuid()"
             PermissionSetId: "generateMockValue.uuid()"

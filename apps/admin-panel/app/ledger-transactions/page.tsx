@@ -21,7 +21,7 @@ import { validate } from "uuid"
 import { useLedgerTransactionLazyQuery } from "@/lib/graphql/generated"
 
 gql`
-  query LedgerTransactionExistsById($id: TransactionId!) {
+  query LedgerTransactionExistsById($id: UUID!) {
     ledgerTransaction(id: $id) {
       ledgerTransactionId
     }

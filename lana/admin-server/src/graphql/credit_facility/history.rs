@@ -20,7 +20,7 @@ pub struct CreditFacilityIncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -29,7 +29,7 @@ pub struct CreditFacilityCollateralUpdated {
     pub recorded_at: Timestamp,
     pub effective: Date,
     pub direction: CollateralDirection,
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -37,7 +37,7 @@ pub struct CreditFacilityApproved {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -65,7 +65,7 @@ pub struct CreditFacilityDisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -73,7 +73,7 @@ pub struct CreditFacilityInterestAccrued {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
     pub days: u32,
 }
 
@@ -82,7 +82,7 @@ pub struct CreditFacilityCollateralSentOut {
     pub amount: Satoshis,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -90,7 +90,7 @@ pub struct CreditFacilityRepaymentAmountReceived {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
 }
 
 impl From<lana_app::credit::CreditFacilityHistoryEntry> for CreditFacilityHistoryEntry {
@@ -147,7 +147,7 @@ impl From<lana_app::credit::CollateralUpdated> for CreditFacilityCollateralUpdat
             recorded_at: collateral.recorded_at.into(),
             effective: collateral.effective.into(),
             direction: collateral.direction,
-            tx_id: collateral.tx_id,
+            tx_id: collateral.tx_id.into(),
         }
     }
 }
@@ -158,7 +158,7 @@ impl From<lana_app::credit::CreditFacilityApproved> for CreditFacilityApproved {
             cents: origination.cents,
             recorded_at: origination.recorded_at.into(),
             effective: origination.effective.into(),
-            tx_id: origination.tx_id,
+            tx_id: origination.tx_id.into(),
         }
     }
 }
@@ -199,7 +199,7 @@ impl From<lana_app::credit::DisbursalExecuted> for CreditFacilityDisbursalExecut
             cents: disbursal.cents,
             recorded_at: disbursal.recorded_at.into(),
             effective: disbursal.effective.into(),
-            tx_id: disbursal.tx_id,
+            tx_id: disbursal.tx_id.into(),
         }
     }
 }
@@ -210,7 +210,7 @@ impl From<lana_app::credit::InterestAccrualsPosted> for CreditFacilityInterestAc
             cents: interest.cents,
             recorded_at: interest.recorded_at.into(),
             effective: interest.effective.into(),
-            tx_id: interest.tx_id,
+            tx_id: interest.tx_id.into(),
             days: interest.days,
         }
     }
@@ -222,7 +222,7 @@ impl From<lana_app::credit::CollateralSentOut> for CreditFacilityCollateralSentO
             amount: liquidation.amount,
             recorded_at: liquidation.recorded_at.into(),
             effective: liquidation.effective.into(),
-            tx_id: liquidation.tx_id,
+            tx_id: liquidation.tx_id.into(),
         }
     }
 }
@@ -235,7 +235,7 @@ impl From<lana_app::credit::ProceedsFromLiquidationReceived>
             cents: repayment.cents,
             recorded_at: repayment.recorded_at.into(),
             effective: repayment.effective.into(),
-            tx_id: repayment.tx_id,
+            tx_id: repayment.tx_id.into(),
         }
     }
 }

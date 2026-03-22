@@ -55,13 +55,13 @@ impl From<DomainLiquidation> for Liquidation {
 #[derive(SimpleObject)]
 pub struct LiquidationCollateralSent {
     amount: Satoshis,
-    ledger_tx_id: LedgerTransactionId,
+    ledger_tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
 pub struct LiquidationProceedsReceived {
     amount: UsdCents,
-    ledger_tx_id: LedgerTransactionId,
+    ledger_tx_id: UUID,
 }
 
 #[ComplexObject]
@@ -72,7 +72,7 @@ impl Liquidation {
             .into_iter()
             .map(|(amount, ledger_tx_id)| LiquidationCollateralSent {
                 amount,
-                ledger_tx_id,
+                ledger_tx_id: ledger_tx_id.into(),
             })
             .collect()
     }
@@ -83,7 +83,7 @@ impl Liquidation {
             .into_iter()
             .map(|(amount, ledger_tx_id)| LiquidationProceedsReceived {
                 amount,
-                ledger_tx_id,
+                ledger_tx_id: ledger_tx_id.into(),
             })
             .collect()
     }

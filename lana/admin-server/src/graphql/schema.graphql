@@ -518,7 +518,7 @@ type CreditFacilityApproved {
 	cents: UsdCents!
 	effective: Date!
 	recordedAt: Timestamp!
-	txId: TransactionId!
+	txId: UUID!
 }
 
 type CreditFacilityBalance {
@@ -536,7 +536,7 @@ type CreditFacilityCollateralSentOut {
 	amount: Satoshis!
 	effective: Date!
 	recordedAt: Timestamp!
-	txId: TransactionId!
+	txId: UUID!
 }
 
 type CreditFacilityCollateralUpdated {
@@ -544,7 +544,7 @@ type CreditFacilityCollateralUpdated {
 	effective: Date!
 	recordedAt: Timestamp!
 	satoshis: Satoshis!
-	txId: TransactionId!
+	txId: UUID!
 }
 
 type CreditFacilityCollateralizationUpdated {
@@ -625,7 +625,7 @@ type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
 	effective: Date!
 	recordedAt: Timestamp!
-	txId: TransactionId!
+	txId: UUID!
 }
 
 input CreditFacilityDisbursalInitiateInput {
@@ -659,7 +659,7 @@ type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
 	effective: Date!
 	recordedAt: Timestamp!
-	txId: TransactionId!
+	txId: UUID!
 }
 
 type CreditFacilityInterestAccrued {
@@ -667,7 +667,7 @@ type CreditFacilityInterestAccrued {
 	days: Int!
 	effective: Date!
 	recordedAt: Timestamp!
-	txId: TransactionId!
+	txId: UUID!
 }
 
 type CreditFacilityLedgerAccounts {
@@ -862,7 +862,7 @@ type CreditFacilityRepaymentAmountReceived {
 	cents: UsdCents!
 	effective: Date!
 	recordedAt: Timestamp!
-	txId: TransactionId!
+	txId: UUID!
 }
 
 type CreditFacilityRepaymentPlanEntry {
@@ -1720,7 +1720,7 @@ enum FiscalYearsSortBy {
 type FreezeEntry {
 	amount: UsdCents!
 	recordedAt: Timestamp!
-	txId: TransactionId!
+	txId: UUID!
 }
 
 type GovernanceNavigationItems {
@@ -1901,7 +1901,7 @@ type LedgerTransaction @entity_key(field: "ledgerTransactionId") {
 	entity: LedgerTransactionEntity
 	entries: [JournalEntry!]!
 	initiatedBy: LedgerTransactionInitiator!
-	ledgerTransactionId: TransactionId!
+	ledgerTransactionId: UUID!
 }
 
 type LedgerTransactionConnection {
@@ -1954,7 +1954,7 @@ type Liquidation @entity_key(field: "liquidationId") {
 
 type LiquidationCollateralSent {
 	amount: Satoshis!
-	ledgerTxId: TransactionId!
+	ledgerTxId: UUID!
 }
 
 type LiquidationConnection {
@@ -2007,7 +2007,7 @@ input LiquidationPaymentCalculateInput {
 
 type LiquidationProceedsReceived {
 	amount: UsdCents!
-	ledgerTxId: TransactionId!
+	ledgerTxId: UUID!
 }
 
 input LiquidationsSort {
@@ -2588,7 +2588,7 @@ type Query {
 	ledgerAccount(id: LedgerAccountId!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
 	ledgerAccountCsv(ledgerAccountId: LedgerAccountId!): LedgerAccountCsvDocument
-	ledgerTransaction(id: TransactionId!): LedgerTransaction
+	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(after: String, first: Int!, templateCode: String!): LedgerTransactionConnection!
 	liquidation(id: LiquidationId!): Liquidation
 	liquidationPaymentCalculate(input: LiquidationPaymentCalculateInput!): LiquidationPayment!
@@ -2967,8 +2967,6 @@ An ISO 8601 UTC timestamp (e.g., 2024-01-15T09:30:00Z). Always in UTC.
 """
 scalar Timestamp
 
-scalar TransactionId
-
 type TransactionTemplate @entity_key(field: "transactionTemplateId") {
 	code: String!
 	transactionTemplateId: UUID!
@@ -3014,12 +3012,12 @@ scalar UUID
 type UnfreezeEntry {
 	amount: UsdCents!
 	recordedAt: Timestamp!
-	txId: TransactionId!
+	txId: UUID!
 }
 
 type UnknownEntry {
 	recordedAt: Timestamp!
-	txId: TransactionId!
+	txId: UUID!
 }
 
 """

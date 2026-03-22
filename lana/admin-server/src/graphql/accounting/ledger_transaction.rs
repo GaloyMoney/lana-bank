@@ -26,7 +26,7 @@ use super::LedgerEntry;
     directive = crate::graphql::entity_key::entity_key::apply("ledgerTransactionId".to_string())
 )]
 pub struct LedgerTransaction {
-    ledger_transaction_id: LedgerTransactionId,
+    ledger_transaction_id: UUID,
     created_at: Timestamp,
     effective: Date,
     #[graphql(skip)]

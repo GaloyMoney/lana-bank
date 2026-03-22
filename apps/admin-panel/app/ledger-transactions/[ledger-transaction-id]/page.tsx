@@ -23,7 +23,7 @@ import DataTable from "@/components/data-table"
 import LayerLabel from "@/app/journal/layer-label"
 
 gql`
-  query LedgerTransaction($id: TransactionId!) {
+  query LedgerTransaction($id: UUID!) {
     ledgerTransaction(id: $id) {
       ledgerTransactionId
       createdAt

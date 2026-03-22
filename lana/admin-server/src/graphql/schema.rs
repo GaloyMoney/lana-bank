@@ -918,7 +918,7 @@ impl Query {
     async fn ledger_transaction(
         &self,
         ctx: &Context<'_>,
-        id: LedgerTransactionId,
+        id: UUID,
     ) -> async_graphql::Result<Option<LedgerTransaction>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(

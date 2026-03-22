@@ -57,27 +57,27 @@ pub struct DisbursalEntry {
 #[graphql(complex)]
 pub struct PaymentEntry {
     #[graphql(skip)]
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }
 
 #[derive(SimpleObject)]
 pub struct FreezeEntry {
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
     pub recorded_at: Timestamp,
     pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]
 pub struct UnfreezeEntry {
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
     pub recorded_at: Timestamp,
     pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]
 pub struct UnknownEntry {
-    pub tx_id: LedgerTransactionId,
+    pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }
 
@@ -187,27 +187,27 @@ impl From<lana_app::deposit::DepositAccountHistoryEntry> for DepositAccountHisto
             }
             lana_app::deposit::DepositAccountHistoryEntry::Payment(entry) => {
                 Self::Payment(PaymentEntry {
-                    tx_id: entry.tx_id,
+                    tx_id: entry.tx_id.into(),
                     recorded_at: entry.recorded_at.into(),
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Freeze(entry) => {
                 Self::Freeze(FreezeEntry {
-                    tx_id: entry.tx_id,
+                    tx_id: entry.tx_id.into(),
                     recorded_at: entry.recorded_at.into(),
                     amount: entry.amount,
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Unfreeze(entry) => {
                 Self::Unfreeze(UnfreezeEntry {
-                    tx_id: entry.tx_id,
+                    tx_id: entry.tx_id.into(),
                     recorded_at: entry.recorded_at.into(),
                     amount: entry.amount,
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Unknown(entry) => {
                 Self::Unknown(UnknownEntry {
-                    tx_id: entry.tx_id,
+                    tx_id: entry.tx_id.into(),
                     recorded_at: entry.recorded_at.into(),
                 })
             }

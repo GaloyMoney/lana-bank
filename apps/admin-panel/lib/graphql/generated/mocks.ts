@@ -705,7 +705,7 @@ export const mockCreditFacilityApproved = (overrides?: Partial<CreditFacilityApp
         cents: overrides && overrides.hasOwnProperty('cents') ? overrides.cents! : generateMockValue.usdCents(),
         effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : faker.lorem.word(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -733,7 +733,7 @@ export const mockCreditFacilityCollateralSentOut = (overrides?: Partial<CreditFa
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.satoshis(),
         effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : faker.lorem.word(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -746,7 +746,7 @@ export const mockCreditFacilityCollateralUpdated = (overrides?: Partial<CreditFa
         effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
         satoshis: overrides && overrides.hasOwnProperty('satoshis') ? overrides.satoshis! : generateMockValue.satoshis(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : faker.lorem.word(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -839,7 +839,7 @@ export const mockCreditFacilityDisbursalExecuted = (overrides?: Partial<CreditFa
         cents: overrides && overrides.hasOwnProperty('cents') ? overrides.cents! : generateMockValue.usdCents(),
         effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : faker.lorem.word(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -879,7 +879,7 @@ export const mockCreditFacilityIncrementalPayment = (overrides?: Partial<CreditF
         cents: overrides && overrides.hasOwnProperty('cents') ? overrides.cents! : generateMockValue.usdCents(),
         effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : faker.lorem.word(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -892,7 +892,7 @@ export const mockCreditFacilityInterestAccrued = (overrides?: Partial<CreditFaci
         days: overrides && overrides.hasOwnProperty('days') ? overrides.days! : faker.number.int({ min: 0, max: 9999 }),
         effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : faker.lorem.word(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -1193,7 +1193,7 @@ export const mockCreditFacilityRepaymentAmountReceived = (overrides?: Partial<Cr
         cents: overrides && overrides.hasOwnProperty('cents') ? overrides.cents! : generateMockValue.usdCents(),
         effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : faker.lorem.word(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -2154,7 +2154,7 @@ export const mockFreezeEntry = (overrides?: Partial<FreezeEntry>, _relationships
         __typename: 'FreezeEntry',
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : faker.lorem.word(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -2376,7 +2376,7 @@ export const mockLedgerTransaction = (overrides?: Partial<LedgerTransaction>, _r
         entity: overrides && overrides.hasOwnProperty('entity') ? overrides.entity! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
         entries: overrides && overrides.hasOwnProperty('entries') ? overrides.entries! : [relationshipsToOmit.has('LedgerEntry') ? {} as LedgerEntry : mockLedgerEntry({}, relationshipsToOmit)],
         initiatedBy: overrides && overrides.hasOwnProperty('initiatedBy') ? overrides.initiatedBy! : relationshipsToOmit.has('System') ? {} as System : mockSystem({}, relationshipsToOmit),
-        ledgerTransactionId: overrides && overrides.hasOwnProperty('ledgerTransactionId') ? overrides.ledgerTransactionId! : faker.lorem.word(),
+        ledgerTransactionId: overrides && overrides.hasOwnProperty('ledgerTransactionId') ? overrides.ledgerTransactionId! : generateMockValue.uuid(),
     };
 };
 
@@ -2427,7 +2427,7 @@ export const mockLiquidationCollateralSent = (overrides?: Partial<LiquidationCol
     return {
         __typename: 'LiquidationCollateralSent',
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.satoshis(),
-        ledgerTxId: overrides && overrides.hasOwnProperty('ledgerTxId') ? overrides.ledgerTxId! : faker.lorem.word(),
+        ledgerTxId: overrides && overrides.hasOwnProperty('ledgerTxId') ? overrides.ledgerTxId! : generateMockValue.uuid(),
     };
 };
 
@@ -2484,7 +2484,7 @@ export const mockLiquidationProceedsReceived = (overrides?: Partial<LiquidationP
     return {
         __typename: 'LiquidationProceedsReceived',
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
-        ledgerTxId: overrides && overrides.hasOwnProperty('ledgerTxId') ? overrides.ledgerTxId! : faker.lorem.word(),
+        ledgerTxId: overrides && overrides.hasOwnProperty('ledgerTxId') ? overrides.ledgerTxId! : generateMockValue.uuid(),
     };
 };
 
@@ -3614,7 +3614,7 @@ export const mockUnfreezeEntry = (overrides?: Partial<UnfreezeEntry>, _relations
         __typename: 'UnfreezeEntry',
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : faker.lorem.word(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -3624,7 +3624,7 @@ export const mockUnknownEntry = (overrides?: Partial<UnknownEntry>, _relationshi
     return {
         __typename: 'UnknownEntry',
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : faker.lorem.word(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
