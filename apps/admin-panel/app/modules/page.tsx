@@ -25,16 +25,16 @@ import { DepositAccountCategoryKey } from "./deposit-config-fields"
 
 import { DetailItem } from "@/components/details"
 import {
-  useDepositConfigQuery,
-  useCreditConfigQuery,
+  useDepositAccountConfigQuery,
+  useCreditFacilityConfigQuery,
   useChartAccountingBaseConfigQuery,
   useCreditAccountSetOptionsQuery,
   type CreditAccountSetOptionsQuery,
 } from "@/lib/graphql/generated"
 
 gql`
-  query depositConfig {
-    depositConfig {
+  query depositAccountConfig {
+    depositAccountConfig {
       chartOfAccountsOmnibusParentCode
       chartOfAccountsIndividualDepositAccountsParentCode
       chartOfAccountsGovernmentEntityDepositAccountsParentCode
@@ -51,8 +51,8 @@ gql`
     }
   }
 
-  query creditConfig {
-    creditConfig {
+  query creditFacilityConfig {
+    creditFacilityConfig {
       chartOfAccountFacilityOmnibusParentCode
       chartOfAccountCollateralOmnibusParentCode
       chartOfAccountLiquidationProceedsOmnibusParentCode
@@ -172,8 +172,8 @@ const Modules: React.FC = () => {
     useState(false)
   const [openCreditConfigUpdateDialog, setOpenCreditConfigUpdateDialog] = useState(false)
 
-  const { data: depositConfig, loading: depositConfigLoading } = useDepositConfigQuery()
-  const { data: creditConfig, loading: creditConfigLoading } = useCreditConfigQuery()
+  const { data: depositConfig, loading: depositConfigLoading } = useDepositAccountConfigQuery()
+  const { data: creditConfig, loading: creditConfigLoading } = useCreditFacilityConfigQuery()
   const { data: chartData, loading: chartLoading } = useChartAccountingBaseConfigQuery()
   const { data: accountSetOptionsData, error: accountSetOptionsError } =
     useCreditAccountSetOptionsQuery()
@@ -225,14 +225,14 @@ const Modules: React.FC = () => {
       <DepositConfigUpdateDialog
         open={openDepositConfigUpdateDialog}
         setOpen={setOpenDepositConfigUpdateDialog}
-        depositModuleConfig={depositConfig?.depositConfig || undefined}
+        depositModuleConfig={depositConfig?.depositAccountConfig || undefined}
         accountSetOptions={depositAccountSetOptions}
         accountSetOptionsError={Boolean(accountSetOptionsError)}
       />
       <CreditConfigUpdateDialog
         open={openCreditConfigUpdateDialog}
         setOpen={setOpenCreditConfigUpdateDialog}
-        creditModuleConfig={creditConfig?.creditConfig || undefined}
+        creditModuleConfig={creditConfig?.creditFacilityConfig || undefined}
         accountSetOptions={accountSetOptions}
         accountSetOptionsError={Boolean(accountSetOptionsError)}
       />
@@ -246,9 +246,9 @@ const Modules: React.FC = () => {
         <CardContent>
           {depositConfigLoading ? (
             <LoaderCircle className="animate-spin" />
-          ) : depositConfig?.depositConfig ? (
+          ) : depositConfig?.depositAccountConfig ? (
             <DetailsGroup>
-              {Object.entries(depositConfig?.depositConfig || {}).map(
+              {Object.entries(depositConfig?.depositAccountConfig || {}).map(
                 ([key, value]) =>
                   key !== "__typename" && (
                     <DetailItem
@@ -285,9 +285,9 @@ const Modules: React.FC = () => {
         <CardContent>
           {creditConfigLoading ? (
             <LoaderCircle className="animate-spin" />
-          ) : creditConfig?.creditConfig ? (
+          ) : creditConfig?.creditFacilityConfig ? (
             <DetailsGroup>
-              {Object.entries(creditConfig?.creditConfig || {}).map(
+              {Object.entries(creditConfig?.creditFacilityConfig || {}).map(
                 ([key, value]) =>
                   key !== "__typename" && (
                     <DetailItem

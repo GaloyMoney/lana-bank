@@ -3,26 +3,26 @@ import { MockedProvider } from "@apollo/client/testing"
 
 import Modules from "./page"
 
-import { DepositConfigDocument, CreditConfigDocument } from "@/lib/graphql/generated"
+import { DepositAccountConfigDocument, CreditFacilityConfigDocument } from "@/lib/graphql/generated"
 
 const baseMocks = [
   {
     request: {
-      query: DepositConfigDocument,
+      query: DepositAccountConfigDocument,
     },
     result: {
       data: {
-        depositConfig: null,
+        depositAccountConfig: null,
       },
     },
   },
   {
     request: {
-      query: CreditConfigDocument,
+      query: CreditFacilityConfigDocument,
     },
     result: {
       data: {
-        creditConfig: null,
+        creditFacilityConfig: null,
       },
     },
   },
@@ -63,13 +63,13 @@ const LoadingStory = () => {
   const mocks = [
     {
       request: {
-        query: DepositConfigDocument,
+        query: DepositAccountConfigDocument,
       },
       delay: Infinity,
     },
     {
       request: {
-        query: CreditConfigDocument,
+        query: CreditFacilityConfigDocument,
       },
       delay: Infinity,
     },
@@ -97,11 +97,11 @@ const DataStory = () => {
   const mocks = [
     {
       request: {
-        query: DepositConfigDocument,
+        query: DepositAccountConfigDocument,
       },
       result: {
         data: {
-          depositConfig: {
+          depositAccountConfig: {
             chartOfAccountsDepositAccountsParentCode: "41.01.0101",
             chartOfAccountsOmnibusParentCode: "51.01",
           },
@@ -110,11 +110,11 @@ const DataStory = () => {
     },
     {
       request: {
-        query: CreditConfigDocument,
+        query: CreditFacilityConfigDocument,
       },
       result: {
         data: {
-          creditConfig: {
+          creditFacilityConfig: {
             chartOfAccountFacilityOmnibusParentCode: "41.01.0101",
             chartOfAccountCollateralOmnibusParentCode: "51.01",
             chartOfAccountFacilityParentCode: "41.01.0101",

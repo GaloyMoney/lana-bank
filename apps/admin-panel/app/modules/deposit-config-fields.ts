@@ -1,5 +1,5 @@
 import {
-  DepositModuleConfig,
+  DepositAccountModuleConfig,
   DepositAccountModuleConfigureInput,
 } from "@/lib/graphql/generated"
 
@@ -107,13 +107,13 @@ const buildFormData = (
 export const DEPOSIT_EMPTY_FORM_DATA = buildFormData(() => "")
 
 export const buildDepositFormDataFromConfig = (
-  depositModuleConfig?: DepositModuleConfig,
+  depositModuleConfig?: DepositAccountModuleConfig,
 ): DepositAccountModuleConfigureInput => {
   const updatedFormData = { ...DEPOSIT_EMPTY_FORM_DATA }
   if (!depositModuleConfig) return updatedFormData
 
   DEPOSIT_CONFIG_FIELDS.forEach((field) => {
-    const value = depositModuleConfig[field.key as keyof DepositModuleConfig]
+    const value = depositModuleConfig[field.key as keyof DepositAccountModuleConfig]
     if (value) {
       updatedFormData[field.key] = value as string
     }

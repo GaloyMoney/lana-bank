@@ -1,5 +1,5 @@
-query depositConfig {
-  depositConfig {
+query depositAccountConfig {
+  depositAccountConfig {
     chartOfAccountsOmnibusParentCode
     chartOfAccountsIndividualDepositAccountsParentCode
     chartOfAccountsGovernmentEntityDepositAccountsParentCode

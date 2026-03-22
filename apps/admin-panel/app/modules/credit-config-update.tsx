@@ -15,8 +15,8 @@ import {
 import { ModuleConfigUpdateDialog } from "./module-config-update-dialog"
 
 import {
-  CreditConfigDocument,
-  CreditModuleConfig,
+  CreditFacilityConfigDocument,
+  CreditFacilityModuleConfig,
   CreditFacilityModuleConfigureInput,
   useCreditFacilityModuleConfigureMutation,
 } from "@/lib/graphql/generated"
@@ -27,7 +27,7 @@ import {
 gql`
   mutation CreditFacilityModuleConfigure($input: CreditFacilityModuleConfigureInput!) {
     creditFacilityModuleConfigure(input: $input) {
-      creditConfig {
+      creditFacilityConfig {
         chartOfAccountsId
         chartOfAccountFacilityOmnibusParentCode
         chartOfAccountCollateralOmnibusParentCode
@@ -92,7 +92,7 @@ type AccountSetOption = AccountSetOptionBase & {
 type CreditConfigUpdateDialogProps = {
   setOpen: (isOpen: boolean) => void
   open: boolean
-  creditModuleConfig?: CreditModuleConfig
+  creditModuleConfig?: CreditFacilityModuleConfig
   accountSetOptions?: AccountSetOption[]
   accountSetOptionsError?: boolean
 }
@@ -109,7 +109,7 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
 
   const [updateCreditConfig, { loading, error, reset }] =
     useCreditFacilityModuleConfigureMutation({
-      refetchQueries: [CreditConfigDocument],
+      refetchQueries: [CreditFacilityConfigDocument],
     })
   const handleSave = async (input: CreditFacilityModuleConfigureInput) => {
     await updateCreditConfig({ variables: { input } })

@@ -15,8 +15,8 @@ import {
 import { ModuleConfigUpdateDialog } from "./module-config-update-dialog"
 
 import {
-  DepositConfigDocument,
-  DepositModuleConfig,
+  DepositAccountConfigDocument,
+  DepositAccountModuleConfig,
   DepositAccountModuleConfigureInput,
   useDepositAccountModuleConfigureMutation,
 } from "@/lib/graphql/generated"
@@ -27,7 +27,7 @@ import {
 gql`
   mutation DepositAccountModuleConfigure($input: DepositAccountModuleConfigureInput!) {
     depositAccountModuleConfigure(input: $input) {
-      depositConfig {
+      depositAccountConfig {
         chartOfAccountsId
         chartOfAccountsOmnibusParentCode
         chartOfAccountsIndividualDepositAccountsParentCode
@@ -50,7 +50,7 @@ gql`
 type DepositConfigUpdateDialogProps = {
   setOpen: (isOpen: boolean) => void
   open: boolean
-  depositModuleConfig?: DepositModuleConfig
+  depositModuleConfig?: DepositAccountModuleConfig
   accountSetOptions?: AccountSetOption[]
   accountSetOptionsError?: boolean
 }
@@ -70,7 +70,7 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
 
   const [updateDepositConfig, { loading, error, reset }] =
     useDepositAccountModuleConfigureMutation({
-      refetchQueries: [DepositConfigDocument],
+      refetchQueries: [DepositAccountConfigDocument],
     })
   const handleSave = async (input: DepositAccountModuleConfigureInput) => {
     await updateDepositConfig({ variables: { input } })

@@ -1174,17 +1174,17 @@ impl Query {
             .collect())
     }
 
-    async fn deposit_config(
+    async fn deposit_account_config(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<DepositModuleConfig>> {
+    ) -> async_graphql::Result<Option<DepositAccountModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
             .deposits()
             .chart_of_accounts_integrations()
             .get_config(sub)
             .await?;
-        Ok(config.map(DepositModuleConfig::from))
+        Ok(config.map(DepositAccountModuleConfig::from))
     }
 
     async fn domain_configs(
@@ -1206,17 +1206,17 @@ impl Query {
         )
     }
 
-    async fn credit_config(
+    async fn credit_facility_config(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<CreditModuleConfig>> {
+    ) -> async_graphql::Result<Option<CreditFacilityModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
             .credit()
             .chart_of_accounts_integrations()
             .get_config(sub)
             .await?;
-        Ok(config.map(CreditModuleConfig::from))
+        Ok(config.map(CreditFacilityModuleConfig::from))
     }
 
     async fn public_id_target(
@@ -1679,7 +1679,7 @@ impl Mutation {
             .set_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(DepositAccountModuleConfigurePayload::from(
-            DepositModuleConfig::from(config),
+            DepositAccountModuleConfig::from(config),
         ))
     }
 
@@ -2117,7 +2117,7 @@ impl Mutation {
             .set_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(CreditFacilityModuleConfigurePayload::from(
-            CreditModuleConfig::from(config),
+            CreditFacilityModuleConfig::from(config),
         ))
     }
 
