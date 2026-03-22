@@ -597,7 +597,7 @@ net_usd_revenue() {
   variables=$(
     jq -n \
       --arg from "$(from_utc)" \
-      --arg until "$(naive_now)" \
+      --arg until "9999-12-31" \
       '{ from: $from, until: $until }'
   )
   exec_admin_graphql 'profit-and-loss' "$variables"
