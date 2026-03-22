@@ -9,17 +9,15 @@ Roll out a crate update through the dependency chain: **es-entity -> job -> obix
 
 Each crate in the chain must be released sequentially because downstream crates depend on the upstream ones being published to crates.io first.
 
-## Arguments
+## Invocation
 
-The user will typically say something like:
-- "release es-entity through the stack"
-- "roll out es-entity to lana-bank"
-- "update es-entity in job, obix, cala, and lana-bank"
+This skill is invoked explicitly via `/lana-release-crate-chain`. It is never triggered automatically.
 
-They may also specify:
-- A specific starting crate (e.g., "start from obix")
-- A specific ending crate (e.g., "up to cala, skip lana-bank")
-- A specific branch or PR to start from (e.g., "release es-entity PR #113")
+The user may pass arguments after the slash command:
+- `/lana-release-crate-chain` — start from es-entity, roll through the full chain
+- `/lana-release-crate-chain start from obix` — skip es-entity and job, start at obix
+- `/lana-release-crate-chain up to cala` — stop after cala, skip lana-bank
+- `/lana-release-crate-chain es-entity PR #113` — start by merging a specific PR
 
 ## Repository Locations
 
