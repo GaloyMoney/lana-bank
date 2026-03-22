@@ -18,7 +18,7 @@ use lana_app::access::role::RolesSortBy as DomainRolesSortBy;
     directive = crate::graphql::entity_key::entity_key::apply("roleId".to_string())
 )]
 pub struct Role {
-    role_id: UUID,
+    role_id: RoleId,
     created_at: Timestamp,
 
     #[graphql(skip)]
@@ -57,7 +57,7 @@ impl Role {
 impl From<DomainRole> for Role {
     fn from(role: DomainRole) -> Self {
         Self {
-            role_id: UUID::from(role.id),
+            role_id: role.id,
             created_at: role.created_at().into(),
 
             entity: Arc::new(role),
@@ -68,21 +68,21 @@ impl From<DomainRole> for Role {
 #[derive(InputObject)]
 pub struct RoleCreateInput {
     pub name: String,
-    pub permission_set_ids: Vec<UUID>,
+    pub permission_set_ids: Vec<PermissionSetId>,
 }
 crate::mutation_payload! { RoleCreatePayload, role: Role }
 
 #[derive(InputObject)]
 pub struct RolePermissionSetsAddInput {
-    pub role_id: UUID,
-    pub permission_set_ids: Vec<UUID>,
+    pub role_id: RoleId,
+    pub permission_set_ids: Vec<PermissionSetId>,
 }
 crate::mutation_payload! { RolePermissionSetsAddPayload, role: Role }
 
 #[derive(InputObject)]
 pub struct RolePermissionSetsRemoveInput {
-    pub role_id: UUID,
-    pub permission_set_ids: Vec<UUID>,
+    pub role_id: RoleId,
+    pub permission_set_ids: Vec<PermissionSetId>,
 }
 crate::mutation_payload! { RolePermissionSetsRemovePayload, role: Role }
 

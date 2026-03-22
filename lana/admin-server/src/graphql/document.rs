@@ -11,8 +11,8 @@ pub use lana_app::document::{Document as DomainDocument, DocumentStatus};
     directive = crate::graphql::entity_key::entity_key::apply("customerDocumentId".to_string())
 )]
 pub struct CustomerDocument {
-    customer_document_id: UUID,
-    customer_id: UUID,
+    customer_document_id: CustomerDocumentId,
+    customer_id: CustomerId,
     status: DocumentStatus,
 
     #[graphql(skip)]
@@ -22,8 +22,8 @@ pub struct CustomerDocument {
 impl From<DomainDocument> for CustomerDocument {
     fn from(document: DomainDocument) -> Self {
         Self {
-            customer_document_id: UUID::from(document.id),
-            customer_id: UUID::from(document.reference_id),
+            customer_document_id: document.id.into(),
+            customer_id: document.reference_id.into(),
             status: document.status,
             entity: Arc::new(document),
         }
@@ -51,13 +51,13 @@ impl CustomerDocument {
 #[derive(InputObject)]
 pub struct CustomerDocumentCreateInput {
     pub file: Upload,
-    pub customer_id: UUID,
+    pub customer_id: CustomerId,
 }
 crate::mutation_payload! { CustomerDocumentCreatePayload, customer_document: CustomerDocument }
 
 #[derive(InputObject)]
 pub struct CustomerDocumentDownloadLinksGenerateInput {
-    pub customer_document_id: UUID,
+    pub customer_document_id: CustomerDocumentId,
 }
 
 #[derive(SimpleObject)]
@@ -75,15 +75,15 @@ impl From<lana_app::document::GeneratedDocumentDownloadLink>
 
 #[derive(InputObject)]
 pub struct CustomerDocumentDeleteInput {
-    pub customer_document_id: UUID,
+    pub customer_document_id: CustomerDocumentId,
 }
 #[derive(SimpleObject)]
 pub struct CustomerDocumentDeletePayload {
-    pub deleted_document_id: UUID,
+    pub deleted_document_id: CustomerDocumentId,
 }
 
 #[derive(InputObject)]
 pub struct CustomerDocumentArchiveInput {
-    pub customer_document_id: UUID,
+    pub customer_document_id: CustomerDocumentId,
 }
 crate::mutation_payload! { CustomerDocumentArchivePayload, customer_document: CustomerDocument }

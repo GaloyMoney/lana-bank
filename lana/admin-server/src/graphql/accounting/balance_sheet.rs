@@ -73,7 +73,7 @@ impl BalanceSheet {
 #[derive(Clone, SimpleObject)]
 #[graphql(complex)]
 pub struct BalanceSheetAccount {
-    ledger_account_id: UUID,
+    ledger_account_id: LedgerAccountId,
     code: Option<AccountCode>,
     name: String,
 
@@ -86,7 +86,7 @@ pub struct BalanceSheetAccount {
 impl BalanceSheetAccount {
     pub fn new(account: DomainBalanceSheetAccountSet, as_of: NaiveDate) -> Self {
         Self {
-            ledger_account_id: UUID::from(account.id),
+            ledger_account_id: account.id,
             code: account.code.as_ref().map(|code| code.into()),
             name: account.name.clone(),
             entity: Arc::new(account),

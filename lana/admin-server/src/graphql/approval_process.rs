@@ -20,7 +20,7 @@ pub use lana_app::governance::{
     directive = crate::graphql::entity_key::entity_key::apply("approvalProcessId".to_string())
 )]
 pub struct ApprovalProcess {
-    approval_process_id: UUID,
+    approval_process_id: ApprovalProcessId,
     approval_process_type: ApprovalProcessType,
     status: ApprovalProcessStatus,
     created_at: Timestamp,
@@ -32,7 +32,7 @@ pub struct ApprovalProcess {
 impl From<DomainApprovalProcess> for ApprovalProcess {
     fn from(process: DomainApprovalProcess) -> Self {
         Self {
-            approval_process_id: process.id.into(),
+            approval_process_id: process.id,
             approval_process_type: ApprovalProcessType::from(&process.process_type),
             status: process.status(),
             created_at: process.created_at().into(),
@@ -240,13 +240,13 @@ pub(super) enum ApprovalProcessTarget {
 
 #[derive(InputObject)]
 pub struct ApprovalProcessApproveInput {
-    pub approval_process_id: UUID,
+    pub approval_process_id: ApprovalProcessId,
 }
 crate::mutation_payload! { ApprovalProcessApprovePayload, approval_process: ApprovalProcess }
 
 #[derive(InputObject)]
 pub struct ApprovalProcessDenyInput {
-    pub approval_process_id: UUID,
+    pub approval_process_id: ApprovalProcessId,
     pub reason: String,
 }
 crate::mutation_payload! { ApprovalProcessDenyPayload, approval_process: ApprovalProcess }

@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 #[derive(InputObject)]
 pub struct ProspectKycLinkCreateInput {
-    pub prospect_id: UUID,
+    pub prospect_id: ProspectId,
 }
 
 #[derive(SimpleObject)]

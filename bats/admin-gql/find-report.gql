@@ -1,4 +1,4 @@
-query ReportRun($id: UUID!) {
+query ReportRun($id: ReportRunId!) {
   reportRun(id: $id) {
     reportRunId
     state

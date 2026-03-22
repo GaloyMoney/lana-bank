@@ -3,19 +3,21 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
+pub use domain_config::DomainConfigId;
 pub use lana_app::price::PriceProviderId;
 
 pub use lana_app::{
-    accounting::LedgerAccountId,
+    accounting::{LedgerAccountId, csv::AccountingCsvDocumentId},
     primitives::{
         ApprovalProcessId, ChartId, CollateralDirection, CollateralId, CommitteeId,
         CreditFacilityId, CreditFacilityProposalId, CreditFacilityProposalStatus, CustodianId,
         CustomerDocumentId, CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus,
         FiscalYearId, LedgerTransactionId, LiquidationId, PendingCreditFacilityId,
-        PendingCreditFacilityStatus, PermissionSetId, PolicyId, ProspectId, RoleId, Satoshis,
-        SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WalletId,
-        WithdrawalId,
+        PendingCreditFacilityStatus, PermissionSetId, PolicyId, ProspectId, ReportId, RoleId,
+        Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId,
+        WalletId, WithdrawalId,
     },
+    report::ReportRunId,
     terms::{CollateralizationState, PendingCreditFacilityCollateralizationState},
 };
 

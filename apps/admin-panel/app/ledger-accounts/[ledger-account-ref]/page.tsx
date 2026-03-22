@@ -149,7 +149,7 @@ gql`
     }
   }
 
-  query LedgerAccount($id: UUID!, $first: Int!, $after: String) {
+  query LedgerAccount($id: LedgerAccountId!, $first: Int!, $after: String) {
     ledgerAccount(id: $id) {
       ...LedgerAccountDetails
     }

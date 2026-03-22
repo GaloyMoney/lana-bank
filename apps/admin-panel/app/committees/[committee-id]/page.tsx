@@ -20,7 +20,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useCreateContext } from "@/app/create"
 
 gql`
-  query GetCommitteeDetails($id: UUID!) {
+  query GetCommitteeDetails($id: CommitteeId!) {
     committee(id: $id) {
       ...CommitteeFields
     }

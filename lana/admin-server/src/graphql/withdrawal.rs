@@ -27,9 +27,9 @@ pub use lana_app::{
     directive = crate::graphql::entity_key::entity_key::apply("withdrawalId".to_string())
 )]
 pub struct Withdrawal {
-    withdrawal_id: UUID,
-    account_id: UUID,
-    approval_process_id: UUID,
+    withdrawal_id: WithdrawalId,
+    account_id: DepositAccountId,
+    approval_process_id: ApprovalProcessId,
     amount: UsdCents,
     status: WithdrawalStatus,
     created_at: Timestamp,
@@ -42,9 +42,9 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
     fn from(withdraw: lana_app::deposit::Withdrawal) -> Self {
         Withdrawal {
             created_at: withdraw.created_at().into(),
-            account_id: withdraw.deposit_account_id.into(),
-            withdrawal_id: UUID::from(withdraw.id),
-            approval_process_id: UUID::from(withdraw.approval_process_id),
+            account_id: withdraw.deposit_account_id,
+            withdrawal_id: withdraw.id,
+            approval_process_id: withdraw.approval_process_id,
             amount: withdraw.amount,
             status: withdraw.status(),
             entity: Arc::new(withdraw),
@@ -108,7 +108,7 @@ impl Withdrawal {
 
 #[derive(InputObject)]
 pub struct WithdrawalInitiateInput {
-    pub deposit_account_id: UUID,
+    pub deposit_account_id: DepositAccountId,
     pub amount: UsdCents,
     pub reference: Option<String>,
 }
@@ -116,19 +116,19 @@ crate::mutation_payload! { WithdrawalInitiatePayload, withdrawal: Withdrawal }
 
 #[derive(InputObject)]
 pub struct WithdrawalConfirmInput {
-    pub withdrawal_id: UUID,
+    pub withdrawal_id: WithdrawalId,
 }
 crate::mutation_payload! { WithdrawalConfirmPayload, withdrawal: Withdrawal }
 
 #[derive(InputObject)]
 pub struct WithdrawalCancelInput {
-    pub withdrawal_id: UUID,
+    pub withdrawal_id: WithdrawalId,
 }
 crate::mutation_payload! { WithdrawalCancelPayload, withdrawal: Withdrawal }
 
 #[derive(InputObject)]
 pub struct WithdrawalRevertInput {
-    pub withdrawal_id: UUID,
+    pub withdrawal_id: WithdrawalId,
 }
 crate::mutation_payload! { WithdrawalRevertPayload, withdrawal: Withdrawal }
 

@@ -5,23 +5,23 @@ use crate::{graphql::accounting::LedgerAccount, primitives::*};
 use super::LanaDataLoader;
 
 pub(super) struct CreditFacilityLedgerAccounts {
-    pub facility_account_id: UUID,
-    pub disbursed_receivable_not_yet_due_account_id: UUID,
-    pub disbursed_receivable_due_account_id: UUID,
-    pub disbursed_receivable_overdue_account_id: UUID,
-    pub disbursed_defaulted_account_id: UUID,
-    pub collateral_account_id: UUID,
-    pub collateral_in_liquidation_account_id: UUID,
-    pub liquidated_collateral_account_id: UUID,
-    pub proceeds_from_liquidation_account_id: UUID,
-    pub interest_receivable_not_yet_due_account_id: UUID,
-    pub interest_receivable_due_account_id: UUID,
-    pub interest_receivable_overdue_account_id: UUID,
-    pub interest_defaulted_account_id: UUID,
-    pub interest_income_account_id: UUID,
-    pub fee_income_account_id: UUID,
-    pub payment_holding_account_id: UUID,
-    pub uncovered_outstanding_account_id: UUID,
+    pub facility_account_id: LedgerAccountId,
+    pub disbursed_receivable_not_yet_due_account_id: LedgerAccountId,
+    pub disbursed_receivable_due_account_id: LedgerAccountId,
+    pub disbursed_receivable_overdue_account_id: LedgerAccountId,
+    pub disbursed_defaulted_account_id: LedgerAccountId,
+    pub collateral_account_id: LedgerAccountId,
+    pub collateral_in_liquidation_account_id: LedgerAccountId,
+    pub liquidated_collateral_account_id: LedgerAccountId,
+    pub proceeds_from_liquidation_account_id: LedgerAccountId,
+    pub interest_receivable_not_yet_due_account_id: LedgerAccountId,
+    pub interest_receivable_due_account_id: LedgerAccountId,
+    pub interest_receivable_overdue_account_id: LedgerAccountId,
+    pub interest_defaulted_account_id: LedgerAccountId,
+    pub interest_income_account_id: LedgerAccountId,
+    pub fee_income_account_id: LedgerAccountId,
+    pub payment_holding_account_id: LedgerAccountId,
+    pub uncovered_outstanding_account_id: LedgerAccountId,
 }
 
 #[Object]
@@ -29,7 +29,7 @@ impl CreditFacilityLedgerAccounts {
     async fn facility_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let facility_account = loader
-            .load_one(LedgerAccountId::from(self.facility_account_id))
+            .load_one(self.facility_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(facility_account)
@@ -40,9 +40,7 @@ impl CreditFacilityLedgerAccounts {
     ) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let disbursed_receivable_not_yet_due_account = loader
-            .load_one(LedgerAccountId::from(
-                self.disbursed_receivable_not_yet_due_account_id,
-            ))
+            .load_one(self.disbursed_receivable_not_yet_due_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(disbursed_receivable_not_yet_due_account)
@@ -50,9 +48,7 @@ impl CreditFacilityLedgerAccounts {
     async fn disbursed_receivable_due_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let disbursed_receivable_due_account = loader
-            .load_one(LedgerAccountId::from(
-                self.disbursed_receivable_due_account_id,
-            ))
+            .load_one(self.disbursed_receivable_due_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(disbursed_receivable_due_account)
@@ -63,9 +59,7 @@ impl CreditFacilityLedgerAccounts {
     ) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let disbursed_receivable_overdue_account = loader
-            .load_one(LedgerAccountId::from(
-                self.disbursed_receivable_overdue_account_id,
-            ))
+            .load_one(self.disbursed_receivable_overdue_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(disbursed_receivable_overdue_account)
@@ -73,7 +67,7 @@ impl CreditFacilityLedgerAccounts {
     async fn disbursed_defaulted_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let disbursed_defaulted_account = loader
-            .load_one(LedgerAccountId::from(self.disbursed_defaulted_account_id))
+            .load_one(self.disbursed_defaulted_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(disbursed_defaulted_account)
@@ -81,7 +75,7 @@ impl CreditFacilityLedgerAccounts {
     async fn collateral_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let collateral_account = loader
-            .load_one(LedgerAccountId::from(self.collateral_account_id))
+            .load_one(self.collateral_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(collateral_account)
@@ -89,9 +83,7 @@ impl CreditFacilityLedgerAccounts {
     async fn collateral_in_liquidation_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let collateral_in_liquidation_account = loader
-            .load_one(LedgerAccountId::from(
-                self.collateral_in_liquidation_account_id,
-            ))
+            .load_one(self.collateral_in_liquidation_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(collateral_in_liquidation_account)
@@ -99,7 +91,7 @@ impl CreditFacilityLedgerAccounts {
     async fn liquidated_collateral_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let liquidated_collateral_account = loader
-            .load_one(LedgerAccountId::from(self.liquidated_collateral_account_id))
+            .load_one(self.liquidated_collateral_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(liquidated_collateral_account)
@@ -107,9 +99,7 @@ impl CreditFacilityLedgerAccounts {
     async fn proceeds_from_liquidation_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let proceeds_from_liquidation_account = loader
-            .load_one(LedgerAccountId::from(
-                self.proceeds_from_liquidation_account_id,
-            ))
+            .load_one(self.proceeds_from_liquidation_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(proceeds_from_liquidation_account)
@@ -120,9 +110,7 @@ impl CreditFacilityLedgerAccounts {
     ) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let interest_receivable_not_yet_due_account = loader
-            .load_one(LedgerAccountId::from(
-                self.interest_receivable_not_yet_due_account_id,
-            ))
+            .load_one(self.interest_receivable_not_yet_due_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(interest_receivable_not_yet_due_account)
@@ -130,9 +118,7 @@ impl CreditFacilityLedgerAccounts {
     async fn interest_receivable_due_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let interest_receivable_due_account = loader
-            .load_one(LedgerAccountId::from(
-                self.interest_receivable_due_account_id,
-            ))
+            .load_one(self.interest_receivable_due_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(interest_receivable_due_account)
@@ -143,9 +129,7 @@ impl CreditFacilityLedgerAccounts {
     ) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let interest_receivable_overdue_account = loader
-            .load_one(LedgerAccountId::from(
-                self.interest_receivable_overdue_account_id,
-            ))
+            .load_one(self.interest_receivable_overdue_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(interest_receivable_overdue_account)
@@ -153,7 +137,7 @@ impl CreditFacilityLedgerAccounts {
     async fn interest_defaulted_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let interest_defaulted_account = loader
-            .load_one(LedgerAccountId::from(self.interest_defaulted_account_id))
+            .load_one(self.interest_defaulted_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(interest_defaulted_account)
@@ -161,7 +145,7 @@ impl CreditFacilityLedgerAccounts {
     async fn interest_income_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let interest_income_account = loader
-            .load_one(LedgerAccountId::from(self.interest_income_account_id))
+            .load_one(self.interest_income_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(interest_income_account)
@@ -169,7 +153,7 @@ impl CreditFacilityLedgerAccounts {
     async fn fee_income_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let fee_income_account = loader
-            .load_one(LedgerAccountId::from(self.fee_income_account_id))
+            .load_one(self.fee_income_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(fee_income_account)
@@ -177,7 +161,7 @@ impl CreditFacilityLedgerAccounts {
     async fn payment_holding_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let payment_holding_account = loader
-            .load_one(LedgerAccountId::from(self.payment_holding_account_id))
+            .load_one(self.payment_holding_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(payment_holding_account)
@@ -185,7 +169,7 @@ impl CreditFacilityLedgerAccounts {
     async fn uncovered_outstanding_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let uncovered_outstanding_account = loader
-            .load_one(LedgerAccountId::from(self.uncovered_outstanding_account_id))
+            .load_one(self.uncovered_outstanding_account_id)
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
         Ok(uncovered_outstanding_account)

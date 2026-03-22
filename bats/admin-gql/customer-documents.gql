@@ -1,4 +1,4 @@
-query CustomerDocuments($customerId: UUID!) {
+query CustomerDocuments($customerId: CustomerId!) {
   customer(id: $customerId) {
     customerId
     email

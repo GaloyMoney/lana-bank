@@ -15,7 +15,7 @@ import { useRoleQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
-  query Role($id: UUID!) {
+  query Role($id: RoleId!) {
     role(id: $id) {
       ...RoleFields
     }

@@ -134,7 +134,7 @@ gql`
     }
   }
 
-  subscription creditFacilityUpdated($creditFacilityId: UUID!) {
+  subscription creditFacilityUpdated($creditFacilityId: CreditFacilityId!) {
     creditFacilityUpdated(creditFacilityId: $creditFacilityId) {
       ...CreditFacilityLayoutFragment
     }

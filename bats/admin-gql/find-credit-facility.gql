@@ -1,4 +1,4 @@
-query creditFacility($id: UUID!) {
+query creditFacility($id: CreditFacilityId!) {
   creditFacility(id: $id) {
     creditFacilityId
     collateralId

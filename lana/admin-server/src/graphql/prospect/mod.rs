@@ -21,7 +21,7 @@ pub use lana_app::customer::{
     directive = crate::graphql::entity_key::entity_key::apply("prospectId".to_string())
 )]
 pub struct Prospect {
-    prospect_id: UUID,
+    prospect_id: ProspectId,
     kyc_status: KycStatus,
     level: KycLevel,
     created_at: Timestamp,
@@ -33,7 +33,7 @@ pub struct Prospect {
 impl From<DomainProspect> for Prospect {
     fn from(prospect: DomainProspect) -> Self {
         Prospect {
-            prospect_id: UUID::from(prospect.id),
+            prospect_id: prospect.id,
             kyc_status: prospect.kyc_status,
             level: prospect.level,
             created_at: prospect.created_at().into(),
@@ -140,13 +140,13 @@ crate::mutation_payload! { ProspectCreatePayload, prospect: Prospect }
 
 #[derive(InputObject)]
 pub struct ProspectCloseInput {
-    pub prospect_id: UUID,
+    pub prospect_id: ProspectId,
 }
 crate::mutation_payload! { ProspectClosePayload, prospect: Prospect }
 
 #[derive(InputObject)]
 pub struct ProspectConvertInput {
-    pub prospect_id: UUID,
+    pub prospect_id: ProspectId,
 }
 crate::mutation_payload! { ProspectConvertPayload, customer: super::customer::Customer }
 

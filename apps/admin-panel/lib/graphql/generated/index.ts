@@ -22,26 +22,55 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   AccountCode: { input: string; output: string; }
+  AccountingCsvDocumentId: { input: string; output: string; }
   AnnualRatePct: { input: any; output: any; }
+  ApprovalProcessId: { input: string; output: string; }
   AuditEntryId: { input: any; output: any; }
   AuditSubjectId: { input: string; output: string; }
   CVLPctValue: { input: any; output: any; }
+  ChartId: { input: string; output: string; }
+  CollateralId: { input: string; output: string; }
+  CommitteeId: { input: string; output: string; }
+  CreditFacilityId: { input: string; output: string; }
+  CreditFacilityProposalId: { input: string; output: string; }
+  CustodianId: { input: string; output: string; }
+  CustomerDocumentId: { input: string; output: string; }
+  CustomerId: { input: string; output: string; }
   /** An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represents a business date; timezone-naive by design. */
   Date: { input: string; output: string; }
   Decimal: { input: any; output: any; }
+  DepositAccountId: { input: string; output: string; }
+  DepositId: { input: string; output: string; }
+  DisbursalId: { input: string; output: string; }
+  DomainConfigId: { input: string; output: string; }
+  FiscalYearId: { input: string; output: string; }
   Json: { input: any; output: any; }
+  LedgerAccountId: { input: string; output: string; }
+  LiquidationId: { input: string; output: string; }
   OneTimeFeeRatePct: { input: any; output: any; }
+  PendingCreditFacilityId: { input: string; output: string; }
+  PermissionSetId: { input: string; output: string; }
+  PolicyId: { input: string; output: string; }
+  PriceProviderId: { input: string; output: string; }
+  ProspectId: { input: string; output: string; }
   PublicId: { input: any; output: any; }
   ReportDefinitionId: { input: string; output: string; }
+  ReportId: { input: string; output: string; }
+  ReportRunId: { input: string; output: string; }
+  RoleId: { input: string; output: string; }
   Satoshis: { input: Satoshis; output: Satoshis; }
   SignedSatoshis: { input: SignedSatoshis; output: SignedSatoshis; }
   SignedUsdCents: { input: SignedUsdCents; output: SignedUsdCents; }
+  TermsTemplateId: { input: string; output: string; }
   /** An ISO 8601 UTC timestamp (e.g., 2024-01-15T09:30:00Z). Always in UTC. */
   Timestamp: { input: string; output: string; }
   UUID: { input: string; output: string; }
   /** A multipart file upload */
   Upload: { input: any; output: any; }
   UsdCents: { input: UsdCents; output: UsdCents; }
+  UserId: { input: string; output: string; }
+  WalletId: { input: string; output: string; }
+  WithdrawalId: { input: string; output: string; }
   Yaml: { input: any; output: any; }
 };
 
@@ -57,7 +86,7 @@ export enum AccountCategory {
 
 export type AccountInfo = {
   __typename?: 'AccountInfo';
-  accountSetId: Scalars['UUID']['output'];
+  accountSetId: Scalars['ChartId']['output'];
   code: Scalars['AccountCode']['output'];
   name: Scalars['String']['output'];
 };
@@ -93,7 +122,7 @@ export enum Activity {
 
 export type ApprovalProcess = {
   __typename?: 'ApprovalProcess';
-  approvalProcessId: Scalars['UUID']['output'];
+  approvalProcessId: Scalars['ApprovalProcessId']['output'];
   approvalProcessType: ApprovalProcessType;
   createdAt: Scalars['Timestamp']['output'];
   deniedReason?: Maybe<Scalars['String']['output']>;
@@ -113,7 +142,7 @@ export type ApprovalProcessEventHistoryArgs = {
 };
 
 export type ApprovalProcessApproveInput = {
-  approvalProcessId: Scalars['UUID']['input'];
+  approvalProcessId: Scalars['ApprovalProcessId']['input'];
 };
 
 export type ApprovalProcessApprovePayload = {
@@ -132,7 +161,7 @@ export type ApprovalProcessConnection = {
 };
 
 export type ApprovalProcessDenyInput = {
-  approvalProcessId: Scalars['UUID']['input'];
+  approvalProcessId: Scalars['ApprovalProcessId']['input'];
   reason: Scalars['String']['input'];
 };
 
@@ -227,7 +256,7 @@ export type BalanceSheetAccount = {
   balance: LedgerAccountBalanceByCurrency;
   children: Array<BalanceSheetAccount>;
   code?: Maybe<Scalars['AccountCode']['output']>;
-  ledgerAccountId: Scalars['UUID']['output'];
+  ledgerAccountId: Scalars['LedgerAccountId']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -295,7 +324,7 @@ export type ChartNode = {
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
   accountingBaseConfig?: Maybe<AccountingBaseConfigOutput>;
-  chartOfAccountsId: Scalars['UUID']['output'];
+  chartOfAccountsId: Scalars['ChartId']['output'];
   children: Array<ChartNode>;
   name: Scalars['String']['output'];
 };
@@ -333,11 +362,11 @@ export type ChartOfAccountsCsvImportWithBaseConfigPayload = {
 export type Collateral = {
   __typename?: 'Collateral';
   account: LedgerAccount;
-  accountId: Scalars['UUID']['output'];
-  collateralId: Scalars['UUID']['output'];
+  accountId: Scalars['LedgerAccountId']['output'];
+  collateralId: Scalars['CollateralId']['output'];
   creditFacility?: Maybe<CreditFacility>;
   eventHistory: EventTimelineEntryConnection;
-  walletId?: Maybe<Scalars['UUID']['output']>;
+  walletId?: Maybe<Scalars['WalletId']['output']>;
 };
 
 
@@ -353,7 +382,7 @@ export enum CollateralDirection {
 
 export type CollateralRecordProceedsFromLiquidationInput = {
   amount: Scalars['UsdCents']['input'];
-  collateralId: Scalars['UUID']['input'];
+  collateralId: Scalars['CollateralId']['input'];
 };
 
 export type CollateralRecordProceedsFromLiquidationPayload = {
@@ -363,7 +392,7 @@ export type CollateralRecordProceedsFromLiquidationPayload = {
 
 export type CollateralRecordSentToLiquidationInput = {
   amount: Scalars['Satoshis']['input'];
-  collateralId: Scalars['UUID']['input'];
+  collateralId: Scalars['CollateralId']['input'];
 };
 
 export type CollateralRecordSentToLiquidationPayload = {
@@ -373,7 +402,7 @@ export type CollateralRecordSentToLiquidationPayload = {
 
 export type CollateralUpdateInput = {
   collateral: Scalars['Satoshis']['input'];
-  collateralId: Scalars['UUID']['input'];
+  collateralId: Scalars['CollateralId']['input'];
   effective: Scalars['Date']['input'];
 };
 
@@ -392,7 +421,7 @@ export enum CollateralizationState {
 
 export type Committee = {
   __typename?: 'Committee';
-  committeeId: Scalars['UUID']['output'];
+  committeeId: Scalars['CommitteeId']['output'];
   createdAt: Scalars['Timestamp']['output'];
   currentMembers: Array<User>;
   eventHistory: EventTimelineEntryConnection;
@@ -421,7 +450,7 @@ export type CommitteeConnection = {
 };
 
 export type CommitteeCreateInput = {
-  memberUserIds: Array<Scalars['UUID']['input']>;
+  memberUserIds: Array<Scalars['UserId']['input']>;
   name: Scalars['String']['input'];
 };
 
@@ -440,8 +469,8 @@ export type CommitteeEdge = {
 };
 
 export type CommitteeUserAddInput = {
-  committeeId: Scalars['UUID']['input'];
-  userId: Scalars['UUID']['input'];
+  committeeId: Scalars['CommitteeId']['input'];
+  userId: Scalars['UserId']['input'];
 };
 
 export type CommitteeUserAddPayload = {
@@ -450,8 +479,8 @@ export type CommitteeUserAddPayload = {
 };
 
 export type CommitteeUserRemoveInput = {
-  committeeId: Scalars['UUID']['input'];
-  userId: Scalars['UUID']['input'];
+  committeeId: Scalars['CommitteeId']['input'];
+  userId: Scalars['UserId']['input'];
 };
 
 export type CommitteeUserRemovePayload = {
@@ -505,11 +534,11 @@ export type CreditFacility = {
   activatedAt: Scalars['Timestamp']['output'];
   balance: CreditFacilityBalance;
   canBeCompleted: Scalars['Boolean']['output'];
-  collateralId: Scalars['UUID']['output'];
+  collateralId: Scalars['CollateralId']['output'];
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
   collateralizationState: CollateralizationState;
   createdAt: Scalars['Timestamp']['output'];
-  creditFacilityId: Scalars['UUID']['output'];
+  creditFacilityId: Scalars['CreditFacilityId']['output'];
   creditFacilityTerms: TermValues;
   currentCvl: CvlPct;
   customer: Customer;
@@ -554,7 +583,7 @@ export type CreditFacilityAgreementDownloadLinksGeneratePayload = {
 };
 
 export type CreditFacilityAgreementGenerateInput = {
-  creditFacilityId: Scalars['UUID']['input'];
+  creditFacilityId: Scalars['CreditFacilityId']['input'];
 };
 
 export type CreditFacilityAgreementGeneratePayload = {
@@ -617,7 +646,7 @@ export type CreditFacilityCollateralizationUpdated = {
 };
 
 export type CreditFacilityCompleteInput = {
-  creditFacilityId: Scalars['UUID']['input'];
+  creditFacilityId: Scalars['CreditFacilityId']['input'];
 };
 
 export type CreditFacilityCompletePayload = {
@@ -641,7 +670,7 @@ export type CreditFacilityDisbursal = {
   approvalProcess: ApprovalProcess;
   createdAt: Scalars['Timestamp']['output'];
   creditFacility: CreditFacility;
-  creditFacilityDisbursalId: Scalars['UUID']['output'];
+  creditFacilityDisbursalId: Scalars['DisbursalId']['output'];
   eventHistory: EventTimelineEntryConnection;
   ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
@@ -683,7 +712,7 @@ export type CreditFacilityDisbursalExecuted = {
 
 export type CreditFacilityDisbursalInitiateInput = {
   amount: Scalars['UsdCents']['input'];
-  creditFacilityId: Scalars['UUID']['input'];
+  creditFacilityId: Scalars['CreditFacilityId']['input'];
 };
 
 export type CreditFacilityDisbursalInitiatePayload = {
@@ -793,7 +822,7 @@ export type CreditFacilityModuleConfig = {
   chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountUncoveredOutstandingParentCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+  chartOfAccountsId?: Maybe<Scalars['ChartId']['output']>;
 };
 
 export type CreditFacilityModuleConfigureInput = {
@@ -857,7 +886,7 @@ export type CreditFacilityModuleConfigurePayload = {
 
 export type CreditFacilityPartialPaymentRecordInput = {
   amount: Scalars['UsdCents']['input'];
-  creditFacilityId: Scalars['UUID']['input'];
+  creditFacilityId: Scalars['CreditFacilityId']['input'];
 };
 
 export type CreditFacilityPartialPaymentRecordPayload = {
@@ -867,7 +896,7 @@ export type CreditFacilityPartialPaymentRecordPayload = {
 
 export type CreditFacilityPartialPaymentWithDateRecordInput = {
   amount: Scalars['UsdCents']['input'];
-  creditFacilityId: Scalars['UUID']['input'];
+  creditFacilityId: Scalars['CreditFacilityId']['input'];
   effective: Scalars['Date']['input'];
 };
 
@@ -889,10 +918,10 @@ export type CreditFacilityPaymentAllocationEventHistoryArgs = {
 export type CreditFacilityProposal = {
   __typename?: 'CreditFacilityProposal';
   approvalProcess?: Maybe<ApprovalProcess>;
-  approvalProcessId?: Maybe<Scalars['UUID']['output']>;
+  approvalProcessId?: Maybe<Scalars['ApprovalProcessId']['output']>;
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
   createdAt: Scalars['Timestamp']['output'];
-  creditFacilityProposalId: Scalars['UUID']['output'];
+  creditFacilityProposalId: Scalars['CreditFacilityProposalId']['output'];
   creditFacilityTerms: TermValues;
   custodian: Custodian;
   customer: Customer;
@@ -919,8 +948,8 @@ export type CreditFacilityProposalConnection = {
 };
 
 export type CreditFacilityProposalCreateInput = {
-  custodianId: Scalars['UUID']['input'];
-  customerId: Scalars['UUID']['input'];
+  custodianId: Scalars['CustodianId']['input'];
+  customerId: Scalars['CustomerId']['input'];
   facility: Scalars['UsdCents']['input'];
   terms: TermsInput;
 };
@@ -932,7 +961,7 @@ export type CreditFacilityProposalCreatePayload = {
 
 export type CreditFacilityProposalCustomerApprovalConcludeInput = {
   approved: Scalars['Boolean']['input'];
-  creditFacilityProposalId: Scalars['UUID']['input'];
+  creditFacilityProposalId: Scalars['CreditFacilityProposalId']['input'];
 };
 
 export type CreditFacilityProposalCustomerApprovalConcludePayload = {
@@ -1012,7 +1041,7 @@ export enum CreditFacilityStatus {
 export type Custodian = {
   __typename?: 'Custodian';
   createdAt: Scalars['Timestamp']['output'];
-  custodianId: Scalars['UUID']['output'];
+  custodianId: Scalars['CustodianId']['output'];
   name: Scalars['String']['output'];
   provider: Scalars['String']['output'];
 };
@@ -1024,7 +1053,7 @@ export type CustodianConfigInput =
 
 export type CustodianConfigUpdateInput = {
   config: CustodianConfigInput;
-  custodianId: Scalars['UUID']['input'];
+  custodianId: Scalars['CustodianId']['input'];
 };
 
 export type CustodianConfigUpdatePayload = {
@@ -1079,7 +1108,7 @@ export type Customer = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacilities: Array<CreditFacility>;
   creditFacilityProposals: Array<CreditFacilityProposal>;
-  customerId: Scalars['UUID']['output'];
+  customerId: Scalars['CustomerId']['output'];
   customerType: CustomerType;
   depositAccount?: Maybe<DepositAccount>;
   documents: Array<CustomerDocument>;
@@ -1102,7 +1131,7 @@ export type CustomerEventHistoryArgs = {
 };
 
 export type CustomerCloseInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
 };
 
 export type CustomerClosePayload = {
@@ -1122,8 +1151,8 @@ export type CustomerConnection = {
 
 export type CustomerDocument = {
   __typename?: 'CustomerDocument';
-  customerDocumentId: Scalars['UUID']['output'];
-  customerId: Scalars['UUID']['output'];
+  customerDocumentId: Scalars['CustomerDocumentId']['output'];
+  customerId: Scalars['CustomerId']['output'];
   eventHistory: EventTimelineEntryConnection;
   filename: Scalars['String']['output'];
   status: DocumentStatus;
@@ -1136,7 +1165,7 @@ export type CustomerDocumentEventHistoryArgs = {
 };
 
 export type CustomerDocumentArchiveInput = {
-  customerDocumentId: Scalars['UUID']['input'];
+  customerDocumentId: Scalars['CustomerDocumentId']['input'];
 };
 
 export type CustomerDocumentArchivePayload = {
@@ -1145,7 +1174,7 @@ export type CustomerDocumentArchivePayload = {
 };
 
 export type CustomerDocumentCreateInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
   file: Scalars['Upload']['input'];
 };
 
@@ -1155,16 +1184,16 @@ export type CustomerDocumentCreatePayload = {
 };
 
 export type CustomerDocumentDeleteInput = {
-  customerDocumentId: Scalars['UUID']['input'];
+  customerDocumentId: Scalars['CustomerDocumentId']['input'];
 };
 
 export type CustomerDocumentDeletePayload = {
   __typename?: 'CustomerDocumentDeletePayload';
-  deletedDocumentId: Scalars['UUID']['output'];
+  deletedDocumentId: Scalars['CustomerDocumentId']['output'];
 };
 
 export type CustomerDocumentDownloadLinksGenerateInput = {
-  customerDocumentId: Scalars['UUID']['input'];
+  customerDocumentId: Scalars['CustomerDocumentId']['input'];
 };
 
 export type CustomerDocumentDownloadLinksGeneratePayload = {
@@ -1182,7 +1211,7 @@ export type CustomerEdge = {
 };
 
 export type CustomerEmailUpdateInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
   email: Scalars['String']['input'];
 };
 
@@ -1192,7 +1221,7 @@ export type CustomerEmailUpdatePayload = {
 };
 
 export type CustomerFreezeInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
 };
 
 export type CustomerFreezePayload = {
@@ -1207,7 +1236,7 @@ export enum CustomerStatus {
 }
 
 export type CustomerTelegramHandleUpdateInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
   telegramHandle: Scalars['String']['input'];
 };
 
@@ -1227,7 +1256,7 @@ export enum CustomerType {
 }
 
 export type CustomerUnfreezeInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
 };
 
 export type CustomerUnfreezePayload = {
@@ -1267,10 +1296,10 @@ export enum DebitOrCredit {
 export type Deposit = {
   __typename?: 'Deposit';
   account: DepositAccount;
-  accountId: Scalars['UUID']['output'];
+  accountId: Scalars['DepositAccountId']['output'];
   amount: Scalars['UsdCents']['output'];
   createdAt: Scalars['Timestamp']['output'];
-  depositId: Scalars['UUID']['output'];
+  depositId: Scalars['DepositId']['output'];
   eventHistory: EventTimelineEntryConnection;
   ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
@@ -1290,8 +1319,8 @@ export type DepositAccount = {
   balance: DepositAccountBalance;
   createdAt: Scalars['Timestamp']['output'];
   customer: Customer;
-  customerId: Scalars['UUID']['output'];
-  depositAccountId: Scalars['UUID']['output'];
+  customerId: Scalars['CustomerId']['output'];
+  depositAccountId: Scalars['DepositAccountId']['output'];
   deposits: Array<Deposit>;
   eventHistory: EventTimelineEntryConnection;
   history: DepositAccountHistoryEntryConnection;
@@ -1320,7 +1349,7 @@ export type DepositAccountBalance = {
 };
 
 export type DepositAccountCloseInput = {
-  depositAccountId: Scalars['UUID']['input'];
+  depositAccountId: Scalars['DepositAccountId']['input'];
 };
 
 export type DepositAccountClosePayload = {
@@ -1339,7 +1368,7 @@ export type DepositAccountConnection = {
 };
 
 export type DepositAccountCreateInput = {
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
 };
 
 export type DepositAccountCreatePayload = {
@@ -1357,7 +1386,7 @@ export type DepositAccountEdge = {
 };
 
 export type DepositAccountFreezeInput = {
-  depositAccountId: Scalars['UUID']['input'];
+  depositAccountId: Scalars['DepositAccountId']['input'];
 };
 
 export type DepositAccountFreezePayload = {
@@ -1403,7 +1432,7 @@ export type DepositAccountModuleConfig = {
   chartOfAccountsFrozenNonDomiciledCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsFrozenPrivateCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsGovernmentEntityDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+  chartOfAccountsId?: Maybe<Scalars['ChartId']['output']>;
   chartOfAccountsIndividualDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsNonDomiciledCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsOmnibusParentCode?: Maybe<Scalars['String']['output']>;
@@ -1438,7 +1467,7 @@ export enum DepositAccountStatus {
 }
 
 export type DepositAccountUnfreezeInput = {
-  depositAccountId: Scalars['UUID']['input'];
+  depositAccountId: Scalars['DepositAccountId']['input'];
 };
 
 export type DepositAccountUnfreezePayload = {
@@ -1488,7 +1517,7 @@ export type DepositEntry = {
 
 export type DepositRecordInput = {
   amount: Scalars['UsdCents']['input'];
-  depositAccountId: Scalars['UUID']['input'];
+  depositAccountId: Scalars['DepositAccountId']['input'];
   reference?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1498,7 +1527,7 @@ export type DepositRecordPayload = {
 };
 
 export type DepositRevertInput = {
-  depositId: Scalars['UUID']['input'];
+  depositId: Scalars['DepositId']['input'];
 };
 
 export type DepositRevertPayload = {
@@ -1576,7 +1605,7 @@ export enum DocumentStatus {
 export type DomainConfig = {
   __typename?: 'DomainConfig';
   configType: ConfigType;
-  domainConfigId: Scalars['UUID']['output'];
+  domainConfigId: Scalars['DomainConfigId']['output'];
   encrypted: Scalars['Boolean']['output'];
   isSet: Scalars['Boolean']['output'];
   key: Scalars['String']['output'];
@@ -1603,7 +1632,7 @@ export type DomainConfigEdge = {
 };
 
 export type DomainConfigUpdateInput = {
-  domainConfigId: Scalars['UUID']['input'];
+  domainConfigId: Scalars['DomainConfigId']['input'];
   value: Scalars['Json']['input'];
 };
 
@@ -1665,11 +1694,11 @@ export type FiscalMonthClosure = {
 
 export type FiscalYear = {
   __typename?: 'FiscalYear';
-  chartId: Scalars['UUID']['output'];
+  chartId: Scalars['ChartId']['output'];
   closedAsOf?: Maybe<Scalars['Date']['output']>;
   createdAt: Scalars['Timestamp']['output'];
   eventHistory: EventTimelineEntryConnection;
-  fiscalYearId: Scalars['UUID']['output'];
+  fiscalYearId: Scalars['FiscalYearId']['output'];
   isLastMonthOfYearClosed: Scalars['Boolean']['output'];
   isOpen: Scalars['Boolean']['output'];
   monthClosures: Array<FiscalMonthClosure>;
@@ -1686,11 +1715,11 @@ export type FiscalYearEventHistoryArgs = {
 };
 
 export type FiscalYearCloseInput = {
-  fiscalYearId: Scalars['UUID']['input'];
+  fiscalYearId: Scalars['FiscalYearId']['input'];
 };
 
 export type FiscalYearCloseMonthInput = {
-  fiscalYearId: Scalars['UUID']['input'];
+  fiscalYearId: Scalars['FiscalYearId']['input'];
 };
 
 export type FiscalYearCloseMonthPayload = {
@@ -1732,7 +1761,7 @@ export type FiscalYearInitPayload = {
 };
 
 export type FiscalYearOpenNextInput = {
-  fiscalYearId: Scalars['UUID']['input'];
+  fiscalYearId: Scalars['FiscalYearId']['input'];
 };
 
 export type FiscalYearOpenNextPayload = {
@@ -1821,7 +1850,7 @@ export type LedgerAccount = {
   entity?: Maybe<LedgerAccountEntity>;
   history: LedgerEntryConnection;
   isRootAccount: Scalars['Boolean']['output'];
-  ledgerAccountId: Scalars['UUID']['output'];
+  ledgerAccountId: Scalars['LedgerAccountId']['output'];
   name: Scalars['String']['output'];
   normalBalanceType: DebitOrCredit;
 };
@@ -1847,7 +1876,7 @@ export type LedgerAccountBalanceRangeByCurrency = {
 };
 
 export type LedgerAccountCsvCreateInput = {
-  ledgerAccountId: Scalars['UUID']['input'];
+  ledgerAccountId: Scalars['LedgerAccountId']['input'];
 };
 
 export type LedgerAccountCsvCreatePayload = {
@@ -1859,19 +1888,19 @@ export type LedgerAccountCsvDocument = {
   __typename?: 'LedgerAccountCsvDocument';
   createdAt: Scalars['Timestamp']['output'];
   filename: Scalars['String']['output'];
-  ledgerAccountCsvDocumentId: Scalars['UUID']['output'];
-  ledgerAccountId: Scalars['UUID']['output'];
+  ledgerAccountCsvDocumentId: Scalars['AccountingCsvDocumentId']['output'];
+  ledgerAccountId: Scalars['LedgerAccountId']['output'];
   status: DocumentStatus;
 };
 
 export type LedgerAccountCsvDownloadLink = {
   __typename?: 'LedgerAccountCsvDownloadLink';
-  csvId: Scalars['UUID']['output'];
+  csvId: Scalars['AccountingCsvDocumentId']['output'];
   url: Scalars['String']['output'];
 };
 
 export type LedgerAccountCsvDownloadLinkGenerateInput = {
-  ledgerAccountCsvDocumentId: Scalars['UUID']['input'];
+  ledgerAccountCsvDocumentId: Scalars['AccountingCsvDocumentId']['input'];
 };
 
 export type LedgerAccountCsvDownloadLinkGeneratePayload = {
@@ -1881,7 +1910,7 @@ export type LedgerAccountCsvDownloadLinkGeneratePayload = {
 
 export type LedgerAccountCsvExportUploadedPayload = {
   __typename?: 'LedgerAccountCsvExportUploadedPayload';
-  documentId: Scalars['UUID']['output'];
+  documentId: Scalars['AccountingCsvDocumentId']['output'];
 };
 
 export type LedgerAccountEntity = Collateral | CreditFacility | DepositAccount;
@@ -1970,13 +1999,13 @@ export type Liquidation = {
   __typename?: 'Liquidation';
   amountReceived: Scalars['UsdCents']['output'];
   collateral: Collateral;
-  collateralId: Scalars['UUID']['output'];
+  collateralId: Scalars['CollateralId']['output'];
   completed: Scalars['Boolean']['output'];
   createdAt: Scalars['Timestamp']['output'];
   eventHistory: EventTimelineEntryConnection;
   expectedToReceive: Scalars['UsdCents']['output'];
   initiallyEstimatedToLiquidate: Scalars['Satoshis']['output'];
-  liquidationId: Scalars['UUID']['output'];
+  liquidationId: Scalars['LiquidationId']['output'];
   receivedProceeds: Array<LiquidationProceedsReceived>;
   sentCollateral: Array<LiquidationCollateralSent>;
   sentTotal: Scalars['Satoshis']['output'];
@@ -2024,7 +2053,7 @@ export type LiquidationPayment = {
 };
 
 export type LiquidationPaymentCalculateInput = {
-  liquidationId: Scalars['UUID']['input'];
+  liquidationId: Scalars['LiquidationId']['input'];
   outstanding: Scalars['UsdCents']['input'];
   targetCvl?: InputMaybe<Scalars['CVLPctValue']['input']>;
   toLiquidate?: InputMaybe<Scalars['Satoshis']['input']>;
@@ -2528,9 +2557,9 @@ export enum PendingCreditFacilitiesSortBy {
 export type PendingCreditFacility = {
   __typename?: 'PendingCreditFacility';
   approvalProcess: ApprovalProcess;
-  approvalProcessId: Scalars['UUID']['output'];
+  approvalProcessId: Scalars['ApprovalProcessId']['output'];
   collateral: Scalars['Satoshis']['output'];
-  collateralId: Scalars['UUID']['output'];
+  collateralId: Scalars['CollateralId']['output'];
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
   collateralizationState: PendingCreditFacilityCollateralizationState;
   createdAt: Scalars['Timestamp']['output'];
@@ -2539,12 +2568,12 @@ export type PendingCreditFacility = {
    * Today this matches `pendingCreditFacilityId`, but clients should use
    * this field when they need the active facility reference.
    */
-  creditFacilityId: Scalars['UUID']['output'];
+  creditFacilityId: Scalars['CreditFacilityId']['output'];
   creditFacilityTerms: TermValues;
   customer: Customer;
   eventHistory: EventTimelineEntryConnection;
   facilityAmount: Scalars['UsdCents']['output'];
-  pendingCreditFacilityId: Scalars['UUID']['output'];
+  pendingCreditFacilityId: Scalars['PendingCreditFacilityId']['output'];
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: PendingCreditFacilityStatus;
   wallet?: Maybe<Wallet>;
@@ -2605,7 +2634,7 @@ export type PermissionSet = {
   description: Scalars['String']['output'];
   eventHistory: EventTimelineEntryConnection;
   name: Scalars['String']['output'];
-  permissionSetId: Scalars['UUID']['output'];
+  permissionSetId: Scalars['PermissionSetId']['output'];
 };
 
 
@@ -2647,7 +2676,7 @@ export type Policy = {
   __typename?: 'Policy';
   approvalProcessType: ApprovalProcessType;
   eventHistory: EventTimelineEntryConnection;
-  policyId: Scalars['UUID']['output'];
+  policyId: Scalars['PolicyId']['output'];
   rules: ApprovalRules;
 };
 
@@ -2658,8 +2687,8 @@ export type PolicyEventHistoryArgs = {
 };
 
 export type PolicyCommitteeAssignInput = {
-  committeeId: Scalars['UUID']['input'];
-  policyId: Scalars['UUID']['input'];
+  committeeId: Scalars['CommitteeId']['input'];
+  policyId: Scalars['PolicyId']['input'];
 };
 
 export type PolicyCommitteeAssignPayload = {
@@ -2692,12 +2721,12 @@ export type PriceProvider = {
   createdAt: Scalars['Timestamp']['output'];
   latestPrice?: Maybe<Scalars['UsdCents']['output']>;
   name: Scalars['String']['output'];
-  priceProviderId: Scalars['UUID']['output'];
+  priceProviderId: Scalars['PriceProviderId']['output'];
   provider: Scalars['String']['output'];
 };
 
 export type PriceProviderActivateInput = {
-  priceProviderId: Scalars['UUID']['input'];
+  priceProviderId: Scalars['PriceProviderId']['input'];
 };
 
 export type PriceProviderActivatePayload = {
@@ -2711,7 +2740,7 @@ export type PriceProviderConfigInput =
 
 export type PriceProviderConfigUpdateInput = {
   config: PriceProviderConfigInput;
-  priceProviderId: Scalars['UUID']['input'];
+  priceProviderId: Scalars['PriceProviderId']['input'];
 };
 
 export type PriceProviderConfigUpdatePayload = {
@@ -2730,7 +2759,7 @@ export type PriceProviderConnection = {
 };
 
 export type PriceProviderDeactivateInput = {
-  priceProviderId: Scalars['UUID']['input'];
+  priceProviderId: Scalars['PriceProviderId']['input'];
 };
 
 export type PriceProviderDeactivatePayload = {
@@ -2762,7 +2791,7 @@ export type ProfitAndLossAccount = {
   balanceRange: LedgerAccountBalanceRangeByCurrency;
   children: Array<ProfitAndLossAccount>;
   code?: Maybe<Scalars['AccountCode']['output']>;
-  ledgerAccountId: Scalars['UUID']['output'];
+  ledgerAccountId: Scalars['LedgerAccountId']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -2784,7 +2813,7 @@ export type Prospect = {
   kycStatus: KycStatus;
   level: KycLevel;
   personalInfo?: Maybe<PersonalInfo>;
-  prospectId: Scalars['UUID']['output'];
+  prospectId: Scalars['ProspectId']['output'];
   publicId: Scalars['PublicId']['output'];
   stage: ProspectStage;
   telegramHandle: Scalars['String']['output'];
@@ -2799,7 +2828,7 @@ export type ProspectEventHistoryArgs = {
 };
 
 export type ProspectCloseInput = {
-  prospectId: Scalars['UUID']['input'];
+  prospectId: Scalars['ProspectId']['input'];
 };
 
 export type ProspectClosePayload = {
@@ -2818,7 +2847,7 @@ export type ProspectConnection = {
 };
 
 export type ProspectConvertInput = {
-  prospectId: Scalars['UUID']['input'];
+  prospectId: Scalars['ProspectId']['input'];
 };
 
 export type ProspectConvertPayload = {
@@ -2847,7 +2876,7 @@ export type ProspectEdge = {
 };
 
 export type ProspectKycLinkCreateInput = {
-  prospectId: Scalars['UUID']['input'];
+  prospectId: Scalars['ProspectId']['input'];
 };
 
 export type ProspectKycLinkCreatePayload = {
@@ -2967,7 +2996,7 @@ export type Query = {
 
 
 export type QueryApprovalProcessArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['ApprovalProcessId']['input'];
 };
 
 
@@ -2993,7 +3022,7 @@ export type QueryBalanceSheetArgs = {
 
 
 export type QueryCommitteeArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['CommitteeId']['input'];
 };
 
 
@@ -3013,7 +3042,7 @@ export type QueryCreditFacilitiesArgs = {
 
 
 export type QueryCreditFacilityArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['CreditFacilityId']['input'];
 };
 
 
@@ -3028,7 +3057,7 @@ export type QueryCreditFacilityByPublicIdArgs = {
 
 
 export type QueryCreditFacilityProposalArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['CreditFacilityProposalId']['input'];
 };
 
 
@@ -3048,7 +3077,7 @@ export type QueryCustodiansArgs = {
 
 
 export type QueryCustomerArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['CustomerId']['input'];
 };
 
 
@@ -3063,7 +3092,7 @@ export type QueryCustomerByPublicIdArgs = {
 
 
 export type QueryCustomerDocumentArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['CustomerDocumentId']['input'];
 };
 
 
@@ -3076,12 +3105,12 @@ export type QueryCustomersArgs = {
 
 
 export type QueryDepositArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['DepositId']['input'];
 };
 
 
 export type QueryDepositAccountArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['DepositAccountId']['input'];
 };
 
 
@@ -3117,7 +3146,7 @@ export type QueryDescendantAccountSetsByCategoryArgs = {
 
 
 export type QueryDisbursalArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['DisbursalId']['input'];
 };
 
 
@@ -3141,7 +3170,7 @@ export type QueryDomainConfigsArgs = {
 
 
 export type QueryFiscalYearArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['FiscalYearId']['input'];
 };
 
 
@@ -3158,7 +3187,7 @@ export type QueryFiscalYearsArgs = {
 
 
 export type QueryLedgerAccountArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['LedgerAccountId']['input'];
 };
 
 
@@ -3168,7 +3197,7 @@ export type QueryLedgerAccountByCodeArgs = {
 
 
 export type QueryLedgerAccountCsvArgs = {
-  ledgerAccountId: Scalars['UUID']['input'];
+  ledgerAccountId: Scalars['LedgerAccountId']['input'];
 };
 
 
@@ -3191,7 +3220,7 @@ export type QueryLedgerTransactionsForTemplateCodeArgs = {
 
 
 export type QueryLiquidationArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['LiquidationId']['input'];
 };
 
 
@@ -3216,7 +3245,7 @@ export type QueryPendingCreditFacilitiesArgs = {
 
 
 export type QueryPendingCreditFacilityArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['PendingCreditFacilityId']['input'];
 };
 
 
@@ -3233,7 +3262,7 @@ export type QueryPoliciesArgs = {
 
 
 export type QueryPolicyArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['PolicyId']['input'];
 };
 
 
@@ -3251,7 +3280,7 @@ export type QueryProfitAndLossStatementArgs = {
 
 
 export type QueryProspectArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['ProspectId']['input'];
 };
 
 
@@ -3274,7 +3303,7 @@ export type QueryPublicIdTargetArgs = {
 
 
 export type QueryReportRunArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['ReportRunId']['input'];
 };
 
 
@@ -3286,7 +3315,7 @@ export type QueryReportRunsArgs = {
 
 
 export type QueryRoleArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['RoleId']['input'];
 };
 
 
@@ -3298,7 +3327,7 @@ export type QueryRolesArgs = {
 
 
 export type QueryTermsTemplateArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['TermsTemplateId']['input'];
 };
 
 
@@ -3315,7 +3344,7 @@ export type QueryTrialBalanceArgs = {
 
 
 export type QueryUserArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['UserId']['input'];
 };
 
 
@@ -3327,7 +3356,7 @@ export type QueryUsersArgs = {
 
 
 export type QueryWithdrawalArgs = {
-  id: Scalars['UUID']['input'];
+  id: Scalars['WithdrawalId']['input'];
 };
 
 
@@ -3355,9 +3384,9 @@ export type Report = {
   files: Array<ReportFile>;
   name: Scalars['String']['output'];
   norm: Scalars['String']['output'];
-  reportId: Scalars['UUID']['output'];
+  reportId: Scalars['ReportId']['output'];
   reportRun: ReportRun;
-  runId: Scalars['UUID']['output'];
+  runId: Scalars['ReportRunId']['output'];
 };
 
 export type ReportDefinition = {
@@ -3382,7 +3411,7 @@ export type ReportFile = {
 
 export type ReportFileDownloadLinkGenerateInput = {
   extension: Scalars['String']['input'];
-  reportId: Scalars['UUID']['input'];
+  reportId: Scalars['ReportId']['input'];
 };
 
 export type ReportFileDownloadLinkGeneratePayload = {
@@ -3398,7 +3427,7 @@ export enum ReportOutputFormat {
 
 export type ReportRun = {
   __typename?: 'ReportRun';
-  reportRunId: Scalars['UUID']['output'];
+  reportRunId: Scalars['ReportRunId']['output'];
   reports: Array<Report>;
   requestedAsOfDate?: Maybe<Scalars['Date']['output']>;
   requestedReport?: Maybe<RequestedReport>;
@@ -3450,7 +3479,7 @@ export enum ReportRunType {
 
 export type ReportRunUpdatedPayload = {
   __typename?: 'ReportRunUpdatedPayload';
-  reportRunId: Scalars['UUID']['output'];
+  reportRunId: Scalars['ReportRunId']['output'];
 };
 
 export type ReportRunsSort = {
@@ -3475,7 +3504,7 @@ export type Role = {
   eventHistory: EventTimelineEntryConnection;
   name: Scalars['String']['output'];
   permissionSets: Array<PermissionSet>;
-  roleId: Scalars['UUID']['output'];
+  roleId: Scalars['RoleId']['output'];
 };
 
 
@@ -3496,7 +3525,7 @@ export type RoleConnection = {
 
 export type RoleCreateInput = {
   name: Scalars['String']['input'];
-  permissionSetIds: Array<Scalars['UUID']['input']>;
+  permissionSetIds: Array<Scalars['PermissionSetId']['input']>;
 };
 
 export type RoleCreatePayload = {
@@ -3514,8 +3543,8 @@ export type RoleEdge = {
 };
 
 export type RolePermissionSetsAddInput = {
-  permissionSetIds: Array<Scalars['UUID']['input']>;
-  roleId: Scalars['UUID']['input'];
+  permissionSetIds: Array<Scalars['PermissionSetId']['input']>;
+  roleId: Scalars['RoleId']['input'];
 };
 
 export type RolePermissionSetsAddPayload = {
@@ -3524,8 +3553,8 @@ export type RolePermissionSetsAddPayload = {
 };
 
 export type RolePermissionSetsRemoveInput = {
-  permissionSetIds: Array<Scalars['UUID']['input']>;
-  roleId: Scalars['UUID']['input'];
+  permissionSetIds: Array<Scalars['PermissionSetId']['input']>;
+  roleId: Scalars['RoleId']['input'];
 };
 
 export type RolePermissionSetsRemovePayload = {
@@ -3576,37 +3605,37 @@ export type Subscription = {
 
 
 export type SubscriptionCreditFacilityProposalUpdatedArgs = {
-  creditFacilityProposalId: Scalars['UUID']['input'];
+  creditFacilityProposalId: Scalars['CreditFacilityProposalId']['input'];
 };
 
 
 export type SubscriptionCreditFacilityUpdatedArgs = {
-  creditFacilityId: Scalars['UUID']['input'];
+  creditFacilityId: Scalars['CreditFacilityId']['input'];
 };
 
 
 export type SubscriptionDisbursalUpdatedArgs = {
-  disbursalId: Scalars['UUID']['input'];
+  disbursalId: Scalars['DisbursalId']['input'];
 };
 
 
 export type SubscriptionLedgerAccountCsvExportUploadedArgs = {
-  ledgerAccountId: Scalars['UUID']['input'];
+  ledgerAccountId: Scalars['LedgerAccountId']['input'];
 };
 
 
 export type SubscriptionPendingCreditFacilityUpdatedArgs = {
-  pendingCreditFacilityId: Scalars['UUID']['input'];
+  pendingCreditFacilityId: Scalars['PendingCreditFacilityId']['input'];
 };
 
 
 export type SubscriptionProspectUpdatedArgs = {
-  prospectId: Scalars['UUID']['input'];
+  prospectId: Scalars['ProspectId']['input'];
 };
 
 
 export type SubscriptionWithdrawalUpdatedArgs = {
-  withdrawalId: Scalars['UUID']['input'];
+  withdrawalId: Scalars['WithdrawalId']['input'];
 };
 
 export type System = {
@@ -3648,7 +3677,7 @@ export type TermsTemplate = {
   createdAt: Scalars['Timestamp']['output'];
   eventHistory: EventTimelineEntryConnection;
   name: Scalars['String']['output'];
-  termsTemplateId: Scalars['UUID']['output'];
+  termsTemplateId: Scalars['TermsTemplateId']['output'];
   userCanUpdateTermsTemplate: Scalars['Boolean']['output'];
   values: TermValues;
 };
@@ -3671,7 +3700,7 @@ export type TermsTemplateCreatePayload = {
 
 export type TermsTemplateUpdateInput = {
   terms: TermsInput;
-  termsTemplateId: Scalars['UUID']['input'];
+  termsTemplateId: Scalars['TermsTemplateId']['input'];
 };
 
 export type TermsTemplateUpdatePayload = {
@@ -3780,7 +3809,7 @@ export type User = {
   eventHistory: EventTimelineEntryConnection;
   role: Role;
   userCanUpdateRoleOfUser: Scalars['Boolean']['output'];
-  userId: Scalars['UUID']['output'];
+  userId: Scalars['UserId']['output'];
 };
 
 
@@ -3801,7 +3830,7 @@ export type UserConnection = {
 
 export type UserCreateInput = {
   email: Scalars['String']['input'];
-  roleId: Scalars['UUID']['input'];
+  roleId: Scalars['RoleId']['input'];
 };
 
 export type UserCreatePayload = {
@@ -3819,8 +3848,8 @@ export type UserEdge = {
 };
 
 export type UserRoleUpdateInput = {
-  roleId: Scalars['UUID']['input'];
-  userId: Scalars['UUID']['input'];
+  roleId: Scalars['RoleId']['input'];
+  userId: Scalars['UserId']['input'];
 };
 
 export type UserRoleUpdatePayload = {
@@ -3856,7 +3885,7 @@ export type Wallet = {
   address: Scalars['String']['output'];
   custodian: Custodian;
   network: WalletNetwork;
-  walletId: Scalars['UUID']['output'];
+  walletId: Scalars['WalletId']['output'];
 };
 
 export enum WalletNetwork {
@@ -3869,17 +3898,17 @@ export enum WalletNetwork {
 export type Withdrawal = {
   __typename?: 'Withdrawal';
   account: DepositAccount;
-  accountId: Scalars['UUID']['output'];
+  accountId: Scalars['DepositAccountId']['output'];
   amount: Scalars['UsdCents']['output'];
   approvalProcess: ApprovalProcess;
-  approvalProcessId: Scalars['UUID']['output'];
+  approvalProcessId: Scalars['ApprovalProcessId']['output'];
   createdAt: Scalars['Timestamp']['output'];
   eventHistory: EventTimelineEntryConnection;
   ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
   status: WithdrawalStatus;
-  withdrawalId: Scalars['UUID']['output'];
+  withdrawalId: Scalars['WithdrawalId']['output'];
 };
 
 
@@ -3889,7 +3918,7 @@ export type WithdrawalEventHistoryArgs = {
 };
 
 export type WithdrawalCancelInput = {
-  withdrawalId: Scalars['UUID']['input'];
+  withdrawalId: Scalars['WithdrawalId']['input'];
 };
 
 export type WithdrawalCancelPayload = {
@@ -3898,7 +3927,7 @@ export type WithdrawalCancelPayload = {
 };
 
 export type WithdrawalConfirmInput = {
-  withdrawalId: Scalars['UUID']['input'];
+  withdrawalId: Scalars['WithdrawalId']['input'];
 };
 
 export type WithdrawalConfirmPayload = {
@@ -3933,7 +3962,7 @@ export type WithdrawalEntry = {
 
 export type WithdrawalInitiateInput = {
   amount: Scalars['UsdCents']['input'];
-  depositAccountId: Scalars['UUID']['input'];
+  depositAccountId: Scalars['DepositAccountId']['input'];
   reference?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -3943,7 +3972,7 @@ export type WithdrawalInitiatePayload = {
 };
 
 export type WithdrawalRevertInput = {
-  withdrawalId: Scalars['UUID']['input'];
+  withdrawalId: Scalars['WithdrawalId']['input'];
 };
 
 export type WithdrawalRevertPayload = {
@@ -4065,7 +4094,7 @@ export type ChartOfAccountsCsvImportWithBaseConfigMutationVariables = Exact<{
 export type ChartOfAccountsCsvImportWithBaseConfigMutation = { __typename?: 'Mutation', chartOfAccountsCsvImportWithBaseConfig: { __typename?: 'ChartOfAccountsCsvImportWithBaseConfigPayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', chartOfAccountsId: string } } };
 
 export type CommitteeEventHistoryQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['CommitteeId']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -4077,7 +4106,7 @@ export type CommitteeEventHistoryQuery = { __typename?: 'Query', committee?: { _
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type GetCommitteeDetailsQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['CommitteeId']['input'];
 }>;
 
 
@@ -4197,7 +4226,7 @@ export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', credit
       , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: string, dueAt: string }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', custodianId: string, name: string, provider: string } } | null } | null };
 
 export type CreditFacilityUpdatedSubscriptionVariables = Exact<{
-  creditFacilityId: Scalars['UUID']['input'];
+  creditFacilityId: Scalars['CreditFacilityId']['input'];
 }>;
 
 
@@ -4454,7 +4483,7 @@ export type CreditFacilityProposalCustomerApprovalConcludeMutation = { __typenam
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } } };
 
 export type CreditFacilityProposalEventHistoryQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['CreditFacilityProposalId']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -4480,7 +4509,7 @@ export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'Credi
     , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null };
 
 export type GetCreditFacilityProposalLayoutDetailsQueryVariables = Exact<{
-  creditFacilityProposalId: Scalars['UUID']['input'];
+  creditFacilityProposalId: Scalars['CreditFacilityProposalId']['input'];
 }>;
 
 
@@ -4499,7 +4528,7 @@ export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query'
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } | null };
 
 export type CreditFacilityProposalUpdatedSubscriptionVariables = Exact<{
-  creditFacilityProposalId: Scalars['UUID']['input'];
+  creditFacilityProposalId: Scalars['CreditFacilityProposalId']['input'];
 }>;
 
 
@@ -4518,7 +4547,7 @@ export type CreditFacilityProposalUpdatedSubscription = { __typename?: 'Subscrip
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } | null } };
 
 export type GetCreditFacilityProposalRepaymentPlanQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['CreditFacilityProposalId']['input'];
 }>;
 
 
@@ -4596,7 +4625,7 @@ export type CustomerDocumentDeleteMutation = { __typename?: 'Mutation', customer
 
 export type CustomerDocumentCreateMutationVariables = Exact<{
   file: Scalars['Upload']['input'];
-  customerId: Scalars['UUID']['input'];
+  customerId: Scalars['CustomerId']['input'];
 }>;
 
 
@@ -4834,7 +4863,7 @@ export type GetDisbursalDetailsQuery = { __typename?: 'Query', disbursalByPublic
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
 export type DisbursalUpdatedSubscriptionVariables = Exact<{
-  disbursalId: Scalars['UUID']['input'];
+  disbursalId: Scalars['DisbursalId']['input'];
 }>;
 
 
@@ -4961,7 +4990,7 @@ export type LedgerEntriesQuery = { __typename?: 'Query', ledgerEntries: { __type
         , ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null } | null }, ledgerTransaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string, description?: string | null, effective: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type LedgerAccountCsvQueryVariables = Exact<{
-  ledgerAccountId: Scalars['UUID']['input'];
+  ledgerAccountId: Scalars['LedgerAccountId']['input'];
 }>;
 
 
@@ -4982,7 +5011,7 @@ export type LedgerAccountCsvDownloadLinkGenerateMutationVariables = Exact<{
 export type LedgerAccountCsvDownloadLinkGenerateMutation = { __typename?: 'Mutation', ledgerAccountCsvDownloadLinkGenerate: { __typename?: 'LedgerAccountCsvDownloadLinkGeneratePayload', link: { __typename?: 'LedgerAccountCsvDownloadLink', url: string, csvId: string } } };
 
 export type LedgerAccountCsvExportUploadedSubscriptionVariables = Exact<{
-  ledgerAccountId: Scalars['UUID']['input'];
+  ledgerAccountId: Scalars['LedgerAccountId']['input'];
 }>;
 
 
@@ -5020,7 +5049,7 @@ export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCo
           , ledgerTransaction: { __typename?: 'LedgerTransaction', ledgerTransactionId: string }, ledgerAccount: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string, code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type LedgerAccountQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['LedgerAccountId']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -5046,7 +5075,7 @@ export type LedgerAccountExistsByCodeQueryVariables = Exact<{
 export type LedgerAccountExistsByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', ledgerAccountId: string } | null };
 
 export type LedgerAccountExistsByIdQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['LedgerAccountId']['input'];
 }>;
 
 
@@ -5077,7 +5106,7 @@ export type LedgerTransactionExistsByIdQueryVariables = Exact<{
 export type LedgerTransactionExistsByIdQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', ledgerTransactionId: string } | null };
 
 export type LiquidationEventHistoryQueryVariables = Exact<{
-  liquidationId: Scalars['UUID']['input'];
+  liquidationId: Scalars['LiquidationId']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -5111,7 +5140,7 @@ export type LiquidationDetailsFragment = { __typename?: 'Liquidation', liquidati
          }, balance: { __typename?: 'CreditFacilityBalance', outstanding: UsdCents, collateral: Satoshis }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } } | null }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> };
 
 export type GetLiquidationDetailsQueryVariables = Exact<{
-  liquidationId: Scalars['UUID']['input'];
+  liquidationId: Scalars['LiquidationId']['input'];
 }>;
 
 
@@ -5183,7 +5212,7 @@ export type CreditAccountSetOptionsQueryVariables = Exact<{ [key: string]: never
 export type CreditAccountSetOptionsQuery = { __typename?: 'Query', offBalanceSheet: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, asset: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, liability: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, equity: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, revenue: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, costOfRevenue: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, expenses: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }> };
 
 export type PendingCreditFacilityEventHistoryQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['PendingCreditFacilityId']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -5209,7 +5238,7 @@ export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'Pendin
     , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } };
 
 export type GetPendingCreditFacilityLayoutDetailsQueryVariables = Exact<{
-  pendingCreditFacilityId: Scalars['UUID']['input'];
+  pendingCreditFacilityId: Scalars['PendingCreditFacilityId']['input'];
 }>;
 
 
@@ -5228,7 +5257,7 @@ export type GetPendingCreditFacilityLayoutDetailsQuery = { __typename?: 'Query',
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
 export type PendingCreditFacilityUpdatedSubscriptionVariables = Exact<{
-  pendingCreditFacilityId: Scalars['UUID']['input'];
+  pendingCreditFacilityId: Scalars['PendingCreditFacilityId']['input'];
 }>;
 
 
@@ -5247,7 +5276,7 @@ export type PendingCreditFacilityUpdatedSubscription = { __typename?: 'Subscript
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } };
 
 export type GetPendingCreditFacilityRepaymentPlanQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['PendingCreditFacilityId']['input'];
 }>;
 
 
@@ -5281,7 +5310,7 @@ export type PolicyCommitteeAssignMutation = { __typename?: 'Mutation', policyCom
        } } };
 
 export type PolicyEventHistoryQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['PolicyId']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -5293,7 +5322,7 @@ export type PolicyEventHistoryQuery = { __typename?: 'Query', policy?: { __typen
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type GetPolicyDetailsQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['PolicyId']['input'];
 }>;
 
 
@@ -5404,7 +5433,7 @@ export type GetProspectBasicDetailsQueryVariables = Exact<{
 export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } | null };
 
 export type ProspectUpdatedSubscriptionVariables = Exact<{
-  prospectId: Scalars['UUID']['input'];
+  prospectId: Scalars['ProspectId']['input'];
 }>;
 
 
@@ -5428,7 +5457,7 @@ export type ProspectsQueryVariables = Exact<{
 export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', prospectId: string, publicId: any, stage: ProspectStage, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ReportRunByIdQueryVariables = Exact<{
-  reportRunId: Scalars['UUID']['input'];
+  reportRunId: Scalars['ReportRunId']['input'];
 }>;
 
 
@@ -5482,14 +5511,14 @@ export type RolePermissionSetsRemoveMutationVariables = Exact<{
 export type RolePermissionSetsRemoveMutation = { __typename?: 'Mutation', rolePermissionSetsRemove: { __typename?: 'RolePermissionSetsRemovePayload', role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } };
 
 export type RoleQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['RoleId']['input'];
 }>;
 
 
 export type RoleQuery = { __typename?: 'Query', role?: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } | null };
 
 export type RoleEventHistoryQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['RoleId']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -5546,7 +5575,7 @@ export type TimeAdvanceToNextEndOfDayMutationVariables = Exact<{ [key: string]: 
 export type TimeAdvanceToNextEndOfDayMutation = { __typename?: 'Mutation', timeAdvanceToNextEndOfDay: { __typename?: 'TimeAdvanceToNextEndOfDayPayload', time: { __typename?: 'Time', currentDate: string, currentTime: string, nextEndOfDayAt: string, timezone: string, endOfDayTime: string, canAdvanceToNextEndOfDay: boolean } } };
 
 export type TermsTemplateEventHistoryQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['TermsTemplateId']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -5558,7 +5587,7 @@ export type TermsTemplateEventHistoryQuery = { __typename?: 'Query', termsTempla
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type TermsTemplateQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['TermsTemplateId']['input'];
 }>;
 
 
@@ -5664,7 +5693,7 @@ export type TrialBalanceAccountBaseFragment = { __typename?: 'LedgerAccount', le
    };
 
 export type UserEventHistoryQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['UserId']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -5676,7 +5705,7 @@ export type UserEventHistoryQuery = { __typename?: 'Query', user?: { __typename?
            | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type GetUserDetailsQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['UserId']['input'];
 }>;
 
 
@@ -5757,7 +5786,7 @@ export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawalByPubl
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', permissionSetId: string, name: string, description: string }> } } }> } } | null };
 
 export type WithdrawalUpdatedSubscriptionVariables = Exact<{
-  withdrawalId: Scalars['UUID']['input'];
+  withdrawalId: Scalars['WithdrawalId']['input'];
 }>;
 
 
@@ -5852,7 +5881,7 @@ export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?:
    | null };
 
 export type GetCreditFacilityPublicIdQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  id: Scalars['CreditFacilityId']['input'];
 }>;
 
 
@@ -7586,7 +7615,7 @@ export type ChartOfAccountsCsvImportWithBaseConfigMutationHookResult = ReturnTyp
 export type ChartOfAccountsCsvImportWithBaseConfigMutationResult = Apollo.MutationResult<ChartOfAccountsCsvImportWithBaseConfigMutation>;
 export type ChartOfAccountsCsvImportWithBaseConfigMutationOptions = Apollo.BaseMutationOptions<ChartOfAccountsCsvImportWithBaseConfigMutation, ChartOfAccountsCsvImportWithBaseConfigMutationVariables>;
 export const CommitteeEventHistoryDocument = gql`
-    query CommitteeEventHistory($id: UUID!, $first: Int!, $after: String) {
+    query CommitteeEventHistory($id: CommitteeId!, $first: Int!, $after: String) {
   committee(id: $id) {
     committeeId
     eventHistory(first: $first, after: $after) {
@@ -7634,7 +7663,7 @@ export type CommitteeEventHistoryLazyQueryHookResult = ReturnType<typeof useComm
 export type CommitteeEventHistorySuspenseQueryHookResult = ReturnType<typeof useCommitteeEventHistorySuspenseQuery>;
 export type CommitteeEventHistoryQueryResult = Apollo.QueryResult<CommitteeEventHistoryQuery, CommitteeEventHistoryQueryVariables>;
 export const GetCommitteeDetailsDocument = gql`
-    query GetCommitteeDetails($id: UUID!) {
+    query GetCommitteeDetails($id: CommitteeId!) {
   committee(id: $id) {
     ...CommitteeFields
   }
@@ -8150,7 +8179,7 @@ export type GetCreditFacilityLayoutDetailsLazyQueryHookResult = ReturnType<typeo
 export type GetCreditFacilityLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityLayoutDetailsSuspenseQuery>;
 export type GetCreditFacilityLayoutDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityLayoutDetailsQuery, GetCreditFacilityLayoutDetailsQueryVariables>;
 export const CreditFacilityUpdatedDocument = gql`
-    subscription creditFacilityUpdated($creditFacilityId: UUID!) {
+    subscription creditFacilityUpdated($creditFacilityId: CreditFacilityId!) {
   creditFacilityUpdated(creditFacilityId: $creditFacilityId) {
     ...CreditFacilityLayoutFragment
   }
@@ -8643,7 +8672,7 @@ export type CreditFacilityProposalCustomerApprovalConcludeMutationHookResult = R
 export type CreditFacilityProposalCustomerApprovalConcludeMutationResult = Apollo.MutationResult<CreditFacilityProposalCustomerApprovalConcludeMutation>;
 export type CreditFacilityProposalCustomerApprovalConcludeMutationOptions = Apollo.BaseMutationOptions<CreditFacilityProposalCustomerApprovalConcludeMutation, CreditFacilityProposalCustomerApprovalConcludeMutationVariables>;
 export const CreditFacilityProposalEventHistoryDocument = gql`
-    query CreditFacilityProposalEventHistory($id: UUID!, $first: Int!, $after: String) {
+    query CreditFacilityProposalEventHistory($id: CreditFacilityProposalId!, $first: Int!, $after: String) {
   creditFacilityProposal(id: $id) {
     creditFacilityProposalId
     eventHistory(first: $first, after: $after) {
@@ -8691,7 +8720,7 @@ export type CreditFacilityProposalEventHistoryLazyQueryHookResult = ReturnType<t
 export type CreditFacilityProposalEventHistorySuspenseQueryHookResult = ReturnType<typeof useCreditFacilityProposalEventHistorySuspenseQuery>;
 export type CreditFacilityProposalEventHistoryQueryResult = Apollo.QueryResult<CreditFacilityProposalEventHistoryQuery, CreditFacilityProposalEventHistoryQueryVariables>;
 export const GetCreditFacilityProposalLayoutDetailsDocument = gql`
-    query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: UUID!) {
+    query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: CreditFacilityProposalId!) {
   creditFacilityProposal(id: $creditFacilityProposalId) {
     ...CreditFacilityProposalLayoutFragment
   }
@@ -8734,7 +8763,7 @@ export type GetCreditFacilityProposalLayoutDetailsLazyQueryHookResult = ReturnTy
 export type GetCreditFacilityProposalLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalLayoutDetailsSuspenseQuery>;
 export type GetCreditFacilityProposalLayoutDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityProposalLayoutDetailsQuery, GetCreditFacilityProposalLayoutDetailsQueryVariables>;
 export const CreditFacilityProposalUpdatedDocument = gql`
-    subscription creditFacilityProposalUpdated($creditFacilityProposalId: UUID!) {
+    subscription creditFacilityProposalUpdated($creditFacilityProposalId: CreditFacilityProposalId!) {
   creditFacilityProposalUpdated(
     creditFacilityProposalId: $creditFacilityProposalId
   ) {
@@ -8766,7 +8795,7 @@ export function useCreditFacilityProposalUpdatedSubscription(baseOptions: Apollo
 export type CreditFacilityProposalUpdatedSubscriptionHookResult = ReturnType<typeof useCreditFacilityProposalUpdatedSubscription>;
 export type CreditFacilityProposalUpdatedSubscriptionResult = Apollo.SubscriptionResult<CreditFacilityProposalUpdatedSubscription>;
 export const GetCreditFacilityProposalRepaymentPlanDocument = gql`
-    query GetCreditFacilityProposalRepaymentPlan($id: UUID!) {
+    query GetCreditFacilityProposalRepaymentPlan($id: CreditFacilityProposalId!) {
   creditFacilityProposal(id: $id) {
     creditFacilityProposalId
     repaymentPlan {
@@ -9206,7 +9235,7 @@ export type CustomerDocumentDeleteMutationHookResult = ReturnType<typeof useCust
 export type CustomerDocumentDeleteMutationResult = Apollo.MutationResult<CustomerDocumentDeleteMutation>;
 export type CustomerDocumentDeleteMutationOptions = Apollo.BaseMutationOptions<CustomerDocumentDeleteMutation, CustomerDocumentDeleteMutationVariables>;
 export const CustomerDocumentCreateDocument = gql`
-    mutation CustomerDocumentCreate($file: Upload!, $customerId: UUID!) {
+    mutation CustomerDocumentCreate($file: Upload!, $customerId: CustomerId!) {
   customerDocumentCreate(input: {file: $file, customerId: $customerId}) {
     customerDocument {
       customerDocumentId
@@ -10457,7 +10486,7 @@ export type GetDisbursalDetailsLazyQueryHookResult = ReturnType<typeof useGetDis
 export type GetDisbursalDetailsSuspenseQueryHookResult = ReturnType<typeof useGetDisbursalDetailsSuspenseQuery>;
 export type GetDisbursalDetailsQueryResult = Apollo.QueryResult<GetDisbursalDetailsQuery, GetDisbursalDetailsQueryVariables>;
 export const DisbursalUpdatedDocument = gql`
-    subscription disbursalUpdated($disbursalId: UUID!) {
+    subscription disbursalUpdated($disbursalId: DisbursalId!) {
   disbursalUpdated(disbursalId: $disbursalId) {
     ...DisbursalDetailsPageFragment
   }
@@ -11009,7 +11038,7 @@ export type LedgerEntriesLazyQueryHookResult = ReturnType<typeof useLedgerEntrie
 export type LedgerEntriesSuspenseQueryHookResult = ReturnType<typeof useLedgerEntriesSuspenseQuery>;
 export type LedgerEntriesQueryResult = Apollo.QueryResult<LedgerEntriesQuery, LedgerEntriesQueryVariables>;
 export const LedgerAccountCsvDocument = gql`
-    query LedgerAccountCsv($ledgerAccountId: UUID!) {
+    query LedgerAccountCsv($ledgerAccountId: LedgerAccountId!) {
   ledgerAccountCsv(ledgerAccountId: $ledgerAccountId) {
     ledgerAccountCsvDocumentId
     status
@@ -11127,7 +11156,7 @@ export type LedgerAccountCsvDownloadLinkGenerateMutationHookResult = ReturnType<
 export type LedgerAccountCsvDownloadLinkGenerateMutationResult = Apollo.MutationResult<LedgerAccountCsvDownloadLinkGenerateMutation>;
 export type LedgerAccountCsvDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<LedgerAccountCsvDownloadLinkGenerateMutation, LedgerAccountCsvDownloadLinkGenerateMutationVariables>;
 export const LedgerAccountCsvExportUploadedDocument = gql`
-    subscription LedgerAccountCsvExportUploaded($ledgerAccountId: UUID!) {
+    subscription LedgerAccountCsvExportUploaded($ledgerAccountId: LedgerAccountId!) {
   ledgerAccountCsvExportUploaded(ledgerAccountId: $ledgerAccountId) {
     documentId
   }
@@ -11202,7 +11231,7 @@ export type LedgerAccountByCodeLazyQueryHookResult = ReturnType<typeof useLedger
 export type LedgerAccountByCodeSuspenseQueryHookResult = ReturnType<typeof useLedgerAccountByCodeSuspenseQuery>;
 export type LedgerAccountByCodeQueryResult = Apollo.QueryResult<LedgerAccountByCodeQuery, LedgerAccountByCodeQueryVariables>;
 export const LedgerAccountDocument = gql`
-    query LedgerAccount($id: UUID!, $first: Int!, $after: String) {
+    query LedgerAccount($id: LedgerAccountId!, $first: Int!, $after: String) {
   ledgerAccount(id: $id) {
     ...LedgerAccountDetails
   }
@@ -11290,7 +11319,7 @@ export type LedgerAccountExistsByCodeLazyQueryHookResult = ReturnType<typeof use
 export type LedgerAccountExistsByCodeSuspenseQueryHookResult = ReturnType<typeof useLedgerAccountExistsByCodeSuspenseQuery>;
 export type LedgerAccountExistsByCodeQueryResult = Apollo.QueryResult<LedgerAccountExistsByCodeQuery, LedgerAccountExistsByCodeQueryVariables>;
 export const LedgerAccountExistsByIdDocument = gql`
-    query LedgerAccountExistsById($id: UUID!) {
+    query LedgerAccountExistsById($id: LedgerAccountId!) {
   ledgerAccount(id: $id) {
     ledgerAccountId
   }
@@ -11471,7 +11500,7 @@ export type LedgerTransactionExistsByIdLazyQueryHookResult = ReturnType<typeof u
 export type LedgerTransactionExistsByIdSuspenseQueryHookResult = ReturnType<typeof useLedgerTransactionExistsByIdSuspenseQuery>;
 export type LedgerTransactionExistsByIdQueryResult = Apollo.QueryResult<LedgerTransactionExistsByIdQuery, LedgerTransactionExistsByIdQueryVariables>;
 export const LiquidationEventHistoryDocument = gql`
-    query LiquidationEventHistory($liquidationId: UUID!, $first: Int!, $after: String) {
+    query LiquidationEventHistory($liquidationId: LiquidationId!, $first: Int!, $after: String) {
   liquidation(id: $liquidationId) {
     liquidationId
     eventHistory(first: $first, after: $after) {
@@ -11575,7 +11604,7 @@ export type LiquidationPaymentCalculateLazyQueryHookResult = ReturnType<typeof u
 export type LiquidationPaymentCalculateSuspenseQueryHookResult = ReturnType<typeof useLiquidationPaymentCalculateSuspenseQuery>;
 export type LiquidationPaymentCalculateQueryResult = Apollo.QueryResult<LiquidationPaymentCalculateQuery, LiquidationPaymentCalculateQueryVariables>;
 export const GetLiquidationDetailsDocument = gql`
-    query GetLiquidationDetails($liquidationId: UUID!) {
+    query GetLiquidationDetails($liquidationId: LiquidationId!) {
   liquidation(id: $liquidationId) {
     ...LiquidationDetails
   }
@@ -12151,7 +12180,7 @@ export type CreditAccountSetOptionsLazyQueryHookResult = ReturnType<typeof useCr
 export type CreditAccountSetOptionsSuspenseQueryHookResult = ReturnType<typeof useCreditAccountSetOptionsSuspenseQuery>;
 export type CreditAccountSetOptionsQueryResult = Apollo.QueryResult<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>;
 export const PendingCreditFacilityEventHistoryDocument = gql`
-    query PendingCreditFacilityEventHistory($id: UUID!, $first: Int!, $after: String) {
+    query PendingCreditFacilityEventHistory($id: PendingCreditFacilityId!, $first: Int!, $after: String) {
   pendingCreditFacility(id: $id) {
     pendingCreditFacilityId
     eventHistory(first: $first, after: $after) {
@@ -12199,7 +12228,7 @@ export type PendingCreditFacilityEventHistoryLazyQueryHookResult = ReturnType<ty
 export type PendingCreditFacilityEventHistorySuspenseQueryHookResult = ReturnType<typeof usePendingCreditFacilityEventHistorySuspenseQuery>;
 export type PendingCreditFacilityEventHistoryQueryResult = Apollo.QueryResult<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables>;
 export const GetPendingCreditFacilityLayoutDetailsDocument = gql`
-    query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: UUID!) {
+    query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: PendingCreditFacilityId!) {
   pendingCreditFacility(id: $pendingCreditFacilityId) {
     ...PendingCreditFacilityLayoutFragment
   }
@@ -12242,7 +12271,7 @@ export type GetPendingCreditFacilityLayoutDetailsLazyQueryHookResult = ReturnTyp
 export type GetPendingCreditFacilityLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityLayoutDetailsSuspenseQuery>;
 export type GetPendingCreditFacilityLayoutDetailsQueryResult = Apollo.QueryResult<GetPendingCreditFacilityLayoutDetailsQuery, GetPendingCreditFacilityLayoutDetailsQueryVariables>;
 export const PendingCreditFacilityUpdatedDocument = gql`
-    subscription pendingCreditFacilityUpdated($pendingCreditFacilityId: UUID!) {
+    subscription pendingCreditFacilityUpdated($pendingCreditFacilityId: PendingCreditFacilityId!) {
   pendingCreditFacilityUpdated(pendingCreditFacilityId: $pendingCreditFacilityId) {
     ...PendingCreditFacilityLayoutFragment
   }
@@ -12272,7 +12301,7 @@ export function usePendingCreditFacilityUpdatedSubscription(baseOptions: Apollo.
 export type PendingCreditFacilityUpdatedSubscriptionHookResult = ReturnType<typeof usePendingCreditFacilityUpdatedSubscription>;
 export type PendingCreditFacilityUpdatedSubscriptionResult = Apollo.SubscriptionResult<PendingCreditFacilityUpdatedSubscription>;
 export const GetPendingCreditFacilityRepaymentPlanDocument = gql`
-    query GetPendingCreditFacilityRepaymentPlan($id: UUID!) {
+    query GetPendingCreditFacilityRepaymentPlan($id: PendingCreditFacilityId!) {
   pendingCreditFacility(id: $id) {
     pendingCreditFacilityId
     repaymentPlan {
@@ -12468,7 +12497,7 @@ export type PolicyCommitteeAssignMutationHookResult = ReturnType<typeof usePolic
 export type PolicyCommitteeAssignMutationResult = Apollo.MutationResult<PolicyCommitteeAssignMutation>;
 export type PolicyCommitteeAssignMutationOptions = Apollo.BaseMutationOptions<PolicyCommitteeAssignMutation, PolicyCommitteeAssignMutationVariables>;
 export const PolicyEventHistoryDocument = gql`
-    query PolicyEventHistory($id: UUID!, $first: Int!, $after: String) {
+    query PolicyEventHistory($id: PolicyId!, $first: Int!, $after: String) {
   policy(id: $id) {
     policyId
     eventHistory(first: $first, after: $after) {
@@ -12516,7 +12545,7 @@ export type PolicyEventHistoryLazyQueryHookResult = ReturnType<typeof usePolicyE
 export type PolicyEventHistorySuspenseQueryHookResult = ReturnType<typeof usePolicyEventHistorySuspenseQuery>;
 export type PolicyEventHistoryQueryResult = Apollo.QueryResult<PolicyEventHistoryQuery, PolicyEventHistoryQueryVariables>;
 export const GetPolicyDetailsDocument = gql`
-    query GetPolicyDetails($id: UUID!) {
+    query GetPolicyDetails($id: PolicyId!) {
   policy(id: $id) {
     policyId
     approvalProcessType
@@ -13077,7 +13106,7 @@ export type GetProspectBasicDetailsLazyQueryHookResult = ReturnType<typeof useGe
 export type GetProspectBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsSuspenseQuery>;
 export type GetProspectBasicDetailsQueryResult = Apollo.QueryResult<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>;
 export const ProspectUpdatedDocument = gql`
-    subscription ProspectUpdated($prospectId: UUID!) {
+    subscription ProspectUpdated($prospectId: ProspectId!) {
   prospectUpdated(prospectId: $prospectId) {
     ...ProspectDetailsFragment
   }
@@ -13212,7 +13241,7 @@ export type ProspectsLazyQueryHookResult = ReturnType<typeof useProspectsLazyQue
 export type ProspectsSuspenseQueryHookResult = ReturnType<typeof useProspectsSuspenseQuery>;
 export type ProspectsQueryResult = Apollo.QueryResult<ProspectsQuery, ProspectsQueryVariables>;
 export const ReportRunByIdDocument = gql`
-    query ReportRunById($reportRunId: UUID!) {
+    query ReportRunById($reportRunId: ReportRunId!) {
   reportRun(id: $reportRunId) {
     reportRunId
     state
@@ -13553,7 +13582,7 @@ export type RolePermissionSetsRemoveMutationHookResult = ReturnType<typeof useRo
 export type RolePermissionSetsRemoveMutationResult = Apollo.MutationResult<RolePermissionSetsRemoveMutation>;
 export type RolePermissionSetsRemoveMutationOptions = Apollo.BaseMutationOptions<RolePermissionSetsRemoveMutation, RolePermissionSetsRemoveMutationVariables>;
 export const RoleDocument = gql`
-    query Role($id: UUID!) {
+    query Role($id: RoleId!) {
   role(id: $id) {
     ...RoleFields
   }
@@ -13596,7 +13625,7 @@ export type RoleLazyQueryHookResult = ReturnType<typeof useRoleLazyQuery>;
 export type RoleSuspenseQueryHookResult = ReturnType<typeof useRoleSuspenseQuery>;
 export type RoleQueryResult = Apollo.QueryResult<RoleQuery, RoleQueryVariables>;
 export const RoleEventHistoryDocument = gql`
-    query RoleEventHistory($id: UUID!, $first: Int!, $after: String) {
+    query RoleEventHistory($id: RoleId!, $first: Int!, $after: String) {
   role(id: $id) {
     roleId
     eventHistory(first: $first, after: $after) {
@@ -13905,7 +13934,7 @@ export type TimeAdvanceToNextEndOfDayMutationHookResult = ReturnType<typeof useT
 export type TimeAdvanceToNextEndOfDayMutationResult = Apollo.MutationResult<TimeAdvanceToNextEndOfDayMutation>;
 export type TimeAdvanceToNextEndOfDayMutationOptions = Apollo.BaseMutationOptions<TimeAdvanceToNextEndOfDayMutation, TimeAdvanceToNextEndOfDayMutationVariables>;
 export const TermsTemplateEventHistoryDocument = gql`
-    query TermsTemplateEventHistory($id: UUID!, $first: Int!, $after: String) {
+    query TermsTemplateEventHistory($id: TermsTemplateId!, $first: Int!, $after: String) {
   termsTemplate(id: $id) {
     termsTemplateId
     eventHistory(first: $first, after: $after) {
@@ -13953,7 +13982,7 @@ export type TermsTemplateEventHistoryLazyQueryHookResult = ReturnType<typeof use
 export type TermsTemplateEventHistorySuspenseQueryHookResult = ReturnType<typeof useTermsTemplateEventHistorySuspenseQuery>;
 export type TermsTemplateEventHistoryQueryResult = Apollo.QueryResult<TermsTemplateEventHistoryQuery, TermsTemplateEventHistoryQueryVariables>;
 export const TermsTemplateDocument = gql`
-    query TermsTemplate($id: UUID!) {
+    query TermsTemplate($id: TermsTemplateId!) {
   termsTemplate(id: $id) {
     ...TermsTemplateFields
   }
@@ -14273,7 +14302,7 @@ export type GetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetTrialBa
 export type GetTrialBalanceSuspenseQueryHookResult = ReturnType<typeof useGetTrialBalanceSuspenseQuery>;
 export type GetTrialBalanceQueryResult = Apollo.QueryResult<GetTrialBalanceQuery, GetTrialBalanceQueryVariables>;
 export const UserEventHistoryDocument = gql`
-    query UserEventHistory($id: UUID!, $first: Int!, $after: String) {
+    query UserEventHistory($id: UserId!, $first: Int!, $after: String) {
   user(id: $id) {
     userId
     eventHistory(first: $first, after: $after) {
@@ -14321,7 +14350,7 @@ export type UserEventHistoryLazyQueryHookResult = ReturnType<typeof useUserEvent
 export type UserEventHistorySuspenseQueryHookResult = ReturnType<typeof useUserEventHistorySuspenseQuery>;
 export type UserEventHistoryQueryResult = Apollo.QueryResult<UserEventHistoryQuery, UserEventHistoryQueryVariables>;
 export const GetUserDetailsDocument = gql`
-    query GetUserDetails($id: UUID!) {
+    query GetUserDetails($id: UserId!) {
   user(id: $id) {
     ...UserFields
   }
@@ -14651,7 +14680,7 @@ export type GetWithdrawalDetailsLazyQueryHookResult = ReturnType<typeof useGetWi
 export type GetWithdrawalDetailsSuspenseQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsSuspenseQuery>;
 export type GetWithdrawalDetailsQueryResult = Apollo.QueryResult<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>;
 export const WithdrawalUpdatedDocument = gql`
-    subscription withdrawalUpdated($withdrawalId: UUID!) {
+    subscription withdrawalUpdated($withdrawalId: WithdrawalId!) {
   withdrawalUpdated(withdrawalId: $withdrawalId) {
     ...WithdrawDetailsPageFragment
   }
@@ -15140,7 +15169,7 @@ export type SearchPublicIdTargetLazyQueryHookResult = ReturnType<typeof useSearc
 export type SearchPublicIdTargetSuspenseQueryHookResult = ReturnType<typeof useSearchPublicIdTargetSuspenseQuery>;
 export type SearchPublicIdTargetQueryResult = Apollo.QueryResult<SearchPublicIdTargetQuery, SearchPublicIdTargetQueryVariables>;
 export const GetCreditFacilityPublicIdDocument = gql`
-    query GetCreditFacilityPublicId($id: UUID!) {
+    query GetCreditFacilityPublicId($id: CreditFacilityId!) {
   creditFacility(id: $id) {
     creditFacilityId
     publicId

@@ -87,7 +87,7 @@ gql`
     }
   }
 
-  query GetLiquidationDetails($liquidationId: UUID!) {
+  query GetLiquidationDetails($liquidationId: LiquidationId!) {
     liquidation(id: $liquidationId) {
       ...LiquidationDetails
     }

@@ -64,7 +64,7 @@ gql`
     }
   }
 
-  subscription disbursalUpdated($disbursalId: UUID!) {
+  subscription disbursalUpdated($disbursalId: DisbursalId!) {
     disbursalUpdated(disbursalId: $disbursalId) {
       ...DisbursalDetailsPageFragment
     }

@@ -27,7 +27,7 @@ import {
 } from "@/lib/graphql/generated"
 
 gql`
-  query LedgerAccountCsv($ledgerAccountId: UUID!) {
+  query LedgerAccountCsv($ledgerAccountId: LedgerAccountId!) {
     ledgerAccountCsv(ledgerAccountId: $ledgerAccountId) {
       ledgerAccountCsvDocumentId
       status
@@ -56,7 +56,7 @@ gql`
     }
   }
 
-  subscription LedgerAccountCsvExportUploaded($ledgerAccountId: UUID!) {
+  subscription LedgerAccountCsvExportUploaded($ledgerAccountId: LedgerAccountId!) {
     ledgerAccountCsvExportUploaded(ledgerAccountId: $ledgerAccountId) {
       documentId
     }

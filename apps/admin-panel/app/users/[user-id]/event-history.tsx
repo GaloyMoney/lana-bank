@@ -8,7 +8,7 @@ import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useUserEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
-  query UserEventHistory($id: UUID!, $first: Int!, $after: String) {
+  query UserEventHistory($id: UserId!, $first: Int!, $after: String) {
     user(id: $id) {
       userId
       eventHistory(first: $first, after: $after) {

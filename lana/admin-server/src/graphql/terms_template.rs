@@ -15,7 +15,7 @@ use lana_app::terms_template::TermsTemplate as DomainTermsTemplate;
     directive = crate::graphql::entity_key::entity_key::apply("termsTemplateId".to_string())
 )]
 pub struct TermsTemplate {
-    terms_template_id: UUID,
+    terms_template_id: TermsTemplateId,
     values: TermValues,
     created_at: Timestamp,
 
@@ -27,7 +27,7 @@ impl From<DomainTermsTemplate> for TermsTemplate {
     fn from(terms: DomainTermsTemplate) -> Self {
         Self {
             created_at: terms.created_at().into(),
-            terms_template_id: terms.id.into(),
+            terms_template_id: terms.id,
             values: terms.values.into(),
             entity: Arc::new(terms),
         }
@@ -73,7 +73,7 @@ crate::mutation_payload! { TermsTemplateCreatePayload, terms_template: TermsTemp
 
 #[derive(InputObject)]
 pub(super) struct TermsTemplateUpdateInput {
-    pub terms_template_id: UUID,
+    pub terms_template_id: TermsTemplateId,
     pub terms: TermsInput,
 }
 crate::mutation_payload! { TermsTemplateUpdatePayload, terms_template: TermsTemplate }

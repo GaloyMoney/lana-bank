@@ -27,7 +27,7 @@ pub use lana_app::{
     directive = crate::graphql::entity_key::entity_key::apply("creditFacilityDisbursalId".to_string())
 )]
 pub struct CreditFacilityDisbursal {
-    credit_facility_disbursal_id: UUID,
+    credit_facility_disbursal_id: DisbursalId,
     amount: UsdCents,
     status: DisbursalStatus,
     created_at: Timestamp,
@@ -39,7 +39,7 @@ pub struct CreditFacilityDisbursal {
 impl From<DomainDisbursal> for CreditFacilityDisbursal {
     fn from(disbursal: DomainDisbursal) -> Self {
         Self {
-            credit_facility_disbursal_id: UUID::from(disbursal.id),
+            credit_facility_disbursal_id: disbursal.id,
             amount: disbursal.amount,
             status: disbursal.status(),
             created_at: disbursal.created_at().into(),
@@ -100,7 +100,7 @@ impl CreditFacilityDisbursal {
 
 #[derive(InputObject)]
 pub struct CreditFacilityDisbursalInitiateInput {
-    pub credit_facility_id: UUID,
+    pub credit_facility_id: CreditFacilityId,
     pub amount: UsdCents,
 }
 crate::mutation_payload! { CreditFacilityDisbursalInitiatePayload, credit_facility_disbursal: CreditFacilityDisbursal }

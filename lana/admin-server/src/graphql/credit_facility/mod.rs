@@ -50,8 +50,8 @@ pub use repayment::*;
     directive = crate::graphql::entity_key::entity_key::apply("creditFacilityId".to_string())
 )]
 pub struct CreditFacility {
-    credit_facility_id: UUID,
-    collateral_id: UUID,
+    credit_facility_id: CreditFacilityId,
+    collateral_id: CollateralId,
     created_at: Timestamp,
     matures_at: Timestamp,
     activated_at: Timestamp,
@@ -66,8 +66,8 @@ pub struct CreditFacility {
 impl From<DomainCreditFacility> for CreditFacility {
     fn from(credit_facility: DomainCreditFacility) -> Self {
         Self {
-            credit_facility_id: UUID::from(credit_facility.id),
-            collateral_id: UUID::from(credit_facility.collateral_id),
+            credit_facility_id: credit_facility.id,
+            collateral_id: credit_facility.collateral_id,
             created_at: Timestamp::from(credit_facility.created_at()),
             activated_at: Timestamp::from(credit_facility.activated_at),
             matures_at: Timestamp::from(credit_facility.matures_at()),
@@ -246,7 +246,7 @@ impl CreditFacility {
             .ok_or_else(|| Error::new("Collateral not found"))?;
 
         if let Some(wallet_id) = collateral.wallet_id {
-            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
+            Ok(loader.load_one(wallet_id).await?)
         } else {
             Ok(None)
         }
@@ -346,13 +346,13 @@ impl CreditFacility {
 
 #[derive(InputObject)]
 pub struct CreditFacilityPartialPaymentRecordInput {
-    pub credit_facility_id: UUID,
+    pub credit_facility_id: CreditFacilityId,
     pub amount: UsdCents,
 }
 
 #[derive(InputObject)]
 pub struct CreditFacilityPartialPaymentWithDateRecordInput {
-    pub credit_facility_id: UUID,
+    pub credit_facility_id: CreditFacilityId,
     pub amount: UsdCents,
     pub effective: Date,
 }
@@ -360,7 +360,7 @@ crate::mutation_payload! { CreditFacilityPartialPaymentRecordPayload, credit_fac
 
 #[derive(InputObject)]
 pub struct CreditFacilityCompleteInput {
-    pub credit_facility_id: UUID,
+    pub credit_facility_id: CreditFacilityId,
 }
 crate::mutation_payload! { CreditFacilityCompletePayload, credit_facility: CreditFacility }
 

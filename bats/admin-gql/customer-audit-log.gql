@@ -1,4 +1,4 @@
-query CustomerAuditLog($id: UUID!) {
+query CustomerAuditLog($id: CustomerId!) {
   customer(id: $id) {
     customerId
   }

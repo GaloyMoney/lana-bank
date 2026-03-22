@@ -25,8 +25,8 @@ pub use lana_app::credit::{
     directive = crate::graphql::entity_key::entity_key::apply("creditFacilityProposalId".to_string())
 )]
 pub struct CreditFacilityProposal {
-    credit_facility_proposal_id: UUID,
-    approval_process_id: Option<UUID>,
+    credit_facility_proposal_id: CreditFacilityProposalId,
+    approval_process_id: Option<ApprovalProcessId>,
     status: CreditFacilityProposalStatus,
     created_at: Timestamp,
     facility_amount: UsdCents,
@@ -87,7 +87,7 @@ impl CreditFacilityProposal {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         if let Some(approval_process_id) = self.approval_process_id {
             let process = loader
-                .load_one(ApprovalProcessId::from(approval_process_id))
+                .load_one(approval_process_id)
                 .await?
                 .ok_or_else(|| Error::new("Approval process not found"))?;
             return Ok(Some(process));
@@ -101,8 +101,8 @@ impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {
         let created_at = proposal.created_at();
 
         Self {
-            credit_facility_proposal_id: UUID::from(proposal.id),
-            approval_process_id: proposal.approval_process_id.map(|id| id.into()),
+            credit_facility_proposal_id: proposal.id,
+            approval_process_id: proposal.approval_process_id,
             status: proposal.status(),
             created_at: created_at.into(),
             facility_amount: proposal.amount,
@@ -163,16 +163,16 @@ impl From<CreditFacilityProposalsSort> for DomainCreditFacilityProposalsSortBy {
 
 #[derive(InputObject)]
 pub struct CreditFacilityProposalCreateInput {
-    pub customer_id: UUID,
+    pub customer_id: CustomerId,
     pub facility: UsdCents,
     pub terms: TermsInput,
-    pub custodian_id: UUID,
+    pub custodian_id: CustodianId,
 }
 crate::mutation_payload! { CreditFacilityProposalCreatePayload, credit_facility_proposal: CreditFacilityProposal }
 
 #[derive(InputObject)]
 pub struct CreditFacilityProposalCustomerApprovalConcludeInput {
-    pub credit_facility_proposal_id: UUID,
+    pub credit_facility_proposal_id: CreditFacilityProposalId,
     pub approved: bool,
 }
 

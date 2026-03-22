@@ -1,4 +1,4 @@
-query TermsTemplateGet($id: UUID!) {
+query TermsTemplateGet($id: TermsTemplateId!) {
   termsTemplate(id: $id) {
     termsTemplateId
     name

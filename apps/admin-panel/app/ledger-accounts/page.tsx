@@ -30,7 +30,7 @@ gql`
     }
   }
 
-  query LedgerAccountExistsById($id: UUID!) {
+  query LedgerAccountExistsById($id: LedgerAccountId!) {
     ledgerAccount(id: $id) {
       ledgerAccountId
     }

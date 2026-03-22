@@ -8,7 +8,7 @@ import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useCreditFacilityProposalEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
-  query CreditFacilityProposalEventHistory($id: UUID!, $first: Int!, $after: String) {
+  query CreditFacilityProposalEventHistory($id: CreditFacilityProposalId!, $first: Int!, $after: String) {
     creditFacilityProposal(id: $id) {
       creditFacilityProposalId
       eventHistory(first: $first, after: $after) {

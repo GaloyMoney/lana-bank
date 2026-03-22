@@ -18,7 +18,7 @@ use crate::graphql::primitives::SortDirection;
     directive = crate::graphql::entity_key::entity_key::apply("userId".to_string())
 )]
 pub struct User {
-    user_id: UUID,
+    user_id: UserId,
     created_at: Timestamp,
 
     #[graphql(skip)]
@@ -28,7 +28,7 @@ pub struct User {
 impl From<DomainUser> for User {
     fn from(user: DomainUser) -> Self {
         Self {
-            user_id: UUID::from(user.id),
+            user_id: user.id,
             created_at: user.created_at().into(),
             entity: Arc::new(user),
         }
@@ -38,7 +38,7 @@ impl From<DomainUser> for User {
 impl From<Arc<DomainUser>> for User {
     fn from(user: Arc<DomainUser>) -> Self {
         Self {
-            user_id: UUID::from(user.id),
+            user_id: user.id,
             created_at: user.created_at().into(),
             entity: user,
         }
@@ -88,15 +88,15 @@ impl User {
 #[derive(InputObject)]
 pub struct UserCreateInput {
     pub email: String,
-    pub role_id: UUID,
+    pub role_id: RoleId,
 }
 
 crate::mutation_payload! { UserCreatePayload, user: User }
 
 #[derive(InputObject)]
 pub struct UserRoleUpdateInput {
-    pub user_id: UUID,
-    pub role_id: UUID,
+    pub user_id: UserId,
+    pub role_id: RoleId,
 }
 crate::mutation_payload! { UserRoleUpdatePayload, user: User }
 

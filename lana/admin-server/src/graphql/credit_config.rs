@@ -6,7 +6,7 @@ pub use lana_app::credit::ChartOfAccountsIntegrationConfig as DomainChartOfAccou
 
 #[derive(SimpleObject, Clone)]
 pub struct CreditFacilityModuleConfig {
-    chart_of_accounts_id: Option<UUID>,
+    chart_of_accounts_id: Option<ChartId>,
     chart_of_account_facility_omnibus_parent_code: Option<String>,
     chart_of_account_collateral_omnibus_parent_code: Option<String>,
     chart_of_account_liquidation_proceeds_omnibus_parent_code: Option<String>,
@@ -84,7 +84,7 @@ pub struct CreditFacilityModuleConfig {
 impl From<DomainChartOfAccountsIntegrationConfig> for CreditFacilityModuleConfig {
     fn from(values: DomainChartOfAccountsIntegrationConfig) -> Self {
         Self {
-            chart_of_accounts_id: Some(values.chart_of_accounts_id.into()),
+            chart_of_accounts_id: Some(values.chart_of_accounts_id),
             chart_of_account_facility_omnibus_parent_code: Some(
                 values
                     .chart_of_account_facility_omnibus_parent_code

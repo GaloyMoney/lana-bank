@@ -16,7 +16,7 @@ pub use lana_app::price::{
     directive = crate::graphql::entity_key::entity_key::apply("priceProviderId".to_string())
 )]
 pub struct PriceProvider {
-    price_provider_id: UUID,
+    price_provider_id: PriceProviderId,
     created_at: Timestamp,
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainPriceProvider>,
@@ -25,7 +25,7 @@ pub struct PriceProvider {
 impl From<DomainPriceProvider> for PriceProvider {
     fn from(provider: DomainPriceProvider) -> Self {
         Self {
-            price_provider_id: provider.id.into(),
+            price_provider_id: provider.id,
             created_at: provider.created_at().into(),
             entity: Arc::new(provider),
         }
@@ -86,7 +86,7 @@ impl From<PriceProviderConfigInput> for DomainPriceProviderConfig {
 
 #[derive(InputObject)]
 pub struct PriceProviderConfigUpdateInput {
-    pub price_provider_id: UUID,
+    pub price_provider_id: PriceProviderId,
     pub config: PriceProviderConfigInput,
 }
 
@@ -94,14 +94,14 @@ crate::mutation_payload! { PriceProviderConfigUpdatePayload, price_provider: Pri
 
 #[derive(InputObject)]
 pub struct PriceProviderActivateInput {
-    pub price_provider_id: UUID,
+    pub price_provider_id: PriceProviderId,
 }
 
 crate::mutation_payload! { PriceProviderActivatePayload, price_provider: PriceProvider }
 
 #[derive(InputObject)]
 pub struct PriceProviderDeactivateInput {
-    pub price_provider_id: UUID,
+    pub price_provider_id: PriceProviderId,
 }
 
 crate::mutation_payload! { PriceProviderDeactivatePayload, price_provider: PriceProvider }

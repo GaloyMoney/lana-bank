@@ -12,8 +12,8 @@ use std::sync::Arc;
     directive = crate::graphql::entity_key::entity_key::apply("ledgerAccountCsvDocumentId".to_string())
 )]
 pub struct LedgerAccountCsvDocument {
-    ledger_account_csv_document_id: UUID,
-    ledger_account_id: UUID,
+    ledger_account_csv_document_id: AccountingCsvDocumentId,
+    ledger_account_id: LedgerAccountId,
     status: DocumentStatus,
     created_at: Timestamp,
 
@@ -24,8 +24,10 @@ pub struct LedgerAccountCsvDocument {
 impl From<DomainDocument> for LedgerAccountCsvDocument {
     fn from(document: DomainDocument) -> Self {
         Self {
-            ledger_account_csv_document_id: UUID::from(document.id),
-            ledger_account_id: UUID::from(document.reference_id),
+            ledger_account_csv_document_id: AccountingCsvDocumentId::from(uuid::Uuid::from(
+                document.id,
+            )),
+            ledger_account_id: LedgerAccountId::from(uuid::Uuid::from(document.reference_id)),
             status: document.status,
             created_at: document.created_at().into(),
             entity: Arc::new(document),
@@ -43,31 +45,31 @@ impl LedgerAccountCsvDocument {
 #[derive(SimpleObject)]
 pub struct LedgerAccountCsvDownloadLink {
     pub url: String,
-    pub csv_id: UUID,
+    pub csv_id: AccountingCsvDocumentId,
 }
 
 impl From<GeneratedDocumentDownloadLink> for LedgerAccountCsvDownloadLink {
     fn from(result: GeneratedDocumentDownloadLink) -> Self {
         Self {
             url: result.link,
-            csv_id: UUID::from(result.document_id),
+            csv_id: result.document_id.into(),
         }
     }
 }
 
 #[derive(SimpleObject)]
 pub struct LedgerAccountCsvExportUploadedPayload {
-    pub document_id: UUID,
+    pub document_id: AccountingCsvDocumentId,
 }
 
 #[derive(InputObject)]
 pub struct LedgerAccountCsvCreateInput {
-    pub ledger_account_id: UUID,
+    pub ledger_account_id: LedgerAccountId,
 }
 crate::mutation_payload! { LedgerAccountCsvCreatePayload, ledger_account_csv_document: LedgerAccountCsvDocument }
 
 #[derive(InputObject)]
 pub struct LedgerAccountCsvDownloadLinkGenerateInput {
-    pub ledger_account_csv_document_id: UUID,
+    pub ledger_account_csv_document_id: AccountingCsvDocumentId,
 }
 crate::mutation_payload! { LedgerAccountCsvDownloadLinkGeneratePayload, link: LedgerAccountCsvDownloadLink }

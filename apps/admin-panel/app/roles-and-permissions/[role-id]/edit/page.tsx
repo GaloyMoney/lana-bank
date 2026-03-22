@@ -43,7 +43,7 @@ gql`
     }
   }
 
-  query Role($id: UUID!) {
+  query Role($id: RoleId!) {
     role(id: $id) {
       ...RoleFields
     }

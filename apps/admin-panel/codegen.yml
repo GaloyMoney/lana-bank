@@ -30,6 +30,36 @@ generates:
         AuditSubjectId: string
         ReportDefinitionId: string
         AccountCode: string
+        AccountingCsvDocumentId: string
+        ApprovalProcessId: string
+        ChartId: string
+        CollateralId: string
+        CommitteeId: string
+        CreditFacilityId: string
+        CreditFacilityProposalId: string
+        CustodianId: string
+        CustomerDocumentId: string
+        CustomerId: string
+        DepositAccountId: string
+        DepositId: string
+        DisbursalId: string
+        DomainConfigId: string
+        FiscalYearId: string
+        LedgerAccountId: string
+
+        LiquidationId: string
+        PendingCreditFacilityId: string
+        PermissionSetId: string
+        PolicyId: string
+        PriceProviderId: string
+        ProspectId: string
+        ReportId: string
+        ReportRunId: string
+        RoleId: string
+        TermsTemplateId: string
+        UserId: string
+        WalletId: string
+        WithdrawalId: string
   ./lib/graphql/generated/entity-keys.ts:
     plugins:
       - ./lib/codegen-plugins/entity-key-fields.js
@@ -116,6 +146,36 @@ generates:
             DisbursalIdx: "generateMockValue.int()"
             AuditSubjectId: "generateMockValue.uuid()"
             ReportDefinitionId: "'nrp_91/01_saldo_cuenta'"
+            AccountingCsvDocumentId: "generateMockValue.uuid()"
+            ApprovalProcessId: "generateMockValue.uuid()"
+            ChartId: "generateMockValue.uuid()"
+            CollateralId: "generateMockValue.uuid()"
+            CommitteeId: "generateMockValue.uuid()"
+            CreditFacilityId: "generateMockValue.uuid()"
+            CreditFacilityProposalId: "generateMockValue.uuid()"
+            CustodianId: "generateMockValue.uuid()"
+            CustomerDocumentId: "generateMockValue.uuid()"
+            CustomerId: "generateMockValue.uuid()"
+            DepositAccountId: "generateMockValue.uuid()"
+            DepositId: "generateMockValue.uuid()"
+            DisbursalId: "generateMockValue.uuid()"
+            DomainConfigId: "generateMockValue.uuid()"
+            FiscalYearId: "generateMockValue.uuid()"
+            LedgerAccountId: "generateMockValue.uuid()"
+
+            LiquidationId: "generateMockValue.uuid()"
+            PendingCreditFacilityId: "generateMockValue.uuid()"
+            PermissionSetId: "generateMockValue.uuid()"
+            PolicyId: "generateMockValue.uuid()"
+            PriceProviderId: "generateMockValue.uuid()"
+            ProspectId: "generateMockValue.uuid()"
+            ReportId: "generateMockValue.uuid()"
+            ReportRunId: "generateMockValue.uuid()"
+            RoleId: "generateMockValue.uuid()"
+            TermsTemplateId: "generateMockValue.uuid()"
+            UserId: "generateMockValue.uuid()"
+            WalletId: "generateMockValue.uuid()"
+            WithdrawalId: "generateMockValue.uuid()"
           fieldGeneration:
             _all:
               email: "generateMockValue.email()"

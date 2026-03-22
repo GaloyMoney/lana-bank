@@ -1,4 +1,4 @@
-query LedgerAccountCsv($ledgerAccountId: UUID!) {
+query LedgerAccountCsv($ledgerAccountId: LedgerAccountId!) {
   ledgerAccountCsv(ledgerAccountId: $ledgerAccountId) {
     ledgerAccountCsvDocumentId
     ledgerAccountId

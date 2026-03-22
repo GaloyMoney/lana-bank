@@ -81,7 +81,7 @@ impl From<DomainRequestedReport> for RequestedReport {
     directive = crate::graphql::entity_key::entity_key::apply("reportRunId".to_string())
 )]
 pub struct ReportRun {
-    report_run_id: UUID,
+    report_run_id: ReportRunId,
     state: ReportRunState,
     run_type: ReportRunType,
     start_time: Option<Timestamp>,
@@ -95,7 +95,7 @@ pub struct ReportRun {
 impl From<lana_app::report::ReportRun> for ReportRun {
     fn from(report_run: lana_app::report::ReportRun) -> Self {
         ReportRun {
-            report_run_id: UUID::from(report_run.id),
+            report_run_id: report_run.id,
             state: ReportRunState::from(report_run.state),
             run_type: ReportRunType::from(report_run.run_type),
             start_time: report_run.start_time.map(|dt| dt.into()),
@@ -139,5 +139,5 @@ pub struct ReportRunTriggerInput {
 
 #[derive(SimpleObject)]
 pub struct ReportRunUpdatedPayload {
-    pub report_run_id: UUID,
+    pub report_run_id: ReportRunId,
 }

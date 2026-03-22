@@ -20,7 +20,7 @@ pub use lana_app::governance::{
     directive = crate::graphql::entity_key::entity_key::apply("committeeId".to_string())
 )]
 pub struct Committee {
-    committee_id: UUID,
+    committee_id: CommitteeId,
     created_at: Timestamp,
     #[graphql(skip)]
     pub(super) entity: Arc<DomainCommittee>,
@@ -29,7 +29,7 @@ pub struct Committee {
 impl From<DomainCommittee> for Committee {
     fn from(committee: DomainCommittee) -> Self {
         Self {
-            committee_id: committee.id.into(),
+            committee_id: committee.id,
             created_at: committee.created_at().into(),
             entity: Arc::new(committee),
         }
@@ -68,21 +68,21 @@ impl Committee {
 #[derive(InputObject)]
 pub struct CommitteeCreateInput {
     pub name: String,
-    pub member_user_ids: Vec<UUID>,
+    pub member_user_ids: Vec<UserId>,
 }
 crate::mutation_payload! { CommitteeCreatePayload, committee: Committee }
 
 #[derive(InputObject)]
 pub struct CommitteeUserAddInput {
-    pub committee_id: UUID,
-    pub user_id: UUID,
+    pub committee_id: CommitteeId,
+    pub user_id: UserId,
 }
 crate::mutation_payload! { CommitteeUserAddPayload, committee: Committee }
 
 #[derive(InputObject)]
 pub struct CommitteeUserRemoveInput {
-    pub committee_id: UUID,
-    pub user_id: UUID,
+    pub committee_id: CommitteeId,
+    pub user_id: UserId,
 }
 crate::mutation_payload! { CommitteeUserRemovePayload, committee: Committee }
 

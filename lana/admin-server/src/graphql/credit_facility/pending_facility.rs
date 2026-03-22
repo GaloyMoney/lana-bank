@@ -26,14 +26,14 @@ pub use lana_app::credit::{
     directive = crate::graphql::entity_key::entity_key::apply("pendingCreditFacilityId".to_string())
 )]
 pub struct PendingCreditFacility {
-    pending_credit_facility_id: UUID,
+    pending_credit_facility_id: PendingCreditFacilityId,
     /// Canonical credit facility identifier reserved for this facility.
     /// Today this matches `pendingCreditFacilityId`, but clients should use
     /// this field when they need the active facility reference.
-    credit_facility_id: UUID,
-    collateral_id: UUID,
+    credit_facility_id: CreditFacilityId,
+    collateral_id: CollateralId,
     status: PendingCreditFacilityStatus,
-    approval_process_id: UUID,
+    approval_process_id: ApprovalProcessId,
     created_at: Timestamp,
     collateralization_state: PendingCreditFacilityCollateralizationState,
     facility_amount: UsdCents,
@@ -52,7 +52,7 @@ impl PendingCreditFacility {
             .ok_or_else(|| Error::new("Collateral not found"))?;
 
         if let Some(wallet_id) = collateral.wallet_id {
-            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
+            Ok(loader.load_one(wallet_id).await?)
         } else {
             Ok(None)
         }
@@ -170,10 +170,10 @@ impl From<DomainPendingCreditFacility> for PendingCreditFacility {
         let created_at = pending_credit_facility.created_at();
 
         Self {
-            pending_credit_facility_id: UUID::from(pending_credit_facility.id),
-            credit_facility_id: UUID::from(CreditFacilityId::from(pending_credit_facility.id)),
-            collateral_id: UUID::from(pending_credit_facility.collateral_id),
-            approval_process_id: UUID::from(pending_credit_facility.approval_process_id),
+            pending_credit_facility_id: pending_credit_facility.id,
+            credit_facility_id: CreditFacilityId::from(pending_credit_facility.id),
+            collateral_id: pending_credit_facility.collateral_id,
+            approval_process_id: pending_credit_facility.approval_process_id,
             created_at: created_at.into(),
             facility_amount: pending_credit_facility.amount,
             collateralization_state: pending_credit_facility.last_collateralization_state(),
