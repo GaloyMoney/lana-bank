@@ -375,6 +375,45 @@ impl TermValues {
         };
         AnnualRatePct(self.annual_rate.0 + self.one_time_fee_rate.0 * annualization_factor)
     }
+
+    pub fn price_thresholds_for_state(
+        &self,
+        state: CollateralizationState,
+        outstanding: UsdCents,
+        collateral: Satoshis,
+        upgrade_buffer: CVLPct,
+    ) -> (Option<PriceOfOneBTC>, Option<PriceOfOneBTC>) {
+        if outstanding.is_zero() || collateral.is_zero() {
+            return (None, None);
+        }
+        match state {
+            CollateralizationState::FullyCollateralized => (
+                Some(
+                    self.margin_call_cvl
+                        .to_trigger_price(outstanding, collateral),
+                ),
+                None,
+            ),
+            CollateralizationState::UnderMarginCallThreshold => (
+                Some(
+                    self.liquidation_cvl
+                        .to_trigger_price(outstanding, collateral),
+                ),
+                Some(
+                    (self.margin_call_cvl + upgrade_buffer)
+                        .to_trigger_price(outstanding, collateral),
+                ),
+            ),
+            CollateralizationState::UnderLiquidationThreshold => (
+                None,
+                Some(
+                    self.liquidation_cvl
+                        .to_trigger_price(outstanding, collateral),
+                ),
+            ),
+            _ => (None, None),
+        }
+    }
 }
 
 impl TermValuesBuilder {

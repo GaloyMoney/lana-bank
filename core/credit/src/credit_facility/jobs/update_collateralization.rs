@@ -204,3 +204,5 @@ where
         Ok(JobCompletion::CompleteWithOp(op))
     }
 }
+
+pub type UpdateCollateralizationSpawner = job::JobSpawner<UpdateCollateralizationConfig>;

@@ -68,6 +68,10 @@ pub enum CreditFacilityEvent {
     ProceedsFromPartialLiquidationApplied {
         liquidation_id: LiquidationId,
     },
+    CollateralizationThresholdsUpdated {
+        lower_price_threshold: Option<PriceOfOneBTC>,
+        upper_price_threshold: Option<PriceOfOneBTC>,
+    },
     Matured {},
     Completed {},
 }
@@ -704,6 +708,34 @@ impl CreditFacility {
             .unwrap_or_default()
     }
 
+    pub fn state_lower_price_threshold(&self) -> Option<PriceOfOneBTC> {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::CollateralizationThresholdsUpdated {
+                    lower_price_threshold,
+                    ..
+                } => Some(*lower_price_threshold),
+                _ => None,
+            })
+            .flatten()
+    }
+
+    pub fn state_upper_price_threshold(&self) -> Option<PriceOfOneBTC> {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::CollateralizationThresholdsUpdated {
+                    upper_price_threshold,
+                    ..
+                } => Some(*upper_price_threshold),
+                _ => None,
+            })
+            .flatten()
+    }
+
     pub(crate) fn update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
@@ -726,6 +758,8 @@ impl CreditFacility {
             CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
         };
 
+        let effective_state = collateralization_update.unwrap_or(last_collateralization_state);
+
         if let Some(calculated_collateralization) = collateralization_update {
             self.events
                 .push(CreditFacilityEvent::CollateralizationStateChanged {
@@ -740,10 +774,42 @@ impl CreditFacility {
                 price,
                 balances,
             );
+        }
 
-            Idempotent::Executed(Some(calculated_collateralization))
-        } else if ratio_changed {
+        let thresholds_changed = self
+            .update_collateralization_thresholds(effective_state, &balances, upgrade_buffer_cvl_pct)
+            .did_execute();
+
+        if collateralization_update.is_some() {
+            Idempotent::Executed(collateralization_update)
+        } else if ratio_changed || thresholds_changed {
             Idempotent::Executed(None)
+        } else {
+            Idempotent::AlreadyApplied
+        }
+    }
+
+    fn update_collateralization_thresholds(
+        &mut self,
+        effective_state: CollateralizationState,
+        balances: &CreditFacilityBalanceSummary,
+        upgrade_buffer: CVLPct,
+    ) -> Idempotent<()> {
+        let (new_lower, new_upper) = self.terms.price_thresholds_for_state(
+            effective_state,
+            balances.total_outstanding(),
+            balances.collateral(),
+            upgrade_buffer,
+        );
+        if new_lower != self.state_lower_price_threshold()
+            || new_upper != self.state_upper_price_threshold()
+        {
+            self.events
+                .push(CreditFacilityEvent::CollateralizationThresholdsUpdated {
+                    lower_price_threshold: new_lower,
+                    upper_price_threshold: new_upper,
+                });
+            Idempotent::Executed(())
         } else {
             Idempotent::AlreadyApplied
         }
@@ -842,6 +908,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::Completed { .. } => (),
                 CreditFacilityEvent::PartialLiquidationInitiated { .. } => {}
                 CreditFacilityEvent::ProceedsFromPartialLiquidationApplied { .. } => {}
+                CreditFacilityEvent::CollateralizationThresholdsUpdated { .. } => {}
             }
         }
         builder.events(events).build()

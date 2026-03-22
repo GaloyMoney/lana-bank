@@ -31,6 +31,16 @@ use super::{entity::*, error::CreditFacilityError, interest_accrual_cycle::*};
         ),
         status(ty = "CreditFacilityStatus", list_for, update(accessor = "status()")),
         public_id(ty = "PublicId", list_by),
+        state_lower_price_threshold(
+            ty = "Option<PriceOfOneBTC>",
+            create(persist = false),
+            update(accessor = "state_lower_price_threshold()")
+        ),
+        state_upper_price_threshold(
+            ty = "Option<PriceOfOneBTC>",
+            create(persist = false),
+            update(accessor = "state_upper_price_threshold()")
+        ),
         maturity_date(
             ty = "chrono::NaiveDate",
             create(accessor = "maturity_date()"),
@@ -144,6 +154,38 @@ where
                ORDER BY created_at, id
                LIMIT $4"#,
             day,
+            after_created_at,
+            after_id as Option<CreditFacilityId>,
+            limit,
+        )
+        .fetch_all(self.pool())
+        .await?;
+        Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
+    }
+
+    pub async fn list_ids_for_price_update(
+        &self,
+        price: PriceOfOneBTC,
+        after: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
+        limit: i64,
+    ) -> Result<Vec<(CreditFacilityId, chrono::DateTime<chrono::Utc>)>, CreditFacilityError> {
+        let (after_created_at, after_id) = match after {
+            Some((ts, id)) => (Some(ts), Some(id)),
+            None => (None, None),
+        };
+        let rows = sqlx::query!(
+            r#"SELECT id AS "id: CreditFacilityId", created_at
+               FROM core_credit_facilities
+               WHERE status != 'Closed'
+                 AND (
+                   (state_lower_price_threshold IS NOT NULL AND state_lower_price_threshold >= $1)
+                   OR
+                   (state_upper_price_threshold IS NOT NULL AND state_upper_price_threshold <= $1)
+                 )
+                 AND (($2::timestamptz IS NULL) OR (created_at, id) > ($2, $3))
+               ORDER BY created_at, id
+               LIMIT $4"#,
+            price as PriceOfOneBTC,
             after_created_at,
             after_id as Option<CreditFacilityId>,
             limit,
