@@ -1,9 +1,6 @@
 use domain_config::{DomainConfigError, define_exposed_config};
-use money::Precision;
-use rust_decimal::RoundingStrategy;
+use money::{Precision, RoundingMode};
 use serde::{Deserialize, Serialize};
-
-const VALID_STRATEGIES: &[&str] = &["away_from_zero", "to_zero", "midpoint_away_from_zero"];
 
 define_exposed_config! {
     #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -26,33 +23,9 @@ define_exposed_config! {
     spec {
         key: "credit-accrual-rounding-strategy";
         validate: |value: &String| {
-            if VALID_STRATEGIES.contains(&value.as_str()) {
-                Ok(())
-            } else {
-                Err(DomainConfigError::InvalidState(format!(
-                    "invalid rounding strategy '{}'. Must be one of: {}",
-                    value,
-                    VALID_STRATEGIES.join(", ")
-                )))
-            }
+            RoundingMode::try_from_str(value)
+                .map(|_| ())
+                .map_err(|e| DomainConfigError::InvalidState(format!("{e}")))
         };
-    }
-}
-
-/// Converts a validated rounding strategy string into a `RoundingStrategy`.
-///
-/// # Panics
-///
-/// Panics if the string is not one of the accepted values. This is safe because
-/// the domain config `validate` function already rejects invalid values at write-time.
-pub(crate) fn parse_rounding_strategy(s: &str) -> RoundingStrategy {
-    match s {
-        "away_from_zero" => RoundingStrategy::AwayFromZero,
-        "to_zero" => RoundingStrategy::ToZero,
-        "midpoint_away_from_zero" => RoundingStrategy::MidpointAwayFromZero,
-        _ => unreachable!(
-            "invalid rounding strategy '{}' — domain config validation should have rejected this",
-            s
-        ),
     }
 }

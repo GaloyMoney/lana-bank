@@ -6,6 +6,7 @@ mod code;
 mod error;
 mod map;
 mod precision;
+mod rounding_mode;
 
 use std::{fmt, marker::PhantomData};
 
@@ -20,6 +21,7 @@ pub use code::*;
 pub use error::ConversionError;
 pub use map::*;
 pub use precision::Precision;
+pub use rounding_mode::RoundingMode;
 pub use rust_decimal::RoundingStrategy;
 
 // ---------------------------------------------------------------------------

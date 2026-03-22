@@ -311,8 +311,10 @@ where
         let accrual_rounding_strategy_str = strategy_config
             .maybe_value()
             .ok_or(CreditFacilityError::AccrualRoundingStrategyNotConfigured)?;
-        let accrual_rounding_strategy =
-            crate::rounding_policy::parse_rounding_strategy(&accrual_rounding_strategy_str);
+        let accrual_rounding_strategy: rust_decimal::RoundingStrategy =
+            money::RoundingMode::try_from_str(&accrual_rounding_strategy_str)
+                .expect("accrual rounding strategy validated at config write-time")
+                .into();
 
         let precision = money::Precision::try_new(
             u32::try_from(accrual_precision_dp)

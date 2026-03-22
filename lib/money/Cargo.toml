@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 rust_decimal.workspace = true
 serde.workspace = true
+strum.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 tracing-utils.workspace = true
