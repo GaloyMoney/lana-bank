@@ -2734,11 +2734,13 @@ impl Mutation {
         input: ReportRunTriggerInput,
     ) -> async_graphql::Result<ReportRunTriggerPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let report_definition_id =
-            lana_app::report::ReportDefinitionId::try_new(input.report_definition_id)?;
         let report_run = app
             .reports()
-            .trigger_report_run_job(sub, report_definition_id, input.as_of_date.map(Into::into))
+            .trigger_report_run_job(
+                sub,
+                input.report_definition_id.into(),
+                input.as_of_date.map(Into::into),
+            )
             .await?;
         Ok(ReportRunTriggerPayload {
             report_run: report_run.into(),

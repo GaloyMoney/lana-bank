@@ -2601,10 +2601,12 @@ type ReportDefinition @entity_key(field: "reportDefinitionId") {
 	friendlyName: String!
 	norm: String!
 	outputs: [ReportDefinitionOutput!]!
-	reportDefinitionId: String!
+	reportDefinitionId: ReportDefinitionId!
 	sourceTable: String!
 	supportsAsOf: Boolean!
 }
+
+scalar ReportDefinitionId
 
 type ReportDefinitionOutput {
 	format: ReportOutputFormat!
@@ -2677,7 +2679,7 @@ enum ReportRunState {
 
 input ReportRunTriggerInput {
 	asOfDate: Date
-	reportDefinitionId: String!
+	reportDefinitionId: ReportDefinitionId!
 }
 
 type ReportRunTriggerPayload {
@@ -2705,7 +2707,7 @@ enum ReportRunsSortBy {
 type RequestedReport {
 	name: String!
 	norm: String!
-	reportDefinitionId: String!
+	reportDefinitionId: ReportDefinitionId!
 }
 
 type Role @entity_key(field: "roleId") {
