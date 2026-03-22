@@ -57,4 +57,4 @@ pub struct PolicyCommitteeAssignInput {
     pub committee_id: UUID,
 }
 
-mutation_payload! { PolicyCommitteeAssignPayload, policy: Policy }
+crate::mutation_payload! { PolicyCommitteeAssignPayload, policy: Policy }

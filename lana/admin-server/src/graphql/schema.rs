@@ -1338,7 +1338,7 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
-    pub async fn customer_document_create(
+    async fn customer_document_create(
         &self,
         ctx: &Context<'_>,
         input: CustomerDocumentCreateInput,
@@ -1364,7 +1364,7 @@ impl Mutation {
         )
     }
 
-    pub async fn prospect_kyc_link_create(
+    async fn prospect_kyc_link_create(
         &self,
         ctx: &Context<'_>,
         input: ProspectKycLinkCreateInput,
@@ -1683,7 +1683,7 @@ impl Mutation {
         ))
     }
 
-    pub async fn ledger_manual_transaction_execute(
+    async fn ledger_manual_transaction_execute(
         &self,
         ctx: &Context<'_>,
         input: LedgerManualTransactionExecuteInput,
@@ -1710,7 +1710,7 @@ impl Mutation {
         )
     }
 
-    pub async fn deposit_record(
+    async fn deposit_record(
         &self,
         ctx: &Context<'_>,
         input: DepositRecordInput,
@@ -1730,7 +1730,7 @@ impl Mutation {
         )
     }
 
-    pub async fn withdrawal_initiate(
+    async fn withdrawal_initiate(
         &self,
         ctx: &Context<'_>,
         input: WithdrawalInitiateInput,
@@ -1749,7 +1749,7 @@ impl Mutation {
         )
     }
 
-    pub async fn withdrawal_confirm(
+    async fn withdrawal_confirm(
         &self,
         ctx: &Context<'_>,
         input: WithdrawalConfirmInput,
@@ -1764,7 +1764,7 @@ impl Mutation {
         )
     }
 
-    pub async fn withdrawal_cancel(
+    async fn withdrawal_cancel(
         &self,
         ctx: &Context<'_>,
         input: WithdrawalCancelInput,
@@ -1778,7 +1778,7 @@ impl Mutation {
         )
     }
 
-    pub async fn withdrawal_revert(
+    async fn withdrawal_revert(
         &self,
         ctx: &Context<'_>,
         input: WithdrawalRevertInput,
@@ -1792,7 +1792,7 @@ impl Mutation {
         )
     }
 
-    pub async fn deposit_revert(
+    async fn deposit_revert(
         &self,
         ctx: &Context<'_>,
         input: DepositRevertInput,
@@ -1806,7 +1806,7 @@ impl Mutation {
         )
     }
 
-    pub async fn deposit_account_create(
+    async fn deposit_account_create(
         &self,
         ctx: &Context<'_>,
         input: DepositAccountCreateInput,
@@ -1821,7 +1821,7 @@ impl Mutation {
         )
     }
 
-    pub async fn deposit_account_freeze(
+    async fn deposit_account_freeze(
         &self,
         ctx: &Context<'_>,
         input: DepositAccountFreezeInput,
@@ -1835,7 +1835,7 @@ impl Mutation {
         )
     }
 
-    pub async fn deposit_account_unfreeze(
+    async fn deposit_account_unfreeze(
         &self,
         ctx: &Context<'_>,
         input: DepositAccountUnfreezeInput,
@@ -1850,7 +1850,7 @@ impl Mutation {
         )
     }
 
-    pub async fn deposit_account_close(
+    async fn deposit_account_close(
         &self,
         ctx: &Context<'_>,
         input: DepositAccountCloseInput,
@@ -2121,7 +2121,7 @@ impl Mutation {
         ))
     }
 
-    pub async fn credit_facility_proposal_create(
+    async fn credit_facility_proposal_create(
         &self,
         ctx: &Context<'_>,
         input: CreditFacilityProposalCreateInput,
@@ -2150,7 +2150,7 @@ impl Mutation {
         )
     }
 
-    pub async fn credit_facility_proposal_customer_approval_conclude(
+    async fn credit_facility_proposal_customer_approval_conclude(
         &self,
         ctx: &Context<'_>,
         input: CreditFacilityProposalCustomerApprovalConcludeInput,
@@ -2173,7 +2173,7 @@ impl Mutation {
         )
     }
 
-    pub async fn collateral_update(
+    async fn collateral_update(
         &self,
         ctx: &Context<'_>,
         input: CollateralUpdateInput,
@@ -2197,7 +2197,7 @@ impl Mutation {
         )
     }
 
-    pub async fn credit_facility_partial_payment_record(
+    async fn credit_facility_partial_payment_record(
         &self,
         ctx: &Context<'_>,
         input: CreditFacilityPartialPaymentRecordInput,
@@ -2211,7 +2211,7 @@ impl Mutation {
         )
     }
 
-    pub async fn credit_facility_partial_payment_with_date_record(
+    async fn credit_facility_partial_payment_with_date_record(
         &self,
         ctx: &Context<'_>,
         input: CreditFacilityPartialPaymentWithDateRecordInput,
@@ -2230,7 +2230,7 @@ impl Mutation {
         )
     }
 
-    pub async fn credit_facility_disbursal_initiate(
+    async fn credit_facility_disbursal_initiate(
         &self,
         ctx: &Context<'_>,
         input: CreditFacilityDisbursalInitiateInput,
@@ -2653,7 +2653,7 @@ impl Mutation {
         )
     }
 
-    pub async fn ledger_account_csv_create(
+    async fn ledger_account_csv_create(
         &self,
         ctx: &Context<'_>,
         input: LedgerAccountCsvCreateInput,
@@ -2669,7 +2669,7 @@ impl Mutation {
         Ok(LedgerAccountCsvCreatePayload::from(csv_document))
     }
 
-    pub async fn ledger_account_csv_download_link_generate(
+    async fn ledger_account_csv_download_link_generate(
         &self,
         ctx: &Context<'_>,
         input: LedgerAccountCsvDownloadLinkGenerateInput,
@@ -2686,7 +2686,7 @@ impl Mutation {
         Ok(LedgerAccountCsvDownloadLinkGeneratePayload::from(link))
     }
 
-    pub async fn credit_facility_agreement_generate(
+    async fn credit_facility_agreement_generate(
         &self,
         ctx: &Context<'_>,
         input: CreditFacilityAgreementGenerateInput,

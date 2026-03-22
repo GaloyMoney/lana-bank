@@ -16,15 +16,15 @@ import {
 } from "@lana/web/ui/select"
 
 import {
-  type KomainuConfig,
-  type BitgoConfig,
-  type SelfCustodyConfig,
-  type ManualConfig,
+  type KomainuConfigInput,
+  type BitgoConfigInput,
+  type SelfCustodyConfigInput,
+  type ManualConfigInput,
   type CustodianConfigInput,
   SelfCustodyNetwork,
 } from "@/lib/graphql/generated"
 
-const INITIAL_KOMAINU: KomainuConfig = {
+const INITIAL_KOMAINU: KomainuConfigInput = {
   name: "",
   apiKey: "",
   apiSecret: "",
@@ -33,7 +33,7 @@ const INITIAL_KOMAINU: KomainuConfig = {
   webhookSecret: "",
 }
 
-const INITIAL_BITGO: BitgoConfig = {
+const INITIAL_BITGO: BitgoConfigInput = {
   name: "",
   longLivedToken: "",
   passphrase: "",
@@ -43,26 +43,26 @@ const INITIAL_BITGO: BitgoConfig = {
   webhookUrl: "",
 }
 
-const INITIAL_SELF_CUSTODY: SelfCustodyConfig = {
+const INITIAL_SELF_CUSTODY: SelfCustodyConfigInput = {
   name: "",
   accountXpub: "",
   network: SelfCustodyNetwork.Mainnet,
 }
 
-const INITIAL_MANUAL: ManualConfig = {
+const INITIAL_MANUAL: ManualConfigInput = {
   name: "",
 }
 
 export type CustodianType = "komainu" | "bitgo" | "selfCustody" | "manual"
 
 export interface CustodianConfigFormState {
-  komainuConfig: KomainuConfig
-  bitgoConfig: BitgoConfig
-  selfCustodyConfig: SelfCustodyConfig
-  manualConfig: ManualConfig
+  komainuConfig: KomainuConfigInput
+  bitgoConfig: BitgoConfigInput
+  selfCustodyConfig: SelfCustodyConfigInput
+  manualConfig: ManualConfigInput
   resetAll: () => void
   buildConfigInput: (type: CustodianType) => CustodianConfigInput
-  buildManualInput: () => ManualConfig
+  buildManualInput: () => ManualConfigInput
   handlers: {
     komainu: {
       onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
@@ -83,12 +83,12 @@ export interface CustodianConfigFormState {
 }
 
 export const useCustodianConfigForm = (): CustodianConfigFormState => {
-  const [komainuConfig, setKomainuConfig] = useState<KomainuConfig>({ ...INITIAL_KOMAINU })
-  const [bitgoConfig, setBitgoConfig] = useState<BitgoConfig>({ ...INITIAL_BITGO })
-  const [selfCustodyConfig, setSelfCustodyConfig] = useState<SelfCustodyConfig>({
+  const [komainuConfig, setKomainuConfig] = useState<KomainuConfigInput>({ ...INITIAL_KOMAINU })
+  const [bitgoConfig, setBitgoConfig] = useState<BitgoConfigInput>({ ...INITIAL_BITGO })
+  const [selfCustodyConfig, setSelfCustodyConfig] = useState<SelfCustodyConfigInput>({
     ...INITIAL_SELF_CUSTODY,
   })
-  const [manualConfig, setManualConfig] = useState<ManualConfig>({ ...INITIAL_MANUAL })
+  const [manualConfig, setManualConfig] = useState<ManualConfigInput>({ ...INITIAL_MANUAL })
 
   const resetAll = () => {
     setKomainuConfig({ ...INITIAL_KOMAINU })

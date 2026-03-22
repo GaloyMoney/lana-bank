@@ -202,7 +202,7 @@ input BitfinexCreateInput {
 	name: String!
 }
 
-input BitgoConfig {
+input BitgoConfigInput {
 	enterpriseId: String!
 	longLivedToken: String!
 	name: String!
@@ -943,9 +943,9 @@ type Custodian @entity_key(field: "custodianId") {
 }
 
 input CustodianConfigInput @oneOf {
-	bitgo: BitgoConfig
-	komainu: KomainuConfig
-	selfCustody: SelfCustodyConfig
+	bitgo: BitgoConfigInput
+	komainu: KomainuConfigInput
+	selfCustody: SelfCustodyConfigInput
 }
 
 input CustodianConfigUpdateInput {
@@ -973,10 +973,10 @@ type CustodianConnection {
 }
 
 input CustodianCreateInput @oneOf {
-	bitgo: BitgoConfig
-	komainu: KomainuConfig
-	manual: ManualConfig
-	selfCustody: SelfCustodyConfig
+	bitgo: BitgoConfigInput
+	komainu: KomainuConfigInput
+	manual: ManualConfigInput
+	selfCustody: SelfCustodyConfigInput
 }
 
 type CustodianCreatePayload {
@@ -1760,7 +1760,7 @@ type JournalEntryEdge {
 
 scalar Json
 
-input KomainuConfig {
+input KomainuConfigInput {
 	apiKey: String!
 	apiSecret: String!
 	name: String!
@@ -1988,7 +1988,7 @@ enum LiquidationsSortBy {
 	SENT_TOTAL
 }
 
-input ManualConfig {
+input ManualConfigInput {
 	name: String!
 }
 
@@ -2784,7 +2784,7 @@ enum RolesSortBy {
 
 scalar Satoshis
 
-input SelfCustodyConfig {
+input SelfCustodyConfigInput {
 	accountXpub: String!
 	name: String!
 	network: SelfCustodyNetwork!

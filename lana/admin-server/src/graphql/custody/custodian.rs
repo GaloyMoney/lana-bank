@@ -49,7 +49,7 @@ impl Custodian {
 }
 
 #[derive(InputObject)]
-pub struct KomainuConfig {
+pub struct KomainuConfigInput {
     name: String,
     api_key: String,
     #[graphql(secret)]
@@ -62,7 +62,7 @@ pub struct KomainuConfig {
 }
 
 #[derive(InputObject)]
-pub struct BitgoConfig {
+pub struct BitgoConfigInput {
     name: String,
     #[graphql(secret)]
     long_lived_token: String,
@@ -76,7 +76,7 @@ pub struct BitgoConfig {
 }
 
 #[derive(InputObject)]
-pub struct SelfCustodyConfig {
+pub struct SelfCustodyConfigInput {
     name: String,
     #[graphql(secret)]
     account_xpub: String,
@@ -92,18 +92,18 @@ pub enum SelfCustodyNetwork {
 }
 
 #[derive(InputObject)]
-pub struct ManualConfig {
+pub struct ManualConfigInput {
     name: String,
 }
 
-impl From<ManualConfig> for DomainCustodianConfig {
-    fn from(_config: ManualConfig) -> Self {
+impl From<ManualConfigInput> for DomainCustodianConfig {
+    fn from(_config: ManualConfigInput) -> Self {
         DomainCustodianConfig::Manual
     }
 }
 
-impl From<KomainuConfig> for DomainKomainuConfig {
-    fn from(config: KomainuConfig) -> Self {
+impl From<KomainuConfigInput> for DomainKomainuConfig {
+    fn from(config: KomainuConfigInput) -> Self {
         Self {
             api_key: config.api_key,
             api_secret: config.api_secret,
@@ -114,8 +114,8 @@ impl From<KomainuConfig> for DomainKomainuConfig {
     }
 }
 
-impl From<BitgoConfig> for DomainBitgoConfig {
-    fn from(config: BitgoConfig) -> Self {
+impl From<BitgoConfigInput> for DomainBitgoConfig {
+    fn from(config: BitgoConfigInput) -> Self {
         Self {
             long_lived_token: config.long_lived_token,
             passphrase: config.passphrase,
@@ -138,8 +138,8 @@ impl From<SelfCustodyNetwork> for DomainSelfCustodyNetwork {
     }
 }
 
-impl From<SelfCustodyConfig> for DomainSelfCustodyConfig {
-    fn from(config: SelfCustodyConfig) -> Self {
+impl From<SelfCustodyConfigInput> for DomainSelfCustodyConfig {
+    fn from(config: SelfCustodyConfigInput) -> Self {
         Self {
             account_xpub: config.account_xpub,
             network: config.network.into(),
@@ -149,10 +149,10 @@ impl From<SelfCustodyConfig> for DomainSelfCustodyConfig {
 
 #[derive(OneofObject)]
 pub enum CustodianCreateInput {
-    Komainu(KomainuConfig),
-    Bitgo(BitgoConfig),
-    SelfCustody(SelfCustodyConfig),
-    Manual(ManualConfig),
+    Komainu(KomainuConfigInput),
+    Bitgo(BitgoConfigInput),
+    SelfCustody(SelfCustodyConfigInput),
+    Manual(ManualConfigInput),
 }
 
 impl CustodianCreateInput {
@@ -181,9 +181,9 @@ impl From<CustodianCreateInput> for DomainCustodianConfig {
 
 #[derive(OneofObject)]
 pub enum CustodianConfigInput {
-    Komainu(KomainuConfig),
-    Bitgo(BitgoConfig),
-    SelfCustody(SelfCustodyConfig),
+    Komainu(KomainuConfigInput),
+    Bitgo(BitgoConfigInput),
+    SelfCustody(SelfCustodyConfigInput),
 }
 
 impl From<CustodianConfigInput> for DomainCustodianConfig {
