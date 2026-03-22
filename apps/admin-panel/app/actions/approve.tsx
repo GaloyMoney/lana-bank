@@ -10,6 +10,8 @@ import {
   DialogTitle,
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
+import { Input } from "@lana/web/ui/input"
+import { Label } from "@lana/web/ui/label"
 
 import { formatDate } from "@lana/web/utils"
 
@@ -23,6 +25,7 @@ import {
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { useProcessTypeLabel } from "@/app/actions/hooks"
+import { authenticateWithPassword, InvalidPasswordError } from "@/app/auth/step-up"
 
 gql`
   fragment ApprovalProcessFields on ApprovalProcess {
@@ -90,6 +93,18 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   const processTypeLabel = useProcessTypeLabel()
 
   const [error, setError] = React.useState<string | null>(null)
+  const [password, setPassword] = React.useState("")
+  const [authenticating, setAuthenticating] = React.useState(false)
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setPassword("")
+      setError(null)
+      setAuthenticating(false)
+    }
+    setOpenApprovalDialog(open)
+  }
+
   const [approveProcess, { loading }] = useApprovalProcessApproveMutation({
     update: (cache) => {
       cache.modify({
@@ -106,11 +121,37 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    if (!password.trim()) {
+      setError(t("errors.passwordRequired"))
+      return
+    }
+
+    setAuthenticating(true)
+    let freshToken: string
+    try {
+      freshToken = await authenticateWithPassword(password)
+    } catch (err) {
+      setError(
+        err instanceof InvalidPasswordError
+          ? t("errors.invalidPassword")
+          : t("errors.unknown"),
+      )
+      setAuthenticating(false)
+      return
+    }
+    setAuthenticating(false)
+
     try {
       await approveProcess({
         variables: {
           input: {
             approvalProcessId: approvalProcess.approvalProcessId,
+          },
+        },
+        context: {
+          headers: {
+            Authorization: `Bearer ${freshToken}`,
           },
         },
         onCompleted: async () => {
@@ -125,7 +166,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
           toast.success(t("success.processApproved"))
         },
       })
-      setOpenApprovalDialog(false)
+      handleOpenChange(false)
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message)
@@ -136,26 +177,14 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   }
 
   return (
-    <Dialog open={openApprovalDialog} onOpenChange={setOpenApprovalDialog}>
+    <Dialog open={openApprovalDialog} onOpenChange={handleOpenChange}>
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{t("title")}</DialogTitle>
           </DialogHeader>
 
-          <div className="py-4">
-            <input
-              type="text"
-              className="sr-only"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  e.preventDefault()
-                  setOpenApprovalDialog(false)
-                }
-              }}
-            />
-
+          <div className="py-4 space-y-4">
             <DetailsGroup layout="horizontal">
               <DetailItem
                 label={t("fields.processType")}
@@ -166,6 +195,18 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
                 value={formatDate(approvalProcess?.createdAt)}
               />
             </DetailsGroup>
+            <div className="space-y-2">
+              <Label htmlFor="step-up-password">{t("fields.passwordLabel")}</Label>
+              <Input
+                id="step-up-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t("placeholders.password")}
+                data-testid="approval-process-dialog-password"
+                autoFocus
+              />
+            </div>
             {error && <p className="text-destructive text-sm">{error}</p>}
           </div>
 
@@ -173,14 +214,14 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setOpenApprovalDialog(false)}
+              onClick={() => handleOpenChange(false)}
               data-testid="approval-process-dialog-cancel-button"
             >
               {tCommon("cancel")}
             </Button>
             <Button
               type="submit"
-              loading={loading}
+              loading={loading || authenticating}
               data-testid="approval-process-dialog-approve-button"
             >
               {t("buttons.approve")}

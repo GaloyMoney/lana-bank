@@ -59,6 +59,26 @@ echo $! > "$CORE_PID_FILE"
 # Wait for core server
 wait4x http http://localhost:5253/health --timeout 60s
 
+# Set password on admin user for step-up auth (direct grant requires password)
+echo "Setting admin user password..."
+KC_ADMIN_TOKEN=$(curl -s -X POST \
+  "http://localhost:8081/realms/master/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=admin-cli&username=admin&password=admin&grant_type=password" | jq -r '.access_token')
+KC_USER_ID=$(curl -s \
+  "http://localhost:8081/admin/realms/internal/users?search=admin@galoy.io" \
+  -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" | jq -r '.[0].id')
+if [[ -n "$KC_USER_ID" && "$KC_USER_ID" != "null" ]]; then
+  curl -s -X PUT \
+    "http://localhost:8081/admin/realms/internal/users/${KC_USER_ID}/reset-password" \
+    -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d '{"type":"password","value":"password","temporary":false}'
+  echo "Admin user password set."
+else
+  echo "Warning: Could not find admin user to set password."
+fi
+
 # Start admin panel
 echo "Starting admin panel..."
 export NEXT_PUBLIC_CORE_ADMIN_URL="/graphql"

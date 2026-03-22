@@ -73,6 +73,11 @@
           "authenticator": "direct-grant-validate-username",
           "requirement": "REQUIRED",
           "priority": 10
+        },
+        {
+          "authenticator": "direct-grant-validate-password",
+          "requirement": "REQUIRED",
+          "priority": 20
         }
       ]
     }
@@ -244,6 +249,20 @@
             "claim.name": "lanaId",
             "jsonType.label": "String",
             "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "auth_time",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usersessionmodel-note-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.session.note": "AUTH_TIME",
+            "claim.name": "auth_time",
+            "jsonType.label": "long",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "access.tokenResponse.claim": "false"
           }
         }
       ]

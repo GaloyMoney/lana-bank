@@ -88,4 +88,4 @@ export const getToken = () => {
   return null
 }
 
-export { getKeycloak as keycloak }
+export { getKeycloak as keycloak, getKeycloak, fetchConfig }

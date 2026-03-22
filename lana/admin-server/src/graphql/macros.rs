@@ -1,3 +1,14 @@
+/// Helper to extract 'app', 'sub', and enforce step-up authentication
+#[macro_export]
+macro_rules! app_and_sub_with_step_up_from_ctx {
+    ($ctx:expr) => {{
+        let app = $ctx.data_unchecked::<lana_app::app::LanaApp>();
+        let auth_context: &$crate::primitives::AdminAuthContext = $ctx.data()?;
+        auth_context.enforce_step_up_auth()?;
+        (app, &auth_context.sub)
+    }};
+}
+
 /// Helper to extract the 'app' and 'sub' args
 ///
 /// Instead of:
@@ -16,7 +27,7 @@
 macro_rules! app_and_sub_from_ctx {
     ($ctx:expr) => {{
         let app = $ctx.data_unchecked::<lana_app::app::LanaApp>();
-        let $crate::primitives::AdminAuthContext { sub } = $ctx.data()?;
+        let $crate::primitives::AdminAuthContext { sub, .. } = $ctx.data()?;
         (app, sub)
     }};
 }

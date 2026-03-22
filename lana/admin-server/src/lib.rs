@@ -91,6 +91,8 @@ where
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdminJwtClaims {
     pub subject: String,
+    pub auth_time: Option<i64>,
+    pub original_iat: Option<i64>,
 }
 
 #[instrument(
@@ -152,7 +154,7 @@ pub async fn graphql_handler(
         }
     };
 
-    let auth_context = AdminAuthContext::new(id);
+    let auth_context = AdminAuthContext::new(id, jwt_claims.auth_time, jwt_claims.original_iat);
     req = req.data(LanaLoader::new(&app, &auth_context.sub));
     req = req.data(auth_context);
 

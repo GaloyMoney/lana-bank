@@ -144,6 +144,7 @@ describe("Governance Test", () => {
             cy.get('[data-testid="approval-process-approve-button"]').click()
             cy.takeScreenshot("19_step-click-approve-button")
 
+            cy.get('[data-testid="approval-process-dialog-password"]').type("password")
             cy.get('[data-testid="approval-process-dialog-approve-button"]').click()
             cy.contains(t("Actions.ApprovalProcess.Approve.title")).should("not.exist")
             cy.takeScreenshot("20_step-verify-approval-success")
@@ -178,6 +179,7 @@ describe("Governance Test", () => {
             cy.takeScreenshot("22_step-click-deny-button")
 
             cy.get('[data-testid="approval-process-dialog-deny-reason"]').type("testing")
+            cy.get('[data-testid="approval-process-dialog-deny-password"]').type("password")
             cy.get('[data-testid="approval-process-dialog-deny-button"]').click()
             cy.contains(t("Actions.ApprovalProcess.Deny.title")).should("not.exist")
             cy.takeScreenshot("23_step-verify-denial-success")

@@ -113,7 +113,9 @@ describe("Transactions Deposit and Withdraw", () => {
               cy.get('[data-testid="approval-process-dialog-deny-reason"]').type(
                 "testing",
               )
+              cy.get('[data-testid="approval-process-dialog-deny-password"]').type("password")
               cy.get('[data-testid="approval-process-dialog-deny-button"]').click()
+              cy.contains(t("Actions.ApprovalProcess.Deny.title")).should("not.exist")
             } else {
               // expected flow
               cy.get('[data-testid="withdraw-cancel-button"]')
@@ -149,7 +151,9 @@ describe("Transactions Deposit and Withdraw", () => {
               // case when we have policy attached for withdrawal no ss needed here
               if (badge.text() === t(W + ".WithdrawalStatus.pending_approval")) {
                 cy.get('[data-testid="approval-process-approve-button"]').click()
+                cy.get('[data-testid="approval-process-dialog-password"]').type("password")
                 cy.get('[data-testid="approval-process-dialog-approve-button"]').click()
+                cy.contains(t("Actions.ApprovalProcess.Approve.title")).should("not.exist")
               }
             })
             .then(() => {

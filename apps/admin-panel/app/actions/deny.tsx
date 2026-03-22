@@ -11,7 +11,8 @@ import {
   DialogTitle,
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
-
+import { Input } from "@lana/web/ui/input"
+import { Label } from "@lana/web/ui/label"
 import { Textarea } from "@lana/web/ui/textarea"
 
 import { formatDate } from "@lana/web/utils"
@@ -26,6 +27,7 @@ import {
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { useProcessTypeLabel } from "@/app/actions/hooks"
+import { authenticateWithPassword, InvalidPasswordError } from "@/app/auth/step-up"
 
 gql`
   mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
@@ -55,6 +57,19 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
   const client = useApolloClient()
   const [error, setError] = React.useState<string | null>(null)
   const [reason, setReason] = React.useState("")
+  const [password, setPassword] = React.useState("")
+  const [authenticating, setAuthenticating] = React.useState(false)
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setPassword("")
+      setReason("")
+      setError(null)
+      setAuthenticating(false)
+    }
+    setOpenDenialDialog(open)
+  }
+
   const [denyProcess, { loading }] = useApprovalProcessDenyMutation({
     update: (cache) => {
       cache.modify({
@@ -74,6 +89,25 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
       setError(t("errors.reasonRequired"))
       return
     }
+    if (!password.trim()) {
+      setError(t("errors.passwordRequired"))
+      return
+    }
+
+    setAuthenticating(true)
+    let freshToken: string
+    try {
+      freshToken = await authenticateWithPassword(password)
+    } catch (err) {
+      setError(
+        err instanceof InvalidPasswordError
+          ? t("errors.invalidPassword")
+          : t("errors.unknown"),
+      )
+      setAuthenticating(false)
+      return
+    }
+    setAuthenticating(false)
 
     try {
       await denyProcess({
@@ -81,6 +115,11 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           input: {
             approvalProcessId: approvalProcess.approvalProcessId,
             reason: reason.trim(),
+          },
+        },
+        context: {
+          headers: {
+            Authorization: `Bearer ${freshToken}`,
           },
         },
         onCompleted: async () => {
@@ -95,7 +134,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           toast.success(t("success.processDenied"))
         },
       })
-      setOpenDenialDialog(false)
+      handleOpenChange(false)
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message)
@@ -106,7 +145,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
   }
 
   return (
-    <Dialog open={openDenialDialog} onOpenChange={setOpenDenialDialog}>
+    <Dialog open={openDenialDialog} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
@@ -134,14 +173,25 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
             className="min-h-[100px]"
           />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="step-up-password-deny">{t("fields.passwordLabel")}</Label>
+          <Input
+            id="step-up-password-deny"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("placeholders.password")}
+            data-testid="approval-process-dialog-deny-password"
+          />
+        </div>
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter className="flex gap-2 sm:gap-0">
-          <Button variant="ghost" onClick={() => setOpenDenialDialog(false)}>
+          <Button variant="ghost" onClick={() => handleOpenChange(false)}>
             {tCommon("cancel")}
           </Button>
           <Button
             onClick={handleDeny}
-            loading={loading}
+            loading={loading || authenticating}
             data-testid="approval-process-dialog-deny-button"
           >
             {t("buttons.deny")}
