@@ -2,7 +2,7 @@ use rust_decimal::{Decimal, RoundingStrategy};
 
 use core_credit_terms::CVLPct;
 use core_price::PriceOfOneBTC;
-use money::{CalculationAmount, Satoshis, Usd, UsdCents};
+use money::{Satoshis, UsdCents};
 
 #[derive(Debug, Clone)]
 pub struct LiquidationPaymentAmounts {
@@ -79,14 +79,13 @@ impl LiquidationPaymentAmounts {
             return Self::ZERO;
         }
 
-        let collateral_calc =
-            CalculationAmount::<Usd>::from_minor(price.sats_to_cents_round_down(collateral));
-        let new_outstanding = outstanding - to_receive;
+        let collateral_major = price.sats_to_cents_round_down(collateral).to_major();
+        let new_outstanding_major = (outstanding - to_receive).to_major();
 
-        let to_liquidate_cents = (collateral_calc
-            - CalculationAmount::from_minor(new_outstanding) * target_ratio)
-            .max(CalculationAmount::zero())
-            .round_to_minor_units(RoundingStrategy::AwayFromZero);
+        let to_liquidate_major =
+            (collateral_major - new_outstanding_major * target_ratio).max(Decimal::ZERO);
+        let to_liquidate_cents =
+            UsdCents::from_major_rounded(to_liquidate_major, RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_liquidate_cents);
 
         Self {
@@ -105,11 +104,9 @@ impl LiquidationPaymentAmounts {
             return None;
         }
 
-        let effective_price_cents = CalculationAmount::<Usd>::from_major(
-            self.to_receive.to_major() / self.to_liquidate.to_major(),
-        )
-        .try_round_to_minor_units(RoundingStrategy::AwayFromZero)
-        .ok()?;
+        let effective_price_major = self.to_receive.to_major() / self.to_liquidate.to_major();
+        let effective_price_cents =
+            UsdCents::from_major_rounded(effective_price_major, RoundingStrategy::AwayFromZero);
 
         Some(PriceOfOneBTC::new(effective_price_cents))
     }
@@ -139,14 +136,14 @@ impl LiquidationPaymentAmounts {
             return Self::ZERO;
         }
 
-        let new_collateral_calc = CalculationAmount::<Usd>::from_minor(
-            price.sats_to_cents_round_down(collateral - to_liquidate),
-        );
+        let new_collateral_major = price
+            .sats_to_cents_round_down(collateral - to_liquidate)
+            .to_major();
 
-        let to_receive = (CalculationAmount::from_minor(outstanding)
-            - new_collateral_calc / target_ratio)
-            .max(CalculationAmount::zero())
-            .round_to_minor_units(RoundingStrategy::AwayFromZero);
+        let to_receive_major =
+            (outstanding.to_major() - new_collateral_major / target_ratio).max(Decimal::ZERO);
+        let to_receive =
+            UsdCents::from_major_rounded(to_receive_major, RoundingStrategy::AwayFromZero);
 
         Self {
             to_liquidate,
@@ -169,15 +166,14 @@ impl LiquidationPaymentAmounts {
             }
         };
 
-        let outstanding_calc = CalculationAmount::from_minor(outstanding);
-        let collateral_calc =
-            CalculationAmount::<Usd>::from_minor(price.sats_to_cents_round_down(collateral));
+        let outstanding_major = outstanding.to_major();
+        let collateral_major = price.sats_to_cents_round_down(collateral).to_major();
 
-        let to_receive_unrounded = (outstanding_calc * target_ratio - collateral_calc)
-            / (target_ratio - Self::UNIT_FEE_FACTOR);
-        let to_receive = to_receive_unrounded
-            .max(CalculationAmount::zero())
-            .round_to_minor_units(RoundingStrategy::AwayFromZero);
+        let to_receive_major = ((outstanding_major * target_ratio - collateral_major)
+            / (target_ratio - Self::UNIT_FEE_FACTOR))
+            .max(Decimal::ZERO);
+        let to_receive =
+            UsdCents::from_major_rounded(to_receive_major, RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_receive);
 
         Self {

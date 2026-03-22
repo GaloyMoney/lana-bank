@@ -145,7 +145,7 @@ impl InterestAccrualCycle {
             .sum()
     }
 
-    fn recompute_cumulative_interest(&self) -> CalculationAmount<Usd> {
+    fn recompute_cumulative_interest(&self, precision: Precision) -> CalculationAmount<Usd> {
         self.events
             .iter_all()
             .filter_map(|event| match event {
@@ -154,11 +154,14 @@ impl InterestAccrualCycle {
                 } => Some(
                     self.terms
                         .annual_rate
-                        .interest_for_period(*principal, *days),
+                        .interest_for_period(*principal, *days, precision),
                 ),
                 _ => None,
             })
-            .fold(CalculationAmount::zero(), |acc, x| acc + x)
+            .fold(
+                CalculationAmount::from_major(rust_decimal::Decimal::ZERO, precision),
+                |acc, x| acc + x,
+            )
     }
 
     fn last_accrual_period(&self) -> Option<InterestPeriod> {
@@ -245,14 +248,14 @@ impl InterestAccrualCycle {
         let days = accrual_period.days();
 
         // Recompute cumulative interest from ALL events' inputs + this period
-        let this_period_interest = self
-            .terms
-            .annual_rate
-            .interest_for_period(outstanding, days);
-        let cumulative = self.recompute_cumulative_interest() + this_period_interest;
+        let this_period_interest =
+            self.terms
+                .annual_rate
+                .interest_for_period(outstanding, days, precision);
+        let cumulative = self.recompute_cumulative_interest(precision) + this_period_interest;
 
         // Round to regulatory precision for storage/data team
-        let accumulated_at_dp = cumulative.round_to_precision(precision, strategy);
+        let accumulated_at_dp = cumulative.round(strategy);
 
         // Round to minor units for booking (always lender-favorable)
         let new_booked_total = cumulative.round_to_minor_units(RoundingStrategy::AwayFromZero);
@@ -818,13 +821,19 @@ mod test {
         }
 
         // Verify: total equals single round of full-precision cumulative sum
+        let precision = test_precision();
         let expected: CalculationAmount<Usd> = (0..num_days)
             .map(|_| {
-                default_terms()
-                    .annual_rate
-                    .interest_for_period(disbursed_outstanding_amount, 1)
+                default_terms().annual_rate.interest_for_period(
+                    disbursed_outstanding_amount,
+                    1,
+                    precision,
+                )
             })
-            .fold(CalculationAmount::zero(), |acc, x| acc + x);
+            .fold(
+                CalculationAmount::from_major(rust_decimal::Decimal::ZERO, precision),
+                |acc, x| acc + x,
+            );
         let expected_accrual_sum = expected.round_to_minor_units(RoundingStrategy::AwayFromZero);
         let InterestAccrualCycleData { interest, .. } = accrual.accrual_cycle_data().unwrap();
         assert_eq!(interest, expected_accrual_sum);

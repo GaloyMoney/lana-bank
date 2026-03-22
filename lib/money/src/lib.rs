@@ -9,7 +9,7 @@ mod precision;
 
 use std::{fmt, marker::PhantomData};
 
-use rust_decimal::Decimal;
+use rust_decimal::{Decimal, prelude::ToPrimitive};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "json-schema")]
@@ -81,6 +81,21 @@ impl<C: Currency> MinorUnits<C> {
 
     pub fn is_zero(self) -> bool {
         self.0 == 0
+    }
+
+    /// Round a major-unit Decimal to the nearest minor unit.
+    ///
+    /// # Panics
+    /// Panics if the value is negative or exceeds u64::MAX.
+    pub fn from_major_rounded(major: Decimal, strategy: RoundingStrategy) -> Self {
+        let minor = major * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
+        let rounded = minor.round_dp_with_strategy(0, strategy);
+        Self(
+            rounded
+                .to_u64()
+                .expect("from_major_rounded: value must be non-negative and within u64 range"),
+            PhantomData,
+        )
     }
 }
 

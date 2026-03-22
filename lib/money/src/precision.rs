@@ -3,8 +3,8 @@ use crate::error::ConversionError;
 /// Validated precision for regulatory rounding boundaries.
 ///
 /// Represents a decimal-places count in the range 2..=28.
-/// Used only at explicit rounding boundaries (e.g., `round_to_precision`),
-/// not carried on every `CalculationAmount`.
+/// Stored as a field on `CalculationAmount` so that rounding boundaries
+/// (`round`, `round_to_minor_units`) use a consistent precision.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Precision(u32);
 

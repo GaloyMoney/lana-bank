@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
-use money::{Btc, CalculationAmount, RoundingStrategy, Satoshis, Usd, UsdCents};
+use money::{RoundingStrategy, Satoshis, UsdCents};
 
 es_entity::entity_id! {
     PriceProviderId
@@ -20,13 +20,17 @@ impl PriceOfOneBTC {
     }
 
     pub fn cents_to_sats_round_up(self, cents: UsdCents) -> Satoshis {
-        CalculationAmount::<Btc>::from_major(cents.to_major() / self.0.to_major())
-            .round_to_minor_units(RoundingStrategy::AwayFromZero)
+        Satoshis::from_major_rounded(
+            cents.to_major() / self.0.to_major(),
+            RoundingStrategy::AwayFromZero,
+        )
     }
 
     pub fn sats_to_cents_round_down(self, sats: Satoshis) -> UsdCents {
-        CalculationAmount::<Usd>::from_major(sats.to_major() * self.0.to_major())
-            .round_to_minor_units(RoundingStrategy::ToZero)
+        UsdCents::from_major_rounded(
+            sats.to_major() * self.0.to_major(),
+            RoundingStrategy::ToZero,
+        )
     }
 
     pub fn into_inner(self) -> UsdCents {

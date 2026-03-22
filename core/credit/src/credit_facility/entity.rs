@@ -317,11 +317,7 @@ impl CreditFacility {
 
         Some(StructuringFeeOnActivation {
             tx_id,
-            amount: self
-                .terms
-                .one_time_fee_rate
-                .apply(self.amount)
-                .round_to_minor_units(rust_decimal::RoundingStrategy::AwayFromZero),
+            amount: self.terms.one_time_fee_rate.apply(self.amount),
         })
     }
 
@@ -1188,10 +1184,7 @@ mod test {
     #[test]
     fn structuring_fee() {
         let credit_facility = facility_from(initial_events());
-        let expected_fee = default_terms()
-            .one_time_fee_rate
-            .apply(default_facility())
-            .round_to_minor_units(RoundingStrategy::AwayFromZero);
+        let expected_fee = default_terms().one_time_fee_rate.apply(default_facility());
         assert_eq!(
             credit_facility
                 .structuring_fee_on_activation()

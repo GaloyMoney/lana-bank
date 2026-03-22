@@ -18,6 +18,7 @@ dependencies = [
  "futures",
  "jwks-utils",
  "lana-app",
+ "money",
  "obix",
  "permission-sets-macro",
  "rust_decimal",

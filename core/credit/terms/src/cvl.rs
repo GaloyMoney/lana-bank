@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use money::{CalculationAmount, UsdCents};
+use money::UsdCents;
 
 use std::fmt;
 
@@ -64,8 +64,10 @@ impl CVLPct {
 
     pub fn scale(&self, value: UsdCents) -> UsdCents {
         match self {
-            Self::Finite(pct) => (CalculationAmount::from_minor(value) * *pct / dec!(100))
-                .round_to_minor_units(RoundingStrategy::AwayFromZero),
+            Self::Finite(pct) => UsdCents::from_major_rounded(
+                value.to_major() * *pct / dec!(100),
+                RoundingStrategy::AwayFromZero,
+            ),
             Self::Infinite => unreachable!("Cannot scale with infinite CVL percentage"),
         }
     }
@@ -77,8 +79,10 @@ impl CVLPct {
     #[cfg(test)]
     pub fn target_value_given_outstanding(&self, outstanding: UsdCents) -> UsdCents {
         match self {
-            Self::Finite(pct) => (CalculationAmount::from_minor(outstanding) * *pct / dec!(100))
-                .round_to_minor_units(RoundingStrategy::AwayFromZero),
+            Self::Finite(pct) => UsdCents::from_major_rounded(
+                outstanding.to_major() * *pct / dec!(100),
+                RoundingStrategy::AwayFromZero,
+            ),
             Self::Infinite => {
                 unreachable!("Cannot calculate target value for infinite CVL percentage")
             }

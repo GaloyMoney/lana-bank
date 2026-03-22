@@ -10,6 +10,7 @@ mock-custodian = ["lana-app/mock-custodian"]
 
 [dependencies]
 lana-app = { workspace = true }
+money = { workspace = true }
 domain-config = { workspace = true, features = ["graphql"] }
 permission-sets-macro = { workspace = true }
 obix = { workspace = true }
