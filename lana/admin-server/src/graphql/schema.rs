@@ -514,6 +514,9 @@ impl Query {
     async fn pending_credit_facility(
         &self,
         ctx: &Context<'_>,
+        #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply(
+            "PendingCreditFacility".to_string()
+        ))]
         id: UUID,
     ) -> async_graphql::Result<Option<PendingCreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);

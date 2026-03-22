@@ -59,6 +59,12 @@ struct SchemaInputField {
 }
 
 #[derive(Debug, Clone)]
+struct SchemaFieldArgument {
+    ty: String,
+    entity_ref_type: Option<String>,
+}
+
+#[derive(Debug, Clone)]
 struct AutomationToken {
     token: String,
     path: String,
@@ -449,10 +455,16 @@ fn parse_schema_workflow(schema: &str) -> anyhow::Result<WorkflowDefinition> {
         if operation_to_command(operation).is_err() {
             continue;
         }
-        let requires = merge_required_tokens(
-            derive_input_requires(&parse_argument_types(trimmed)?, &input_types, &object_types)?,
-            parse_directive_values(trimmed, "workflow_require", "token")?,
-        );
+        let explicit_requires = parse_directive_values(trimmed, "workflow_require", "token")?;
+        let requires = if explicit_requires.is_empty() {
+            derive_field_requires(
+                &parse_field_arguments(trimmed)?,
+                &input_types,
+                &object_types,
+            )?
+        } else {
+            explicit_requires
+        };
         let parsed_doc = ParsedWorkflowDoc {
             description: dedent_block(&description).trim().to_string(),
             automation: AutomationDefinition {
@@ -792,7 +804,7 @@ fn dedent_block(block: &str) -> String {
         .join("\n")
 }
 
-fn parse_argument_types(line: &str) -> anyhow::Result<Vec<String>> {
+fn parse_field_arguments(line: &str) -> anyhow::Result<Vec<SchemaFieldArgument>> {
     let Some(open_index) = line.find('(') else {
         return Ok(Vec::new());
     };
@@ -824,7 +836,7 @@ fn parse_argument_types(line: &str) -> anyhow::Result<Vec<String>> {
         return Ok(Vec::new());
     }
 
-    let mut types = Vec::new();
+    let mut args_out = Vec::new();
     let mut start = 0usize;
     let mut paren_depth = 0usize;
     let mut brace_depth = 0usize;
@@ -839,8 +851,8 @@ fn parse_argument_types(line: &str) -> anyhow::Result<Vec<String>> {
             '[' => bracket_depth += 1,
             ']' => bracket_depth = bracket_depth.saturating_sub(1),
             ',' if paren_depth == 0 && brace_depth == 0 && bracket_depth == 0 => {
-                if let Some(arg_type) = parse_argument_type(&args[start..idx])? {
-                    types.push(arg_type);
+                if let Some(argument) = parse_field_argument(&args[start..idx])? {
+                    args_out.push(argument);
                 }
                 start = idx + 1;
             }
@@ -848,14 +860,14 @@ fn parse_argument_types(line: &str) -> anyhow::Result<Vec<String>> {
         }
     }
 
-    if let Some(arg_type) = parse_argument_type(&args[start..])? {
-        types.push(arg_type);
+    if let Some(argument) = parse_field_argument(&args[start..])? {
+        args_out.push(argument);
     }
 
-    Ok(types)
+    Ok(args_out)
 }
 
-fn parse_argument_type(argument: &str) -> anyhow::Result<Option<String>> {
+fn parse_field_argument(argument: &str) -> anyhow::Result<Option<SchemaFieldArgument>> {
     let argument = argument.trim();
     if argument.is_empty() {
         return Ok(None);
@@ -863,25 +875,39 @@ fn parse_argument_type(argument: &str) -> anyhow::Result<Option<String>> {
     let Some((_, rest)) = argument.split_once(':') else {
         bail!("expected GraphQL argument definition, got `{argument}`");
     };
+    let rest = rest.trim();
     let type_ref = rest
         .trim()
         .split_whitespace()
         .next()
         .with_context(|| format!("missing argument type in `{argument}`"))?;
-    Ok(Some(strip_type_wrappers(type_ref)))
+    let entity_ref_type = parse_directive_values(argument, "entity_ref", "type")?
+        .into_iter()
+        .next();
+    Ok(Some(SchemaFieldArgument {
+        ty: strip_type_wrappers(type_ref),
+        entity_ref_type,
+    }))
 }
 
-fn derive_input_requires(
-    argument_types: &[String],
+fn derive_field_requires(
+    arguments: &[SchemaFieldArgument],
     input_types: &BTreeMap<String, SchemaInputType>,
     object_types: &BTreeMap<String, SchemaObjectType>,
 ) -> anyhow::Result<Vec<String>> {
     let mut required = Vec::new();
     let mut visiting = BTreeSet::new();
 
-    for argument_type in argument_types {
+    for argument in arguments {
+        if let Some(entity_type) = &argument.entity_ref_type {
+            let token = derive_key_field(entity_type, object_types).with_context(|| {
+                format!("entity_ref(type: \"{entity_type}\") has no key field in schema")
+            })?;
+            required.push(token);
+            continue;
+        }
         collect_input_requires(
-            argument_type,
+            &argument.ty,
             input_types,
             object_types,
             &mut visiting,
@@ -921,19 +947,6 @@ fn collect_input_requires(
 
     visiting.remove(type_name);
     Ok(())
-}
-
-fn merge_required_tokens(derived: Vec<String>, explicit: Vec<String>) -> Vec<String> {
-    let mut merged = Vec::new();
-    let mut seen = BTreeSet::new();
-
-    for token in derived.into_iter().chain(explicit) {
-        if seen.insert(token.clone()) {
-            merged.push(token);
-        }
-    }
-
-    merged
 }
 
 fn parse_produced_token(entry: &str) -> anyhow::Result<AutomationToken> {

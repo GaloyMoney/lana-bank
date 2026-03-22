@@ -2608,7 +2608,7 @@ type Query {
 	"""
 	Get a pending credit facility.
 	"""
-	pendingCreditFacility(id: UUID!): PendingCreditFacility @workflow_require(token: "creditFacilityProposalId") @workflow_require(token: "creditFacilityProposal.approvalProcessId") @workflow_output(path: "pendingCreditFacility.creditFacilityId") @workflow_output(path: "pendingCreditFacility.collateralId")
+	pendingCreditFacility(id: UUID! @entity_ref(type: "PendingCreditFacility")): PendingCreditFacility @workflow_require(token: "creditFacilityProposalId") @workflow_require(token: "creditFacilityProposal.approvalProcessId") @workflow_output(path: "pendingCreditFacility.creditFacilityId") @workflow_output(path: "pendingCreditFacility.collateralId")
 	permissionSets(after: String, first: Int!): PermissionSetConnection!
 	policies(after: String, first: Int!): PolicyConnection!
 	policy(id: UUID!): Policy
