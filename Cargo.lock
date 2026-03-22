@@ -2319,8 +2319,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.10.30"
-source = "git+https://github.com/GaloyMoney/es-entity?branch=feat%2Fgraphql-scalar-entity-ids#746cbdfe64637e72e5a6c9c18c748b69637dd0d1"
+version = "0.10.29"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67631280c1be9837dd7b41e6cb0b562674608811ccada5cf4c7a7b0456517a55"
 dependencies = [
  "async-graphql",
  "base64",
@@ -2345,8 +2346,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.10.30"
-source = "git+https://github.com/GaloyMoney/es-entity?branch=feat%2Fgraphql-scalar-entity-ids#746cbdfe64637e72e5a6c9c18c748b69637dd0d1"
+version = "0.10.29"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d998d6ef557136949af7120fa95ba5d629d711bf5e631819e85ed20ac4eb0355"
 dependencies = [
  "convert_case",
  "darling 0.23.0",
