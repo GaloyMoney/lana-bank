@@ -1853,7 +1853,7 @@ union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
 
 input LedgerManualTransactionExecuteInput {
 	description: String!
-	effective: Date
+	effective: Date!
 	entries: [ManualTransactionEntryInput!]!
 	reference: String
 }
@@ -2556,7 +2556,7 @@ type Query {
 	policies(after: String, first: Int!): PolicyConnection!
 	policy(id: UUID!): Policy
 	priceProviders(after: String, first: Int!, sort: PriceProvidersSort = {by: CREATED_AT, direction: DESC}): PriceProviderConnection!
-	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
+	profitAndLossStatement(from: Date!, until: Date!): ProfitAndLossStatement!
 	prospect(id: UUID!): Prospect
 	prospectByPublicId(id: PublicId!): Prospect
 	prospects(after: String, filter: ProspectsFilter, first: Int!, sort: ProspectsSort = {by: CREATED_AT, direction: DESC}): ProspectConnection!

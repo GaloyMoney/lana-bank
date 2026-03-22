@@ -362,7 +362,7 @@ impl Test {
                 &self.chart.reference,
                 None,
                 format!("Transaction {}", self.accounts.len()),
-                Some(effective_tx_date),
+                effective_tx_date,
                 vec![
                     ManualEntryInput::builder()
                         .account_id_or_code(AccountIdOrCode::Code("11.01.0101".parse().unwrap()))

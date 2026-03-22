@@ -1092,15 +1092,20 @@ impl Query {
         &self,
         ctx: &Context<'_>,
         from: Date,
-        until: Option<Date>,
+        until: Date,
     ) -> async_graphql::Result<ProfitAndLossStatement> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let from = from.into_inner();
-        let until = until.map(|t| t.into_inner());
+        let until = until.into_inner();
         let profit_and_loss = app
             .accounting()
             .profit_and_loss()
-            .pl_statement(sub, PROFIT_AND_LOSS_STATEMENT_NAME.to_string(), from, until)
+            .pl_statement(
+                sub,
+                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+                from,
+                Some(until),
+            )
             .await?;
         Ok(ProfitAndLossStatement::new(profit_and_loss, from, until))
     }
@@ -1704,7 +1709,7 @@ impl Mutation {
                 CHART_REF.0,
                 input.reference,
                 input.description,
-                input.effective.map(|ts| ts.into_inner()),
+                input.effective.into_inner(),
                 entries
             )
         )

@@ -51,7 +51,7 @@ async fn manual_transaction_fails_for_unopened_fiscal_year() -> anyhow::Result<(
             &chart.reference,
             None,
             "Test transaction 1".to_string(),
-            None,
+            chrono::Utc::now().date_naive(),
             entries,
         )
         .await;
@@ -107,7 +107,7 @@ async fn manual_transaction() -> anyhow::Result<()> {
             &chart.reference,
             None,
             "Test transaction 1".to_string(),
-            None,
+            chrono::Utc::now().date_naive(),
             entries,
         )
         .await?;
@@ -167,7 +167,7 @@ async fn ledger_transactions_by_template_code() -> anyhow::Result<()> {
             &chart.reference,
             None,
             "Test transaction 1".to_string(),
-            None,
+            chrono::Utc::now().date_naive(),
             entries,
         )
         .await?;

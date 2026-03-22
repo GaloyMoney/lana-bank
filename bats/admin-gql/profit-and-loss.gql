@@ -1,5 +1,5 @@
-query ProfitAndLossStatement($from: Timestamp!) {
-  profitAndLossStatement(from: $from) {
+query ProfitAndLossStatement($from: Timestamp!, $until: Date!) {
+  profitAndLossStatement(from: $from, until: $until) {
     name
     net {
       ...amountsByCurrency

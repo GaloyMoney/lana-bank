@@ -421,7 +421,7 @@ where
         chart_ref: &str,
         reference: Option<String>,
         description: String,
-        effective: Option<chrono::NaiveDate>,
+        effective: chrono::NaiveDate,
         entries: Vec<ManualEntryInput>,
     ) -> Result<
         LedgerTransaction<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
@@ -429,14 +429,7 @@ where
     > {
         let tx = self
             .manual_transactions
-            .execute(
-                sub,
-                chart_ref,
-                reference,
-                description,
-                effective.unwrap_or_else(|| self.clock.today()),
-                entries,
-            )
+            .execute(sub, chart_ref, reference, description, effective, entries)
             .await?;
 
         let ledger_tx_id = tx.ledger_transaction_id;

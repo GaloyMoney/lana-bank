@@ -1923,7 +1923,7 @@ export type LedgerAccountEntity = Collateral | CreditFacility | DepositAccount;
 
 export type LedgerManualTransactionExecuteInput = {
   description: Scalars['String']['input'];
-  effective?: InputMaybe<Scalars['Date']['input']>;
+  effective: Scalars['Date']['input'];
   entries: Array<ManualTransactionEntryInput>;
   reference?: InputMaybe<Scalars['String']['input']>;
 };
@@ -3247,7 +3247,7 @@ export type QueryPriceProvidersArgs = {
 
 export type QueryProfitAndLossStatementArgs = {
   from: Scalars['Date']['input'];
-  until?: InputMaybe<Scalars['Date']['input']>;
+  until: Scalars['Date']['input'];
 };
 
 
@@ -5348,7 +5348,7 @@ export type PriceProviderConfigUpdateMutation = { __typename?: 'Mutation', price
 
 export type ProfitAndLossStatementQueryVariables = Exact<{
   from: Scalars['Date']['input'];
-  until?: InputMaybe<Scalars['Date']['input']>;
+  until: Scalars['Date']['input'];
 }>;
 
 
@@ -12802,7 +12802,7 @@ export type PriceProviderConfigUpdateMutationHookResult = ReturnType<typeof useP
 export type PriceProviderConfigUpdateMutationResult = Apollo.MutationResult<PriceProviderConfigUpdateMutation>;
 export type PriceProviderConfigUpdateMutationOptions = Apollo.BaseMutationOptions<PriceProviderConfigUpdateMutation, PriceProviderConfigUpdateMutationVariables>;
 export const ProfitAndLossStatementDocument = gql`
-    query ProfitAndLossStatement($from: Date!, $until: Date) {
+    query ProfitAndLossStatement($from: Date!, $until: Date!) {
   profitAndLossStatement(from: $from, until: $until) {
     name
     total {

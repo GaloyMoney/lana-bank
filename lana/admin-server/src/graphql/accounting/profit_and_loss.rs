@@ -25,14 +25,14 @@ pub struct ProfitAndLossStatement {
     #[graphql(skip)]
     from: NaiveDate,
     #[graphql(skip)]
-    until: Option<NaiveDate>,
+    until: NaiveDate,
 }
 
 impl ProfitAndLossStatement {
     pub fn new(
         profit_and_loss: DomainProfitAndLossStatement,
         from: NaiveDate,
-        until: Option<NaiveDate>,
+        until: NaiveDate,
     ) -> Self {
         Self {
             name: profit_and_loss.name.to_string(),
@@ -99,11 +99,11 @@ pub struct ProfitAndLossAccount {
     #[graphql(skip)]
     from: NaiveDate,
     #[graphql(skip)]
-    until: Option<NaiveDate>,
+    until: NaiveDate,
 }
 
 impl ProfitAndLossAccount {
-    pub fn new(account: DomainLedgerAccount, from: NaiveDate, until: Option<NaiveDate>) -> Self {
+    pub fn new(account: DomainLedgerAccount, from: NaiveDate, until: NaiveDate) -> Self {
         Self {
             ledger_account_id: UUID::from(account.id),
             code: account.code.as_ref().map(|code| code.into()),
