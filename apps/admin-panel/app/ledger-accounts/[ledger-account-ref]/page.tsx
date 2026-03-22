@@ -107,7 +107,6 @@ gql`
         cursor
         node {
           ledgerEntryId
-          txId
           entryType
           amount {
             __typename
@@ -122,6 +121,9 @@ gql`
           direction
           layer
           createdAt
+          ledgerTransaction {
+            ledgerTransactionId
+          }
           ledgerAccount {
             ledgerAccountId
             code
@@ -213,10 +215,11 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       key: "ledgerTransaction",
       label: t("table.columns.transactionId"),
       render: (_, record) => {
+        const txId = record.ledgerTransaction.ledgerTransactionId
         return (
-          <Link className="hover:underline" href={`/ledger-transactions/${record.txId}`}>
-            {record.txId.substring(0, 6)}...
-            {record.txId.substring(record.txId.length - 6)}
+          <Link className="hover:underline" href={`/ledger-transactions/${txId}`}>
+            {txId.substring(0, 6)}...
+            {txId.substring(txId.length - 6)}
           </Link>
         )
       },

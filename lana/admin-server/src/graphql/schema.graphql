@@ -1817,7 +1817,6 @@ type LedgerEntry @entity_key(field: "ledgerEntryId") {
 	ledgerAccount: LedgerAccount!
 	ledgerEntryId: UUID!
 	ledgerTransaction: LedgerTransaction!
-	txId: UUID!
 }
 
 union LedgerEntryAmount = UsdAmount | BtcAmount
