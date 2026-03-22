@@ -154,6 +154,13 @@ where
             ),
         );
 
+        let collect_for_collateralization_spawner = jobs.add_initializer(
+            jobs::collect_facilities_for_collateralization::CollectFacilitiesForCollateralizationJobInit::new(
+                repo.as_ref(),
+                update_collateralization_spawner.clone(),
+            ),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
@@ -165,7 +172,7 @@ where
                     E,
                 >::new(
                     update_collateralization_spawner,
-                    repo.clone(),
+                    collect_for_collateralization_spawner,
                     collaterals.clone(),
                     ledger.clone(),
                     authz.clone(),

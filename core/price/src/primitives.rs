@@ -123,6 +123,46 @@ impl From<ProviderAction> for CorePriceAction {
 
 pub type PriceProviderAllOrOne = AllOrOne<PriceProviderId>;
 
+mod price_sqlx_impls {
+    use sqlx::{Type, postgres::*};
+
+    use money::UsdCents;
+
+    use super::PriceOfOneBTC;
+
+    impl Type<Postgres> for PriceOfOneBTC {
+        fn type_info() -> PgTypeInfo {
+            <UsdCents as Type<Postgres>>::type_info()
+        }
+
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <UsdCents as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl sqlx::Encode<'_, Postgres> for PriceOfOneBTC {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            self.into_inner().encode_by_ref(buf)
+        }
+    }
+
+    impl<'r> sqlx::Decode<'r, Postgres> for PriceOfOneBTC {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let cents = UsdCents::decode(value)?;
+            Ok(PriceOfOneBTC::new(cents))
+        }
+    }
+
+    impl PgHasArrayType for PriceOfOneBTC {
+        fn array_type_info() -> PgTypeInfo {
+            <UsdCents as PgHasArrayType>::array_type_info()
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]

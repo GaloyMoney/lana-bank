@@ -1,9 +1,7 @@
 use tracing::{Span, instrument};
-use tracing_macros::record_error_severity;
 
-use std::sync::Arc;
+use std::{marker::PhantomData, sync::Arc};
 
-use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::GovernanceEvent;
 use obix::out::{
@@ -12,22 +10,16 @@ use obix::out::{
 
 use job::{JobId, JobSpawner, JobType};
 
-use core_credit_collateral::{
-    Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
-};
+use core_credit_collateral::{Collaterals, CoreCreditCollateralEvent};
 use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 use core_custody::CoreCustodyEvent;
 use core_price::CorePriceEvent;
 
-use crate::{
-    CoreCreditCollectionEvent, CoreCreditEvent,
-    credit_facility::{
-        CreditFacilitiesByCollateralizationRatioCursor, CreditFacilityRepo, CreditFacilityStatus,
-    },
-    ledger::*,
-    primitives::*,
-};
+use crate::{CoreCreditCollectionEvent, CoreCreditEvent, ledger::CreditLedger};
 
+use super::collect_facilities_for_collateralization::{
+    CollectFacilitiesForCollateralizationJobConfig, CollectFacilitiesForCollateralizationJobSpawner,
+};
 use super::update_collateralization::UpdateCollateralizationConfig;
 
 pub const CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
@@ -43,10 +35,8 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     update_collateralization: JobSpawner<UpdateCollateralizationConfig>,
-    repo: Arc<CreditFacilityRepo<E>>,
-    collaterals: Arc<Collaterals<Perms, E>>,
-    ledger: Arc<CreditLedger>,
-    authz: Arc<Perms>,
+    collect_for_collateralization: CollectFacilitiesForCollateralizationJobSpawner,
+    _phantom: PhantomData<(Perms, E)>,
 }
 
 impl<Perms, E> CreditFacilityCollateralizationFromEventsHandler<Perms, E>
@@ -60,17 +50,15 @@ where
 {
     pub fn new(
         update_collateralization: JobSpawner<UpdateCollateralizationConfig>,
-        repo: Arc<CreditFacilityRepo<E>>,
-        collaterals: Arc<Collaterals<Perms, E>>,
-        ledger: Arc<CreditLedger>,
-        authz: Arc<Perms>,
+        collect_for_collateralization: CollectFacilitiesForCollateralizationJobSpawner,
+        _collaterals: Arc<Collaterals<Perms, E>>,
+        _ledger: Arc<CreditLedger>,
+        _authz: Arc<Perms>,
     ) -> Self {
         Self {
             update_collateralization,
-            repo,
-            collaterals,
-            ledger,
-            authz,
+            collect_for_collateralization,
+            _phantom: PhantomData,
         }
     }
 }
@@ -78,12 +66,6 @@ where
 impl<Perms, E> OutboxEventHandler<E> for CreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<CoreCreditCollectionAction>
-        + From<CoreCreditCollateralAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<CoreCreditCollectionObject>
-        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
@@ -164,105 +146,14 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", tracing::field::display(&message.event_type));
 
-                self.update_collateralization_from_price_event(*price)
+                self.collect_for_collateralization
+                    .spawn(
+                        JobId::new(),
+                        CollectFacilitiesForCollateralizationJobConfig { price: *price },
+                    )
                     .await?;
             }
             _ => {}
-        }
-        Ok(())
-    }
-}
-
-impl<Perms, E> CreditFacilityCollateralizationFromEventsHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<CoreCreditCollectionAction>
-        + From<CoreCreditCollateralAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<CoreCreditCollectionObject>
-        + From<CoreCreditCollateralObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
-{
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.update_collateralization_from_price_event",
-        skip(self)
-    )]
-    pub(super) async fn update_collateralization_from_price_event(
-        &self,
-        price: PriceOfOneBTC,
-    ) -> Result<(), crate::credit_facility::error::CreditFacilityError> {
-        let mut has_next_page = true;
-        let mut after: Option<CreditFacilitiesByCollateralizationRatioCursor> = None;
-        while has_next_page {
-            let credit_facilities =
-                self.repo
-                    .list_by_collateralization_ratio(
-                        es_entity::PaginatedQueryArgs::<
-                            CreditFacilitiesByCollateralizationRatioCursor,
-                        > {
-                            first: 10,
-                            after,
-                        },
-                        es_entity::ListDirection::Ascending,
-                    )
-                    .await?;
-            (after, has_next_page) = (
-                credit_facilities.end_cursor,
-                credit_facilities.has_next_page,
-            );
-            let mut op = self.repo.begin_op().await?;
-            self.authz
-                .audit()
-                .record_system_entry_in_op(
-                    &mut op,
-                    crate::primitives::COLLATERALIZATION_SYNC,
-                    CoreCreditObject::all_credit_facilities(),
-                    CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
-                )
-                .await?;
-
-            let mut updated = Vec::new();
-            for mut facility in credit_facilities.entities {
-                tracing::Span::current().record("credit_facility_id", facility.id.to_string());
-
-                if facility.status() == CreditFacilityStatus::Closed {
-                    continue;
-                }
-                let collateral_account_id = self
-                    .collaterals
-                    .collateral_ledger_account_ids_in_op(&mut op, facility.collateral_id)
-                    .await?
-                    .collateral_account_id;
-
-                let balances = self
-                    .ledger
-                    .get_credit_facility_balance_in_op(
-                        &mut op,
-                        facility.account_ids,
-                        collateral_account_id,
-                    )
-                    .await?;
-                if facility
-                    .update_collateralization(price, CVLPct::UPGRADE_BUFFER, balances)
-                    .did_execute()
-                {
-                    updated.push(facility);
-                }
-            }
-
-            let n = self.repo.update_all_in_op(&mut op, &mut updated).await?;
-
-            if n > 0 {
-                op.commit().await?;
-            } else {
-                break;
-            }
         }
         Ok(())
     }

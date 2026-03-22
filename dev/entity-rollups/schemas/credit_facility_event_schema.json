@@ -611,6 +611,38 @@
     },
     {
       "properties": {
+        "lower_price_threshold": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PriceOfOneBTC"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "type": {
+          "const": "collateralization_thresholds_updated",
+          "type": "string"
+        },
+        "upper_price_threshold": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PriceOfOneBTC"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
         "type": {
           "const": "matured",
           "type": "string"

@@ -363,6 +363,8 @@ CREATE TABLE core_credit_facilities (
   status VARCHAR NOT NULL,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   maturity_date DATE,
+  state_lower_price_threshold BIGINT,
+  state_upper_price_threshold BIGINT,
   created_at TIMESTAMPTZ NOT NULL
 );
 

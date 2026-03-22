@@ -10,7 +10,7 @@ json-schema = ["dep:schemars", "money/json-schema", "es-entity/json-schema"]
 
 [dependencies]
 bfx-client = { workspace = true }
-money = { workspace = true }
+money = { workspace = true, features = ["sqlx"] }
 
 permission-sets-macro = { workspace = true }
 audit = { workspace = true }

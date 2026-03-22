@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use money::UsdCents;
+use core_price::PriceOfOneBTC;
+use money::{Satoshis, UsdCents};
 
 use std::fmt;
 
@@ -79,6 +80,21 @@ impl CVLPct {
 
     pub fn is_significantly_lower_than(&self, other: CVLPct, buffer: CVLPct) -> bool {
         other > *self + buffer
+    }
+
+    pub fn to_trigger_price(self, outstanding: UsdCents, collateral: Satoshis) -> PriceOfOneBTC {
+        match self {
+            Self::Finite(pct) => {
+                let price_usd = pct / dec!(100) * outstanding.to_usd() / collateral.to_btc();
+                PriceOfOneBTC::new(
+                    UsdCents::try_from_usd(
+                        price_usd.round_dp_with_strategy(2, RoundingStrategy::ToZero),
+                    )
+                    .expect("price threshold is valid"),
+                )
+            }
+            Self::Infinite => unreachable!("cannot convert infinite CVL to a trigger price"),
+        }
     }
 
     #[cfg(test)]
