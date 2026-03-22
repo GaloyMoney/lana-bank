@@ -26,7 +26,7 @@ pub enum DepositAccountHistoryEntry {
 #[graphql(complex)]
 pub struct DepositEntry {
     #[graphql(skip)]
-    pub tx_id: DepositId,
+    pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }
 
@@ -34,14 +34,14 @@ pub struct DepositEntry {
 #[graphql(complex)]
 pub struct WithdrawalEntry {
     #[graphql(skip)]
-    pub tx_id: WithdrawalId,
+    pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct CancelledWithdrawalEntry {
     #[graphql(skip)]
-    pub tx_id: WithdrawalId,
+    pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }
 
@@ -49,7 +49,7 @@ pub struct CancelledWithdrawalEntry {
 #[graphql(complex)]
 pub struct DisbursalEntry {
     #[graphql(skip)]
-    pub tx_id: DisbursalId,
+    pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }
 
@@ -63,21 +63,21 @@ pub struct PaymentEntry {
 
 #[derive(SimpleObject)]
 pub struct FreezeEntry {
-    pub tx_id: UUID,
+    pub ledger_transaction_id: UUID,
     pub recorded_at: Timestamp,
     pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]
 pub struct UnfreezeEntry {
-    pub tx_id: UUID,
+    pub ledger_transaction_id: UUID,
     pub recorded_at: Timestamp,
     pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]
 pub struct UnknownEntry {
-    pub tx_id: UUID,
+    pub ledger_transaction_id: UUID,
     pub recorded_at: Timestamp,
 }
 
@@ -163,51 +163,51 @@ impl From<lana_app::deposit::DepositAccountHistoryEntry> for DepositAccountHisto
         match entry {
             lana_app::deposit::DepositAccountHistoryEntry::Deposit(entry) => {
                 Self::Deposit(DepositEntry {
-                    tx_id: entry.tx_id.into(),
+                    tx_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Withdrawal(entry) => {
                 Self::Withdrawal(WithdrawalEntry {
-                    tx_id: entry.tx_id.into(),
+                    tx_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::CancelledWithdrawal(entry) => {
                 Self::CancelledWithdrawal(CancelledWithdrawalEntry {
-                    tx_id: entry.tx_id.into(),
+                    tx_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Disbursal(entry) => {
                 Self::Disbursal(DisbursalEntry {
-                    tx_id: entry.tx_id.into(),
+                    tx_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Payment(entry) => {
                 Self::Payment(PaymentEntry {
-                    tx_id: entry.tx_id.into(),
+                    tx_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Freeze(entry) => {
                 Self::Freeze(FreezeEntry {
-                    tx_id: entry.tx_id.into(),
+                    ledger_transaction_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                     amount: entry.amount,
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Unfreeze(entry) => {
                 Self::Unfreeze(UnfreezeEntry {
-                    tx_id: entry.tx_id.into(),
+                    ledger_transaction_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                     amount: entry.amount,
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Unknown(entry) => {
                 Self::Unknown(UnknownEntry {
-                    tx_id: entry.tx_id.into(),
+                    ledger_transaction_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
                 })
             }

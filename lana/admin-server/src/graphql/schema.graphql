@@ -517,8 +517,8 @@ enum CreditFacilityAgreementStatus {
 type CreditFacilityApproved {
 	cents: UsdCents!
 	effective: Date!
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 type CreditFacilityBalance {
@@ -535,16 +535,16 @@ type CreditFacilityBalance {
 type CreditFacilityCollateralSentOut {
 	amount: Satoshis!
 	effective: Date!
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 type CreditFacilityCollateralUpdated {
 	direction: CollateralDirection!
 	effective: Date!
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
 	satoshis: Satoshis!
-	txId: UUID!
 }
 
 type CreditFacilityCollateralizationUpdated {
@@ -624,8 +624,8 @@ type CreditFacilityDisbursalEdge {
 type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
 	effective: Date!
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 input CreditFacilityDisbursalInitiateInput {
@@ -658,16 +658,16 @@ scalar CreditFacilityId
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
 	effective: Date!
+	paymentId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 type CreditFacilityInterestAccrued {
 	cents: UsdCents!
 	days: Int!
 	effective: Date!
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 type CreditFacilityLedgerAccounts {
@@ -916,8 +916,8 @@ enum CreditFacilityProposalsSortBy {
 type CreditFacilityRepaymentAmountReceived {
 	cents: UsdCents!
 	effective: Date!
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 type CreditFacilityRepaymentPlanEntry {
@@ -1719,8 +1719,8 @@ enum FiscalYearsSortBy {
 
 type FreezeEntry {
 	amount: UsdCents!
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 type GovernanceNavigationItems {
@@ -3010,13 +3010,13 @@ scalar UUID
 
 type UnfreezeEntry {
 	amount: UsdCents!
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 type UnknownEntry {
+	ledgerTransactionId: UUID!
 	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 """
