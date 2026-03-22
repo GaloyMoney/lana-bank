@@ -16,7 +16,7 @@ import { ModuleConfigUpdateDialog } from "./module-config-update-dialog"
 
 import {
   DepositAccountConfigDocument,
-  DepositModuleConfig,
+  DepositAccountModuleConfig,
   DepositAccountModuleConfigureInput,
   useDepositAccountModuleConfigureMutation,
 } from "@/lib/graphql/generated"
@@ -50,7 +50,7 @@ gql`
 type DepositConfigUpdateDialogProps = {
   setOpen: (isOpen: boolean) => void
   open: boolean
-  depositModuleConfig?: DepositModuleConfig
+  depositModuleConfig?: DepositAccountModuleConfig
   accountSetOptions?: AccountSetOption[]
   accountSetOptionsError?: boolean
 }

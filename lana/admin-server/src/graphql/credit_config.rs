@@ -5,7 +5,7 @@ use crate::primitives::*;
 pub use lana_app::credit::ChartOfAccountsIntegrationConfig as DomainChartOfAccountsIntegrationConfig;
 
 #[derive(SimpleObject, Clone)]
-pub struct CreditModuleConfig {
+pub struct CreditFacilityModuleConfig {
     chart_of_accounts_id: Option<UUID>,
     chart_of_account_facility_omnibus_parent_code: Option<String>,
     chart_of_account_collateral_omnibus_parent_code: Option<String>,
@@ -81,7 +81,7 @@ pub struct CreditModuleConfig {
     pub(super) _entity: Arc<DomainChartOfAccountsIntegrationConfig>,
 }
 
-impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
+impl From<DomainChartOfAccountsIntegrationConfig> for CreditFacilityModuleConfig {
     fn from(values: DomainChartOfAccountsIntegrationConfig) -> Self {
         Self {
             chart_of_accounts_id: Some(values.chart_of_accounts_id.into()),
@@ -403,4 +403,4 @@ pub struct CreditFacilityModuleConfigureInput {
         String,
     pub chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code: String,
 }
-crate::mutation_payload! { CreditFacilityModuleConfigurePayload, credit_facility_config: CreditModuleConfig }
+crate::mutation_payload! { CreditFacilityModuleConfigurePayload, credit_facility_config: CreditFacilityModuleConfig }

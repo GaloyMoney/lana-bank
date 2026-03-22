@@ -1,5 +1,5 @@
 import {
-  CreditModuleConfig,
+  CreditFacilityModuleConfig,
   CreditFacilityModuleConfigureInput,
 } from "@/lib/graphql/generated"
 
@@ -304,13 +304,13 @@ const buildFormData = (
 export const CREDIT_EMPTY_FORM_DATA = buildFormData(() => "")
 
 export const buildCreditFormDataFromConfig = (
-  creditModuleConfig?: CreditModuleConfig,
+  creditModuleConfig?: CreditFacilityModuleConfig,
 ): CreditFacilityModuleConfigureInput => {
   const updatedFormData = { ...CREDIT_EMPTY_FORM_DATA }
   if (!creditModuleConfig) return updatedFormData
 
   CREDIT_CONFIG_FIELDS.forEach((field) => {
-    const value = creditModuleConfig[field.key as keyof CreditModuleConfig]
+    const value = creditModuleConfig[field.key as keyof CreditFacilityModuleConfig]
     if (value) {
       updatedFormData[field.key] = value as string
     }

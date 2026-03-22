@@ -16,7 +16,7 @@ import { ModuleConfigUpdateDialog } from "./module-config-update-dialog"
 
 import {
   CreditFacilityConfigDocument,
-  CreditModuleConfig,
+  CreditFacilityModuleConfig,
   CreditFacilityModuleConfigureInput,
   useCreditFacilityModuleConfigureMutation,
 } from "@/lib/graphql/generated"
@@ -92,7 +92,7 @@ type AccountSetOption = AccountSetOptionBase & {
 type CreditConfigUpdateDialogProps = {
   setOpen: (isOpen: boolean) => void
   open: boolean
-  creditModuleConfig?: CreditModuleConfig
+  creditModuleConfig?: CreditFacilityModuleConfig
   accountSetOptions?: AccountSetOption[]
   accountSetOptionsError?: boolean
 }
