@@ -244,7 +244,7 @@ teardown_file() {
   exec_admin_graphql 'manual-transaction-execute' "$variables"
 
   exec_admin_graphql 'ledger-account-by-code' '{"code":"11.01.0101"}'
-  txId1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
+  txId1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].ledgerTransaction.ledgerTransactionId)
   amount1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
   direction1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
   [[ "$direction1" != "null" ]] || exit 1
@@ -252,7 +252,7 @@ teardown_file() {
   [[ "$entryType1" != "null" ]] || exit 1
 
   exec_admin_graphql 'ledger-account-by-code' '{"code":"61.01"}'
-  txId2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
+  txId2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].ledgerTransaction.ledgerTransactionId)
   amount2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
   direction2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
   [[ "$direction2" != "null" ]] || exit 1
