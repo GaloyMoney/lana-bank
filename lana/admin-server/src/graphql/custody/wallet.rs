@@ -39,9 +39,9 @@ impl Wallet {
 
     async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Custodian> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        Ok(loader
+        loader
             .load_one(self.entity.custodian_id)
             .await?
-            .ok_or_else(|| Error::new("Custodian not found"))?)
+            .ok_or_else(|| Error::new("Custodian not found"))
     }
 }
