@@ -67,6 +67,9 @@ impl LiquidationPaymentAmounts {
         }
     }
 
+    /// Calculates, under current `price`, current `collateral` and
+    /// current `outstanding` amount, amount to liquidate so that
+    /// `target_cvl` holds.
     pub fn calculate_amount_to_liquidate(
         outstanding: UsdCents,
         price: PriceOfOneBTC,
@@ -79,13 +82,13 @@ impl LiquidationPaymentAmounts {
             return Self::ZERO;
         }
 
-        let collateral_major = price.sats_to_cents_round_down(collateral).to_major();
-        let new_outstanding_major = (outstanding - to_receive).to_major();
+        let collateral_usd = price.sats_to_cents_round_down(collateral).to_major();
+        let new_outstanding_usd = (outstanding - to_receive).to_major();
 
-        let to_liquidate_major =
-            (collateral_major - new_outstanding_major * target_ratio).max(Decimal::ZERO);
+        let to_liquidate_usd =
+            (collateral_usd - new_outstanding_usd * target_ratio).max(Decimal::ZERO);
         let to_liquidate_cents =
-            UsdCents::from_major_rounded(to_liquidate_major, RoundingStrategy::AwayFromZero);
+            UsdCents::from_major_rounded(to_liquidate_usd, RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_liquidate_cents);
 
         Self {
@@ -104,16 +107,20 @@ impl LiquidationPaymentAmounts {
             return None;
         }
 
-        let effective_price_major = self.to_receive.to_major() / self.to_liquidate.to_major();
+        let effective_price_usd = self.to_receive.to_major() / self.to_liquidate.to_major();
         let effective_price_cents =
-            UsdCents::from_major_rounded(effective_price_major, RoundingStrategy::AwayFromZero);
+            UsdCents::from_major_rounded(effective_price_usd, RoundingStrategy::AwayFromZero);
 
         Some(PriceOfOneBTC::new(effective_price_cents))
     }
 
     /// Calculates the liquidation premium percentage.
     ///
-    /// Returns `None` if effective price cannot be calculated or if `price` is zero.
+    /// Effective price is the USD cents per BTC that was actually applied,
+    /// calculated as `to_receive / to_liquidate` (in BTC units).
+    ///
+    /// Returns `None` if effective price cannot be calculated (e.g.,
+    /// zero `to_liquidate`) or if `price` is zero.
     pub fn liquidation_premium_pct(&self) -> Option<Decimal> {
         if self.price == PriceOfOneBTC::ZERO {
             None
@@ -124,6 +131,9 @@ impl LiquidationPaymentAmounts {
         }
     }
 
+    /// Calculates, under current `price`, current `collateral` and
+    /// current `outstanding` amount, amount to receive so that
+    /// `target_cvl` holds.
     pub fn calculate_amount_to_receive(
         outstanding: UsdCents,
         price: PriceOfOneBTC,
@@ -136,14 +146,14 @@ impl LiquidationPaymentAmounts {
             return Self::ZERO;
         }
 
-        let new_collateral_major = price
+        let new_collateral_usd = price
             .sats_to_cents_round_down(collateral - to_liquidate)
             .to_major();
 
-        let to_receive_major =
-            (outstanding.to_major() - new_collateral_major / target_ratio).max(Decimal::ZERO);
+        let to_receive_usd =
+            (outstanding.to_major() - new_collateral_usd / target_ratio).max(Decimal::ZERO);
         let to_receive =
-            UsdCents::from_major_rounded(to_receive_major, RoundingStrategy::AwayFromZero);
+            UsdCents::from_major_rounded(to_receive_usd, RoundingStrategy::AwayFromZero);
 
         Self {
             to_liquidate,
@@ -153,6 +163,9 @@ impl LiquidationPaymentAmounts {
         }
     }
 
+    /// Calculates expected payment given `target_cvl` and current
+    /// `outstanding` amount, current `price` and current `collateral`
+    /// amount.
     pub fn calculate_optimal_payment(
         outstanding: UsdCents,
         price: PriceOfOneBTC,
@@ -166,14 +179,14 @@ impl LiquidationPaymentAmounts {
             }
         };
 
-        let outstanding_major = outstanding.to_major();
-        let collateral_major = price.sats_to_cents_round_down(collateral).to_major();
+        let outstanding_usd = outstanding.to_major();
+        let collateral_usd = price.sats_to_cents_round_down(collateral).to_major();
 
-        let to_receive_major = ((outstanding_major * target_ratio - collateral_major)
+        let to_receive_usd = ((outstanding_usd * target_ratio - collateral_usd)
             / (target_ratio - Self::UNIT_FEE_FACTOR))
             .max(Decimal::ZERO);
         let to_receive =
-            UsdCents::from_major_rounded(to_receive_major, RoundingStrategy::AwayFromZero);
+            UsdCents::from_major_rounded(to_receive_usd, RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_receive);
 
         Self {
@@ -184,6 +197,9 @@ impl LiquidationPaymentAmounts {
         }
     }
 
+    /// Calculates target CVL if, given current `outstanding` amount,
+    /// current `collateral` and current `price`, `to_liquidate` were
+    /// liquidated and `to_receive` were received.
     pub fn calculate_target_cvl(
         outstanding: UsdCents,
         price: PriceOfOneBTC,
@@ -287,13 +303,17 @@ mod test {
             collateral,
         );
 
+        // Verify price field is correctly set
         assert_eq!(res.price, price);
 
+        // Verify effective price is calculated from to_liquidate and to_receive
+        // For standard liquidations, effective price should equal the backend price
         let effective_price = res
             .effective_liquidation_price()
             .expect("should have effective price");
         assert_eq!(effective_price, price);
 
+        // Verify premium is 0% for standard liquidations
         let premium = res.liquidation_premium_pct().expect("should have premium");
         assert_eq!(premium, rust_decimal::Decimal::ZERO);
     }
@@ -316,11 +336,13 @@ mod test {
 
         assert_eq!(res.price, price);
 
+        // Verify effective price is calculated from to_liquidate and to_receive
         let effective_price = res
             .effective_liquidation_price()
             .expect("should have effective price");
         assert_eq!(effective_price, price);
 
+        // Verify premium is 0% for standard liquidations
         let premium = res.liquidation_premium_pct().expect("should have premium");
         assert_eq!(premium, rust_decimal::Decimal::ZERO);
     }
@@ -343,17 +365,24 @@ mod test {
 
         assert_eq!(res.price, price);
 
+        // Verify effective price is calculated from to_liquidate and to_receive
         let effective_price = res
             .effective_liquidation_price()
             .expect("should have effective price");
         assert_eq!(effective_price, price);
 
+        // Verify premium is 0% for standard liquidations
         let premium = res.liquidation_premium_pct().expect("should have premium");
         assert_eq!(premium, rust_decimal::Decimal::ZERO);
     }
 
     #[test]
     fn calculate_target_cvl_effective_price_and_premium() {
+        // Use values that intentionally create a premium with clean division:
+        // to_liquidate = 25,000,000 sats = 0.25 BTC
+        // to_receive = 2,000,000 cents
+        // effective_price = 2,000,000 / 0.25 = 8,000,000 cents/BTC (exact)
+        // premium = (8,000,000 / 6,250,000 - 1) * 100 = 28%
         let price = PriceOfOneBTC::new(UsdCents::from(6_250_000));
 
         let to_liquidate = Satoshis::from(25_000_000);
@@ -372,6 +401,8 @@ mod test {
 
         assert_eq!(res.price, price);
 
+        // Verify effective price is calculated from to_liquidate and to_receive
+        // Expected: 2,000,000 cents / 0.25 BTC = 8,000,000 cents/BTC
         let effective_price = res
             .effective_liquidation_price()
             .expect("should have effective price");
@@ -380,9 +411,14 @@ mod test {
             PriceOfOneBTC::new(UsdCents::from(8_000_000))
         );
 
+        // Verify premium is non-zero: (8,000,000 / 6,250,000 - 1) * 100 = 28%
         let premium = res.liquidation_premium_pct().expect("should have premium");
-        assert_eq!(premium, rust_decimal::Decimal::new(28, 0));
+        assert_eq!(premium, rust_decimal::Decimal::new(28, 0)); // 28%
 
+        // Verify target CVL is still calculated correctly
+        // new_collateral = 75,000,000 sats = 4,687,500 cents (at 6,250,000 cents/BTC)
+        // new_outstanding = 3,000,000 cents
+        // target_cvl = 4,687,500 / 3,000,000 * 100 = 156.25%
         assert_eq!(
             res.target_cvl,
             CVLPct::from_loan_amounts(UsdCents::from(4_687_500), UsdCents::from(3_000_000))
@@ -391,6 +427,8 @@ mod test {
 
     #[test]
     fn effective_price_returns_none_for_zero_to_liquidate() {
+        // Create a payment with zero to_liquidate
+        // Should return None to avoid division by zero
         let payment = LiquidationPaymentAmounts {
             to_liquidate: Satoshis::ZERO,
             to_receive: UsdCents::from(100_000),
