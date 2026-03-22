@@ -100,6 +100,7 @@ impl CreditFacilityDisbursal {
 
 #[derive(InputObject)]
 pub struct CreditFacilityDisbursalInitiateInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("CreditFacility".to_string()))]
     pub credit_facility_id: UUID,
     pub amount: UsdCents,
 }

@@ -146,6 +146,7 @@ crate::mutation_payload! { ProspectClosePayload, prospect: Prospect }
 
 #[derive(InputObject)]
 pub struct ProspectConvertInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("Prospect".to_string()))]
     pub prospect_id: UUID,
 }
 crate::mutation_payload! { ProspectConvertPayload, customer: super::customer::Customer }

@@ -13,6 +13,7 @@ pub use lana_app::credit::Collateral as DomainCollateral;
 
 #[derive(InputObject)]
 pub struct CollateralUpdateInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("Collateral".to_string()))]
     pub collateral_id: UUID,
     pub collateral: Satoshis,
     pub effective: Date,

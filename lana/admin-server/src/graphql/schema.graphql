@@ -322,7 +322,7 @@ type CollateralRecordSentToLiquidationPayload {
 
 input CollateralUpdateInput {
 	collateral: Satoshis!
-	collateralId: UUID!
+	collateralId: UUID! @entity_ref(type: "Collateral")
 	effective: Date!
 }
 
@@ -483,7 +483,7 @@ type CreditFacilityAgreement @entity_key(field: "creditFacilityAgreementId") {
 }
 
 input CreditFacilityAgreementDownloadLinksGenerateInput {
-	creditFacilityAgreementId: UUID!
+	creditFacilityAgreementId: UUID! @entity_ref(type: "CreditFacilityAgreement")
 }
 
 type CreditFacilityAgreementDownloadLinksGeneratePayload {
@@ -491,7 +491,7 @@ type CreditFacilityAgreementDownloadLinksGeneratePayload {
 }
 
 input CreditFacilityAgreementGenerateInput {
-	creditFacilityId: UUID!
+	creditFacilityId: UUID! @entity_ref(type: "CreditFacility")
 }
 
 type CreditFacilityAgreementGeneratePayload {
@@ -620,7 +620,7 @@ type CreditFacilityDisbursalExecuted {
 
 input CreditFacilityDisbursalInitiateInput {
 	amount: UsdCents!
-	creditFacilityId: UUID!
+	creditFacilityId: UUID! @entity_ref(type: "CreditFacility")
 }
 
 type CreditFacilityDisbursalInitiatePayload {
@@ -790,7 +790,7 @@ type CreditFacilityProposalConnection {
 
 input CreditFacilityProposalCreateInput {
 	custodianId: UUID!
-	customerId: UUID!
+	customerId: UUID! @entity_ref(type: "Customer")
 	facility: UsdCents!
 	terms: TermsInput!
 }
@@ -801,7 +801,7 @@ type CreditFacilityProposalCreatePayload {
 
 input CreditFacilityProposalCustomerApprovalConcludeInput {
 	approved: Boolean!
-	creditFacilityProposalId: UUID!
+	creditFacilityProposalId: UUID! @entity_ref(type: "CreditFacilityProposal")
 }
 
 type CreditFacilityProposalCustomerApprovalConcludePayload {
@@ -1249,7 +1249,7 @@ type DepositAccountConnection {
 }
 
 input DepositAccountCreateInput {
-	customerId: UUID!
+	customerId: UUID! @entity_ref(type: "Customer")
 }
 
 type DepositAccountCreatePayload {
@@ -1416,7 +1416,7 @@ type DepositModuleConfig {
 
 input DepositRecordInput {
 	amount: UsdCents!
-	depositAccountId: UUID!
+	depositAccountId: UUID! @entity_ref(type: "DepositAccount")
 	reference: String
 }
 
@@ -2024,18 +2024,18 @@ type Mutation {
 	"""
 	Update collateral for a pending or active facility.
 	"""
-	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload! @workflow_require(token: "collateralId")
+	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeUserAdd(input: CommitteeUserAddInput!): CommitteeUserAddPayload!
 	committeeUserRemove(input: CommitteeUserRemoveInput!): CommitteeUserRemovePayload!
 	"""
 	Generate a download link for an existing loan agreement.
 	"""
-	creditFacilityAgreementDownloadLinkGenerate(input: CreditFacilityAgreementDownloadLinksGenerateInput!): CreditFacilityAgreementDownloadLinksGeneratePayload! @workflow_require(token: "creditFacilityAgreementId")
+	creditFacilityAgreementDownloadLinkGenerate(input: CreditFacilityAgreementDownloadLinksGenerateInput!): CreditFacilityAgreementDownloadLinksGeneratePayload!
 	"""
 	Generate a loan agreement for a credit facility.
 	"""
-	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload! @workflow_require(token: "creditFacilityId")
+	creditFacilityAgreementGenerate(input: CreditFacilityAgreementGenerateInput!): CreditFacilityAgreementGeneratePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	"""
 	Initiate a disbursal for an active credit facility.
@@ -2045,7 +2045,7 @@ type Mutation {
 	disbursal by the time they become active, in which case this mutation can
 	fail with `OnlyOneDisbursalAllowed`.
 	"""
-	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload! @workflow_require(token: "creditFacilityId")
+	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityModuleConfigure(input: CreditFacilityModuleConfigureInput!): CreditFacilityModuleConfigurePayload!
 	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
@@ -2062,11 +2062,11 @@ type Mutation {
 	`creditFacilityDisbursalInitiate` call can fail with
 	`OnlyOneDisbursalAllowed`.
 	"""
-	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload! @workflow_require(token: "customerId")
+	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
 	"""
 	Conclude customer approval for a credit facility proposal.
 	"""
-	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload! @workflow_require(token: "creditFacilityProposalId") @workflow_output(path: "creditFacilityProposal.approvalProcessId")
+	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload! @workflow_output(path: "creditFacilityProposal.approvalProcessId")
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	customerClose(input: CustomerCloseInput!): CustomerClosePayload!
@@ -2082,14 +2082,14 @@ type Mutation {
 	"""
 	Create a deposit account for a customer.
 	"""
-	depositAccountCreate(input: DepositAccountCreateInput!): DepositAccountCreatePayload! @workflow_require(token: "customerId")
+	depositAccountCreate(input: DepositAccountCreateInput!): DepositAccountCreatePayload!
 	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
 	depositAccountModuleConfigure(input: DepositAccountModuleConfigureInput!): DepositAccountModuleConfigurePayload!
 	depositAccountUnfreeze(input: DepositAccountUnfreezeInput!): DepositAccountUnfreezePayload!
 	"""
 	Record a deposit on an account.
 	"""
-	depositRecord(input: DepositRecordInput!): DepositRecordPayload! @workflow_require(token: "depositAccountId")
+	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
 	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
@@ -2107,7 +2107,7 @@ type Mutation {
 	"""
 	Convert a prospect into a customer.
 	"""
-	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload! @workflow_require(token: "prospectId")
+	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
 	"""
 	Create a prospect.
 	"""
@@ -2134,11 +2134,11 @@ type Mutation {
 	"""
 	Confirm a pending withdrawal.
 	"""
-	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload! @workflow_require(token: "withdrawalId")
+	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	"""
 	Initiate a withdrawal from a deposit account.
 	"""
-	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload! @workflow_require(token: "depositAccountId")
+	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
 }
 
@@ -2486,7 +2486,7 @@ type ProspectConnection {
 }
 
 input ProspectConvertInput {
-	prospectId: UUID!
+	prospectId: UUID! @entity_ref(type: "Prospect")
 }
 
 type ProspectConvertPayload {
@@ -3168,7 +3168,7 @@ type WithdrawalCancelPayload {
 }
 
 input WithdrawalConfirmInput {
-	withdrawalId: UUID!
+	withdrawalId: UUID! @entity_ref(type: "Withdrawal")
 }
 
 type WithdrawalConfirmPayload {
@@ -3211,7 +3211,7 @@ type WithdrawalEntry {
 
 input WithdrawalInitiateInput {
 	amount: UsdCents!
-	depositAccountId: UUID!
+	depositAccountId: UUID! @entity_ref(type: "DepositAccount")
 	reference: String
 }
 
@@ -3254,6 +3254,7 @@ enum WithdrawalsSortBy {
 scalar Yaml
 
 directive @entity_key(field: String!) on OBJECT
+directive @entity_ref(type: String!) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 Directs the executor to include this field or fragment only when the `if` argument is true.
 """

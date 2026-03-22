@@ -1514,11 +1514,6 @@ impl Mutation {
     }
 
     /// Convert a prospect into a customer.
-    #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "prospectId".to_string()
-        )
-    )]
     async fn prospect_convert(
         &self,
         ctx: &Context<'_>,
@@ -1733,11 +1728,6 @@ impl Mutation {
     }
 
     /// Record a deposit on an account.
-    #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "depositAccountId".to_string()
-        )
-    )]
     pub async fn deposit_record(
         &self,
         ctx: &Context<'_>,
@@ -1759,11 +1749,6 @@ impl Mutation {
     }
 
     /// Initiate a withdrawal from a deposit account.
-    #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "depositAccountId".to_string()
-        )
-    )]
     pub async fn withdrawal_initiate(
         &self,
         ctx: &Context<'_>,
@@ -1784,11 +1769,6 @@ impl Mutation {
     }
 
     /// Confirm a pending withdrawal.
-    #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "withdrawalId".to_string()
-        )
-    )]
     pub async fn withdrawal_confirm(
         &self,
         ctx: &Context<'_>,
@@ -1847,11 +1827,6 @@ impl Mutation {
     }
 
     /// Create a deposit account for a customer.
-    #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "customerId".to_string()
-        )
-    )]
     pub async fn deposit_account_create(
         &self,
         ctx: &Context<'_>,
@@ -2180,11 +2155,6 @@ impl Mutation {
     /// `creditFacilityDisbursalInitiate` call can fail with
     /// `OnlyOneDisbursalAllowed`.
     ///
-    #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "customerId".to_string()
-        )
-    )]
     pub async fn credit_facility_proposal_create(
         &self,
         ctx: &Context<'_>,
@@ -2216,9 +2186,6 @@ impl Mutation {
 
     /// Conclude customer approval for a credit facility proposal.
     #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "creditFacilityProposalId".to_string()
-        ),
         directive = crate::graphql::workflow_directives::workflow_output::apply(
             "creditFacilityProposal.approvalProcessId".to_string()
         )
@@ -2247,11 +2214,6 @@ impl Mutation {
     }
 
     /// Update collateral for a pending or active facility.
-    #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "collateralId".to_string()
-        )
-    )]
     pub async fn collateral_update(
         &self,
         ctx: &Context<'_>,
@@ -2316,11 +2278,6 @@ impl Mutation {
     /// disbursal by the time they become active, in which case this mutation can
     /// fail with `OnlyOneDisbursalAllowed`.
     ///
-    #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "creditFacilityId".to_string()
-        )
-    )]
     pub async fn credit_facility_disbursal_initiate(
         &self,
         ctx: &Context<'_>,
@@ -2778,11 +2735,6 @@ impl Mutation {
     }
 
     /// Generate a loan agreement for a credit facility.
-    #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "creditFacilityId".to_string()
-        )
-    )]
     pub async fn credit_facility_agreement_generate(
         &self,
         ctx: &Context<'_>,
@@ -2811,11 +2763,6 @@ impl Mutation {
     }
 
     /// Generate a download link for an existing loan agreement.
-    #[graphql(
-        directive = crate::graphql::workflow_directives::workflow_require::apply(
-            "creditFacilityAgreementId".to_string()
-        )
-    )]
     async fn credit_facility_agreement_download_link_generate(
         &self,
         ctx: &Context<'_>,

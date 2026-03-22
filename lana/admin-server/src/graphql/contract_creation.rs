@@ -60,6 +60,7 @@ impl From<lana_app::contract_creation::CreditFacilityAgreement> for CreditFacili
 
 #[derive(InputObject)]
 pub struct CreditFacilityAgreementGenerateInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("CreditFacility".to_string()))]
     pub credit_facility_id: UUID,
 }
 
@@ -67,6 +68,7 @@ crate::mutation_payload! { CreditFacilityAgreementGeneratePayload, credit_facili
 
 #[derive(InputObject)]
 pub struct CreditFacilityAgreementDownloadLinksGenerateInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("CreditFacilityAgreement".to_string()))]
     pub credit_facility_agreement_id: UUID,
 }
 

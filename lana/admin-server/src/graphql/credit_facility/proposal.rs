@@ -163,6 +163,7 @@ impl From<CreditFacilityProposalsSort> for DomainCreditFacilityProposalsSortBy {
 
 #[derive(InputObject)]
 pub struct CreditFacilityProposalCreateInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("Customer".to_string()))]
     pub customer_id: UUID,
     pub facility: UsdCents,
     pub terms: TermsInput,
@@ -172,6 +173,7 @@ crate::mutation_payload! { CreditFacilityProposalCreatePayload, credit_facility_
 
 #[derive(InputObject)]
 pub struct CreditFacilityProposalCustomerApprovalConcludeInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("CreditFacilityProposal".to_string()))]
     pub credit_facility_proposal_id: UUID,
     pub approved: bool,
 }

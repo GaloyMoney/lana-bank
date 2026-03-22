@@ -97,6 +97,7 @@ impl Deposit {
 
 #[derive(InputObject)]
 pub struct DepositRecordInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("DepositAccount".to_string()))]
     pub deposit_account_id: UUID,
     pub amount: UsdCents,
     pub reference: Option<String>,
@@ -105,6 +106,7 @@ crate::mutation_payload! { DepositRecordPayload, deposit: Deposit }
 
 #[derive(InputObject)]
 pub struct DepositAccountCreateInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("Customer".to_string()))]
     pub customer_id: UUID,
 }
 crate::mutation_payload! { DepositAccountCreatePayload, deposit_account: DepositAccount }

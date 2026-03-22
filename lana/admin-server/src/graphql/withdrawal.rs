@@ -108,6 +108,7 @@ impl Withdrawal {
 
 #[derive(InputObject)]
 pub struct WithdrawalInitiateInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("DepositAccount".to_string()))]
     pub deposit_account_id: UUID,
     pub amount: UsdCents,
     pub reference: Option<String>,
@@ -116,6 +117,7 @@ crate::mutation_payload! { WithdrawalInitiatePayload, withdrawal: Withdrawal }
 
 #[derive(InputObject)]
 pub struct WithdrawalConfirmInput {
+    #[graphql(directive = crate::graphql::workflow_directives::entity_ref::apply("Withdrawal".to_string()))]
     pub withdrawal_id: UUID,
 }
 crate::mutation_payload! { WithdrawalConfirmPayload, withdrawal: Withdrawal }
