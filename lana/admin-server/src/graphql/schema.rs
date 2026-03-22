@@ -992,7 +992,7 @@ impl Query {
                 until.into_inner(),
             )
             .await?;
-        Ok(TrialBalance::from(account_summary))
+        Ok(TrialBalance::try_from(account_summary)?)
     }
 
     async fn chart_of_accounts(&self, ctx: &Context<'_>) -> async_graphql::Result<ChartOfAccounts> {
