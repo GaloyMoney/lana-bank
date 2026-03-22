@@ -12,6 +12,11 @@ impl Precision {
     const MIN_DP: u32 = 2;
     const MAX_DP: u32 = 28;
 
+    pub const fn new_const(dp: u32) -> Self {
+        assert!(dp >= Self::MIN_DP && dp <= Self::MAX_DP);
+        Self(dp)
+    }
+
     pub fn try_new(dp: u32) -> Result<Self, ConversionError> {
         if !(Self::MIN_DP..=Self::MAX_DP).contains(&dp) {
             return Err(ConversionError::InvalidPrecision(dp));

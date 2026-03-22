@@ -2,7 +2,7 @@ use rust_decimal::{Decimal, RoundingStrategy};
 
 use core_credit_terms::CVLPct;
 use core_price::PriceOfOneBTC;
-use money::{Satoshis, UsdCents};
+use money::{CalculationAmount, Currency, Satoshis, Usd, UsdCents};
 
 #[derive(Debug, Clone)]
 pub struct LiquidationPaymentAmounts {
@@ -88,7 +88,8 @@ impl LiquidationPaymentAmounts {
         let to_liquidate_usd =
             (collateral_usd - new_outstanding_usd * target_ratio).max(Decimal::ZERO);
         let to_liquidate_cents =
-            UsdCents::from_major_rounded(to_liquidate_usd, RoundingStrategy::AwayFromZero);
+            CalculationAmount::<Usd>::from_major(to_liquidate_usd, Usd::NATURAL_PRECISION)
+                .round_to_minor_units(RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_liquidate_cents);
 
         Self {
@@ -109,7 +110,8 @@ impl LiquidationPaymentAmounts {
 
         let effective_price_usd = self.to_receive.to_major() / self.to_liquidate.to_major();
         let effective_price_cents =
-            UsdCents::from_major_rounded(effective_price_usd, RoundingStrategy::AwayFromZero);
+            CalculationAmount::<Usd>::from_major(effective_price_usd, Usd::NATURAL_PRECISION)
+                .round_to_minor_units(RoundingStrategy::AwayFromZero);
 
         Some(PriceOfOneBTC::new(effective_price_cents))
     }
@@ -153,7 +155,8 @@ impl LiquidationPaymentAmounts {
         let to_receive_usd =
             (outstanding.to_major() - new_collateral_usd / target_ratio).max(Decimal::ZERO);
         let to_receive =
-            UsdCents::from_major_rounded(to_receive_usd, RoundingStrategy::AwayFromZero);
+            CalculationAmount::<Usd>::from_major(to_receive_usd, Usd::NATURAL_PRECISION)
+                .round_to_minor_units(RoundingStrategy::AwayFromZero);
 
         Self {
             to_liquidate,
@@ -186,7 +189,8 @@ impl LiquidationPaymentAmounts {
             / (target_ratio - Self::UNIT_FEE_FACTOR))
             .max(Decimal::ZERO);
         let to_receive =
-            UsdCents::from_major_rounded(to_receive_usd, RoundingStrategy::AwayFromZero);
+            CalculationAmount::<Usd>::from_major(to_receive_usd, Usd::NATURAL_PRECISION)
+                .round_to_minor_units(RoundingStrategy::AwayFromZero);
         let to_liquidate = price.cents_to_sats_round_up(to_receive);
 
         Self {

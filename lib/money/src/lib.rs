@@ -10,7 +10,7 @@ mod rounding_mode;
 
 use std::{fmt, marker::PhantomData};
 
-use rust_decimal::{Decimal, prelude::ToPrimitive};
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "json-schema")]
@@ -33,6 +33,7 @@ pub trait Currency:
 {
     const CODE: CurrencyCode;
     const MINOR_UNITS_PER_MAJOR: u64;
+    const NATURAL_PRECISION: Precision;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -41,6 +42,7 @@ pub struct Usd;
 impl Currency for Usd {
     const CODE: CurrencyCode = CurrencyCode::USD;
     const MINOR_UNITS_PER_MAJOR: u64 = 100;
+    const NATURAL_PRECISION: Precision = Precision::new_const(2);
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -49,6 +51,7 @@ pub struct Btc;
 impl Currency for Btc {
     const CODE: CurrencyCode = CurrencyCode::BTC;
     const MINOR_UNITS_PER_MAJOR: u64 = 100_000_000;
+    const NATURAL_PRECISION: Precision = Precision::new_const(8);
 }
 
 // ---------------------------------------------------------------------------
@@ -83,21 +86,6 @@ impl<C: Currency> MinorUnits<C> {
 
     pub fn is_zero(self) -> bool {
         self.0 == 0
-    }
-
-    /// Round a major-unit Decimal to the nearest minor unit.
-    ///
-    /// # Panics
-    /// Panics if the value is negative or exceeds u64::MAX.
-    pub fn from_major_rounded(major: Decimal, strategy: RoundingStrategy) -> Self {
-        let minor = major * Decimal::from(C::MINOR_UNITS_PER_MAJOR);
-        let rounded = minor.round_dp_with_strategy(0, strategy);
-        Self(
-            rounded
-                .to_u64()
-                .expect("from_major_rounded: value must be non-negative and within u64 range"),
-            PhantomData,
-        )
     }
 }
 

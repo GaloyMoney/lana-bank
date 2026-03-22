@@ -12,9 +12,8 @@ use crate::{Currency, MinorUnits, Precision};
 /// precision; rounding is applied only at explicit rounding boundaries
 /// (`round`, `round_to_minor_units`).
 ///
-/// Use this type only when you need multi-step accumulation before rounding
-/// (e.g., interest accrual). For single-expression arithmetic that immediately
-/// rounds, use `MinorUnits::from_major_rounded` instead.
+/// Use this type for all monetary calculations that involve arithmetic on
+/// major-unit decimals before rounding to minor units.
 ///
 /// Intentionally does NOT implement `Serialize`, `Deserialize`, `sqlx::Encode`,
 /// `sqlx::Decode`, or GraphQL scalars — the only way to persist is through

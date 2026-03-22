@@ -10,7 +10,7 @@ use schemars::JsonSchema;
 use crate::{collateralization::*, cvl::CVLPct, effective_date::*};
 
 use core_price::PriceOfOneBTC;
-use money::{CalculationAmount, Precision, RoundingStrategy, Satoshis, Usd, UsdCents};
+use money::{CalculationAmount, Currency, Precision, RoundingStrategy, Satoshis, Usd, UsdCents};
 
 use super::error::TermsError;
 
@@ -57,10 +57,11 @@ impl OneTimeFeeRatePct {
     }
 
     pub fn apply(&self, amount: UsdCents) -> UsdCents {
-        UsdCents::from_major_rounded(
+        CalculationAmount::<Usd>::from_major(
             amount.to_major() * self.0 / dec!(100),
-            RoundingStrategy::AwayFromZero,
+            Usd::NATURAL_PRECISION,
         )
+        .round_to_minor_units(RoundingStrategy::AwayFromZero)
     }
 }
 

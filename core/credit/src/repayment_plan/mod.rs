@@ -17,6 +17,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use error::CreditFacilityRepaymentPlanError;
 use jobs::credit_facility_repayment_plan;
+use money::Currency as _;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -137,7 +138,7 @@ impl CreditFacilityRepaymentPlan {
                 .interest_for_period(
                     disbursed_outstanding,
                     period.days(),
-                    money::Precision::try_new(2).expect("2 is valid"),
+                    money::Usd::NATURAL_PRECISION,
                 )
                 .round_to_minor_units(rust_decimal::RoundingStrategy::AwayFromZero);
 
